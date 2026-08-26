@@ -1,4 +1,5 @@
 #include "button.h"
+#include "gpio_edge_queue.h"
 #include "hal/printf_selector.h"
 #include "hal/tasks.h"
 #include "hal/timer.h"
@@ -7,10 +8,17 @@
 
 #define BUTTON_INPUT_MAX    16
 
-static button_t *button_inputs[BUTTON_INPUT_MAX];
-static uint8_t   button_input_count;
+static button_t *        button_inputs[BUTTON_INPUT_MAX];
+static uint8_t           button_input_count;
+static gpio_edge_queue_t button_edge_queue;
+static hal_task_t        button_worker_task;
+static bool          button_pipeline_initialized;
+static volatile bool button_worker_scheduled;
 
 static void button_edge_sink(const hal_gpio_edge_t *edge);
+static void button_worker(void *arg);
+static void button_schedule_worker(void);
+static void button_process_edge(const hal_gpio_edge_t *edge);
 void _btn_update_callback(void *arg);
 void btn_update_debounced(button_t *button, uint8_t is_pressed,
                           uint32_t changed_at);
@@ -29,14 +37,49 @@ void btn_init(button_t *button) {
     button->update_task.handler = _btn_update_callback;
     button->update_task.arg     = button;
     hal_tasks_init(&button->update_task);
+    if (!button_pipeline_initialized) {
+        gpio_edge_queue_init(&button_edge_queue);
+        button_worker_task.handler = button_worker;
+        button_worker_task.arg     = NULL;
+        hal_tasks_init(&button_worker_task);
+        hal_gpio_set_edge_sink(button_edge_sink);
+        button_pipeline_initialized = true;
+    }
     if (button_input_count < BUTTON_INPUT_MAX) {
         button_inputs[button_input_count++] = button;
     }
-    hal_gpio_set_edge_sink(button_edge_sink);
     hal_gpio_watch_pin(button->pin);
 }
 
 static void button_edge_sink(const hal_gpio_edge_t *edge) {
+    gpio_edge_queue_push(&button_edge_queue, edge);
+    button_schedule_worker();
+}
+
+static void button_schedule_worker(void) {
+    if (button_worker_scheduled) {
+        return;
+    }
+
+    button_worker_scheduled = true;
+    hal_tasks_schedule(&button_worker_task, 0);
+}
+
+static void button_worker(void *arg) {
+    hal_gpio_edge_t edge;
+
+    (void)arg;
+    while (gpio_edge_queue_pop(&button_edge_queue, &edge)) {
+        button_process_edge(&edge);
+    }
+
+    button_worker_scheduled = false;
+    if (gpio_edge_queue_used(&button_edge_queue) != 0) {
+        button_schedule_worker();
+    }
+}
+
+static void button_process_edge(const hal_gpio_edge_t *edge) {
     button_t *button = NULL;
 
     for (uint8_t i = 0; i < button_input_count; i++) {
@@ -57,6 +100,10 @@ static void button_edge_sink(const hal_gpio_edge_t *edge) {
     button->debounce_last_state  = edge->level;
     button->debounce_last_change = edge->timestamp_ms;
     hal_tasks_schedule(&button->update_task, button->debounce_delay_ms);
+}
+
+uint32_t btn_gpio_edges_dropped(void) {
+    return button_edge_queue.dropped;
 }
 
 void _btn_update_callback(void *arg) {

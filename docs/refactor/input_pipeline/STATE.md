@@ -5,14 +5,14 @@ Tracking board for the input/relay pipeline refactor.
 - Branch: `refactor/input-pipeline`
 - Fork: `desty2k/tuya-zigbee-switch` (upstream `romasku/tuya-zigbee-switch`)
 - Base commit: `bf1059ee`
-- Current position: **stage 1 complete, stage 2 not started**
+- Current position: **stage 2 complete, stage 3 not started**
 
 ## Stages
 
 | # | Stage | Status | PR | Gate |
 | --- | --- | --- | --- | --- |
 | 1 | GPIO edge capture | done | — | pytest green, edge counters non-zero |
-| 2 | Edge queue + worker | not started | — | `test_gpio_edge_queue`, pytest green |
+| 2 | Edge queue + worker | done | — | `test_gpio_edge_queue`, pytest green |
 | 3 | Timer service | not started | — | `test_timer_service`, pytest green |
 | 4 | Button input | not started | — | `test_button_input`, `fuzz_debounce`, `test_input_latency.py` |
 | 5 | Gesture layer, old button layer deleted | not started | — | `test_gesture_fsm`, `test_gesture_reset.py`, full pytest green |
@@ -31,7 +31,7 @@ Statuses: `not started`, `in progress`, `in review`, `done`, `blocked`.
 [x] src/telink/hal/gpio_interrupts.c     capture procedure
 [x] src/silabs/hal/gpio.c                capture procedure
 [x] src/stub/hal/gpio.c                  edge injection
-[ ] src/base_components/gpio_edge_queue.*
+[x] src/base_components/gpio_edge_queue.*
 [ ] src/base_components/button_input.*
 [ ] src/base_components/button_dispatcher.*
 [ ] src/base_components/gesture_fsm.*
@@ -50,10 +50,10 @@ Statuses: `not started`, `in progress`, `in review`, `done`, `blocked`.
 [ ] src/zigbee/cover_cluster.c           controller client
 [ ] src/zigbee/basic_cluster.c           diagnostic counters
 [ ] src/hal/zigbee.h + impls             send-to-coordinator, report snapshot fix
-[ ] tests/unit/**                        native unit tests
+[x] tests/unit/support + test_gpio_edge_queue.c native unit test foundation
 [ ] tests/conftest.py                    debounce + new helpers
 [ ] tests/test_*.py                      new integration suites
-[ ] .github/workflows/test.yml           run unit tests
+[x] .github/workflows/test.yml           run unit tests
 [ ] docs/                                user-facing docs for new features
 [ ] zigbee2mqtt/, zha/, homed/           regenerated converters
 [ ] NVM_MIGRATIONS_VERSION               bumped with migration step

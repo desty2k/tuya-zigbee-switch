@@ -32,5 +32,6 @@ typedef struct {
 } button_t;
 
 void btn_init(button_t *button);
+uint32_t btn_gpio_edges_dropped(void);
 
 #endif

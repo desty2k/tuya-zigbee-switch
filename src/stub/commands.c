@@ -8,6 +8,7 @@
 #include "stub/hal/stub.h"
 
 #include "stub/stub_app.h"
+#include "base_components/button.h"
 #include "zigbee/consts.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -80,9 +81,10 @@ static int cmd_diag(int argc, char **argv) {
 
     (void)argc;
     (void)argv;
-    io_res_ok("gpio_irq_count=%u gpio_edges_captured=%u "
+    io_res_ok("gpio_irq_count=%u gpio_edges_captured=%u gpio_edges_dropped=%u "
               "gpio_rearm_limit_hits=%u",
               diag.gpio_irq_count, diag.gpio_edges_captured,
+              btn_gpio_edges_dropped(),
               diag.gpio_rearm_limit_hits);
     return 0;
 }
