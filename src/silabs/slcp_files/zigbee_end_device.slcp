@@ -30,6 +30,8 @@ source:
 - {path: ../../hal/common/zigbee.h}
 - {path: ../../base_components/gpio_edge_queue.c}
 - {path: ../../base_components/gpio_edge_queue.h}
+- {path: ../../base_components/timer_service.c}
+- {path: ../../base_components/timer_service.h}
 - {path: ../../base_components/button.c}
 - {path: ../../base_components/battery.c}
 - {path: ../../base_components/led.c}

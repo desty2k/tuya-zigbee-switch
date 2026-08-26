@@ -2,8 +2,8 @@
 #define _COVER_CLUSTER_H_
 
 #include "base_components/relay.h"
+#include "base_components/timer_service.h"
 #include "hal/zigbee.h"
-#include "hal/tasks.h"
 #include <stdint.h>
 
 typedef struct {
@@ -26,7 +26,7 @@ typedef struct {
     uint32_t             last_switch_time;
     uint8_t              has_pending_movement;
     uint8_t              pending_movement;
-    hal_task_t           delay_task;
+    app_timer_t          movement_timer;
 } zigbee_cover_cluster;
 
 void cover_cluster_add_to_endpoint(zigbee_cover_cluster *cluster, hal_zigbee_endpoint *endpoint);

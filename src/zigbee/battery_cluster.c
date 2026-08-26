@@ -7,11 +7,14 @@
 #include "hal/printf_selector.h"
 #include "hal/timer.h"
 #include "hal/zigbee.h"
-#include "hal/tasks.h"
 
 const uint16_t battery_cluster_revision = 0x01;
 
 #define BATTERY_REFRESH_INTERVAL_MS    300000   // 5 minutes
+
+static void battery_cluster_update_handler(void *arg) {
+    battery_cluster_update((zigbee_battery_cluster *)arg);
+}
 
 void battery_cluster_add_to_endpoint(zigbee_battery_cluster *cluster,
                                      hal_zigbee_endpoint *endpoint) {
@@ -36,9 +39,8 @@ void battery_cluster_add_to_endpoint(zigbee_battery_cluster *cluster,
     endpoint->cluster_count++;
 
     // Initial battery reading
-    cluster->refresh_values_task.handler = (task_handler_t)battery_cluster_update;
-    cluster->refresh_values_task.arg     = cluster;
-    hal_tasks_init(&cluster->refresh_values_task);
+    timer_init(&cluster->refresh_values_timer,
+               battery_cluster_update_handler, cluster);
 
     battery_cluster_update(cluster); // Also schedules next update
 }
@@ -53,5 +55,5 @@ void battery_cluster_update(zigbee_battery_cluster *cluster) {
                                         ZCL_ATTR_POWER_CFG_BATTERY_VOLTAGE);
     hal_zigbee_notify_attribute_changed(cluster->endpoint, ZCL_CLUSTER_POWER_CFG,
                                         ZCL_ATTR_POWER_CFG_BATTERY_PERCENTAGE);
-    hal_tasks_schedule(&cluster->refresh_values_task, BATTERY_REFRESH_INTERVAL_MS);
+    timer_restart(&cluster->refresh_values_timer, BATTERY_REFRESH_INTERVAL_MS);
 }

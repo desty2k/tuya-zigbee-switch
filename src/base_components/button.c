@@ -34,9 +34,7 @@ void btn_init(button_t *button) {
         button->long_pressed = true;
     }
     button->debounce_last_state = state;
-    button->update_task.handler = _btn_update_callback;
-    button->update_task.arg     = button;
-    hal_tasks_init(&button->update_task);
+    timer_init(&button->update_timer, _btn_update_callback, button);
     if (!button_pipeline_initialized) {
         gpio_edge_queue_init(&button_edge_queue);
         button_worker_task.handler = button_worker;
@@ -96,10 +94,10 @@ static void button_process_edge(const hal_gpio_edge_t *edge) {
         return;
     }
 
-    hal_tasks_unschedule(&button->update_task);
+    timer_cancel(&button->update_timer);
     button->debounce_last_state  = edge->level;
     button->debounce_last_change = edge->timestamp_ms;
-    hal_tasks_schedule(&button->update_task, button->debounce_delay_ms);
+    timer_restart(&button->update_timer, button->debounce_delay_ms);
 }
 
 uint32_t btn_gpio_edges_dropped(void) {
@@ -114,10 +112,10 @@ void _btn_update_callback(void *arg) {
                          button->debounce_last_change);
     if (button->pressed && !button->long_pressed) {
         uint32_t pressed_for = hal_millis() - button->pressed_at_ms;
-        hal_tasks_schedule(&button->update_task,
-                           pressed_for < button->long_press_duration_ms
-                           ? button->long_press_duration_ms - pressed_for
-                           : 0);
+        timer_restart(&button->update_timer,
+                      pressed_for < button->long_press_duration_ms
+                      ? button->long_press_duration_ms - pressed_for
+                      : 0);
     }
 }
 

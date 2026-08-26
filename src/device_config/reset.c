@@ -1,11 +1,19 @@
 #include "reset.h"
+#include "base_components/timer_service.h"
 #include "hal/nvm.h"
 #include "hal/printf_selector.h"
 #include "hal/system.h"
-#include "hal/tasks.h"
+#include <stdbool.h>
 #include <stdint.h>
 
-static hal_task_t reset_task;
+typedef enum {
+    RESET_ACTION_FULL_RESET,
+    RESET_ACTION_REBOOT,
+} reset_action_t;
+
+static app_timer_t    reset_timer;
+static reset_action_t reset_action;
+static bool           reset_timer_initialized;
 
 __attribute__((noreturn)) void reset_all() {
     printf("RESET ALL!\r\n");
@@ -14,24 +22,28 @@ __attribute__((noreturn)) void reset_all() {
     hal_system_reset();
 }
 
-void reset_all_handler(void *arg) {
-    reset_all();
-}
-
-void reboot_handler(void *arg) {
+static void reset_timer_handler(void *arg) {
+    (void)arg;
+    if (reset_action == RESET_ACTION_FULL_RESET) {
+        reset_all();
+    }
     hal_system_reset();
 }
 
+static void reset_schedule(reset_action_t action, uint16_t delay_ms) {
+    if (!reset_timer_initialized) {
+        timer_init(&reset_timer, reset_timer_handler, NULL);
+        reset_timer_initialized = true;
+    }
+    reset_action = action;
+    timer_restart(&reset_timer,
+                  delay_ms != 0 ? delay_ms : DEFAULT_RESET_DELAY_MS);
+}
+
 void schedule_full_reset(uint16_t delay_ms) {
-    reset_task.handler = reset_all_handler;
-    hal_tasks_init(&reset_task);
-    hal_tasks_schedule(&reset_task,
-                       delay_ms != 0 ? delay_ms : DEFAULT_RESET_DELAY_MS);
+    reset_schedule(RESET_ACTION_FULL_RESET, delay_ms);
 }
 
 void schedule_reboot(uint16_t delay_ms) {
-    reset_task.handler = reboot_handler;
-    hal_tasks_init(&reset_task);
-    hal_tasks_schedule(&reset_task,
-                       delay_ms != 0 ? delay_ms : DEFAULT_RESET_DELAY_MS);
+    reset_schedule(RESET_ACTION_REBOOT, delay_ms);
 }

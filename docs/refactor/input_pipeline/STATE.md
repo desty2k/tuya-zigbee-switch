@@ -5,7 +5,7 @@ Tracking board for the input/relay pipeline refactor.
 - Branch: `refactor/input-pipeline`
 - Fork: `desty2k/tuya-zigbee-switch` (upstream `romasku/tuya-zigbee-switch`)
 - Base commit: `bf1059ee`
-- Current position: **stage 2 complete, stage 3 not started**
+- Current position: **stage 3 complete, stage 4 not started**
 
 ## Stages
 
@@ -13,7 +13,7 @@ Tracking board for the input/relay pipeline refactor.
 | --- | --- | --- | --- | --- |
 | 1 | GPIO edge capture | done | — | pytest green, edge counters non-zero |
 | 2 | Edge queue + worker | done | — | `test_gpio_edge_queue`, pytest green |
-| 3 | Timer service | not started | — | `test_timer_service`, pytest green |
+| 3 | Timer service | done | — | `test_timer_service`, pytest green |
 | 4 | Button input | not started | — | `test_button_input`, `fuzz_debounce`, `test_input_latency.py` |
 | 5 | Gesture layer, old button layer deleted | not started | — | `test_gesture_fsm`, `test_gesture_reset.py`, full pytest green |
 | 6 | Hardware regression | not started | — | hardware matrix on Telink + Silabs |
@@ -35,7 +35,7 @@ Statuses: `not started`, `in progress`, `in review`, `done`, `blocked`.
 [ ] src/base_components/button_input.*
 [ ] src/base_components/button_dispatcher.*
 [ ] src/base_components/gesture_fsm.*
-[ ] src/base_components/timer_service.*
+[x] src/base_components/timer_service.*
 [ ] src/base_components/action_mapper.*
 [ ] src/base_components/relay_driver.*
 [ ] src/base_components/relay_controller.*

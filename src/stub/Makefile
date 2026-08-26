@@ -50,6 +50,7 @@ SOURCES := \
 	$(SRC_DIR)/base_components/led.c \
 	$(SRC_DIR)/base_components/relay.c \
 	$(SRC_DIR)/base_components/gpio_edge_queue.c \
+	$(SRC_DIR)/base_components/timer_service.c \
 	$(SRC_DIR)/base_components/button.c \
 	$(SRC_DIR)/base_components/battery.c \
 	$(SRC_DIR)/base_components/network_indicator.c \

@@ -1,8 +1,8 @@
 #ifndef _RELAY_H_
 #define _RELAY_H_
 
+#include "base_components/timer_service.h"
 #include "hal/gpio.h"
-#include "hal/tasks.h"
 #include <stdint.h>
 
 typedef void (*relay_callback_t)(void *param, uint8_t state);
@@ -13,7 +13,8 @@ typedef struct {
     uint8_t          on_high;        // 1 if "on" is HIGH, 0 if "on" is LOW
     uint8_t          on;             // Current state (0 = off, 1 = on)
     uint8_t          is_latching;    // 1 if latching relay, 0 if normal relay
-    hal_task_t       latching_task;  // Task to clear pulse for latching relays
+    app_timer_t      latching_timer; // Timer for latching relay pulse sequencing
+    uint8_t          latching_waiting;
     relay_callback_t on_change;      // Optional callback for state change
     void *           callback_param; // Parameter passed to callback
 } relay_t;

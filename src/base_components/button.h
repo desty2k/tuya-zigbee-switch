@@ -1,8 +1,8 @@
 #ifndef _BUTTON_H_
 #define _BUTTON_H_
 
+#include "base_components/timer_service.h"
 #include "hal/gpio.h"
-#include "hal/tasks.h"
 #include <stdint.h>
 
 typedef void (*ev_button_callback_t)(void *);
@@ -21,7 +21,7 @@ typedef struct {
     uint32_t                         multi_press_duration_ms;
     uint8_t                          multi_press_cnt;
     uint16_t                         debounce_delay_ms;
-    hal_task_t                       update_task;
+    app_timer_t                      update_timer;
     uint8_t                          debounce_last_state;
     uint32_t                         debounce_last_change;
     ev_button_callback_t             on_press;

@@ -5,7 +5,6 @@
 #include "device_config/nvm_items.h"
 #include "hal/nvm.h"
 #include "hal/printf_selector.h"
-#include "hal/tasks.h"
 #include "hal/timer.h"
 #include "hal/zigbee.h"
 
@@ -67,7 +66,7 @@ void cover_apply_movement(zigbee_cover_cluster *cluster, uint8_t moving) {
 void cover_schedule_movement(zigbee_cover_cluster *cluster, uint8_t moving, uint32_t delay) {
     cluster->pending_movement     = moving;
     cluster->has_pending_movement = 1;
-    hal_tasks_schedule(&cluster->delay_task, delay);
+    timer_restart(&cluster->movement_timer, delay);
 }
 
 /**
@@ -85,7 +84,7 @@ void cover_request_movement(zigbee_cover_cluster *cluster, uint8_t moving) {
     // stop command arrives. Canceling pending operations ensures we handle this sequence correctly.
     if (moving == cluster->moving) {
         if (cluster->has_pending_movement) {
-            hal_tasks_unschedule(&cluster->delay_task);
+            timer_cancel(&cluster->movement_timer);
         }
 
         return;
@@ -212,9 +211,7 @@ void cover_cluster_init(zigbee_cover_cluster *cluster) {
     cluster->pending_movement     = 0;
     cluster->has_pending_movement = 0;
 
-    hal_tasks_init(&cluster->delay_task);
-    cluster->delay_task.handler = cover_delay_handler;
-    cluster->delay_task.arg     = cluster;
+    timer_init(&cluster->movement_timer, cover_delay_handler, cluster);
 }
 
 void cover_cluster_add_to_endpoint(zigbee_cover_cluster *cluster, hal_zigbee_endpoint *endpoint) {

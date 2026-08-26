@@ -127,8 +127,8 @@ static void check_in_handler(void *arg) {
     enter_fast_poll(cluster, cluster->fast_poll_timeout);
 
     // Schedule next check-in
-    hal_tasks_schedule(&cluster->check_in_task,
-                       QS_TO_MS(cluster->check_in_interval));
+    timer_start(&cluster->check_in_timer,
+                QS_TO_MS(cluster->check_in_interval));
 }
 
 // Command handler
@@ -239,10 +239,10 @@ void poll_control_cluster_callback_attr_write(uint16_t attribute_id) {
             cluster->check_in_interval = cluster->long_poll_interval;
         }
         // Reschedule check-in timer
-        hal_tasks_unschedule(&cluster->check_in_task);
+        timer_cancel(&cluster->check_in_timer);
         if (cluster->check_in_interval != 0) {
-            hal_tasks_schedule(&cluster->check_in_task,
-                               QS_TO_MS(cluster->check_in_interval));
+            timer_start(&cluster->check_in_timer,
+                        QS_TO_MS(cluster->check_in_interval));
         }
         poll_control_store_to_nv(cluster);
     } else if (attribute_id == ZCL_ATTR_POLL_CTRL_FAST_POLL_TIMEOUT) {
@@ -310,12 +310,10 @@ void poll_control_cluster_add_to_endpoint(zigbee_poll_control_cluster *cluster,
     enter_fast_poll(cluster, cluster->fast_poll_timeout);
 
     // Schedule check-in timer
-    cluster->check_in_task.handler = (task_handler_t)check_in_handler;
-    cluster->check_in_task.arg     = cluster;
-    hal_tasks_init(&cluster->check_in_task);
+    timer_init(&cluster->check_in_timer, check_in_handler, cluster);
     if (cluster->check_in_interval != 0) {
-        hal_tasks_schedule(&cluster->check_in_task,
-                           QS_TO_MS(cluster->check_in_interval));
+        timer_start(&cluster->check_in_timer,
+                    QS_TO_MS(cluster->check_in_interval));
     }
 }
 

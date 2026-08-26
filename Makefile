@@ -95,6 +95,7 @@ UNIT_SUPPORT := \
 	tests/unit/support/fake_tasks.c \
 	tests/unit/support/fake_gpio.c
 UNIT_QUEUE_TEST := $(UNIT_BUILD_DIR)/test_gpio_edge_queue
+UNIT_TIMER_TEST := $(UNIT_BUILD_DIR)/test_timer_service
 
 $(UNIT_BUILD_DIR):
 	mkdir -p $(UNIT_BUILD_DIR)
@@ -103,8 +104,13 @@ $(UNIT_QUEUE_TEST): tests/unit/test_gpio_edge_queue.c \
 		src/base_components/gpio_edge_queue.c $(UNIT_SUPPORT) | $(UNIT_BUILD_DIR)
 	$(CC) $(UNIT_CFLAGS) $^ -o $@
 
-unit_tests: $(UNIT_QUEUE_TEST)
+$(UNIT_TIMER_TEST): tests/unit/test_timer_service.c \
+		src/base_components/timer_service.c $(UNIT_SUPPORT) | $(UNIT_BUILD_DIR)
+	$(CC) $(UNIT_CFLAGS) $^ -o $@
+
+unit_tests: $(UNIT_QUEUE_TEST) $(UNIT_TIMER_TEST)
 	./$(UNIT_QUEUE_TEST)
+	./$(UNIT_TIMER_TEST)
 
 # Format all C/H files using uncrustify
 format:

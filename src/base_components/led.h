@@ -1,8 +1,8 @@
 #ifndef _LED_H_
 #define _LED_H_
 
+#include "base_components/timer_service.h"
 #include "hal/gpio.h"
-#include "hal/tasks.h"
 #include <stdint.h>
 
 typedef struct {
@@ -12,7 +12,7 @@ typedef struct {
     uint16_t       blink_times_left;
     uint16_t       blink_time_on;
     uint16_t       blink_time_off;
-    hal_task_t     blink_task;
+    app_timer_t    blink_timer;
 } led_t;
 
 /**

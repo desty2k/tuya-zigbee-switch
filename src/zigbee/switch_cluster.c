@@ -7,7 +7,6 @@
 
 #include "hal/printf_selector.h"
 #include "hal/system.h"
-#include "hal/tasks.h"
 #include "relay_cluster.h"
 #include "zigbee_commands.h"
 
