@@ -7,6 +7,21 @@
 
 typedef uint16_t hal_gpio_pin_t;
 
+typedef struct {
+    hal_gpio_pin_t pin;
+    uint8_t        level;
+    uint32_t       timestamp_ms;
+    uint32_t       seq;
+} hal_gpio_edge_t;
+
+typedef void (*hal_gpio_edge_sink_t)(const hal_gpio_edge_t *edge);
+
+typedef struct {
+    uint32_t gpio_irq_count;
+    uint32_t gpio_edges_captured;
+    uint32_t gpio_rearm_limit_hits;
+} hal_gpio_diagnostics_t;
+
 typedef enum {
     HAL_GPIO_PULL_NONE    = 0,
     HAL_GPIO_PULL_UP      = 1,
@@ -56,29 +71,17 @@ static inline void hal_gpio_write(hal_gpio_pin_t gpio_pin, uint8_t value) {
  */
 uint8_t hal_gpio_read(hal_gpio_pin_t gpio_pin);
 
-/**
- * Callback function type for GPIO state changes
- * Note: Called in task context, not interrupt routine to minimize race
- * conditions
- * @param gpio_pin GPIO pin that changed
- * @param arg User-provided argument
- */
-typedef void (*gpio_callback_t)(hal_gpio_pin_t gpio_pin, void *arg);
+/** Register the single sink for captured GPIO transitions. */
+void hal_gpio_set_edge_sink(hal_gpio_edge_sink_t sink);
 
-/**
- * Register callback for pin state changes (enables interrupts and wake-up)
- * @param gpio_pin GPIO pin identifier
- * @param callback Function to call on state change
- * @param arg User argument passed to callback
- */
-void hal_gpio_callback(hal_gpio_pin_t gpio_pin, gpio_callback_t callback,
-                       void *arg);
+/** Begin capturing transitions on a pin without emitting its initial level. */
+void hal_gpio_watch_pin(hal_gpio_pin_t gpio_pin);
 
-/**
- * Unregister pin callback (disables interrupts)
- * @param gpio_pin GPIO pin identifier
- */
-void hal_gpio_unreg_callback(hal_gpio_pin_t gpio_pin);
+/** Stop capturing transitions on a pin. */
+void hal_gpio_unwatch_pin(hal_gpio_pin_t gpio_pin);
+
+/** Return a snapshot of platform GPIO capture counters. */
+hal_gpio_diagnostics_t hal_gpio_get_diagnostics(void);
 
 /**
  * Parse pin string ("A5", "B10") to pin identifier

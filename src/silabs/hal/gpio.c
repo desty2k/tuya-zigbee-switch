@@ -5,15 +5,10 @@
 #include "sl_clock_manager.h"
 #include "sl_gpio.h"
 
-#include "zigbee_app_framework_event.h"
-
 #include "hal/gpio.h"
+#include "hal/timer.h"
 #include "silabs/hal/silabs_gpio_utils.h"
 #include <stdio.h>
-
-// Get container structure from embedded member pointer
-#define container_of(ptr, type, member) \
-        ((type *)((char *)(ptr) - offsetof(type, member)))
 
 #define LINE_MISSING     0xFF
 #define MAX_INT_LINES    16
@@ -38,15 +33,16 @@ static void hal_gpio_ensure_gpio_init(void) {
 
 // ------ Per-interrupt bookkeeping ------
 typedef struct {
-    bool               in_use;
-    hal_gpio_pin_t     hal_pin;
-    gpio_callback_t    user_cb;
-    int32_t            line;
-    void *             arg;
-    sli_zigbee_event_t af_event;
+    bool           in_use;
+    hal_gpio_pin_t hal_pin;
+    uint8_t        last_level;
+    int32_t        line;
 } int_slot_t;
 
-static int_slot_t s_slots[MAX_INT_LINES]; // 16 EXTI lines total
+static int_slot_t             s_slots[MAX_INT_LINES]; // 16 EXTI lines total
+static hal_gpio_edge_sink_t   edge_sink;
+static hal_gpio_diagnostics_t diagnostics;
+static uint32_t edge_seq;
 
 static int32_t alloc_int_slot(void) {
     for (uint8_t i = 0; i < 16; i++) {
@@ -65,21 +61,27 @@ static void free_int_slot(int32_t slot_no) {
     }
 }
 
-// Dispatchers, e.g. IRQ routinues
 static void _dispatch_regular(uint8_t intNo, void *ctx) {
     (void)intNo;
     int_slot_t *slot = (int_slot_t *)ctx;
-    if (slot) {
-        sl_zigbee_af_event_set_active(&slot->af_event);
-    }
-}
 
-static void _af_event_handler(sl_zigbee_af_event_t *event) {
-    // Get int_slot_t from embedded af_event field
-    int_slot_t *slot = container_of(event, int_slot_t, af_event);
+    diagnostics.gpio_irq_count++;
+    if (slot != NULL) {
+        uint8_t level = hal_gpio_read(slot->hal_pin);
+        if (level != slot->last_level) {
+            hal_gpio_edge_t edge = {
+                .pin          = slot->hal_pin,
+                .level        = level,
+                .timestamp_ms = hal_millis(),
+                .seq          = edge_seq++,
+            };
 
-    if (slot->user_cb) {
-        slot->user_cb(slot->hal_pin, slot->arg);
+            slot->last_level = level;
+            diagnostics.gpio_edges_captured++;
+            if (edge_sink != NULL) {
+                edge_sink(&edge);
+            }
+        }
     }
 }
 
@@ -141,38 +143,43 @@ uint8_t hal_gpio_read(hal_gpio_pin_t gpio_pin) {
 //     * If input has pull-up  -> active-low (wake on low level).
 //     * If input has pull-down-> active-high (wake on high level).
 //     * Otherwise default to rising+falling EXTI and active-low EM4WU.
-void hal_gpio_callback(hal_gpio_pin_t gpio_pin, gpio_callback_t callback,
-                       void *arg) {
+void hal_gpio_set_edge_sink(hal_gpio_edge_sink_t sink) {
+    edge_sink = sink;
+}
+
+void hal_gpio_watch_pin(hal_gpio_pin_t gpio_pin) {
     hal_gpio_ensure_clock();
     hal_gpio_ensure_gpio_init();
+
+    for (uint8_t i = 0; i < MAX_INT_LINES; i++) {
+        if (s_slots[i].in_use && s_slots[i].hal_pin == gpio_pin) {
+            return;
+        }
+    }
 
     const sl_gpio_t sl_gpio = silabs_hal_gpio_to_sl_gpio(gpio_pin);
 
     // Allocate a regular EXTI line (for edge interrupts while awake)
     int32_t slot_no = alloc_int_slot();
     if (slot_no == LINE_MISSING) {
-        printf("hal_gpio_callback: no free EXTI lines\r\n");
+        printf("hal_gpio_watch_pin: no free EXTI lines\r\n");
         return;
     }
     int_slot_t *slot = &s_slots[slot_no];
-    slot->hal_pin = gpio_pin;
-    slot->user_cb = callback;
-    slot->arg     = arg;
-    sl_zigbee_af_isr_event_init(&slot->af_event, _af_event_handler);
+    slot->hal_pin    = gpio_pin;
+    slot->last_level = hal_gpio_read(gpio_pin);
 
     // Register regular edge-sensitive callback (both edges)
 
     sl_status_t status = sl_gpio_configure_external_interrupt(
         &sl_gpio, &slot->line, SL_GPIO_INTERRUPT_RISING_FALLING_EDGE,
         (sl_gpio_irq_callback_t)_dispatch_regular, slot);
-    printf("hal_gpio_callback: exti line %ld status %lu\r\n", slot->line,
+    printf("hal_gpio_watch_pin: exti line %ld status %lu\r\n", slot->line,
            (unsigned long)status);
 }
 
-// (Optional) helper to unregister an interrupt if you add
-// hal_gpio_int_disable() later
-void hal_gpio_unreg_callback(hal_gpio_pin_t gpio_pin) {
-    printf("hal_gpio_unreg_callback pin %02X\r\n", gpio_pin);
+void hal_gpio_unwatch_pin(hal_gpio_pin_t gpio_pin) {
+    printf("hal_gpio_unwatch_pin pin %02X\r\n", gpio_pin);
 
     for (uint8_t i = 0; i < MAX_INT_LINES; i++) {
         if (s_slots[i].in_use && s_slots[i].hal_pin == gpio_pin) {
@@ -181,6 +188,10 @@ void hal_gpio_unreg_callback(hal_gpio_pin_t gpio_pin) {
             return;
         }
     }
+}
+
+hal_gpio_diagnostics_t hal_gpio_get_diagnostics(void) {
+    return diagnostics;
 }
 
 hal_gpio_pin_t hal_gpio_parse_pin(const char *s) {

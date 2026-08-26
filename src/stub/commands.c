@@ -1,6 +1,7 @@
 #include "commands.h"
 #include "machine_io.h"
 
+#include "hal/gpio.h"
 #include "hal/timer.h"
 #include "hal/zigbee.h"
 
@@ -71,6 +72,18 @@ static int cmd_status(int argc, char **argv) {
     stub_app_show_status();
     io_res_ok("uptime_ms=%u joined=%d poll_rate_ms=%u", hal_millis(),
               hal_zigbee_get_network_status(), hal_zigbee_get_poll_rate_ms());
+    return 0;
+}
+
+static int cmd_diag(int argc, char **argv) {
+    hal_gpio_diagnostics_t diag = hal_gpio_get_diagnostics();
+
+    (void)argc;
+    (void)argv;
+    io_res_ok("gpio_irq_count=%u gpio_edges_captured=%u "
+              "gpio_rearm_limit_hits=%u",
+              diag.gpio_irq_count, diag.gpio_edges_captured,
+              diag.gpio_rearm_limit_hits);
     return 0;
 }
 
@@ -383,6 +396,7 @@ static const SimpleReplCommand kCmds[] = {
     { "help",                cmd_help                },
     { "s",                   cmd_status              },
     { "status",              cmd_status              },
+    { "diag",                cmd_diag                },
     { "net",                 cmd_net                 },
     { "set_pin",             cmd_pin                 },
     { "read_pin",            cmd_read_pin            },

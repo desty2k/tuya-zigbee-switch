@@ -1,4 +1,5 @@
 #include "hal/gpio.h"
+#include "hal/timer.h"
 #include "stub/machine_io.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -13,11 +14,14 @@ typedef struct {
     uint8_t         is_input;
     uint8_t         value;
     hal_gpio_pull_t pull;
-    gpio_callback_t callback;
-    void *          callback_arg;
+    uint8_t         watched;
+    uint8_t         last_level;
 } stub_gpio_pin_t;
 
-static stub_gpio_pin_t gpio_pins[MAX_GPIO_PINS];
+static stub_gpio_pin_t        gpio_pins[MAX_GPIO_PINS];
+static hal_gpio_edge_sink_t   edge_sink;
+static hal_gpio_diagnostics_t diagnostics;
+static uint32_t edge_seq;
 
 void ensure_valid_input_pin(hal_gpio_pin_t gpio_pin);
 void ensure_valid_output_pin(hal_gpio_pin_t gpio_pin);
@@ -27,12 +31,12 @@ void hal_gpio_init(hal_gpio_pin_t gpio_pin, uint8_t is_input,
     if (gpio_pin >= MAX_GPIO_PINS)
         return;
 
-    gpio_pins[gpio_pin].initialized  = 1;
-    gpio_pins[gpio_pin].is_input     = is_input;
-    gpio_pins[gpio_pin].pull         = pull;
-    gpio_pins[gpio_pin].value        = (pull == HAL_GPIO_PULL_UP) ? 1 : 0;
-    gpio_pins[gpio_pin].callback     = NULL;
-    gpio_pins[gpio_pin].callback_arg = NULL;
+    gpio_pins[gpio_pin].initialized = 1;
+    gpio_pins[gpio_pin].is_input    = is_input;
+    gpio_pins[gpio_pin].pull        = pull;
+    gpio_pins[gpio_pin].value       = (pull == HAL_GPIO_PULL_UP) ? 1 : 0;
+    gpio_pins[gpio_pin].watched     = 0;
+    gpio_pins[gpio_pin].last_level  = gpio_pins[gpio_pin].value;
 
     io_log("GPIO", "Init pin %d as %s, pull=%d", gpio_pin,
            is_input ? "input" : "output", pull);
@@ -61,21 +65,27 @@ uint8_t hal_gpio_read(hal_gpio_pin_t gpio_pin) {
     return gpio_pins[gpio_pin].value;
 }
 
-void hal_gpio_callback(hal_gpio_pin_t gpio_pin, gpio_callback_t callback,
-                       void *arg) {
-    ensure_valid_input_pin(gpio_pin);
-
-    gpio_pins[gpio_pin].callback     = callback;
-    gpio_pins[gpio_pin].callback_arg = arg;
-    io_log("GPIO", "Set callback for pin %d", gpio_pin);
+void hal_gpio_set_edge_sink(hal_gpio_edge_sink_t sink) {
+    edge_sink = sink;
 }
 
-void hal_gpio_unreg_callback(hal_gpio_pin_t gpio_pin) {
-    ensure_valid_output_pin(gpio_pin);
+void hal_gpio_watch_pin(hal_gpio_pin_t gpio_pin) {
+    ensure_valid_input_pin(gpio_pin);
 
-    gpio_pins[gpio_pin].callback     = NULL;
-    gpio_pins[gpio_pin].callback_arg = NULL;
-    io_log("GPIO", "Unregistered callback for pin %d", gpio_pin);
+    gpio_pins[gpio_pin].last_level = gpio_pins[gpio_pin].value;
+    gpio_pins[gpio_pin].watched    = 1;
+    io_log("GPIO", "Watching pin %d", gpio_pin);
+}
+
+void hal_gpio_unwatch_pin(hal_gpio_pin_t gpio_pin) {
+    ensure_valid_input_pin(gpio_pin);
+
+    gpio_pins[gpio_pin].watched = 0;
+    io_log("GPIO", "Stopped watching pin %d", gpio_pin);
+}
+
+hal_gpio_diagnostics_t hal_gpio_get_diagnostics(void) {
+    return diagnostics;
 }
 
 hal_gpio_pin_t hal_gpio_parse_pin(const char *s) {
@@ -133,8 +143,22 @@ void stub_gpio_simulate_input(hal_gpio_pin_t gpio_pin, uint8_t value) {
     uint8_t old_value = gpio_pins[gpio_pin].value;
     gpio_pins[gpio_pin].value = value;
 
-    if (old_value != value && gpio_pins[gpio_pin].callback) {
-        gpio_pins[gpio_pin].callback(gpio_pin, gpio_pins[gpio_pin].callback_arg);
+    if (old_value != value && gpio_pins[gpio_pin].watched) {
+        diagnostics.gpio_irq_count++;
+        if (value != gpio_pins[gpio_pin].last_level) {
+            hal_gpio_edge_t edge = {
+                .pin          = gpio_pin,
+                .level        = value,
+                .timestamp_ms = hal_millis(),
+                .seq          = edge_seq++,
+            };
+
+            gpio_pins[gpio_pin].last_level = value;
+            diagnostics.gpio_edges_captured++;
+            if (edge_sink != NULL) {
+                edge_sink(&edge);
+            }
+        }
     }
 
     io_log("GPIO", "Simulated input pin %d = %d", gpio_pin, value);

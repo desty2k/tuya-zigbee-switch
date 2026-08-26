@@ -89,6 +89,7 @@ void stub_app_print_help(void) {
     puts("  machine on|off                        - Set machine mode");
     puts("  help                                  - Show this help");
     puts("  s, status                             - Show device status");
+    puts("  diag                                  - Show diagnostic counters");
     puts(
         "  net                                   - Toggle network joined status");
     puts("  set_pin <pin> <0|1>                   - Simulate GPIO input");

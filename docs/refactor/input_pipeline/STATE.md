@@ -5,13 +5,13 @@ Tracking board for the input/relay pipeline refactor.
 - Branch: `refactor/input-pipeline`
 - Fork: `desty2k/tuya-zigbee-switch` (upstream `romasku/tuya-zigbee-switch`)
 - Base commit: `bf1059ee`
-- Current position: **design complete, stage 1 not started**
+- Current position: **stage 1 complete, stage 2 not started**
 
 ## Stages
 
 | # | Stage | Status | PR | Gate |
 | --- | --- | --- | --- | --- |
-| 1 | GPIO edge capture | not started | — | pytest green, edge counters non-zero |
+| 1 | GPIO edge capture | done | — | pytest green, edge counters non-zero |
 | 2 | Edge queue + worker | not started | — | `test_gpio_edge_queue`, pytest green |
 | 3 | Timer service | not started | — | `test_timer_service`, pytest green |
 | 4 | Button input | not started | — | `test_button_input`, `fuzz_debounce`, `test_input_latency.py` |
@@ -27,10 +27,10 @@ Statuses: `not started`, `in progress`, `in review`, `done`, `blocked`.
 ## Module checklist
 
 ```text
-[ ] src/hal/gpio.h                       edge sink contract
-[ ] src/telink/hal/gpio_interrupts.c     capture procedure
-[ ] src/silabs/hal/gpio.c                capture procedure
-[ ] src/stub/hal/gpio.c                  edge injection
+[x] src/hal/gpio.h                       edge sink contract
+[x] src/telink/hal/gpio_interrupts.c     capture procedure
+[x] src/silabs/hal/gpio.c                capture procedure
+[x] src/stub/hal/gpio.c                  edge injection
 [ ] src/base_components/gpio_edge_queue.*
 [ ] src/base_components/button_input.*
 [ ] src/base_components/button_dispatcher.*

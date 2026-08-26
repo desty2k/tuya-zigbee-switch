@@ -5,7 +5,12 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-void _btn_gpio_callback(hal_gpio_pin_t pin, void *arg);
+#define BUTTON_INPUT_MAX    16
+
+static button_t *button_inputs[BUTTON_INPUT_MAX];
+static uint8_t   button_input_count;
+
+static void button_edge_sink(const hal_gpio_edge_t *edge);
 void _btn_update_callback(void *arg);
 void btn_update_debounced(button_t *button, uint8_t is_pressed,
                           uint32_t changed_at);
@@ -24,20 +29,33 @@ void btn_init(button_t *button) {
     button->update_task.handler = _btn_update_callback;
     button->update_task.arg     = button;
     hal_tasks_init(&button->update_task);
-    hal_gpio_callback(button->pin, _btn_gpio_callback, button);
+    if (button_input_count < BUTTON_INPUT_MAX) {
+        button_inputs[button_input_count++] = button;
+    }
+    hal_gpio_set_edge_sink(button_edge_sink);
+    hal_gpio_watch_pin(button->pin);
 }
 
-void _btn_gpio_callback(hal_gpio_pin_t pin, void *arg) {
-    button_t *button    = (button_t *)arg;
-    uint8_t   new_state = hal_gpio_read(button->pin);
+static void button_edge_sink(const hal_gpio_edge_t *edge) {
+    button_t *button = NULL;
 
-    if (new_state == button->debounce_last_state) {
+    for (uint8_t i = 0; i < button_input_count; i++) {
+        if (button_inputs[i]->pin == edge->pin) {
+            button = button_inputs[i];
+            break;
+        }
+    }
+    if (button == NULL) {
+        return;
+    }
+
+    if (edge->level == button->debounce_last_state) {
         return;
     }
 
     hal_tasks_unschedule(&button->update_task);
-    button->debounce_last_state  = new_state;
-    button->debounce_last_change = hal_millis();
+    button->debounce_last_state  = edge->level;
+    button->debounce_last_change = edge->timestamp_ms;
     hal_tasks_schedule(&button->update_task, button->debounce_delay_ms);
 }
 
