@@ -1,134 +1,126 @@
 # 11 — Migration
 
-No big-bang rewrite. Each phase is independently shippable, keeps user-visible
-behaviour intact unless stated, and is gated by tests.
+Staged, but without a compatibility layer. Each stage replaces the old
+implementation outright: no adapters, no parallel code paths, no dead code left
+behind. A stage is done when the old symbols it replaces no longer exist.
 
 Implementation order:
 
 ```text
-1 GPIO edge correctness
-2 edge queue
-3 debounce FSM
-4 compatibility adapter for existing callbacks
-5 hardware regression
-6 gesture FSM / N-click
-7 timer service
-8 relay controller
-9 inching + timed-off
-10 interlock
-11 Zigbee event transport
-12 removal of the old coupled button logic
+1  GPIO edge capture
+2  Edge queue + worker
+3  Timer service
+4  Button input (debounce, press_id, dispatcher)
+5  Gesture FSM + action mapper; old button layer deleted
+6  Hardware regression
+7  Relay driver + relay controller
+8  Inching + timed-off
+9  Interlock
+10 Zigbee button event transport
 ```
 
-## Phase 1 — GPIO edge capture
+## Stage 1 — GPIO edge capture
 
 Scope: `hal_gpio_edge_t`, `hal_gpio_set_edge_sink`, `hal_gpio_watch_pin`,
-capture procedure on Telink, Silabs and stub. HAL counters.
-Old `hal_gpio_callback` remains temporarily as a thin wrapper over the sink so
-nothing else has to change yet.
-Gate: existing pytest suite green; `gpio_edges_captured` visible in the stub.
+`hal_gpio_unwatch_pin`; capture procedure on Telink, Silabs and stub; HAL edge
+counters. `hal_gpio_callback` and `hal_gpio_unreg_callback` are deleted; the only
+current caller (`btn_init`) is converted to the sink, keeping its existing
+debounce logic for one stage.
+Gate: full pytest suite green; `gpio_edges_captured` non-zero in the stub.
 
-## Phase 2 — Edge queue
+## Stage 2 — Edge queue and worker
 
-Scope: `gpio_edge_queue`, sink pushes into it, worker task drains it and calls the
-legacy per-pin callbacks in edge order.
-Gate: `test_gpio_edge_queue` unit tests; existing pytest suite green.
+Scope: `gpio_edge_queue`, the sink pushes edges, a single worker task drains them
+in order. The per-pin callback fan-out inside the old button code is driven from
+the worker instead of from the HAL.
+Gate: `test_gpio_edge_queue` unit tests; pytest suite green.
 
-## Phase 3 — Debounce FSM
+## Stage 3 — Timer service
+
+Scope: `timer_service`; every existing deadline user is migrated to it
+(`led` blink, cover movement delay, reset/reboot scheduling, latching coil pulse,
+old button timing). Direct `hal_tasks` use outside HAL and the input worker is
+removed.
+Gate: `test_timer_service`; pytest suite green; no behaviour change.
+
+## Stage 4 — Button input
 
 Scope: `button_input` with the timestamp-based commit algorithm, `press_id`,
-`button_dispatcher`. Default `debounce_ms` becomes 8.
-Gate: `test_button_input`, `fuzz_debounce`, updated `conftest.DEBOUNCE_MS`,
-`test_input_latency.py`.
+`button_dispatcher`. Default `debounce_ms` becomes 8. Consumers are still the old
+cluster callbacks, now driven from dispatcher sinks.
+Gate: `test_button_input`, `fuzz_debounce`, `test_input_latency.py`, updated
+`conftest.DEBOUNCE_MS`, pytest suite green.
 
-## Phase 4 — Compatibility adapter
+## Stage 5 — Gesture layer and old button removal
 
-Scope: an adapter sink translating `button_event_t` into the existing
-`on_press` / `on_release` / `on_long_press` / `on_multi_press` callbacks, with hold
-and multi-press timing temporarily kept inside the adapter.
-`switch_cluster`, `cover_switch_cluster` and `config_parser` are untouched.
-Gate: full pytest suite green with zero test changes other than debounce timing.
+Scope: `gesture_fsm`, `action_mapper`, `system_action`. `switch_cluster` and
+`cover_switch_cluster` are rewritten as event and gesture consumers. Factory reset
+becomes a system action driven by `HOLD_START` (on-board button) and
+`N_CLICK(>= reset_count)` (switch and cover switch buttons).
+`src/base_components/button.c/.h`, `on_press` / `on_release` / `on_long_press` /
+`on_multi_press` and the callback wiring in `config_parser` are deleted;
+`feature_wiring` takes over pipeline construction.
+Gate: `test_gesture_fsm`, `test_gesture_reset.py`, full pytest suite green, no
+references to the removed symbols.
 
-## Phase 5 — Hardware regression
+## Stage 6 — Hardware regression
 
-Scope: no new features. Run the hardware matrix from
-[10_testing.md](./10_testing.md) and tune `debounce_ms` if needed.
-Gate: all hardware criteria met on Telink and Silabs. Nothing proceeds until the
-input path is proven on real devices.
+Scope: no new code. Run the hardware matrix from
+[10_testing.md](./10_testing.md) on Telink and Silabs, finalise `debounce_ms`.
+Gate: all hardware criteria met. Later stages do not start before this passes.
 
-## Phase 6 — Gesture FSM and N-click
+## Stage 7 — Relay driver and controller
 
-Scope: `gesture_fsm` with hold and N-click, `action_mapper` skeleton,
-`system_action`. Factory reset is rewired from the old multi-press callback to
-`N_CLICK(>= reset_count)`, and the on-board button reset to `HOLD_START`.
-The adapter stops synthesising hold and multi-press; `switch_cluster` and
-`cover_switch_cluster` consume `HOLD_START` / `HOLD_END` for their long-press
-behaviour.
-Gate: `test_gesture_fsm`, `test_gesture_reset.py`, momentary and toggle switch
-suites unchanged.
-
-## Phase 7 — Timer service
-
-Scope: `timer_service`; migrate gesture timers, LED blink, cover movement delay,
-latching coil pulse and reset scheduling onto it. No behaviour change.
-Gate: `test_timer_service`; full pytest suite green.
-
-## Phase 8 — Relay controller
-
-Scope: `relay_driver` + `relay_controller` + `relay_request_t`. `relay_cluster`,
-`cover_cluster` and switch endpoints stop calling `relay_on/off/toggle` and submit
-requests instead. Startup restore goes through the controller.
+Scope: `relay_driver` + `relay_controller` + `relay_request_t`. `relay.c/.h` is
+deleted. `relay_cluster`, `cover_cluster` and switch endpoints submit requests
+instead of calling relay functions. Startup restore goes through the controller.
 Gate: `test_relay_controller`, `test_relay_cluster.py`, `test_latching_relay.py`,
-`test_cover_cluster.py` unchanged.
+`test_cover_cluster.py`, `test_cover_switch_cluster.py`.
 
-## Phase 9 — Inching and timed-off
+## Stage 8 — Inching and timed-off
 
 Scope: unified `auto_off_timer`, `RELAY_REQUEST_PULSE`, `RELAY_REQUEST_ON_TIMED`,
-`InchingDuration` attribute, `OnWithTimedOff` command support.
+`InchingDuration` attribute, `OnWithTimedOff` command.
 Gate: `test_relay_inching.py`, `test_relay_timed_off.py`.
 
-## Phase 10 — Interlock
+## Stage 9 — Interlock
 
 Scope: `interlock` groups, `K` config token, `InterlockGroup` attribute, implicit
 cover group with 200 ms dead time.
-Gate: `test_interlock`, `test_interlock.py`, cover suites unchanged.
+Gate: `test_interlock` unit and integration suites; cover suites unchanged.
 
-## Phase 11 — Zigbee event transport
+## Stage 10 — Zigbee button event transport
 
 Scope: cluster `0xFC02`, TX queue, sequence numbers,
 `hal_zigbee_send_cmd_to_coordinator`, `hal_zigbee_send_report_attr` snapshot fix,
-diagnostic counters in Basic, Z2M converter and ZHA quirk regeneration.
-Multistate Input Basic reporting stays as-is.
-Gate: `test_button_events.py`, hardware verification of received events, second
-hardware regression pass.
+diagnostic counters in Basic, regenerated Z2M converters and ZHA quirk.
+Multistate Input Basic stays as a state attribute.
+Gate: `test_button_events.py`, second hardware regression pass, received events
+verified in Z2M.
 
-## Phase 12 — Removal
+## Interface compatibility
 
-Scope: delete `src/base_components/button.c/.h` and the compatibility adapter;
-remove `hal_gpio_callback` / `hal_gpio_unreg_callback`; move remaining direct
-`hal_tasks` users onto `timer_service`; delete `on_multi_press` plumbing from
-`config_parser`.
-Gate: no references to removed symbols; full unit + pytest + hardware suites green.
+Zigbee interface compatibility is preserved because it is an external contract:
 
-## Compatibility guarantees
+- Existing attribute ids, types and semantics are unchanged; new attributes and
+  the new cluster are additive.
+- Multistate Input Basic keeps its current value encoding.
+- Relay modes, switch actions and binding modes keep their behaviour.
+- Both factory reset entry points survive, with the same
+  `MultiPressResetCount` attribute.
+- OTA from any released version stays possible; the NVM migration in
+  [09_configuration.md](./09_configuration.md) drops only the switch and relay
+  endpoint config items.
 
-- Existing Zigbee attributes keep their ids, types and meanings; only additive
-  changes are made.
-- Multistate Input Basic keeps working for existing Z2M and ZHA installations.
-- Default behaviour of `press_start` / `short_press` / `long` relay modes,
-  switch actions and binding modes is unchanged.
-- Factory reset entry points remain: on-board button hold and N consecutive
-  clicks on a switch button, with the same `MultiPressResetCount` attribute.
-- OTA updates from any older firmware version remain possible; the NVM migration
-  described in [09_configuration.md](./09_configuration.md) resets only the switch
-  and relay endpoint config items.
+Internal firmware APIs carry no compatibility guarantee. Replaced code is
+deleted in the stage that replaces it.
 
 ## Behaviour changes users can notice
 
 | Change | Effect |
 | --- | --- |
-| `debounce_ms` default 50 → 8 | faster reaction; noisy hardware can restore a higher value with `D<N>` or the per-endpoint attribute |
-| Multi-press gap default 800 → 350 ms | click sequences must be a bit faster; `N_CLICK(1)` latency drops accordingly |
-| Reset by clicks fires after the sequence resolves | with the default threshold of 10 (equal to `GESTURE_MAX_N_CLICK`) it still fires on the 10th click, with no added delay |
+| `debounce_ms` default 50 → 8 | faster reaction; noisy hardware can set a higher value with `D<N>` or the per-endpoint attribute |
+| Multi-click gap default 800 → 350 ms | click sequences must be slightly faster; `N_CLICK(1)` latency drops accordingly |
+| Reset by clicks resolves as a gesture | with the default threshold of 10 (equal to `GESTURE_MAX_N_CLICK`) it still fires on the 10th click with no added delay |
 | A press that becomes a hold no longer counts as a click | holds and clicks stop interfering |
-| New `0xFC02` events | additional actions available in Z2M; existing actions unchanged |
+| New `0xFC02` events | extra actions in Z2M; existing actions unchanged |

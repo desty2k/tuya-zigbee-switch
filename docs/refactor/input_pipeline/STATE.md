@@ -5,24 +5,22 @@ Tracking board for the input/relay pipeline refactor.
 - Branch: `refactor/input-pipeline`
 - Fork: `desty2k/tuya-zigbee-switch` (upstream `romasku/tuya-zigbee-switch`)
 - Base commit: `bf1059ee`
-- Current position: **design complete, phase 1 not started**
+- Current position: **design complete, stage 1 not started**
 
-## Phases
+## Stages
 
-| # | Phase | Status | PR | Gate |
+| # | Stage | Status | PR | Gate |
 | --- | --- | --- | --- | --- |
-| 1 | GPIO edge capture | not started | — | pytest green, edge counters visible |
-| 2 | Edge queue | not started | — | `test_gpio_edge_queue`, pytest green |
-| 3 | Debounce FSM | not started | — | `test_button_input`, `fuzz_debounce`, `test_input_latency.py` |
-| 4 | Compatibility adapter | not started | — | full pytest green, no cluster changes |
-| 5 | Hardware regression | not started | — | hardware matrix on Telink + Silabs |
-| 6 | Gesture FSM / N-click | not started | — | `test_gesture_fsm`, `test_gesture_reset.py` |
-| 7 | Timer service | not started | — | `test_timer_service`, pytest green |
-| 8 | Relay controller | not started | — | `test_relay_controller`, relay/cover suites |
-| 9 | Inching + timed-off | not started | — | `test_relay_inching.py`, `test_relay_timed_off.py` |
-| 10 | Interlock | not started | — | `test_interlock` (unit + pytest) |
-| 11 | Zigbee event transport | not started | — | `test_button_events.py`, hardware pass 2 |
-| 12 | Removal of old button logic | not started | — | no stale symbols, all suites green |
+| 1 | GPIO edge capture | not started | — | pytest green, edge counters non-zero |
+| 2 | Edge queue + worker | not started | — | `test_gpio_edge_queue`, pytest green |
+| 3 | Timer service | not started | — | `test_timer_service`, pytest green |
+| 4 | Button input | not started | — | `test_button_input`, `fuzz_debounce`, `test_input_latency.py` |
+| 5 | Gesture layer, old button layer deleted | not started | — | `test_gesture_fsm`, `test_gesture_reset.py`, full pytest green |
+| 6 | Hardware regression | not started | — | hardware matrix on Telink + Silabs |
+| 7 | Relay driver + controller | not started | — | `test_relay_controller`, relay/cover suites |
+| 8 | Inching + timed-off | not started | — | `test_relay_inching.py`, `test_relay_timed_off.py` |
+| 9 | Interlock | not started | — | `test_interlock` (unit + pytest) |
+| 10 | Zigbee event transport | not started | — | `test_button_events.py`, hardware pass 2 |
 
 Statuses: `not started`, `in progress`, `in review`, `done`, `blocked`.
 
@@ -72,8 +70,8 @@ Statuses: `not started`, `in progress`, `in review`, `done`, `blocked`.
 
 | # | Question | Owner | Resolution |
 | --- | --- | --- | --- |
-| 1 | Final `debounce_ms` default (8 ms assumed) | — | pending phase 5 |
-| 2 | Whether `0xFC02` needs a manufacturer code for Z2M discovery | — | pending phase 11 |
+| 1 | Final `debounce_ms` default (8 ms assumed) | — | pending stage 6 |
+| 2 | Whether `0xFC02` needs a manufacturer code for Z2M discovery | — | pending stage 10 |
 | 3 | `off_wait_time` support for `OnWithTimedOff` | — | out of scope unless requested |
 
 ## Decision log

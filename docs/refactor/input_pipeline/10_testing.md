@@ -189,7 +189,7 @@ Existing suites must keep passing unchanged in intent:
 ## Hardware regression
 
 Required on at least one Telink touch switch (e.g. BSEED TS0726) and one Silabs
-device before merging phase 5 and phase 11.
+device before merging stage 6 and stage 10.
 
 | Test | Method | Pass criterion |
 | --- | --- | --- |

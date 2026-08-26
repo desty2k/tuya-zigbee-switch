@@ -39,7 +39,7 @@ feature wiring, config/runtime split, phased migration.
    configurable per endpoint.
 
 5. **Debounce default is 8 ms** (plan suggested 5–10 ms). Final value is
-   confirmed by the hardware regression pass in phase 5, not by unit tests alone.
+   confirmed by the hardware regression pass in stage 6, not by unit tests alone.
 
 6. **A hold flushes the pending click sequence.** `click, click, hold` emits
    `N_CLICK(2)` before `HOLD_START` instead of discarding the clicks, so mixed
@@ -96,6 +96,16 @@ feature wiring, config/runtime split, phased migration.
     at startup to suppress a spurious long press. The replacement is an explicit
     `boot_press` flag consumed by the gesture layer, while raw `UP` is still
     delivered so toggle-type endpoints follow the physical switch position.
+
+17. **No internal compatibility layer.** The original plan kept the old
+    `on_press` / `on_release` / `on_long_press` / `on_multi_press` callbacks as an
+    adapter for one phase. That is dropped: each stage replaces its predecessor
+    outright and deletes it, so no adapter, feature flag, dead branch or
+    "previously" comment survives. Only the *external* Zigbee interface keeps
+    compatibility guarantees. The migration staging in
+    [11_migration.md](./11_migration.md) reflects this — timer service moves ahead
+    of the gesture layer so the gesture FSM can land together with the deletion of
+    `button.c`.
 
 ## Deliberately out of scope
 
