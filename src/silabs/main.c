@@ -15,7 +15,6 @@
 #include "em_gpio.h"
 
 #include "app.h"
-#include "base_components/button.h"
 #include "base_components/led.h"
 #include "base_components/network_indicator.h"
 #include "base_components/relay.h"

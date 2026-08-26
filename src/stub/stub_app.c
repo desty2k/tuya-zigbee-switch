@@ -3,8 +3,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "base_components/button.h"
 #include "base_components/button_dispatcher.h"
+#include "base_components/button_input.h"
+#include "base_components/gesture_fsm.h"
 #include "base_components/led.h"
 #include "base_components/network_indicator.h"
 #include "base_components/relay.h"
@@ -25,12 +26,11 @@
 #include "zigbee/switch_cluster.h"
 
 // externs from your codebase
-extern led_t    leds[5];
-extern uint8_t  leds_cnt;
-extern button_t buttons[5];
-extern uint8_t  buttons_cnt;
-extern relay_t  relays[5];
-extern uint8_t  relays_cnt;
+extern led_t   leds[5];
+extern uint8_t leds_cnt;
+extern uint8_t buttons_cnt;
+extern relay_t relays[5];
+extern uint8_t relays_cnt;
 
 static device_config_str_t g_stub_config = {
     .size = 0, .data = "Stub;Stub;SA0u;SA1u;SA2u;SA3u;RB0;RB1;RC0;RC1;"
@@ -41,6 +41,20 @@ static void stub_button_event(const button_event_t *event, void *arg) {
     io_evt("btn_event id=%u type=%s seq=%u press_id=%u t=%u",
            event->button_id,
            event->type == BUTTON_EVENT_DOWN ? "DOWN" : "UP", event->seq,
+           event->press_id, event->timestamp_ms);
+}
+
+static void stub_gesture_event(const gesture_event_t *event, void *arg) {
+    const char *type = "N_CLICK";
+
+    (void)arg;
+    if (event->type == GESTURE_HOLD_START) {
+        type = "HOLD_START";
+    } else if (event->type == GESTURE_HOLD_END) {
+        type = "HOLD_END";
+    }
+    io_evt("gesture id=%u type=%s count=%u duration=%u press_id=%u t=%u",
+           event->button_id, type, event->count, event->duration_ms,
            event->press_id, event->timestamp_ms);
 }
 
@@ -78,6 +92,7 @@ void stub_app_init(const char *device_conf, bool joined) {
 
     app_init();
     button_dispatcher_register(stub_button_event, NULL);
+    gesture_fsm_register_sink(stub_gesture_event, NULL);
 
     puts("[STUB] Application initialized");
 }
@@ -131,12 +146,10 @@ void stub_app_show_status(void) {
                stub_gpio_get_output(relays[i].pin));
     }
     for (uint8_t i = 0; i < buttons_cnt; i++) {
-        const char *state = (buttons[i].pressed && buttons[i].long_pressed)
-                            ? "LONG PRESSED"
-                        : buttons[i].pressed ? "PRESSED"
-                                             : "RELEASED";
-        printf("Button %u: %s (pin %d state: %d)\n", (unsigned)i, state,
-               buttons[i].pin, stub_gpio_get_output(buttons[i].pin));
+        const char *state = gesture_fsm_hold_active(i) ? "LONG PRESSED"
+                            : button_input_is_down(i) ? "PRESSED"
+                                                      : "RELEASED";
+        printf("Button %u: %s\n", (unsigned)i, state);
     }
     if (hal_zigbee_get_network_status() == HAL_ZIGBEE_NETWORK_JOINED) {
         puts("Network: JOINED\n");

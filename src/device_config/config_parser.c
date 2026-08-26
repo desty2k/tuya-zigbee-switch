@@ -15,12 +15,14 @@
 #include <string.h>
 
 #include "base_components/led.h"
+#include "base_components/button_input.h"
+#include "base_components/gesture_fsm.h"
 #include "base_components/network_indicator.h"
 #include "base_components/battery.h"
 #include "config_nv.h"
 #include "device_config/device_params_nv.h"
 #include "device_config/reset.h"
-#include "hal/system.h"
+#include "device_config/feature_wiring.h"
 #include "hal/zigbee.h"
 #include "hal/zigbee_ota.h"
 
@@ -38,8 +40,10 @@ network_indicator_t network_indicator = {
 led_t   leds[5];
 uint8_t leds_cnt = 0;
 
-button_t buttons[11];
-uint8_t  buttons_cnt = 0;
+button_config_t     button_configs[11];
+gesture_config_t    gesture_configs[11];
+input_button_role_t button_roles[11];
+uint8_t             buttons_cnt = 0;
 
 relay_t relays[10]; // 4 relay endpoints + 3 cover endpoints
 uint8_t relays_cnt = 0;
@@ -77,17 +81,6 @@ uint32_t parse_int(const char *s);
 char *seek_until(char *cursor, char needle);
 char *extract_next_entry(char **cursor);
 
-void on_reset_clicked(void *_) {
-    hal_factory_reset();
-}
-
-void on_multi_press_reset(void *_, uint8_t press_count) {
-    if (g_multi_press_reset_count != 0 &&
-        press_count >= g_multi_press_reset_count) {
-        hal_factory_reset();
-    }
-}
-
 void parse_config() {
     device_config_read_from_nv();
     char *cursor = (char *)device_config_str.data;
@@ -111,7 +104,8 @@ void parse_config() {
     memcpy(basic_cluster.modelId + 1, zb_model, basic_cluster.modelId[0]);
 
     bool     has_dedicated_status_led = false;
-    uint16_t debounce_ms = BUTTON_DEBOUNCE_DEFAULT_MS;
+    uint16_t debounce_ms        = BUTTON_DEBOUNCE_DEFAULT_MS;
+    uint16_t multi_click_gap_ms = 350;
     char *   entry;
     for (entry = extract_next_entry(&cursor); *entry != '\0';
          entry = extract_next_entry(&cursor)) {
@@ -122,7 +116,12 @@ void parse_config() {
             // D<N> sets the global debounce duration in milliseconds.
             debounce_ms = (uint16_t)parse_int(entry + 1);
             for (int i = 0; i < buttons_cnt; i++) {
-                buttons[i].debounce_delay_ms = debounce_ms;
+                button_configs[i].debounce_ms = debounce_ms;
+            }
+        } else if (entry[0] == 'G' && entry[1] >= '0' && entry[1] <= '9') {
+            multi_click_gap_ms = (uint16_t)parse_int(entry + 1);
+            for (int i = 0; i < buttons_cnt; i++) {
+                gesture_configs[i].multi_click_gap_ms = multi_click_gap_ms;
             }
         } else if (entry[0] == 'B' && entry[1] == 'T') {
             // Battery: BT<pin>, e.g. BTC5
@@ -134,11 +133,13 @@ void parse_config() {
             hal_gpio_pull_t pull = hal_gpio_parse_pull(entry + 3);
             hal_gpio_init(pin, 1, pull);
 
-            buttons[buttons_cnt].pin = pin;
-            buttons[buttons_cnt].long_press_duration_ms  = 2000;
-            buttons[buttons_cnt].multi_press_duration_ms = 800;
-            buttons[buttons_cnt].debounce_delay_ms       = debounce_ms;
-            buttons[buttons_cnt].on_long_press           = on_reset_clicked;
+            button_configs[buttons_cnt].pin                 = pin;
+            button_configs[buttons_cnt].active_high         = 0;
+            button_configs[buttons_cnt].debounce_ms         = debounce_ms;
+            gesture_configs[buttons_cnt].hold_ms            = 2000;
+            gesture_configs[buttons_cnt].multi_click_gap_ms =
+                multi_click_gap_ms;
+            button_roles[buttons_cnt] = INPUT_BUTTON_ONBOARD;
             buttons_cnt++;
         } else if (entry[0] == 'L') {
             hal_gpio_pin_t pin = hal_gpio_parse_pin(entry + 1);
@@ -189,14 +190,13 @@ void parse_config() {
             hal_gpio_pull_t pull = hal_gpio_parse_pull(entry + 3);
             hal_gpio_init(pin, 1, pull);
 
-            buttons[buttons_cnt].pin = pin;
-            buttons[buttons_cnt].long_press_duration_ms  = 800;
-            buttons[buttons_cnt].multi_press_duration_ms = 800;
-            buttons[buttons_cnt].debounce_delay_ms       = debounce_ms;
-            buttons[buttons_cnt].on_multi_press          = on_multi_press_reset;
-
-            if (entry[3] == 'd')
-                buttons[buttons_cnt].pressed_when_high = 1;
+            button_configs[buttons_cnt].pin                 = pin;
+            button_configs[buttons_cnt].active_high         = entry[3] == 'd';
+            button_configs[buttons_cnt].debounce_ms         = debounce_ms;
+            gesture_configs[buttons_cnt].hold_ms            = 800;
+            gesture_configs[buttons_cnt].multi_click_gap_ms =
+                multi_click_gap_ms;
+            button_roles[buttons_cnt] = INPUT_BUTTON_SWITCH;
             switch_clusters[switch_clusters_cnt].switch_idx = switch_clusters_cnt;
             switch_clusters[switch_clusters_cnt].mode       =
                 ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_TOGGLE;
@@ -206,9 +206,10 @@ void parse_config() {
                 ZCL_ONOFF_CONFIGURATION_RELAY_MODE_SHORT;
             switch_clusters[switch_clusters_cnt].binded_mode =
                 ZCL_ONOFF_CONFIGURATION_BINDED_MODE_SHORT;
-            switch_clusters[switch_clusters_cnt].relay_index     = switch_clusters_cnt + 1;
-            switch_clusters[switch_clusters_cnt].button          = &buttons[buttons_cnt];
-            switch_clusters[switch_clusters_cnt].level_move_rate = 50;
+            switch_clusters[switch_clusters_cnt].relay_index      = switch_clusters_cnt + 1;
+            switch_clusters[switch_clusters_cnt].button_id        = buttons_cnt;
+            switch_clusters[switch_clusters_cnt].hold_duration_ms = 800;
+            switch_clusters[switch_clusters_cnt].level_move_rate  = 50;
             buttons_cnt++;
             switch_clusters_cnt++;
         } else if (entry[0] == 'R') {
@@ -238,24 +239,27 @@ void parse_config() {
             hal_gpio_init(open_pin, 1, pull);
             hal_gpio_init(close_pin, 1, pull);
 
-            buttons[buttons_cnt].pin = open_pin;
-            buttons[buttons_cnt].long_press_duration_ms  = 800;
-            buttons[buttons_cnt].multi_press_duration_ms = 800;
-            buttons[buttons_cnt].debounce_delay_ms       = debounce_ms;
-            buttons[buttons_cnt].on_multi_press          = on_multi_press_reset;
-            button_t *open_button = &buttons[buttons_cnt++];
+            button_configs[buttons_cnt].pin                 = open_pin;
+            button_configs[buttons_cnt].active_high         = 0;
+            button_configs[buttons_cnt].debounce_ms         = debounce_ms;
+            gesture_configs[buttons_cnt].hold_ms            = 800;
+            gesture_configs[buttons_cnt].multi_click_gap_ms =
+                multi_click_gap_ms;
+            button_roles[buttons_cnt] = INPUT_BUTTON_COVER_SWITCH;
+            cover_switch_clusters[cover_switch_clusters_cnt].open_button_id =
+                buttons_cnt++;
 
-            buttons[buttons_cnt].pin = close_pin;
-            buttons[buttons_cnt].long_press_duration_ms  = 800;
-            buttons[buttons_cnt].multi_press_duration_ms = 800;
-            buttons[buttons_cnt].debounce_delay_ms       = debounce_ms;
-            buttons[buttons_cnt].on_multi_press          = on_multi_press_reset;
-            button_t *close_button = &buttons[buttons_cnt++];
-
-            cover_switch_clusters[cover_switch_clusters_cnt].open_button =
-                open_button;
-            cover_switch_clusters[cover_switch_clusters_cnt].close_button =
-                close_button;
+            button_configs[buttons_cnt].pin                 = close_pin;
+            button_configs[buttons_cnt].active_high         = 0;
+            button_configs[buttons_cnt].debounce_ms         = debounce_ms;
+            gesture_configs[buttons_cnt].hold_ms            = 800;
+            gesture_configs[buttons_cnt].multi_click_gap_ms =
+                multi_click_gap_ms;
+            button_roles[buttons_cnt] = INPUT_BUTTON_COVER_SWITCH;
+            cover_switch_clusters[cover_switch_clusters_cnt].close_button_id =
+                buttons_cnt++;
+            cover_switch_clusters[cover_switch_clusters_cnt].hold_duration_ms =
+                800;
             cover_switch_clusters[cover_switch_clusters_cnt].cover_switch_idx =
                 cover_switch_clusters_cnt;
             cover_switch_clusters_cnt++;
@@ -384,6 +388,8 @@ void parse_config() {
                                       &endpoints[cover_base + index]);
     }
 
+    feature_wiring_init();
+
     hal_zigbee_init(endpoints, total_endpoints);
     while (cursor != (char *)device_config_str.data) {
         cursor--;
@@ -411,10 +417,6 @@ void network_indicator_on_network_status_change(
 }
 
 void peripherals_init() {
-    button_input_init();
-    for (int index = 0; index < buttons_cnt; index++) {
-        btn_init(&buttons[index]);
-    }
     for (int index = 0; index < leds_cnt; index++) {
         led_init(&leds[index]);
     }

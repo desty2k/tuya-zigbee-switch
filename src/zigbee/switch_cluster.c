@@ -1,4 +1,5 @@
 #include "switch_cluster.h"
+#include "base_components/button_dispatcher.h"
 #include "base_components/relay.h"
 #include "cluster_common.h"
 #include "consts.h"
@@ -25,11 +26,48 @@ extern uint8_t relay_clusters_cnt;
 extern zigbee_switch_cluster switch_clusters[];
 extern uint8_t switch_clusters_cnt;
 
-void switch_cluster_on_button_press(zigbee_switch_cluster *cluster);
-void switch_cluster_on_button_release(zigbee_switch_cluster *cluster);
-void switch_cluster_on_button_long_press(zigbee_switch_cluster *cluster);
+static void switch_cluster_handle_down(zigbee_switch_cluster *cluster);
+static void switch_cluster_handle_up(zigbee_switch_cluster *cluster);
+static void switch_cluster_handle_hold(zigbee_switch_cluster *cluster);
 static bool switch_cluster_has_valid_relay(
     const zigbee_switch_cluster *cluster);
+
+static void switch_cluster_button_event(const button_event_t *event, void *arg) {
+    (void)arg;
+    for (uint8_t i = 0; i < switch_clusters_cnt; i++) {
+        if (switch_clusters[i].button_id != event->button_id) {
+            continue;
+        }
+        if (event->type == BUTTON_EVENT_DOWN) {
+            switch_cluster_handle_down(&switch_clusters[i]);
+        } else {
+            switch_cluster_handle_up(&switch_clusters[i]);
+        }
+        return;
+    }
+}
+
+static void switch_cluster_gesture_event(const gesture_event_t *event,
+                                         void *arg) {
+    (void)arg;
+    if (event->type != GESTURE_HOLD_START) {
+        return;
+    }
+    for (uint8_t i = 0; i < switch_clusters_cnt; i++) {
+        if (switch_clusters[i].button_id == event->button_id) {
+            switch_cluster_handle_hold(&switch_clusters[i]);
+            return;
+        }
+    }
+}
+
+void switch_cluster_register_input(void) {
+    button_dispatcher_register(switch_cluster_button_event, NULL);
+}
+
+void switch_cluster_register_gestures(void) {
+    gesture_fsm_register_sink(switch_cluster_gesture_event, NULL);
+}
 
 zigbee_switch_cluster *switch_cluster_by_endpoint[10];
 
@@ -91,14 +129,6 @@ void switch_cluster_add_to_endpoint(zigbee_switch_cluster *cluster,
     cluster->endpoint = endpoint->endpoint;
     switch_cluster_load_attrs_from_nv(cluster);
 
-    cluster->button->on_press =
-        (ev_button_callback_t)switch_cluster_on_button_press;
-    cluster->button->on_release =
-        (ev_button_callback_t)switch_cluster_on_button_release;
-    cluster->button->on_long_press =
-        (ev_button_callback_t)switch_cluster_on_button_long_press;
-    cluster->button->callback_param = cluster;
-
     SETUP_ATTR(0, ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_TYPE, ZCL_DATA_TYPE_ENUM8,
                ATTR_READONLY, cluster->mode);
     SETUP_ATTR(1, ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_ACTIONS,
@@ -111,7 +141,7 @@ void switch_cluster_add_to_endpoint(zigbee_switch_cluster *cluster,
                ZCL_DATA_TYPE_UINT8, ATTR_WRITABLE, cluster->relay_index);
     SETUP_ATTR(5, ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_LONG_PRESS_DUR,
                ZCL_DATA_TYPE_UINT16, ATTR_WRITABLE,
-               cluster->button->long_press_duration_ms);
+               cluster->hold_duration_ms);
     SETUP_ATTR(6, ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_LEVEL_MOVE_RATE,
                ZCL_DATA_TYPE_UINT8, ATTR_WRITABLE, cluster->level_move_rate);
     SETUP_ATTR(7, ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_BINDING_MODE,
@@ -340,7 +370,7 @@ void switch_cluster_level_control(zigbee_switch_cluster *cluster) {
     }
 }
 
-void switch_cluster_on_button_press(zigbee_switch_cluster *cluster) {
+static void switch_cluster_handle_down(zigbee_switch_cluster *cluster) {
     switch_cluster_flash_indicator(cluster);
 
     if (cluster->mode == ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_TOGGLE) {
@@ -370,7 +400,7 @@ void switch_cluster_on_button_press(zigbee_switch_cluster *cluster) {
                                         ZCL_ATTR_MULTISTATE_INPUT_PRESENT_VALUE);
 }
 
-void switch_cluster_on_button_release(zigbee_switch_cluster *cluster) {
+static void switch_cluster_handle_up(zigbee_switch_cluster *cluster) {
     if (cluster->mode == ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_TOGGLE) {
         // Only flash on release for toggles,
         // for momentary flash on press only
@@ -408,7 +438,7 @@ void switch_cluster_on_button_release(zigbee_switch_cluster *cluster) {
                                         ZCL_ATTR_MULTISTATE_INPUT_PRESENT_VALUE);
 }
 
-void switch_cluster_on_button_long_press(zigbee_switch_cluster *cluster) {
+static void switch_cluster_handle_hold(zigbee_switch_cluster *cluster) {
     if (cluster->mode == ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_TOGGLE) {
         // Toggle does not support modes (RISE, SHORT, LONG)
         return;
@@ -434,15 +464,15 @@ void switch_cluster_on_button_long_press(zigbee_switch_cluster *cluster) {
 
 void synchronize_multistate_state(zigbee_switch_cluster *cluster) {
     if (cluster->mode == ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_TOGGLE) {
-        if (cluster->button->pressed) {
+        if (button_input_is_down(cluster->button_id)) {
             cluster->multistate_state = MULTISTATE_POSITION_ON;
         } else {
             cluster->multistate_state = MULTISTATE_POSITION_OFF;
         }
     } else {
-        if (cluster->button->long_pressed) {
+        if (gesture_fsm_hold_active(cluster->button_id)) {
             cluster->multistate_state = MULTISTATE_LONG_PRESS;
-        } else if (cluster->button->pressed) {
+        } else if (button_input_is_down(cluster->button_id)) {
             cluster->multistate_state = MULTISTATE_PRESS;
         } else {
             cluster->multistate_state = MULTISTATE_NOT_PRESSED;
@@ -464,17 +494,14 @@ void switch_cluster_on_write_attr(zigbee_switch_cluster *cluster,
         }
     }
     if (attribute_id == ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_MODE) {
-        if (cluster->mode == ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_MOMENTARY_NC) {
-            cluster->button->pressed_when_high = 1;
-        } else {
-            cluster->button->pressed_when_high = 0;
-        }
-        button_input_set_active_high(cluster->button->button_id,
-                                     cluster->button->pressed_when_high);
-        cluster->button->pressed =
-            button_input_is_down(cluster->button->button_id);
-        cluster->button->long_pressed = false;
+        button_input_set_active_high(
+            cluster->button_id,
+            cluster->mode == ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_MOMENTARY_NC);
         synchronize_multistate_state(cluster);
+    }
+    if (attribute_id == ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_LONG_PRESS_DUR) {
+        gesture_fsm_set_hold_ms(cluster->button_id,
+                                cluster->hold_duration_ms);
     }
     switch_cluster_store_attrs_to_nv(cluster);
 }
@@ -482,14 +509,13 @@ void switch_cluster_on_write_attr(zigbee_switch_cluster *cluster,
 zigbee_switch_cluster_config nv_config_buffer;
 
 void switch_cluster_store_attrs_to_nv(zigbee_switch_cluster *cluster) {
-    nv_config_buffer.action      = cluster->action;
-    nv_config_buffer.mode        = cluster->mode;
-    nv_config_buffer.relay_index = cluster->relay_index;
-    nv_config_buffer.relay_mode  = cluster->relay_mode;
-    nv_config_buffer.button_long_press_duration =
-        cluster->button->long_press_duration_ms;
-    nv_config_buffer.level_move_rate = cluster->level_move_rate;
-    nv_config_buffer.binded_mode     = cluster->binded_mode;
+    nv_config_buffer.action           = cluster->action;
+    nv_config_buffer.mode             = cluster->mode;
+    nv_config_buffer.relay_index      = cluster->relay_index;
+    nv_config_buffer.relay_mode       = cluster->relay_mode;
+    nv_config_buffer.hold_duration_ms = cluster->hold_duration_ms;
+    nv_config_buffer.level_move_rate  = cluster->level_move_rate;
+    nv_config_buffer.binded_mode      = cluster->binded_mode;
     hal_nvm_write(NV_ITEM_SWITCH_CLUSTER_DATA(cluster->switch_idx),
                   sizeof(zigbee_switch_cluster_config),
                   (uint8_t *)&nv_config_buffer);
@@ -504,14 +530,13 @@ void switch_cluster_load_attrs_from_nv(zigbee_switch_cluster *cluster) {
         printf("No switch config in NV, using defaults\r\n");
         return;
     }
-    cluster->action      = nv_config_buffer.action;
-    cluster->mode        = nv_config_buffer.mode;
-    cluster->relay_index = nv_config_buffer.relay_index;
-    cluster->relay_mode  = nv_config_buffer.relay_mode;
-    cluster->button->long_press_duration_ms =
-        nv_config_buffer.button_long_press_duration;
-    cluster->level_move_rate = nv_config_buffer.level_move_rate;
-    cluster->binded_mode     = nv_config_buffer.binded_mode;
+    cluster->action           = nv_config_buffer.action;
+    cluster->mode             = nv_config_buffer.mode;
+    cluster->relay_index      = nv_config_buffer.relay_index;
+    cluster->relay_mode       = nv_config_buffer.relay_mode;
+    cluster->hold_duration_ms = nv_config_buffer.hold_duration_ms;
+    cluster->level_move_rate  = nv_config_buffer.level_move_rate;
+    cluster->binded_mode      = nv_config_buffer.binded_mode;
 
     // Validate relay_index to prevent out-of-bounds access
     if (relay_clusters_cnt == 0) {

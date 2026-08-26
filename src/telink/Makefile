@@ -150,7 +150,8 @@ COMMON_SOURCES := \
 	$(SRC_DIR)/base_components/timer_service.c \
 	$(SRC_DIR)/base_components/button_dispatcher.c \
 	$(SRC_DIR)/base_components/button_input.c \
-	$(SRC_DIR)/base_components/button.c \
+	$(SRC_DIR)/base_components/gesture_fsm.c \
+	$(SRC_DIR)/base_components/action_mapper.c \
 	$(SRC_DIR)/base_components/led.c \
 	$(SRC_DIR)/base_components/network_indicator.c \
 	$(SRC_DIR)/base_components/relay.c \
@@ -158,6 +159,8 @@ COMMON_SOURCES := \
 	$(SRC_DIR)/device_config/config_nv.c \
 	$(SRC_DIR)/device_config/device_params_nv.c \
 	$(SRC_DIR)/device_config/reset.c \
+	$(SRC_DIR)/device_config/system_action.c \
+	$(SRC_DIR)/device_config/feature_wiring.c \
 	$(SRC_DIR)/device_config/config_parser.c \
 	$(SRC_DIR)/device_config/nvm_migrations.c \
 	$(SRC_DIR)/zigbee/basic_cluster.c \

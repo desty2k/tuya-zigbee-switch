@@ -5,7 +5,7 @@ Tracking board for the input/relay pipeline refactor.
 - Branch: `refactor/input-pipeline`
 - Fork: `desty2k/tuya-zigbee-switch` (upstream `romasku/tuya-zigbee-switch`)
 - Base commit: `bf1059ee`
-- Current position: **stage 4 complete, stage 5 not started**
+- Current position: **stage 5 complete, stage 6 not started**
 
 ## Stages
 
@@ -15,7 +15,7 @@ Tracking board for the input/relay pipeline refactor.
 | 2 | Edge queue + worker | done | — | `test_gpio_edge_queue`, pytest green |
 | 3 | Timer service | done | — | `test_timer_service`, pytest green |
 | 4 | Button input | done | — | `test_button_input`, `fuzz_debounce`, `test_input_latency.py` |
-| 5 | Gesture layer, old button layer deleted | not started | — | `test_gesture_fsm`, `test_gesture_reset.py`, full pytest green |
+| 5 | Gesture layer, old button layer deleted | done | — | `test_gesture_fsm`, `test_gesture_reset.py`, full pytest green |
 | 6 | Hardware regression | not started | — | hardware matrix on Telink + Silabs |
 | 7 | Relay driver + controller | not started | — | `test_relay_controller`, relay/cover suites |
 | 8 | Inching + timed-off | not started | — | `test_relay_inching.py`, `test_relay_timed_off.py` |
@@ -34,30 +34,30 @@ Statuses: `not started`, `in progress`, `in review`, `done`, `blocked`.
 [x] src/base_components/gpio_edge_queue.*
 [x] src/base_components/button_input.*
 [x] src/base_components/button_dispatcher.*
-[ ] src/base_components/gesture_fsm.*
+[x] src/base_components/gesture_fsm.*
 [x] src/base_components/timer_service.*
-[ ] src/base_components/action_mapper.*
+[x] src/base_components/action_mapper.*
 [ ] src/base_components/relay_driver.*
 [ ] src/base_components/relay_controller.*
 [ ] src/base_components/interlock.*
-[ ] src/device_config/system_action.*
-[ ] src/device_config/feature_wiring.*
-[ ] src/device_config/config_parser.c    config-only parsing
+[x] src/device_config/system_action.*
+[x] src/device_config/feature_wiring.*
+[x] src/device_config/config_parser.c    config-only input parsing
 [ ] src/zigbee/button_event_cluster.*
-[ ] src/zigbee/switch_cluster.c          event/gesture consumer
-[ ] src/zigbee/cover_switch_cluster.c    event/gesture consumer
+[x] src/zigbee/switch_cluster.c          event/gesture consumer
+[x] src/zigbee/cover_switch_cluster.c    event/gesture consumer
 [ ] src/zigbee/relay_cluster.c           controller client
 [ ] src/zigbee/cover_cluster.c           controller client
 [ ] src/zigbee/basic_cluster.c           diagnostic counters
 [ ] src/hal/zigbee.h + impls             send-to-coordinator, report snapshot fix
 [x] tests/unit/support + test_gpio_edge_queue.c native unit test foundation
 [x] tests/conftest.py                    debounce + new helpers
-[x] tests/test_*.py                      input latency integration suite
+[x] tests/test_*.py                      input latency + gesture reset suites
 [x] .github/workflows/test.yml           run unit tests
 [ ] docs/                                user-facing docs for new features
 [ ] zigbee2mqtt/, zha/, homed/           regenerated converters
 [ ] NVM_MIGRATIONS_VERSION               bumped with migration step
-[ ] src/base_components/button.c/.h      deleted
+[x] src/base_components/button.c/.h      deleted
 ```
 
 ## Hardware regression log

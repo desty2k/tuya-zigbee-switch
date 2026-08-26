@@ -98,6 +98,7 @@ UNIT_QUEUE_TEST := $(UNIT_BUILD_DIR)/test_gpio_edge_queue
 UNIT_TIMER_TEST := $(UNIT_BUILD_DIR)/test_timer_service
 UNIT_BUTTON_TEST := $(UNIT_BUILD_DIR)/test_button_input
 UNIT_DEBOUNCE_FUZZ := $(UNIT_BUILD_DIR)/fuzz_debounce
+UNIT_GESTURE_TEST := $(UNIT_BUILD_DIR)/test_gesture_fsm
 
 $(UNIT_BUILD_DIR):
 	mkdir -p $(UNIT_BUILD_DIR)
@@ -122,12 +123,21 @@ $(UNIT_DEBOUNCE_FUZZ): tests/unit/fuzz_debounce.c \
 		src/base_components/gpio_edge_queue.c $(UNIT_SUPPORT) | $(UNIT_BUILD_DIR)
 	$(CC) $(UNIT_CFLAGS) $^ -o $@
 
+$(UNIT_GESTURE_TEST): tests/unit/test_gesture_fsm.c \
+		src/base_components/gesture_fsm.c \
+		src/base_components/timer_service.c \
+		src/base_components/button_input.c \
+		src/base_components/button_dispatcher.c \
+		src/base_components/gpio_edge_queue.c $(UNIT_SUPPORT) | $(UNIT_BUILD_DIR)
+	$(CC) $(UNIT_CFLAGS) $^ -o $@
+
 unit_tests: $(UNIT_QUEUE_TEST) $(UNIT_TIMER_TEST) $(UNIT_BUTTON_TEST) \
-		$(UNIT_DEBOUNCE_FUZZ)
+		$(UNIT_DEBOUNCE_FUZZ) $(UNIT_GESTURE_TEST)
 	./$(UNIT_QUEUE_TEST)
 	./$(UNIT_TIMER_TEST)
 	./$(UNIT_BUTTON_TEST)
 	./$(UNIT_DEBOUNCE_FUZZ)
+	./$(UNIT_GESTURE_TEST)
 
 # Format all C/H files using uncrustify
 format:

@@ -121,8 +121,9 @@ def test_leaves_on_multipress_configurable() -> None:
 
         assert device.status()["joined"] == str(HAL_ZIGBEE_NETWORK_JOINED)
 
-        # 5th press should cause the device to leave the network
+        # The configured click sequence resolves after the gesture gap.
         device.click_button("A0")
+        device.step_time(350)
         assert device.status()["joined"] != str(HAL_ZIGBEE_NETWORK_JOINED)
 
 
