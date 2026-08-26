@@ -132,7 +132,7 @@ both buttons of the endpoint.
 | Key | Action |
 | --- | --- |
 | on-board button (`B` token), `HOLD_START`, `hold_ms = 2000` | `SYSTEM_ACTION_FACTORY_RESET` |
-| any switch button, `N_CLICK(n)` with `reset_count != 0` and `n >= reset_count` | `SYSTEM_ACTION_FACTORY_RESET` |
+| any switch button (`S` token) or cover switch button (`X` token), `N_CLICK(n)` with `reset_count != 0` and `n >= reset_count` | `SYSTEM_ACTION_FACTORY_RESET` |
 | any button, `HOLD_START` / `HOLD_END` / `N_CLICK(n)` | `ACTION_ZB_BUTTON_EVENT` |
 
 `reset_count` is the existing global `g_multi_press_reset_count`
