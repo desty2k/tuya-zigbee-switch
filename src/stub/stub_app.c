@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "base_components/button.h"
+#include "base_components/button_dispatcher.h"
 #include "base_components/led.h"
 #include "base_components/network_indicator.h"
 #include "base_components/relay.h"
@@ -34,6 +35,14 @@ extern uint8_t  relays_cnt;
 static device_config_str_t g_stub_config = {
     .size = 0, .data = "Stub;Stub;SA0u;SA1u;SA2u;SA3u;RB0;RB1;RC0;RC1;"
 };
+
+static void stub_button_event(const button_event_t *event, void *arg) {
+    (void)arg;
+    io_evt("btn_event id=%u type=%s seq=%u press_id=%u t=%u",
+           event->button_id,
+           event->type == BUTTON_EVENT_DOWN ? "DOWN" : "UP", event->seq,
+           event->press_id, event->timestamp_ms);
+}
 
 void stub_app_init(const char *device_conf, bool joined) {
     puts("[STUB] Starting Smart Home Device Stub");
@@ -68,6 +77,7 @@ void stub_app_init(const char *device_conf, bool joined) {
     }
 
     app_init();
+    button_dispatcher_register(stub_button_event, NULL);
 
     puts("[STUB] Application initialized");
 }
@@ -93,6 +103,7 @@ void stub_app_print_help(void) {
     puts(
         "  net                                   - Toggle network joined status");
     puts("  set_pin <pin> <0|1>                   - Simulate GPIO input");
+    puts("  pin_edge <pin> <0|1> [after_ms]       - Queue GPIO edge");
     puts("  read_pin <pin>                        - Read GPIO output");
     puts("  zcl_list_attrs                        - List all Zigbee attributes");
     puts("  zcl_read <ep> <cluster> <attr>        - Read attribute (ep dec, IDs "
@@ -102,6 +113,8 @@ void stub_app_print_help(void) {
          "bytes)");
     puts("  freeze_time <0|1>                     - Freeze/unfreeze time");
     puts("  step_time <ms>                        - Advance time by ms");
+    puts("  time_advance <ms>                     - Advance without tasks");
+    puts("  tasks_poll                            - Dispatch due tasks");
     puts("  q, quit                               - Exit");
 }
 

@@ -464,12 +464,17 @@ void switch_cluster_on_write_attr(zigbee_switch_cluster *cluster,
         }
     }
     if (attribute_id == ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_MODE) {
-        synchronize_multistate_state(cluster);
         if (cluster->mode == ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_MOMENTARY_NC) {
             cluster->button->pressed_when_high = 1;
         } else {
             cluster->button->pressed_when_high = 0;
         }
+        button_input_set_active_high(cluster->button->button_id,
+                                     cluster->button->pressed_when_high);
+        cluster->button->pressed =
+            button_input_is_down(cluster->button->button_id);
+        cluster->button->long_pressed = false;
+        synchronize_multistate_state(cluster);
     }
     switch_cluster_store_attrs_to_nv(cluster);
 }

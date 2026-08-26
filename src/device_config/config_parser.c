@@ -111,7 +111,7 @@ void parse_config() {
     memcpy(basic_cluster.modelId + 1, zb_model, basic_cluster.modelId[0]);
 
     bool     has_dedicated_status_led = false;
-    uint16_t debounce_ms = DEBOUNCE_DELAY_MS;
+    uint16_t debounce_ms = BUTTON_DEBOUNCE_DEFAULT_MS;
     char *   entry;
     for (entry = extract_next_entry(&cursor); *entry != '\0';
          entry = extract_next_entry(&cursor)) {
@@ -411,6 +411,7 @@ void network_indicator_on_network_status_change(
 }
 
 void peripherals_init() {
+    button_input_init();
     for (int index = 0; index < buttons_cnt; index++) {
         btn_init(&buttons[index]);
     }

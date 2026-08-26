@@ -8,7 +8,7 @@
 #include "stub/hal/stub.h"
 
 #include "stub/stub_app.h"
-#include "base_components/button.h"
+#include "base_components/button_input.h"
 #include "zigbee/consts.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -84,7 +84,7 @@ static int cmd_diag(int argc, char **argv) {
     io_res_ok("gpio_irq_count=%u gpio_edges_captured=%u gpio_edges_dropped=%u "
               "gpio_rearm_limit_hits=%u",
               diag.gpio_irq_count, diag.gpio_edges_captured,
-              btn_gpio_edges_dropped(),
+              button_input_gpio_edges_dropped(),
               diag.gpio_rearm_limit_hits);
     return 0;
 }
@@ -369,7 +369,65 @@ static int cmd_step_time(int argc, char **argv) {
         return -1;
     }
     stub_millis_step((uint64_t)step);
+    stub_tasks_resume();
     io_res_ok("stepped_ms=%ld", step);
+    return 0;
+}
+
+static int cmd_time_advance(int argc, char **argv) {
+    char *e       = NULL;
+    long  advance = argc == 2 ? strtol(argv[1], &e, 10) : -1;
+
+    if (argc != 2 || *argv[1] == '\0' || *e || advance < 0) {
+        io_res_err("usage");
+        return -1;
+    }
+    stub_tasks_pause();
+    stub_millis_step((uint64_t)advance);
+    io_res_ok("advanced_ms=%ld", advance);
+    return 0;
+}
+
+static int cmd_tasks_poll(int argc, char **argv) {
+    (void)argc;
+    (void)argv;
+    stub_tasks_resume();
+    stub_tasks_poll();
+    io_res_ok(NULL);
+    return 0;
+}
+
+static int cmd_pin_edge(int argc, char **argv) {
+    char *e = NULL;
+    long  pin;
+    long  value;
+    long  after_ms = 0;
+
+    if (argc != 3 && argc != 4) {
+        io_res_err("usage");
+        return -1;
+    }
+    pin = strtol(argv[1], &e, 10);
+    if (*argv[1] == '\0' || *e || pin < 0 || pin > 255) {
+        io_res_err("bad_pin=%s", argv[1]);
+        return -1;
+    }
+    value = strtol(argv[2], &e, 10);
+    if (*argv[2] == '\0' || *e || (value != 0 && value != 1)) {
+        io_res_err("bad_value=%s", argv[2]);
+        return -1;
+    }
+    if (argc == 4) {
+        after_ms = strtol(argv[3], &e, 10);
+        if (*argv[3] == '\0' || *e || after_ms < 0) {
+            io_res_err("bad_after_ms=%s", argv[3]);
+            return -1;
+        }
+    }
+    stub_tasks_pause();
+    stub_millis_step((uint64_t)after_ms);
+    stub_gpio_simulate_input((hal_gpio_pin_t)pin, (uint8_t)value);
+    io_res_ok("pin=%ld value=%ld t=%u", pin, value, hal_millis());
     return 0;
 }
 
@@ -401,6 +459,7 @@ static const SimpleReplCommand kCmds[] = {
     { "diag",                cmd_diag                },
     { "net",                 cmd_net                 },
     { "set_pin",             cmd_pin                 },
+    { "pin_edge",            cmd_pin_edge            },
     { "read_pin",            cmd_read_pin            },
     { "zcl_read",            cmd_zcl_read            },
     { "zcl_write",           cmd_zcl_write           },
@@ -409,6 +468,8 @@ static const SimpleReplCommand kCmds[] = {
     { "zcl_cmd_no_activity", cmd_zcl_cmd_no_activity },
     { "freeze_time",         cmd_freeze_time         },
     { "step_time",           cmd_step_time           },
+    { "time_advance",        cmd_time_advance        },
+    { "tasks_poll",          cmd_tasks_poll          },
     { "set_battery_voltage", cmd_set_battery_voltage },
     { "q",                   cmd_quit                },
     { "quit",                cmd_quit                },

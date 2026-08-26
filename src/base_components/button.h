@@ -1,6 +1,7 @@
 #ifndef _BUTTON_H_
 #define _BUTTON_H_
 
+#include "base_components/button_input.h"
 #include "base_components/timer_service.h"
 #include "hal/gpio.h"
 #include <stdint.h>
@@ -8,7 +9,7 @@
 typedef void (*ev_button_callback_t)(void *);
 typedef void (*ev_button_multi_press_callback_t)(void *, uint8_t);
 
-#define DEBOUNCE_DELAY_MS    50
+#define DEBOUNCE_DELAY_MS    BUTTON_DEBOUNCE_DEFAULT_MS
 
 typedef struct {
     hal_gpio_pin_t                   pin;
@@ -21,9 +22,8 @@ typedef struct {
     uint32_t                         multi_press_duration_ms;
     uint8_t                          multi_press_cnt;
     uint16_t                         debounce_delay_ms;
-    app_timer_t                      update_timer;
-    uint8_t                          debounce_last_state;
-    uint32_t                         debounce_last_change;
+    app_timer_t                      gesture_timer;
+    uint8_t                          button_id;
     ev_button_callback_t             on_press;
     ev_button_callback_t             on_long_press;
     ev_button_callback_t             on_release;

@@ -16,10 +16,16 @@ typedef struct {
 } stub_task_entry_t;
 
 static stub_task_entry_t tasks[MAX_TASKS];
+static int tasks_paused;
 
 void stub_tasks_poll(void) {
-    uint32_t current_time   = hal_millis();
+    uint32_t current_time;
     int      tasks_executed = 0;
+
+    if (tasks_paused) {
+        return;
+    }
+    current_time = hal_millis();
 
     // Check all tasks for execution, keep looping until no tasks are executed in
     // a pass, to more agressively tests for tasks that reschedule themselves.
@@ -38,6 +44,14 @@ void stub_tasks_poll(void) {
             }
         }
     } while (tasks_executed > 0);
+}
+
+void stub_tasks_pause(void) {
+    tasks_paused = 1;
+}
+
+void stub_tasks_resume(void) {
+    tasks_paused = 0;
 }
 
 void hal_tasks_init(hal_task_t *task) {

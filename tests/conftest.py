@@ -32,7 +32,7 @@ from tests.zcl_consts import (
     ZCL_CMD_WINDOW_COVERING_UP_OPEN,
 )
 
-DEBOUNCE_MS = 50  # Must match DEBOUNCE_DELAY_MS in button.h
+DEBOUNCE_MS = 8
 MINIMUM_SWITCH_TIME_MS = 200
 
 
@@ -171,11 +171,11 @@ class Device:
         pin: str,
     ) -> None:
         self.set_gpio(pin, 0)  # Low is pressed
-        self.step_time(DEBOUNCE_MS + 10)
+        self.step_time(DEBOUNCE_MS + 2)
 
     def release_button(self, pin: str) -> None:
         self.set_gpio(pin, 1)  # High is released
-        self.step_time(DEBOUNCE_MS + 10)
+        self.step_time(DEBOUNCE_MS + 2)
 
     def click_button(self, pin: str) -> None:
         self.press_button(pin)
@@ -268,6 +268,42 @@ class Device:
     def step_time(self, ms: int) -> None:
         res = self.p.exec(f"step_time {ms}")
         assert res.ok, f"Step time failed: {res.payload}"
+
+    def time_advance(self, ms: int) -> None:
+        res = self.p.exec(f"time_advance {ms}")
+        assert res.ok, f"Time advance failed: {res.payload}"
+
+    def tasks_poll(self) -> None:
+        res = self.p.exec("tasks_poll")
+        assert res.ok, f"Task poll failed: {res.payload}"
+
+    def pin_edge(self, pin: str, value: int, after_ms: int = 0) -> None:
+        res = self.p.exec(
+            f"pin_edge {self._parse_pin(pin)} {value} {after_ms}"
+        )
+        assert res.ok, f"Pin edge failed: {res.payload}"
+
+    def inject_edges(self, pin: str, edges: list[tuple[int, int]]) -> None:
+        previous_at = 0
+        for value, at_ms in edges:
+            assert at_ms >= previous_at
+            self.pin_edge(pin, value, at_ms - previous_at)
+            previous_at = at_ms
+
+    def click_n(self, pin: str, count: int, gap_ms: int = 100) -> None:
+        for click in range(count):
+            self.click_button(pin)
+            if click + 1 < count:
+                self.step_time(gap_ms)
+
+    def hold_button(self, pin: str, duration_ms: int) -> None:
+        self.press_button(pin)
+        self.step_time(duration_ms)
+
+    def counters(self) -> dict[str, int]:
+        res = self.p.exec("diag")
+        assert res.ok, f"Diagnostics failed: {res.payload}"
+        return {key: int(value) for key, value in res.payload.items()}
 
     def set_battery_voltage(self, mv: int) -> None:
         res = self.p.exec(f"set_battery_voltage {mv}")
