@@ -107,6 +107,12 @@ feature wiring, config/runtime split, phased migration.
     of the gesture layer so the gesture FSM can land together with the deletion of
     `button.c`.
 
+18. **The stage 6 hardware regression gate is deferred.** No safe bench-accessible
+    Telink or Silabs test hardware is available. Stage 7 may proceed through its
+    native and stub software gates, but the hardware matrix remains mandatory
+    before this refactor is released or merged. The 8 ms debounce default remains
+    provisional until that matrix runs.
+
 ## Deliberately out of scope
 
 Scenes, power monitoring, curtain-module features, touchlink, wireless-switch
