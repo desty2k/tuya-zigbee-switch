@@ -469,6 +469,7 @@ const definitions = [
         extend: [
             {% if device.switchNames or device.coverSwitchNames %}
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -505,6 +506,7 @@ const definitions = [
             {% endif %}
             {% if device.coverSwitchNames %}
             deviceAddCustomCluster("manuSpecificTuyaCoverSwitchConfig", {
+                name: "manuSpecificTuyaCoverSwitchConfig",
                 ID: 0xFC01,
                 manufacturerCode: 0x125D,
                 attributes: {
@@ -521,6 +523,7 @@ const definitions = [
             {% endif %}
             {% if device.coverNames %}
             deviceAddCustomCluster("closuresWindowCovering", {
+                name: "closuresWindowCovering",
                 ID: 0x0102,
                 attributes: {
                     moving: {ID: 0xff00, type: Zcl.DataType.ENUM8},
