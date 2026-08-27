@@ -462,6 +462,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -618,6 +619,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -774,6 +776,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -930,6 +933,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -1086,6 +1090,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -1164,6 +1169,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -1268,6 +1274,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -1372,6 +1379,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -1460,6 +1468,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -1549,6 +1558,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -1627,6 +1637,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -1731,6 +1742,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -1861,6 +1873,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -2019,6 +2032,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -2099,6 +2113,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -2205,6 +2220,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -2337,6 +2353,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -2493,6 +2510,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -2623,6 +2641,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -2779,6 +2798,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -2858,6 +2878,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -2937,6 +2958,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -3041,6 +3063,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -3145,6 +3168,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -3275,6 +3299,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -3379,6 +3404,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -3483,6 +3509,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -3561,6 +3588,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -3665,6 +3693,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -3770,6 +3799,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -3849,6 +3879,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -3979,6 +4010,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -4057,6 +4089,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -4161,6 +4194,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -4239,6 +4273,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -4318,6 +4353,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -4422,6 +4458,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -4446,6 +4483,7 @@ const definitions = [
             }),
             romasku.buttonEvents(["cover_switch", ]),
             deviceAddCustomCluster("manuSpecificTuyaCoverSwitchConfig", {
+                name: "manuSpecificTuyaCoverSwitchConfig",
                 ID: 0xFC01,
                 manufacturerCode: 0x125D,
                 attributes: {
@@ -4460,6 +4498,7 @@ const definitions = [
                 commandsResponse: {},
             }),
             deviceAddCustomCluster("closuresWindowCovering", {
+                name: "closuresWindowCovering",
                 ID: 0x0102,
                 attributes: {
                     moving: {ID: 0xff00, type: Zcl.DataType.ENUM8},
@@ -4530,6 +4569,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -4554,6 +4594,7 @@ const definitions = [
             }),
             romasku.buttonEvents(["cover_switch_left", "cover_switch_right", ]),
             deviceAddCustomCluster("manuSpecificTuyaCoverSwitchConfig", {
+                name: "manuSpecificTuyaCoverSwitchConfig",
                 ID: 0xFC01,
                 manufacturerCode: 0x125D,
                 attributes: {
@@ -4568,6 +4609,7 @@ const definitions = [
                 commandsResponse: {},
             }),
             deviceAddCustomCluster("closuresWindowCovering", {
+                name: "closuresWindowCovering",
                 ID: 0x0102,
                 attributes: {
                     moving: {ID: 0xff00, type: Zcl.DataType.ENUM8},
@@ -4674,6 +4716,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -4752,6 +4795,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -4830,6 +4874,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -4908,6 +4953,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -4986,6 +5032,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -5064,6 +5111,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -5168,6 +5216,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -5272,6 +5321,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -5351,6 +5401,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -5481,6 +5532,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -5637,6 +5689,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -5715,6 +5768,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -5793,6 +5847,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -5871,6 +5926,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -5975,6 +6031,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -6104,6 +6161,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -6182,6 +6240,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -6286,6 +6345,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -6416,6 +6476,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -6572,6 +6633,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -6650,6 +6712,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -6728,6 +6791,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -6806,6 +6870,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -6884,6 +6949,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -6988,6 +7054,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -7118,6 +7185,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -7196,6 +7264,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -7275,6 +7344,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -7379,6 +7449,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -7535,6 +7606,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -7665,6 +7737,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -7743,6 +7816,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -7821,6 +7895,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -7899,6 +7974,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -7977,6 +8053,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -8055,6 +8132,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -8135,6 +8213,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -8240,6 +8319,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -8370,6 +8450,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -8448,6 +8529,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -8526,6 +8608,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -8630,6 +8713,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -8760,6 +8844,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -8838,6 +8923,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -8942,6 +9028,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -9020,6 +9107,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -9124,6 +9212,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -9148,6 +9237,7 @@ const definitions = [
             }),
             romasku.buttonEvents(["cover_switch", ]),
             deviceAddCustomCluster("manuSpecificTuyaCoverSwitchConfig", {
+                name: "manuSpecificTuyaCoverSwitchConfig",
                 ID: 0xFC01,
                 manufacturerCode: 0x125D,
                 attributes: {
@@ -9162,6 +9252,7 @@ const definitions = [
                 commandsResponse: {},
             }),
             deviceAddCustomCluster("closuresWindowCovering", {
+                name: "closuresWindowCovering",
                 ID: 0x0102,
                 attributes: {
                     moving: {ID: 0xff00, type: Zcl.DataType.ENUM8},
@@ -9232,6 +9323,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -9362,6 +9454,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -9440,6 +9533,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -9544,6 +9638,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -9648,6 +9743,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -9726,6 +9822,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -9804,6 +9901,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -9882,6 +9980,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -10038,6 +10137,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -10142,6 +10242,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -10247,6 +10348,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -10325,6 +10427,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -10413,6 +10516,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -10501,6 +10605,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -10589,6 +10694,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -10677,6 +10783,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -10801,6 +10908,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -10888,6 +10996,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -10975,6 +11084,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -11062,6 +11172,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -11149,6 +11260,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -11236,6 +11348,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -11371,6 +11484,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -11452,6 +11566,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -11533,6 +11648,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -11669,6 +11785,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -11804,6 +11921,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -11885,6 +12003,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -11966,6 +12085,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -12065,6 +12185,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -12182,6 +12303,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -12317,6 +12439,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -12452,6 +12575,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -12533,6 +12657,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -12614,6 +12739,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -12695,6 +12821,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -12794,6 +12921,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -12911,6 +13039,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -13028,6 +13157,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -13163,6 +13293,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -13262,6 +13393,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -13343,6 +13475,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -13478,6 +13611,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -13556,6 +13690,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -13661,6 +13796,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -13791,6 +13927,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -13948,6 +14085,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -14037,6 +14175,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -14162,6 +14301,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -14292,6 +14432,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -14382,6 +14523,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -14507,6 +14649,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -14667,6 +14810,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -14745,6 +14889,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -14850,6 +14995,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -14981,6 +15127,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -15137,6 +15284,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -15225,6 +15373,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -15313,6 +15462,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -15427,6 +15577,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -15541,6 +15692,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -15630,6 +15782,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -15754,6 +15907,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -15878,6 +16032,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -16038,6 +16193,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -16126,6 +16282,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -16250,6 +16407,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -16411,6 +16569,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -16607,6 +16766,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -16695,6 +16855,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -16819,6 +16980,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -16979,6 +17141,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -17174,6 +17337,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -17261,6 +17425,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -17339,6 +17504,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -17443,6 +17609,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -17573,6 +17740,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -17651,6 +17819,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -17755,6 +17924,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -17885,6 +18055,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -18008,6 +18179,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -18167,6 +18339,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -18362,6 +18535,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -18386,6 +18560,7 @@ const definitions = [
             }),
             romasku.buttonEvents(["cover_switch", ]),
             deviceAddCustomCluster("manuSpecificTuyaCoverSwitchConfig", {
+                name: "manuSpecificTuyaCoverSwitchConfig",
                 ID: 0xFC01,
                 manufacturerCode: 0x125D,
                 attributes: {
@@ -18400,6 +18575,7 @@ const definitions = [
                 commandsResponse: {},
             }),
             deviceAddCustomCluster("closuresWindowCovering", {
+                name: "closuresWindowCovering",
                 ID: 0x0102,
                 attributes: {
                     moving: {ID: 0xff00, type: Zcl.DataType.ENUM8},
@@ -18470,6 +18646,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -18557,6 +18734,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -18680,6 +18858,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -18839,6 +19018,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -18926,6 +19106,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -19049,6 +19230,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -19208,6 +19390,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -19296,6 +19479,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -19420,6 +19604,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -19580,6 +19765,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -19740,6 +19926,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -19937,6 +20124,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -20025,6 +20213,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -20149,6 +20338,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -20308,6 +20498,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -20503,6 +20694,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -20698,6 +20890,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -20857,6 +21050,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -20945,6 +21139,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -21070,6 +21265,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -21159,6 +21355,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -21283,6 +21480,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -21443,6 +21641,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -21530,6 +21729,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -21617,6 +21817,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -21740,6 +21941,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -21899,6 +22101,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -22058,6 +22261,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -22253,6 +22457,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -22331,6 +22536,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -22487,6 +22693,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -22575,6 +22782,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -22698,6 +22906,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
@@ -22785,6 +22994,7 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
                 ID: 0xFC02,
                 attributes: {
                     buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
