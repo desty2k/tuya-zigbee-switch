@@ -87,6 +87,7 @@ const romasku = {
             e.numeric("action_duration", ea.STATE).withUnit("ms"),
             e.numeric("action_seq", ea.STATE),
         ],
+        isModernExtend: true,
     }),
     buttonTiming: (endpointName) => [
         numeric({
