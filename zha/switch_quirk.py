@@ -1,11 +1,24 @@
 from typing import Final
 
 from zhaquirks import CustomCluster
+from zhaquirks.const import (
+    CLUSTER_ID,
+    COMMAND,
+    DOUBLE_PRESS,
+    ENDPOINT_ID,
+    LONG_PRESS,
+    LONG_RELEASE,
+    QUADRUPLE_PRESS,
+    SHORT_PRESS,
+    SHORT_RELEASE,
+    TRIPLE_PRESS,
+    ZHA_SEND_EVENT,
+)
 from zigpy.quirks.v2 import QuirkBuilder, ReportingConfig, SensorDeviceClass, EntityType
 from zigpy.zcl import ClusterType, foundation
 from zigpy.zcl.clusters.general import OnOffConfiguration, SwitchType, MultistateInput, OnOff, Basic
 from zigpy.zcl.clusters.closures import WindowCovering
-from zigpy.zcl.foundation import ZCLAttributeDef
+from zigpy.zcl.foundation import ZCLAttributeDef, ZCLCommandDef
 import zigpy.types as t
 
 class RelayMode(t.enum8):
@@ -120,6 +133,189 @@ class CustomBasicCluster(CustomCluster, Basic):
             access="rw",
             is_manufacturer_specific=False,
         )
+
+        gpio_edges_captured = ZCLAttributeDef(
+            id=0xff10,
+            type=t.uint32_t,
+            access="r",
+            is_manufacturer_specific=False,
+        )
+
+        gpio_edges_dropped = ZCLAttributeDef(
+            id=0xff11,
+            type=t.uint32_t,
+            access="r",
+            is_manufacturer_specific=False,
+        )
+
+        button_events_emitted = ZCLAttributeDef(
+            id=0xff12,
+            type=t.uint32_t,
+            access="r",
+            is_manufacturer_specific=False,
+        )
+
+        gestures_emitted = ZCLAttributeDef(
+            id=0xff13,
+            type=t.uint32_t,
+            access="r",
+            is_manufacturer_specific=False,
+        )
+
+        zb_button_events_dropped = ZCLAttributeDef(
+            id=0xff14,
+            type=t.uint32_t,
+            access="r",
+            is_manufacturer_specific=False,
+        )
+
+        gpio_rearm_limit_hits = ZCLAttributeDef(
+            id=0xff15,
+            type=t.uint32_t,
+            access="r",
+            is_manufacturer_specific=False,
+        )
+
+
+class ButtonState(t.enum8):
+    Released = 0x00
+    Pressed = 0x01
+
+
+# Event types of the ButtonEvent command payload.
+BUTTON_EVENT_ACTIONS = {
+    0x00: "press",
+    0x01: "release",
+    0x02: "hold",
+    0x03: "hold_release",
+}
+BUTTON_EVENT_N_CLICK = 0x04
+# Click counts with a convenience name; larger counts stay generic.
+N_CLICK_ACTIONS = {
+    1: "single",
+    2: "double",
+    3: "triple",
+    4: "quadruple",
+}
+
+
+class CustomButtonEventCluster(CustomCluster):
+    cluster_id = 0xFC02
+
+    class AttributeDefs(foundation.BaseAttributeDefs):
+        button_state = ZCLAttributeDef(
+            id=0x0000,
+            type=ButtonState,
+            access="rp",
+            is_manufacturer_specific=False,
+        )
+
+        last_event_seq = ZCLAttributeDef(
+            id=0x0001,
+            type=t.uint16_t,
+            access="rp",
+            is_manufacturer_specific=False,
+        )
+
+        multi_click_gap = ZCLAttributeDef(
+            id=0x0002,
+            type=t.uint16_t,
+            access="rw",
+            is_manufacturer_specific=False,
+        )
+
+        debounce_ms = ZCLAttributeDef(
+            id=0x0003,
+            type=t.uint16_t,
+            access="rw",
+            is_manufacturer_specific=False,
+        )
+
+        cluster_revision: Final = foundation.ZCL_CLUSTER_REVISION_ATTR
+        reporting_status: Final = foundation.ZCL_REPORTING_STATUS_ATTR
+
+    class ClientCommandDefs(foundation.BaseCommandDefs):
+        button_event: Final = ZCLCommandDef(
+            id=0x00,
+            schema={
+                "seq": t.uint16_t,
+                "press_id": t.uint16_t,
+                "event_type": t.uint8_t,
+                "count": t.uint8_t,
+                "duration_ms": t.uint16_t,
+            },
+            is_manufacturer_specific=False,
+        )
+
+    def handle_cluster_request(self, hdr, args, *, dst_addressing=None):
+        """Turn a ButtonEvent command into a named ZHA event."""
+        if hdr.command_id != self.ClientCommandDefs.button_event.id:
+            return
+
+        if args.event_type == BUTTON_EVENT_N_CLICK:
+            action = N_CLICK_ACTIONS.get(args.count, "multi_click")
+        else:
+            action = BUTTON_EVENT_ACTIONS.get(args.event_type)
+        if action is None:
+            return
+
+        self.listener_event(
+            ZHA_SEND_EVENT,
+            action,
+            {
+                "seq": args.seq,
+                "press_id": args.press_id,
+                "count": args.count,
+                "duration": args.duration_ms,
+            },
+        )
+
+
+def button_event_triggers(endpoint_id):
+    """Device automation triggers of one button endpoint."""
+    button = "button_" + str(endpoint_id)
+    return {
+        (SHORT_PRESS, button): {
+            COMMAND: "single",
+            CLUSTER_ID: CustomButtonEventCluster.cluster_id,
+            ENDPOINT_ID: endpoint_id,
+        },
+        (DOUBLE_PRESS, button): {
+            COMMAND: "double",
+            CLUSTER_ID: CustomButtonEventCluster.cluster_id,
+            ENDPOINT_ID: endpoint_id,
+        },
+        (TRIPLE_PRESS, button): {
+            COMMAND: "triple",
+            CLUSTER_ID: CustomButtonEventCluster.cluster_id,
+            ENDPOINT_ID: endpoint_id,
+        },
+        (QUADRUPLE_PRESS, button): {
+            COMMAND: "quadruple",
+            CLUSTER_ID: CustomButtonEventCluster.cluster_id,
+            ENDPOINT_ID: endpoint_id,
+        },
+        (LONG_PRESS, button): {
+            COMMAND: "hold",
+            CLUSTER_ID: CustomButtonEventCluster.cluster_id,
+            ENDPOINT_ID: endpoint_id,
+        },
+        (LONG_RELEASE, button): {
+            COMMAND: "hold_release",
+            CLUSTER_ID: CustomButtonEventCluster.cluster_id,
+            ENDPOINT_ID: endpoint_id,
+        },
+        (SHORT_PRESS, button + "_raw"): {
+            COMMAND: "press",
+            CLUSTER_ID: CustomButtonEventCluster.cluster_id,
+            ENDPOINT_ID: endpoint_id,
+        },
+        (SHORT_RELEASE, button + "_raw"): {
+            COMMAND: "release",
+            CLUSTER_ID: CustomButtonEventCluster.cluster_id,
+            ENDPOINT_ID: endpoint_id,
+        },
+    }
 
 
 class RelayIndicatorMode(t.enum8):
@@ -239,10 +435,10 @@ CONFIGS = [
     "nuenzetq1;TS0002-SC;LC3i;SD7u;RD4;SC0u;RA0;M;",
     "TUYA;DEV-ZTU2;LD7;SA0u;RC1;IB6;M;",
     "vbfp8eyv;TS011F-TD;LC4i;SC1u;RD4;IB6i;M;",
-    "46t1rvdu;WHD02-Aubess;BC4u;LD2;SB4u;RB5;",
-    "46t1rvdu;WHD02-Aubess-ED;BC4u;LD2;SB4u;RB5;",
-    "WHD02-Aubess;WHD02-Aubess;BC4u;LD2;SB4u;RB5;",
-    "WHD02-Aubess;WHD02-Aubess-ED;BC4u;LD2;SB4u;RB5;",
+    "46t1rvdu;WHD02-Aubess;BC4u;LD2i;SB4u;RB5;",
+    "46t1rvdu;WHD02-Aubess-ED;BC4u;LD2i;SB4u;RB5;",
+    "WHD02-Aubess;WHD02-Aubess;BC4u;LD2i;SB4u;RB5;",
+    "WHD02-Aubess;WHD02-Aubess-ED;BC4u;LD2i;SB4u;RB5;",
     "lmlsduws;TS0002-AUB;BC4u;LB1;SC2u;RB7;SC3u;RB4;",
     "lvhy15ix;TS0003-AUB;BC4u;LB1;SC2u;RB7;SC3u;RB4;SD2u;RB5;",
     "mmkbptmx;TS0004-custom;BB6u;LB1;SC1u;RB7;SC2u;RB5;SC3u;RB4;SD2u;RC4;",
@@ -332,6 +528,8 @@ CONFIGS = [
     "q6a3tepg;TS0001-HOB1;BB1u;LD4i;SB6u;RA1;",
     "ZG-301Z;TS0001-HOB;BB1u;LD4i;SB6u;RA1;",
     "tw4ztbp4;TS0011-HOMMYN;BA0u;LD7;SC2u;RB5;",
+    "5gey1ohx;Hommyn-RLZBN02;BA0u;LC0;SB4u;RC2;SB5u;RC3;",
+    "0e6uvexf;Hommyn-2;BA0f;LD7;SC2f;RB5;SC3f;RB4;M;",
     "pgq7ormg;TS0001-IHS;BC3u;LC2i;SB5u;RD2;",
     "mhhxxjrs;TS0003-IHS;BC3u;LC2i;SD7u;RD2;SB4u;RD3;SB5u;RC0;",
     "mhhxxjrs;TS0003-3CH-cus;BC3u;LC2i;SD7u;RD2;SB4u;RD3;SB5u;RC0;",
@@ -355,6 +553,8 @@ CONFIGS = [
     "c8wtsv3p;MS105-ZB-CUSTOM;BC2u;LD2i;SD3u;RD7;",
     "sonoff;ZBMINIL2-custom;BA0u;LC5i;SA6u;RA5A4;",
     "npzfdcof;TS0001-TLED;BD2u;LC3i;SB5u;RB4;",
+    "n1j44rth;TS0002-N1J44RTH;BB4u;LD2i;SC2u;RC4;SC3u;RB5;",
+    "uwhjgngj;TS0003-UWHJGNGJ;BB1u;LB7i;SC2u;RB4;SC3u;RB5;SD2u;RC4;",
     "rfexs4vs;TS0001-C;BA0u;LC0;SB4u;RC2;",
     "khmapq4n;TS0001-SB;BA0u;LC0;SB4u;RC2;",
     "zbfya6h0;TS0002-C;BA0u;LC0;SB4u;RC2;SB5u;RC3;",
@@ -489,6 +689,7 @@ CONFIGS = [
     "xkxgfxsg;TS0726-1-BSL;LC3;SB5u;RC1;ID2;M;",
     "tlsvxhxc;TS0726-2-BSL;LB4;SC2u;RC0;ID2;SC3u;RB6;IA1;M;",
     "r2fgo9ks;TS0726-3-BS;LD4;SA1u;RB4;IC1;SC2u;RD2;IB5;SA0u;RC3;IB6;M;",
+    "p1h4zuvh;Girier-4-gang;SA0u;RC0;IC2;SA3u;RD1;IA6;SA4u;RB0;IA5;SB1u;RC1;ID0;M;",
     "ZG-302Z1;TS0001-HBS;IC1i;SC2u;RB5B4;M;",
     "bmqxalil;TS0001-HMT;LC2i;SA0u;RD2;M;",
     "in5qxhtt;TS0002-HMT;LC2i;SB4u;RD7;SD4u;RC3;M;",
@@ -498,6 +699,7 @@ CONFIGS = [
     "ju82pu2b;TS0003-IHS-T;LC4i;SC0u;RC2;SB4u;RC3;SB5u;RD2;M;",
     "dlp6yvs8;LerLink-2-gang;SA0u;RB4;ID7;SB7u;RB5;ID2;M;",
     "qp7x8u3a;LerLink-3-gang;SA0u;RB4;ID7;SC2u;RC3;IB1;SB7u;RB5;ID2;M;",
+    "sovlwiix;LerLink-4-gang;SB0u;RC2;IA5;SA0u;RC1;IA6;SA4u;RB1;ID0;SA3u;RC0;ID1;M;",
     "qa8s8vca;TS130F-LT;BD2u;LA0;XB5C3f;CC0C2;M;",
     "kea5qgnd;TS0011-MH;SC4u;RB4A0;ID2;M;",
     "toaaawnr;TS0012-MH;SC4u;RB4A0;ID2;SD7u;RD4B5;IC3;M;",
@@ -658,6 +860,43 @@ for config in CONFIGS:
                 device_class=SensorDeviceClass.ENUM,
                 attribute_converter = lambda x: {0: "released", 1: "press", 2: "long_press", 3: "position_on", 4: "position_off"}[int(x)]
             )
+            .adds(CustomButtonEventCluster, endpoint_id=endpoint_id)
+            .number(
+                CustomButtonEventCluster.AttributeDefs.multi_click_gap.name,
+                CustomButtonEventCluster.cluster_id,
+                translation_key="multi_click_gap_"+str(endpoint_id),
+                fallback_name="Multi click gap "+str(endpoint_id),
+                min_value=100,
+                max_value=2000,
+                step=10,
+                unit="ms",
+                endpoint_id=endpoint_id,
+                entity_type=EntityType.CONFIG,
+            )
+            .number(
+                CustomButtonEventCluster.AttributeDefs.debounce_ms.name,
+                CustomButtonEventCluster.cluster_id,
+                translation_key="debounce_"+str(endpoint_id),
+                fallback_name="Debounce "+str(endpoint_id),
+                min_value=1,
+                max_value=200,
+                step=1,
+                unit="ms",
+                endpoint_id=endpoint_id,
+                entity_type=EntityType.CONFIG,
+            )
+            .sensor(
+                CustomButtonEventCluster.AttributeDefs.button_state.name,
+                CustomButtonEventCluster.cluster_id,
+                translation_key="button_state_"+str(endpoint_id),
+                fallback_name="Button state "+str(endpoint_id),
+                endpoint_id=endpoint_id,
+                device_class=SensorDeviceClass.ENUM,
+                attribute_converter = lambda x: {0: "released", 1: "pressed"}[int(x)],
+                entity_type=EntityType.DIAGNOSTIC,
+                initially_disabled=True,
+            )
+            .device_automation_triggers(button_event_triggers(endpoint_id))
         )
     for endpoint_id in range(switch_cnt + 1, switch_cnt + min(relay_cnt, indicators_cnt) + 1):
         builder = (
@@ -758,6 +997,43 @@ for config in CONFIGS:
                 attribute_converter = lambda x: {0: "released", 1: "open", 2: "close", 3: "stop", 4: "long_open", 5: "long_close"}[int(x)],
                 entity_type=EntityType.DIAGNOSTIC,
             )
+            .adds(CustomButtonEventCluster, endpoint_id=endpoint_id)
+            .number(
+                CustomButtonEventCluster.AttributeDefs.multi_click_gap.name,
+                CustomButtonEventCluster.cluster_id,
+                translation_key="multi_click_gap_"+str(endpoint_id),
+                fallback_name="Multi click gap "+str(endpoint_id),
+                min_value=100,
+                max_value=2000,
+                step=10,
+                unit="ms",
+                endpoint_id=endpoint_id,
+                entity_type=EntityType.CONFIG,
+            )
+            .number(
+                CustomButtonEventCluster.AttributeDefs.debounce_ms.name,
+                CustomButtonEventCluster.cluster_id,
+                translation_key="debounce_"+str(endpoint_id),
+                fallback_name="Debounce "+str(endpoint_id),
+                min_value=1,
+                max_value=200,
+                step=1,
+                unit="ms",
+                endpoint_id=endpoint_id,
+                entity_type=EntityType.CONFIG,
+            )
+            .sensor(
+                CustomButtonEventCluster.AttributeDefs.button_state.name,
+                CustomButtonEventCluster.cluster_id,
+                translation_key="button_state_"+str(endpoint_id),
+                fallback_name="Button state "+str(endpoint_id),
+                endpoint_id=endpoint_id,
+                device_class=SensorDeviceClass.ENUM,
+                attribute_converter = lambda x: {0: "released", 1: "pressed"}[int(x)],
+                entity_type=EntityType.DIAGNOSTIC,
+                initially_disabled=True,
+            )
+            .device_automation_triggers(button_event_triggers(endpoint_id))
         )
 
     for endpoint_id in range(switch_cnt + relay_cnt + cover_switch_cnt + 1, switch_cnt + relay_cnt + cover_switch_cnt + cover_cnt + 1):
@@ -802,6 +1078,24 @@ for config in CONFIGS:
             entity_type=EntityType.CONFIG,
         )
     )
+
+    for counter_name, counter_label in (
+        ("gpio_edges_captured", "GPIO edges captured"),
+        ("gpio_edges_dropped", "GPIO edges dropped"),
+        ("button_events_emitted", "Button events emitted"),
+        ("gestures_emitted", "Gestures emitted"),
+        ("zb_button_events_dropped", "Button events dropped"),
+        ("gpio_rearm_limit_hits", "GPIO rearm limit hits"),
+    ):
+        builder = builder.sensor(
+            counter_name,
+            CustomBasicCluster.cluster_id,
+            translation_key=counter_name,
+            fallback_name=counter_label,
+            endpoint_id=1,
+            entity_type=EntityType.DIAGNOSTIC,
+            initially_disabled=True,
+        )
 
     if has_dedicated_net_led:
         builder = (
