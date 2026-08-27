@@ -1,6 +1,6 @@
 #include "switch_cluster.h"
 #include "base_components/button_dispatcher.h"
-#include "base_components/relay.h"
+#include "base_components/relay_controller.h"
 #include "cluster_common.h"
 #include "consts.h"
 #include "device_config/nvm_items.h"
@@ -8,7 +8,6 @@
 
 #include "hal/printf_selector.h"
 #include "hal/system.h"
-#include "relay_cluster.h"
 #include "zigbee_commands.h"
 
 const uint8_t  multistate_out_of_service = 0;
@@ -21,7 +20,6 @@ const uint16_t multistate_num_of_states  = 3;
 #define MULTISTATE_POSITION_ON     3
 #define MULTISTATE_POSITION_OFF    4
 
-extern zigbee_relay_cluster relay_clusters[];
 extern uint8_t relay_clusters_cnt;
 extern zigbee_switch_cluster switch_clusters[];
 extern uint8_t switch_clusters_cnt;
@@ -31,6 +29,10 @@ static void switch_cluster_handle_up(zigbee_switch_cluster *cluster);
 static void switch_cluster_handle_hold(zigbee_switch_cluster *cluster);
 static bool switch_cluster_has_valid_relay(
     const zigbee_switch_cluster *cluster);
+static void switch_cluster_relay_action_on(
+    zigbee_switch_cluster *cluster, relay_request_source_t source);
+static void switch_cluster_relay_action_off(
+    zigbee_switch_cluster *cluster, relay_request_source_t source);
 
 static void switch_cluster_button_event(const button_event_t *event, void *arg) {
     (void)arg;
@@ -197,55 +199,55 @@ void switch_cluster_add_to_endpoint(zigbee_switch_cluster *cluster,
 }
 
 // Perform the relay action for ON position (position 1 in ZCL docs)
-void switch_cluster_relay_action_on(zigbee_switch_cluster *cluster) {
+static void switch_cluster_submit_relay(zigbee_switch_cluster *cluster,
+                                        relay_request_type_t type,
+                                        relay_request_source_t source) {
+    relay_request_t request = {
+        .relay_id = cluster->relay_index - 1,
+        .type     = type,
+        .source   = source,
+    };
+
+    relay_ctrl_submit(&request);
+}
+
+static void switch_cluster_relay_action_on(
+    zigbee_switch_cluster *cluster, relay_request_source_t source) {
     if (!switch_cluster_has_valid_relay(cluster))
         return;
 
-    zigbee_relay_cluster *relay_cluster =
-        &relay_clusters[cluster->relay_index - 1];
-
     switch (cluster->action) {
     case ZCL_ONOFF_CONFIGURATION_SWITCH_ACTION_ONOFF:
-        relay_cluster_on(relay_cluster);
+        switch_cluster_submit_relay(cluster, RELAY_REQUEST_ON, source);
         break;
     case ZCL_ONOFF_CONFIGURATION_SWITCH_ACTION_OFFON:
-        relay_cluster_off(relay_cluster);
+        switch_cluster_submit_relay(cluster, RELAY_REQUEST_OFF, source);
         break;
     case ZCL_ONOFF_CONFIGURATION_SWITCH_ACTION_TOGGLE_SIMPLE:
-        relay_cluster_toggle(relay_cluster);
-        break;
     case ZCL_ONOFF_CONFIGURATION_SWITCH_ACTION_TOGGLE_SMART_SYNC:
-        relay_cluster_toggle(relay_cluster);
-        break;
     case ZCL_ONOFF_CONFIGURATION_SWITCH_ACTION_TOGGLE_SMART_OPPOSITE:
-        relay_cluster_toggle(relay_cluster);
+        switch_cluster_submit_relay(cluster, RELAY_REQUEST_TOGGLE, source);
         break;
     }
 }
 
 // Perform the relay action for OFF position (position 2 in ZCL docs)
-void switch_cluster_relay_action_off(zigbee_switch_cluster *cluster) {
+static void switch_cluster_relay_action_off(
+    zigbee_switch_cluster *cluster, relay_request_source_t source) {
     if (!switch_cluster_has_valid_relay(cluster))
         return;
 
-    zigbee_relay_cluster *relay_cluster =
-        &relay_clusters[cluster->relay_index - 1];
-
     switch (cluster->action) {
     case ZCL_ONOFF_CONFIGURATION_SWITCH_ACTION_ONOFF:
-        relay_cluster_off(relay_cluster);
+        switch_cluster_submit_relay(cluster, RELAY_REQUEST_OFF, source);
         break;
     case ZCL_ONOFF_CONFIGURATION_SWITCH_ACTION_OFFON:
-        relay_cluster_on(relay_cluster);
+        switch_cluster_submit_relay(cluster, RELAY_REQUEST_ON, source);
         break;
     case ZCL_ONOFF_CONFIGURATION_SWITCH_ACTION_TOGGLE_SIMPLE:
-        relay_cluster_toggle(relay_cluster);
-        break;
     case ZCL_ONOFF_CONFIGURATION_SWITCH_ACTION_TOGGLE_SMART_SYNC:
-        relay_cluster_toggle(relay_cluster);
-        break;
     case ZCL_ONOFF_CONFIGURATION_SWITCH_ACTION_TOGGLE_SMART_OPPOSITE:
-        relay_cluster_toggle(relay_cluster);
+        switch_cluster_submit_relay(cluster, RELAY_REQUEST_TOGGLE, source);
         break;
     }
 }
@@ -277,15 +279,12 @@ void switch_cluster_binding_action_on(zigbee_switch_cluster *cluster) {
         if (!switch_cluster_has_valid_relay(cluster)) {
             cmd_id = ZCL_CMD_ONOFF_TOGGLE;
         } else {
-            zigbee_relay_cluster *relay_cluster =
-                &relay_clusters[cluster->relay_index - 1];
+            bool relay_is_on = relay_ctrl_is_on(cluster->relay_index - 1);
             if (cluster->action ==
                 ZCL_ONOFF_CONFIGURATION_SWITCH_ACTION_TOGGLE_SMART_SYNC)
-                cmd_id = (relay_cluster->relay->on) ? ZCL_CMD_ONOFF_ON
-                                                    : ZCL_CMD_ONOFF_OFF;
+                cmd_id = relay_is_on ? ZCL_CMD_ONOFF_ON : ZCL_CMD_ONOFF_OFF;
             else
-                cmd_id = (relay_cluster->relay->on) ? ZCL_CMD_ONOFF_OFF
-                                                    : ZCL_CMD_ONOFF_ON;
+                cmd_id = relay_is_on ? ZCL_CMD_ONOFF_OFF : ZCL_CMD_ONOFF_ON;
         }
         break;
 
@@ -324,15 +323,12 @@ void switch_cluster_binding_action_off(zigbee_switch_cluster *cluster) {
         if (!switch_cluster_has_valid_relay(cluster)) {
             cmd_id = ZCL_CMD_ONOFF_TOGGLE;
         } else {
-            zigbee_relay_cluster *relay_cluster =
-                &relay_clusters[cluster->relay_index - 1];
+            bool relay_is_on = relay_ctrl_is_on(cluster->relay_index - 1);
             if (cluster->action ==
                 ZCL_ONOFF_CONFIGURATION_SWITCH_ACTION_TOGGLE_SMART_SYNC)
-                cmd_id = (relay_cluster->relay->on) ? ZCL_CMD_ONOFF_ON
-                                                    : ZCL_CMD_ONOFF_OFF;
+                cmd_id = relay_is_on ? ZCL_CMD_ONOFF_ON : ZCL_CMD_ONOFF_OFF;
             else
-                cmd_id = (relay_cluster->relay->on) ? ZCL_CMD_ONOFF_OFF
-                                                    : ZCL_CMD_ONOFF_ON;
+                cmd_id = relay_is_on ? ZCL_CMD_ONOFF_OFF : ZCL_CMD_ONOFF_ON;
         }
         break;
 
@@ -376,7 +372,7 @@ static void switch_cluster_handle_down(zigbee_switch_cluster *cluster) {
     if (cluster->mode == ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_TOGGLE) {
         // Toggle does not support modes (RISE, SHORT, LONG)
         if (cluster->relay_mode != ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DETACHED) {
-            switch_cluster_relay_action_on(cluster);
+            switch_cluster_relay_action_on(cluster, RELAY_SOURCE_BUTTON);
         }
         switch_cluster_binding_action_on(cluster);
         cluster->multistate_state = MULTISTATE_POSITION_ON;
@@ -387,7 +383,7 @@ static void switch_cluster_handle_down(zigbee_switch_cluster *cluster) {
     }
 
     if (cluster->relay_mode == ZCL_ONOFF_CONFIGURATION_RELAY_MODE_RISE) {
-        switch_cluster_relay_action_on(cluster);
+        switch_cluster_relay_action_on(cluster, RELAY_SOURCE_BUTTON);
     }
 
     if (cluster->binded_mode == ZCL_ONOFF_CONFIGURATION_BINDED_MODE_RISE) {
@@ -410,7 +406,7 @@ static void switch_cluster_handle_up(zigbee_switch_cluster *cluster) {
     if (cluster->mode == ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_TOGGLE) {
         // Toggle does not support modes (RISE, SHORT, LONG)
         if (cluster->relay_mode != ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DETACHED) {
-            switch_cluster_relay_action_off(cluster);
+            switch_cluster_relay_action_off(cluster, RELAY_SOURCE_BUTTON);
         }
         switch_cluster_binding_action_off(cluster);
         cluster->multistate_state = MULTISTATE_POSITION_OFF;
@@ -422,7 +418,7 @@ static void switch_cluster_handle_up(zigbee_switch_cluster *cluster) {
 
     if (cluster->multistate_state != MULTISTATE_LONG_PRESS) {
         if (cluster->relay_mode == ZCL_ONOFF_CONFIGURATION_RELAY_MODE_SHORT) {
-            switch_cluster_relay_action_on(cluster);
+            switch_cluster_relay_action_on(cluster, RELAY_SOURCE_BUTTON);
         }
         if (cluster->binded_mode == ZCL_ONOFF_CONFIGURATION_BINDED_MODE_SHORT) {
             switch_cluster_binding_action_on(cluster);
@@ -446,7 +442,8 @@ static void switch_cluster_handle_hold(zigbee_switch_cluster *cluster) {
 
     if (cluster->relay_mode == ZCL_ONOFF_CONFIGURATION_RELAY_MODE_LONG) {
         if (switch_cluster_has_valid_relay(cluster)) {
-            relay_cluster_toggle(&relay_clusters[cluster->relay_index - 1]);
+            switch_cluster_submit_relay(cluster, RELAY_REQUEST_TOGGLE,
+                                        RELAY_SOURCE_GESTURE);
         }
     }
 

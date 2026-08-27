@@ -19,6 +19,8 @@
 #include "base_components/gesture_fsm.h"
 #include "base_components/network_indicator.h"
 #include "base_components/battery.h"
+#include "base_components/relay_controller.h"
+#include "base_components/relay_driver.h"
 #include "config_nv.h"
 #include "device_config/device_params_nv.h"
 #include "device_config/reset.h"
@@ -45,8 +47,8 @@ gesture_config_t    gesture_configs[11];
 input_button_role_t button_roles[11];
 uint8_t             buttons_cnt = 0;
 
-relay_t relays[10]; // 4 relay endpoints + 3 cover endpoints
-uint8_t relays_cnt = 0;
+relay_driver_t relay_drivers[10];
+uint8_t        relays_cnt = 0;
 
 zigbee_basic_cluster basic_cluster = {
     .deviceEnable = 1,
@@ -216,18 +218,18 @@ void parse_config() {
             hal_gpio_pin_t pin = hal_gpio_parse_pin(entry + 1);
             hal_gpio_init(pin, 0, HAL_GPIO_PULL_NONE);
 
-            relays[relays_cnt].pin     = pin;
-            relays[relays_cnt].on_high = 1;
+            relay_drivers[relays_cnt].on_pin  = pin;
+            relay_drivers[relays_cnt].on_high = 1;
 
             if (entry[3] != '\0') {
                 pin = hal_gpio_parse_pin(entry + 3);
                 hal_gpio_init(pin, 0, HAL_GPIO_PULL_NONE);
-                relays[relays_cnt].off_pin     = pin;
-                relays[relays_cnt].is_latching = 1;
+                relay_drivers[relays_cnt].off_pin     = pin;
+                relay_drivers[relays_cnt].is_latching = 1;
             }
 
             relay_clusters[relay_clusters_cnt].relay_idx = relay_clusters_cnt;
-            relay_clusters[relay_clusters_cnt].relay     = &relays[relays_cnt];
+            relay_clusters[relay_clusters_cnt].relay_id  = relays_cnt;
 
             relays_cnt++;
             relay_clusters_cnt++;
@@ -270,19 +272,19 @@ void parse_config() {
             hal_gpio_init(open_pin, 0, HAL_GPIO_PULL_NONE);
             hal_gpio_init(close_pin, 0, HAL_GPIO_PULL_NONE);
 
-            relays[relays_cnt].pin         = open_pin;
-            relays[relays_cnt].on_high     = 1;
-            relays[relays_cnt].is_latching = 0;
-            relay_t *open_relay = &relays[relays_cnt++];
+            relay_drivers[relays_cnt].on_pin      = open_pin;
+            relay_drivers[relays_cnt].on_high     = 1;
+            relay_drivers[relays_cnt].is_latching = 0;
+            uint8_t open_relay_id = relays_cnt++;
 
-            relays[relays_cnt].pin         = close_pin;
-            relays[relays_cnt].on_high     = 1;
-            relays[relays_cnt].is_latching = 0;
-            relay_t *close_relay = &relays[relays_cnt++];
+            relay_drivers[relays_cnt].on_pin      = close_pin;
+            relay_drivers[relays_cnt].on_high     = 1;
+            relay_drivers[relays_cnt].is_latching = 0;
+            uint8_t close_relay_id = relays_cnt++;
 
-            cover_clusters[cover_clusters_cnt].open_relay  = open_relay;
-            cover_clusters[cover_clusters_cnt].close_relay = close_relay;
-            cover_clusters[cover_clusters_cnt].cover_idx   = cover_clusters_cnt;
+            cover_clusters[cover_clusters_cnt].open_relay_id  = open_relay_id;
+            cover_clusters[cover_clusters_cnt].close_relay_id = close_relay_id;
+            cover_clusters[cover_clusters_cnt].cover_idx      = cover_clusters_cnt;
             cover_clusters_cnt++;
         } else if (entry[0] == 'i') {
             uint32_t image_type = parse_int(entry + 1);
@@ -420,9 +422,7 @@ void peripherals_init() {
     for (int index = 0; index < leds_cnt; index++) {
         led_init(&leds[index]);
     }
-    for (int index = 0; index < relays_cnt; index++) {
-        relay_init(&relays[index]);
-    }
+    feature_wiring_init_relays();
     if (hal_zigbee_get_network_status() == HAL_ZIGBEE_NETWORK_JOINED) {
         network_indicator_connected(&network_indicator);
         update_switch_clusters();

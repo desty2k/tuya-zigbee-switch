@@ -113,6 +113,11 @@ feature wiring, config/runtime split, phased migration.
     before this refactor is released or merged. The 8 ms debounce default remains
     provisional until that matrix runs.
 
+19. **Relay runtime tracks whether state reached the driver.** Logical state
+    starts OFF, but a latching relay's physical contact state is unknown at boot.
+    The first explicit request therefore reaches the driver even when it is OFF;
+    later requests for the current state remain deduplicated.
+
 ## Deliberately out of scope
 
 Scenes, power monitoring, curtain-module features, touchlink, wireless-switch

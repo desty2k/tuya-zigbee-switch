@@ -25,8 +25,8 @@ hal_zigbee_cmd_result_t relay_cluster_level_callback_trampoline(uint8_t endpoint
                                                                 void *cmd_payload,
                                                                 uint16_t cmd_payload_len);
 
-void relay_cluster_on_relay_change(zigbee_relay_cluster *cluster,
-                                   uint8_t state);
+static void relay_cluster_on_relay_change(void *param, uint8_t relay_id,
+                                          bool is_on);
 void relay_cluster_on_write_attr(zigbee_relay_cluster *cluster,
                                  uint16_t attribute_id);
 
@@ -58,14 +58,15 @@ void relay_cluster_add_to_endpoint(zigbee_relay_cluster *cluster,
     cluster->endpoint = endpoint->endpoint;
     relay_cluster_load_attrs_from_nv(cluster);
 
-    cluster->relay->callback_param = cluster;
-    cluster->relay->on_change      = (relay_callback_t)relay_cluster_on_relay_change;
+    cluster->on_off = relay_ctrl_is_on(cluster->relay_id);
+    relay_ctrl_set_state_callback(cluster->relay_id,
+                                  relay_cluster_on_relay_change, cluster);
 
     relay_cluster_handle_startup_mode(cluster);
     sync_indicator_led(cluster);
 
     SETUP_ATTR(0, ZCL_ATTR_ONOFF, ZCL_DATA_TYPE_BOOLEAN, ATTR_READONLY,
-               cluster->relay->on);
+               cluster->on_off);
     SETUP_ATTR(1, ZCL_ATTR_START_UP_ONOFF, ZCL_DATA_TYPE_ENUM8, ATTR_WRITABLE,
                cluster->startup_mode);
     if (cluster->indicator_led != NULL) {
@@ -109,23 +110,31 @@ hal_zigbee_cmd_result_t relay_cluster_callback(zigbee_relay_cluster *cluster,
     switch (command_id) {
     case ZCL_CMD_ONOFF_ON:
     case ZCL_CMD_ON_WITH_RECALL_GLOBAL_SCENE:
-        relay_cluster_on(cluster);
-        break;
+        return relay_ctrl_submit(&(relay_request_t){
+            .relay_id = cluster->relay_id,
+            .type     = RELAY_REQUEST_ON,
+            .source   = RELAY_SOURCE_ZIGBEE,
+        });
 
     case ZCL_CMD_ONOFF_OFF:
     case ZCL_CMD_OFF_WITH_EFFECT:
-        relay_cluster_off(cluster);
-        break;
+        return relay_ctrl_submit(&(relay_request_t){
+            .relay_id = cluster->relay_id,
+            .type     = RELAY_REQUEST_OFF,
+            .source   = RELAY_SOURCE_ZIGBEE,
+        });
 
     case ZCL_CMD_ONOFF_TOGGLE:
-        relay_cluster_toggle(cluster);
-        break;
+        return relay_ctrl_submit(&(relay_request_t){
+            .relay_id = cluster->relay_id,
+            .type     = RELAY_REQUEST_TOGGLE,
+            .source   = RELAY_SOURCE_ZIGBEE,
+        });
 
     default:
         printf("Unknown OnOff command: %d\r\n", command_id);
         return HAL_ZIGBEE_CMD_SKIPPED;
     }
-    return HAL_ZIGBEE_CMD_PROCESSED;
 }
 
 hal_zigbee_cmd_result_t relay_cluster_level_callback_trampoline(uint8_t endpoint,
@@ -147,18 +156,16 @@ hal_zigbee_cmd_result_t relay_cluster_level_callback(zigbee_relay_cluster *clust
             return HAL_ZIGBEE_MALFORMED_COMMAND;
         }
         uint8_t level = *(uint8_t *)cmd_payload;
-        if (level == 0) {
-            relay_cluster_off(cluster);
-        } else {
-            relay_cluster_on(cluster);
-        }
-        break;
+        return relay_ctrl_submit(&(relay_request_t){
+            .relay_id = cluster->relay_id,
+            .type     = level == 0 ? RELAY_REQUEST_OFF : RELAY_REQUEST_ON,
+            .source   = RELAY_SOURCE_ZIGBEE,
+        });
 
     default:
         printf("Unknown LevelCtrl command: %d\r\n", command_id);
         return HAL_ZIGBEE_CMD_SKIPPED;
     }
-    return HAL_ZIGBEE_CMD_PROCESSED;
 }
 
 void sync_indicator_led(zigbee_relay_cluster *cluster) {
@@ -168,9 +175,9 @@ void sync_indicator_led(zigbee_relay_cluster *cluster) {
 
     if (cluster->indicator_led_mode != ZCL_ONOFF_INDICATOR_MODE_MANUAL) {
         if (cluster->indicator_led_mode == ZCL_ONOFF_INDICATOR_MODE_SAME) {
-            cluster->indicator_state = cluster->relay->on;
+            cluster->indicator_state = cluster->on_off;
         } else {
-            cluster->indicator_state = !cluster->relay->on;
+            cluster->indicator_state = !cluster->on_off;
         }
     }
 
@@ -181,25 +188,15 @@ void sync_indicator_led(zigbee_relay_cluster *cluster) {
                                         ZCL_ATTR_ONOFF_INDICATOR_STATE);
 }
 
-void relay_cluster_on(zigbee_relay_cluster *cluster) {
-    relay_on(cluster->relay);
-    sync_indicator_led(cluster);
-}
+static void relay_cluster_on_relay_change(void *param, uint8_t relay_id,
+                                          bool is_on) {
+    zigbee_relay_cluster *cluster = (zigbee_relay_cluster *)param;
 
-void relay_cluster_off(zigbee_relay_cluster *cluster) {
-    relay_off(cluster->relay);
-    sync_indicator_led(cluster);
-}
-
-void relay_cluster_toggle(zigbee_relay_cluster *cluster) {
-    relay_toggle(cluster->relay);
-    sync_indicator_led(cluster);
-}
-
-void relay_cluster_on_relay_change(zigbee_relay_cluster *cluster,
-                                   uint8_t state) {
+    (void)relay_id;
+    cluster->on_off = is_on;
     hal_zigbee_notify_attribute_changed(cluster->endpoint, ZCL_CLUSTER_ON_OFF,
                                         ZCL_ATTR_ONOFF);
+    sync_indicator_led(cluster);
     if (cluster->startup_mode == ZCL_START_UP_ONOFF_SET_ONOFF_TOGGLE ||
         cluster->startup_mode == ZCL_START_UP_ONOFF_SET_ONOFF_TO_PREVIOUS) {
         relay_cluster_store_attrs_to_nv(cluster);
@@ -228,7 +225,7 @@ typedef struct {
 static zigbee_relay_cluster_config nv_config_buffer;
 
 void relay_cluster_store_attrs_to_nv(zigbee_relay_cluster *cluster) {
-    nv_config_buffer.on_off             = cluster->relay->on;
+    nv_config_buffer.on_off             = cluster->on_off;
     nv_config_buffer.startup_mode       = cluster->startup_mode;
     nv_config_buffer.indicator_led_mode = cluster->indicator_led_mode;
     if (cluster->indicator_led != NULL) {
@@ -263,32 +260,31 @@ void relay_cluster_handle_startup_mode(zigbee_relay_cluster *cluster) {
 
     uint8_t prev_on = nv_config_buffer.on_off;
 
+    relay_request_t request = {
+        .relay_id = cluster->relay_id,
+        .source   = RELAY_SOURCE_STARTUP,
+    };
+
     switch (cluster->startup_mode) {
     case ZCL_START_UP_ONOFF_SET_ONOFF_TO_OFF:
-        relay_cluster_off(cluster);
+        request.type = RELAY_REQUEST_OFF;
         break;
 
     case ZCL_START_UP_ONOFF_SET_ONOFF_TO_ON:
-        relay_cluster_on(cluster);
+        request.type = RELAY_REQUEST_ON;
         break;
 
     case ZCL_START_UP_ONOFF_SET_ONOFF_TOGGLE:
-        if (prev_on) {
-            relay_cluster_off(cluster);
-        } else {
-            relay_cluster_on(cluster);
-        }
+        request.type = prev_on ? RELAY_REQUEST_OFF : RELAY_REQUEST_ON;
         break;
 
     case ZCL_START_UP_ONOFF_SET_ONOFF_TO_PREVIOUS:
-        if (prev_on) {
-            relay_cluster_on(cluster);
-        } else {
-            relay_cluster_off(cluster);
-        }
+        request.type = prev_on ? RELAY_REQUEST_ON : RELAY_REQUEST_OFF;
         break;
+
+    default:
+        return;
     }
 
-    // Restore indicator LED state
-    sync_indicator_led(cluster);
+    relay_ctrl_submit(&request);
 }

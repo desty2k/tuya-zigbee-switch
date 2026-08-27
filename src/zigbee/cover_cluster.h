@@ -1,7 +1,7 @@
 #ifndef _COVER_CLUSTER_H_
 #define _COVER_CLUSTER_H_
 
-#include "base_components/relay.h"
+#include "base_components/relay_controller.h"
 #include "base_components/timer_service.h"
 #include "hal/zigbee.h"
 #include <stdint.h>
@@ -14,8 +14,8 @@ typedef struct {
     // Parameters
     uint8_t              cover_idx;
     uint8_t              endpoint;
-    relay_t *            open_relay;
-    relay_t *            close_relay;
+    uint8_t              open_relay_id;
+    uint8_t              close_relay_id;
 
     // Attributes
     uint8_t              moving;

@@ -17,7 +17,6 @@
 #include "app.h"
 #include "base_components/led.h"
 #include "base_components/network_indicator.h"
-#include "base_components/relay.h"
 #include "device_config/config_nv.h"
 #include "device_config/config_parser.h"
 #include "hal/gpio.h"

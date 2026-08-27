@@ -52,6 +52,7 @@ typedef enum {
 
 typedef struct {
     bool              is_on;
+    bool              state_applied;
     auto_off_reason_t auto_off_reason;
     app_timer_t       auto_off_timer;
     relay_driver_t *  driver;
@@ -59,6 +60,11 @@ typedef struct {
     void *            cb_param;
 } relay_runtime_t;
 ```
+
+`state_applied` distinguishes the initial logical OFF default from an OFF state
+that has been driven. The first request after boot always reaches the driver so
+a latching relay can establish its physical coil state; later requests for the
+same state do not produce duplicate writes or notifications.
 
 `AUTO_OFF_PULSE` and `AUTO_OFF_TIMED` share one deadline mechanism; they differ
 only in configuration source and reported reason.

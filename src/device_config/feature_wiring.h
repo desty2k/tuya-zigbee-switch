@@ -10,5 +10,6 @@ typedef enum {
 } input_button_role_t;
 
 void feature_wiring_init(void);
+void feature_wiring_init_relays(void);
 
 #endif

@@ -1,5 +1,5 @@
 #include "cover_cluster.h"
-#include "base_components/relay.h"
+#include "base_components/relay_controller.h"
 #include "cluster_common.h"
 #include "consts.h"
 #include "device_config/nvm_items.h"
@@ -33,30 +33,42 @@ static uint8_t cover_position = 50;
 // ============================================================================
 
 /**
- * Immediately applies the requested movement state to the relays.
+ * Immediately submits the relay requests for a movement state.
  *
- * This is a low-level function that directly controls the relay hardware
- * without any safety timing checks. Should only be called by cover_request_movement()
- * after verifying timing constraints are satisfied.
+ * This function does not apply cover timing checks. It is called only by
+ * cover_request_movement() after those constraints are satisfied.
  */
 void cover_apply_movement(zigbee_cover_cluster *cluster, uint8_t moving) {
-    relay_t *open_relay  = cluster->motor_reversal ? cluster->close_relay : cluster->open_relay;
-    relay_t *close_relay = cluster->motor_reversal ? cluster->open_relay : cluster->close_relay;
+    uint8_t open_relay_id = cluster->motor_reversal
+                            ? cluster->close_relay_id
+                            : cluster->open_relay_id;
+    uint8_t close_relay_id = cluster->motor_reversal
+                             ? cluster->open_relay_id
+                             : cluster->close_relay_id;
+    relay_request_t open_request = {
+        .relay_id = open_relay_id,
+        .type     = RELAY_REQUEST_OFF,
+        .source   = RELAY_SOURCE_COVER,
+    };
+    relay_request_t close_request = {
+        .relay_id = close_relay_id,
+        .type     = RELAY_REQUEST_OFF,
+        .source   = RELAY_SOURCE_COVER,
+    };
 
     cluster->last_switch_time = hal_millis();
     if (moving == ZCL_ATTR_WINDOW_COVERING_MOVING_OPENING) {
-        relay_on(open_relay);
-        relay_off(close_relay);
-        cluster->moving = ZCL_ATTR_WINDOW_COVERING_MOVING_OPENING;
+        open_request.type = RELAY_REQUEST_ON;
+        cluster->moving   = ZCL_ATTR_WINDOW_COVERING_MOVING_OPENING;
     }else if (moving == ZCL_ATTR_WINDOW_COVERING_MOVING_CLOSING) {
-        relay_off(open_relay);
-        relay_on(close_relay);
-        cluster->moving = ZCL_ATTR_WINDOW_COVERING_MOVING_CLOSING;
+        close_request.type = RELAY_REQUEST_ON;
+        cluster->moving    = ZCL_ATTR_WINDOW_COVERING_MOVING_CLOSING;
     }else {
-        relay_off(open_relay);
-        relay_off(close_relay);
         cluster->moving = ZCL_ATTR_WINDOW_COVERING_MOVING_STOPPED;
     }
+
+    relay_ctrl_submit(&open_request);
+    relay_ctrl_submit(&close_request);
 
     hal_zigbee_notify_attribute_changed(cluster->endpoint,
                                         ZCL_CLUSTER_WINDOW_COVERING,

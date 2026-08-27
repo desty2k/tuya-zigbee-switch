@@ -8,7 +8,8 @@
 #include "base_components/gesture_fsm.h"
 #include "base_components/led.h"
 #include "base_components/network_indicator.h"
-#include "base_components/relay.h"
+#include "base_components/relay_controller.h"
+#include "base_components/relay_driver.h"
 #include "device_config/config_nv.h"
 #include "device_config/config_parser.h"
 #include "device_config/nvm_items.h"
@@ -26,11 +27,11 @@
 #include "zigbee/switch_cluster.h"
 
 // externs from your codebase
-extern led_t   leds[5];
-extern uint8_t leds_cnt;
-extern uint8_t buttons_cnt;
-extern relay_t relays[5];
-extern uint8_t relays_cnt;
+extern led_t          leds[5];
+extern uint8_t        leds_cnt;
+extern uint8_t        buttons_cnt;
+extern relay_driver_t relay_drivers[10];
+extern uint8_t        relays_cnt;
 
 static device_config_str_t g_stub_config = {
     .size = 0, .data = "Stub;Stub;SA0u;SA1u;SA2u;SA3u;RB0;RB1;RC0;RC1;"
@@ -142,8 +143,8 @@ void stub_app_show_status(void) {
     }
     for (uint8_t i = 0; i < relays_cnt; i++) {
         printf("Relay %u: %s (pin %d = %d)\n", (unsigned)i,
-               relays[i].on ? "ON" : "OFF", relays[i].pin,
-               stub_gpio_get_output(relays[i].pin));
+               relay_ctrl_is_on(i) ? "ON" : "OFF", relay_drivers[i].on_pin,
+               stub_gpio_get_output(relay_drivers[i].on_pin));
     }
     for (uint8_t i = 0; i < buttons_cnt; i++) {
         const char *state = gesture_fsm_hold_active(i) ? "LONG PRESSED"

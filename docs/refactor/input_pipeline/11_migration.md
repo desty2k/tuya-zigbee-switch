@@ -67,7 +67,9 @@ references to the removed symbols.
 
 Scope: no new code. Run the hardware matrix from
 [10_testing.md](./10_testing.md) on Telink and Silabs, finalise `debounce_ms`.
-Gate: all hardware criteria met. Later stages do not start before this passes.
+Gate: all hardware criteria met. When safe test hardware is unavailable, record
+the stage as blocked and keep `debounce_ms` provisional; later software stages
+may proceed, but the refactor cannot be released or merged until this gate passes.
 
 ## Stage 7 — Relay driver and controller
 

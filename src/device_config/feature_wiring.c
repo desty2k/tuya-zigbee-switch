@@ -3,6 +3,8 @@
 #include "base_components/action_mapper.h"
 #include "base_components/button_input.h"
 #include "base_components/gesture_fsm.h"
+#include "base_components/relay_controller.h"
+#include "base_components/relay_driver.h"
 #include "zigbee/cover_switch_cluster.h"
 #include "zigbee/consts.h"
 #include "zigbee/switch_cluster.h"
@@ -15,6 +17,15 @@ extern zigbee_switch_cluster       switch_clusters[];
 extern uint8_t                     switch_clusters_cnt;
 extern zigbee_cover_switch_cluster cover_switch_clusters[];
 extern uint8_t                     cover_switch_clusters_cnt;
+extern relay_driver_t              relay_drivers[10];
+extern uint8_t                     relays_cnt;
+
+void feature_wiring_init_relays(void) {
+    relay_ctrl_init();
+    for (uint8_t i = 0; i < relays_cnt; i++) {
+        relay_ctrl_add(&relay_drivers[i]);
+    }
+}
 
 void feature_wiring_init(void) {
     button_input_init();

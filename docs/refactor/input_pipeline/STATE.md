@@ -5,7 +5,7 @@ Tracking board for the input/relay pipeline refactor.
 - Branch: `refactor/input-pipeline`
 - Fork: `desty2k/tuya-zigbee-switch` (upstream `romasku/tuya-zigbee-switch`)
 - Base commit: `bf1059ee`
-- Current position: **stage 6 deferred, stage 7 not started**
+- Current position: **stage 7 complete, stage 8 not started; stage 6 hardware gate deferred**
 
 ## Stages
 
@@ -17,7 +17,7 @@ Tracking board for the input/relay pipeline refactor.
 | 4 | Button input | done | — | `test_button_input`, `fuzz_debounce`, `test_input_latency.py` |
 | 5 | Gesture layer, old button layer deleted | done | — | `test_gesture_fsm`, `test_gesture_reset.py`, full pytest green |
 | 6 | Hardware regression | blocked | — | deferred until safe Telink + Silabs test hardware is available |
-| 7 | Relay driver + controller | not started | — | `test_relay_controller`, relay/cover suites |
+| 7 | Relay driver + controller | done | — | `test_relay_controller`, relay/cover suites |
 | 8 | Inching + timed-off | not started | — | `test_relay_inching.py`, `test_relay_timed_off.py` |
 | 9 | Interlock | not started | — | `test_interlock` (unit + pytest) |
 | 10 | Zigbee event transport | not started | — | `test_button_events.py`, hardware pass 2 |
@@ -37,8 +37,8 @@ Statuses: `not started`, `in progress`, `in review`, `done`, `blocked`.
 [x] src/base_components/gesture_fsm.*
 [x] src/base_components/timer_service.*
 [x] src/base_components/action_mapper.*
-[ ] src/base_components/relay_driver.*
-[ ] src/base_components/relay_controller.*
+[x] src/base_components/relay_driver.*
+[x] src/base_components/relay_controller.*
 [ ] src/base_components/interlock.*
 [x] src/device_config/system_action.*
 [x] src/device_config/feature_wiring.*
@@ -46,8 +46,8 @@ Statuses: `not started`, `in progress`, `in review`, `done`, `blocked`.
 [ ] src/zigbee/button_event_cluster.*
 [x] src/zigbee/switch_cluster.c          event/gesture consumer
 [x] src/zigbee/cover_switch_cluster.c    event/gesture consumer
-[ ] src/zigbee/relay_cluster.c           controller client
-[ ] src/zigbee/cover_cluster.c           controller client
+[x] src/zigbee/relay_cluster.c           controller client
+[x] src/zigbee/cover_cluster.c           controller client
 [ ] src/zigbee/basic_cluster.c           diagnostic counters
 [ ] src/hal/zigbee.h + impls             send-to-coordinator, report snapshot fix
 [x] tests/unit/support + test_gpio_edge_queue.c native unit test foundation
