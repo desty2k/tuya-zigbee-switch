@@ -6,8 +6,9 @@
 #include "silabs_config.h"
 #endif
 
-#define UNKNOWN_VERSION         0
-#define RELAY_CONFIG_VERSION    2
+#define UNKNOWN_VERSION             0
+#define RELAY_CONFIG_VERSION        2
+#define INTERLOCK_CONFIG_VERSION    3
 
 static void delete_relay_configs(void) {
     for (uint8_t relay_idx = 0; relay_idx < MAX_RELAYS; relay_idx++) {
@@ -57,6 +58,8 @@ void handle_version_changes() {
     }
 
     if (oldVersion < RELAY_CONFIG_VERSION) {
+        delete_relay_configs();
+    } else if (oldVersion < INTERLOCK_CONFIG_VERSION) {
         delete_relay_configs();
     }
     write_version_to_nv(currentVersion);

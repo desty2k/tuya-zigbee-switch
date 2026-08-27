@@ -50,6 +50,7 @@ SOURCES := \
 	$(SRC_DIR)/base_components/led.c \
 	$(SRC_DIR)/base_components/relay_driver.c \
 	$(SRC_DIR)/base_components/relay_controller.c \
+	$(SRC_DIR)/base_components/interlock.c \
 	$(SRC_DIR)/base_components/gpio_edge_queue.c \
 	$(SRC_DIR)/base_components/timer_service.c \
 	$(SRC_DIR)/base_components/button_dispatcher.c \
@@ -80,7 +81,7 @@ INCLUDES := \
 
 CFLAGS := -Wall -Wno-unused-parameter -Wno-unused-variable -g -O0 \
     -DHAL_STUB -DSTACK_BUILD=1001 -D_DEFAULT_SOURCE -DVERSION_STR="0.0.0" \
-	-DNVM_MIGRATIONS_VERSION=2 \
+	-DNVM_MIGRATIONS_VERSION=3 \
 	-std=c99
 
 LDFLAGS := -lpthread

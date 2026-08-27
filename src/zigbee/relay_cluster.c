@@ -55,9 +55,13 @@ void update_relay_clusters() {
 void relay_cluster_add_to_endpoint(zigbee_relay_cluster *cluster,
                                    hal_zigbee_endpoint *endpoint) {
     relay_cluster_by_endpoint[endpoint->endpoint] = cluster;
-    cluster->endpoint = endpoint->endpoint;
+    cluster->endpoint        = endpoint->endpoint;
+    cluster->interlock_group =
+        relay_ctrl_get_interlock_group(cluster->relay_id);
     relay_cluster_load_attrs_from_nv(cluster);
     relay_ctrl_set_inching_ms(cluster->relay_id, cluster->inching_ms);
+    relay_ctrl_set_interlock_group(cluster->relay_id,
+                                   cluster->interlock_group);
 
     cluster->on_off = relay_ctrl_is_on(cluster->relay_id);
     relay_ctrl_set_state_callback(cluster->relay_id,
@@ -72,16 +76,18 @@ void relay_cluster_add_to_endpoint(zigbee_relay_cluster *cluster,
                cluster->startup_mode);
     SETUP_ATTR(2, ZCL_ATTR_ONOFF_INCHING_DURATION, ZCL_DATA_TYPE_UINT16,
                ATTR_WRITABLE, cluster->inching_ms);
+    SETUP_ATTR(3, ZCL_ATTR_ONOFF_INTERLOCK_GROUP, ZCL_DATA_TYPE_UINT8,
+               ATTR_WRITABLE, cluster->interlock_group);
     if (cluster->indicator_led != NULL) {
-        SETUP_ATTR(3, ZCL_ATTR_ONOFF_INDICATOR_MODE, ZCL_DATA_TYPE_ENUM8,
+        SETUP_ATTR(4, ZCL_ATTR_ONOFF_INDICATOR_MODE, ZCL_DATA_TYPE_ENUM8,
                    ATTR_WRITABLE, cluster->indicator_led_mode);
-        SETUP_ATTR(4, ZCL_ATTR_ONOFF_INDICATOR_STATE, ZCL_DATA_TYPE_BOOLEAN,
+        SETUP_ATTR(5, ZCL_ATTR_ONOFF_INDICATOR_STATE, ZCL_DATA_TYPE_BOOLEAN,
                    ATTR_WRITABLE, cluster->indicator_state);
     }
 
     endpoint->clusters[endpoint->cluster_count].cluster_id      = ZCL_CLUSTER_ON_OFF;
     endpoint->clusters[endpoint->cluster_count].attribute_count =
-        cluster->indicator_led != NULL ? 5 : 3;
+        cluster->indicator_led != NULL ? 6 : 4;
     endpoint->clusters[endpoint->cluster_count].attributes   = cluster->attr_infos;
     endpoint->clusters[endpoint->cluster_count].is_server    = 1;
     endpoint->clusters[endpoint->cluster_count].cmd_callback =
@@ -228,6 +234,10 @@ void relay_cluster_on_write_attr(zigbee_relay_cluster *cluster,
     if (attribute_id == ZCL_ATTR_ONOFF_INCHING_DURATION) {
         relay_ctrl_set_inching_ms(cluster->relay_id, cluster->inching_ms);
     }
+    if (attribute_id == ZCL_ATTR_ONOFF_INTERLOCK_GROUP) {
+        relay_ctrl_set_interlock_group(cluster->relay_id,
+                                       cluster->interlock_group);
+    }
     if (attribute_id == ZCL_ATTR_ONOFF_INDICATOR_STATE) {
         sync_indicator_led(cluster);
     }
@@ -244,6 +254,7 @@ typedef struct {
     uint8_t  indicator_led_mode;
     uint8_t  indicator_led_on;
     uint16_t inching_ms;
+    uint8_t  interlock_group;
 } zigbee_relay_cluster_config;
 
 static zigbee_relay_cluster_config nv_config_buffer;
@@ -255,7 +266,8 @@ void relay_cluster_store_attrs_to_nv(zigbee_relay_cluster *cluster) {
     if (cluster->indicator_led != NULL) {
         nv_config_buffer.indicator_led_on = cluster->indicator_state;
     }
-    nv_config_buffer.inching_ms = cluster->inching_ms;
+    nv_config_buffer.inching_ms      = cluster->inching_ms;
+    nv_config_buffer.interlock_group = cluster->interlock_group;
 
     hal_nvm_write(NV_ITEM_RELAY_CLUSTER_DATA(cluster->relay_idx),
                   sizeof(zigbee_relay_cluster_config),
@@ -274,6 +286,7 @@ void relay_cluster_load_attrs_from_nv(zigbee_relay_cluster *cluster) {
     cluster->indicator_led_mode = nv_config_buffer.indicator_led_mode;
     cluster->indicator_state    = nv_config_buffer.indicator_led_on;
     cluster->inching_ms         = nv_config_buffer.inching_ms;
+    cluster->interlock_group    = nv_config_buffer.interlock_group;
 }
 
 void relay_cluster_handle_startup_mode(zigbee_relay_cluster *cluster) {

@@ -5,7 +5,7 @@ Tracking board for the input/relay pipeline refactor.
 - Branch: `refactor/input-pipeline`
 - Fork: `desty2k/tuya-zigbee-switch` (upstream `romasku/tuya-zigbee-switch`)
 - Base commit: `bf1059ee`
-- Current position: **stage 8 complete, stage 9 not started; stage 6 hardware gate deferred**
+- Current position: **stage 9 complete, stage 10 not started; stage 6 hardware gate deferred**
 
 ## Stages
 
@@ -19,7 +19,7 @@ Tracking board for the input/relay pipeline refactor.
 | 6 | Hardware regression | blocked | — | deferred until safe Telink + Silabs test hardware is available |
 | 7 | Relay driver + controller | done | — | `test_relay_controller`, relay/cover suites |
 | 8 | Inching + timed-off | done | — | `test_relay_inching.py`, `test_relay_timed_off.py` |
-| 9 | Interlock | not started | — | `test_interlock` (unit + pytest) |
+| 9 | Interlock | done | — | `test_interlock` (unit + pytest) |
 | 10 | Zigbee event transport | not started | — | `test_button_events.py`, hardware pass 2 |
 
 Statuses: `not started`, `in progress`, `in review`, `done`, `blocked`.
@@ -39,7 +39,7 @@ Statuses: `not started`, `in progress`, `in review`, `done`, `blocked`.
 [x] src/base_components/action_mapper.*
 [x] src/base_components/relay_driver.*
 [x] src/base_components/relay_controller.*
-[ ] src/base_components/interlock.*
+[x] src/base_components/interlock.*
 [x] src/device_config/system_action.*
 [x] src/device_config/feature_wiring.*
 [x] src/device_config/config_parser.c    config-only input parsing

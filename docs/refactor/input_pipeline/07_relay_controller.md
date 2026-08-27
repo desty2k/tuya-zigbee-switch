@@ -142,8 +142,10 @@ for each peer in group.relay_mask, peer != relay_id, relay_ctrl_is_on(peer):
     cancel peer auto_off timer
     submit OFF for peer with source = RELAY_SOURCE_INTERLOCK
 if group.dead_time_ms == 0: return ALLOW
+if no peer changed OFF and the last peer OFF is older than dead_time_ms:
+    return ALLOW
 group.pending_on_relay = relay_id
-timer_restart(group.dead_time_timer, group.dead_time_ms)
+timer_restart(group.dead_time_timer, remaining dead time)
 return DEFER
 ```
 
@@ -151,10 +153,14 @@ Rules:
 
 - Interlock operates on logical relay ids, never on GPIO pins.
 - A relay belongs to at most one group.
+- Dead time starts when a group member actually changes from ON to OFF. An
+  initial request does not wait when every member is already OFF.
 - ON of a deferred target is applied by the group's dead-time callback through
   `relay_ctrl_submit(ON, source = RELAY_SOURCE_INTERLOCK)`; a conflicting request
   arriving during the dead time replaces `pending_on_relay`, and an `OFF` for the
   pending relay clears it.
+- A deferred pulse or timed-on starts its auto-off deadline when the target is
+  actually energised, not when the request is first submitted.
 - Applies to every source: physical button, gesture, Zigbee command, binding,
   timer expiry, pulse, startup restore and cover movement.
 - Cover endpoints register their open/close relay pair as an implicit interlock

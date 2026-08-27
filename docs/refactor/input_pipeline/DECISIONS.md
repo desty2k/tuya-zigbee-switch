@@ -123,6 +123,12 @@ feature wiring, config/runtime split, phased migration.
     `PULSE(0)` when `InchingDuration` is nonzero. Typed `ON` requests remain
     available to cancel auto-off exactly as the controller policy specifies.
 
+21. **Interlock dead time starts at an actual OFF transition.** A group whose
+    members are already OFF can energise its first target immediately. This
+    preserves cover startup timing while still enforcing the full dead time
+    after a direction relay is switched off. Deferred pulse and timed-on
+    deadlines start only when the target is energised.
+
 ## Deliberately out of scope
 
 Scenes, power monitoring, curtain-module features, touchlink, wireless-switch

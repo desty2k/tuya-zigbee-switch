@@ -100,6 +100,7 @@ UNIT_BUTTON_TEST := $(UNIT_BUILD_DIR)/test_button_input
 UNIT_DEBOUNCE_FUZZ := $(UNIT_BUILD_DIR)/fuzz_debounce
 UNIT_GESTURE_TEST := $(UNIT_BUILD_DIR)/test_gesture_fsm
 UNIT_RELAY_TEST := $(UNIT_BUILD_DIR)/test_relay_controller
+UNIT_INTERLOCK_TEST := $(UNIT_BUILD_DIR)/test_interlock
 
 $(UNIT_BUILD_DIR):
 	mkdir -p $(UNIT_BUILD_DIR)
@@ -134,6 +135,7 @@ $(UNIT_GESTURE_TEST): tests/unit/test_gesture_fsm.c \
 
 $(UNIT_RELAY_TEST): tests/unit/test_relay_controller.c \
 		src/base_components/relay_controller.c \
+		src/base_components/interlock.c \
 		src/base_components/relay_driver.c \
 		src/base_components/timer_service.c \
 		tests/unit/support/fake_clock.c \
@@ -141,14 +143,26 @@ $(UNIT_RELAY_TEST): tests/unit/test_relay_controller.c \
 		tests/unit/support/fake_relay_hw.c | $(UNIT_BUILD_DIR)
 	$(CC) $(UNIT_CFLAGS) $^ -o $@
 
+$(UNIT_INTERLOCK_TEST): tests/unit/test_interlock.c \
+		src/base_components/relay_controller.c \
+		src/base_components/relay_driver.c \
+		src/base_components/interlock.c \
+		src/base_components/timer_service.c \
+		tests/unit/support/fake_clock.c \
+		tests/unit/support/fake_tasks.c \
+		tests/unit/support/fake_relay_hw.c | $(UNIT_BUILD_DIR)
+	$(CC) $(UNIT_CFLAGS) $^ -o $@
+
 unit_tests: $(UNIT_QUEUE_TEST) $(UNIT_TIMER_TEST) $(UNIT_BUTTON_TEST) \
-		$(UNIT_DEBOUNCE_FUZZ) $(UNIT_GESTURE_TEST) $(UNIT_RELAY_TEST)
+		$(UNIT_DEBOUNCE_FUZZ) $(UNIT_GESTURE_TEST) $(UNIT_RELAY_TEST) \
+		$(UNIT_INTERLOCK_TEST)
 	./$(UNIT_QUEUE_TEST)
 	./$(UNIT_TIMER_TEST)
 	./$(UNIT_BUTTON_TEST)
 	./$(UNIT_DEBOUNCE_FUZZ)
 	./$(UNIT_GESTURE_TEST)
 	./$(UNIT_RELAY_TEST)
+	./$(UNIT_INTERLOCK_TEST)
 
 # Format all C/H files using uncrustify
 format:

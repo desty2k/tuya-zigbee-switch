@@ -21,6 +21,7 @@
 #include "base_components/battery.h"
 #include "base_components/relay_controller.h"
 #include "base_components/relay_driver.h"
+#include "base_components/interlock.h"
 #include "config_nv.h"
 #include "device_config/device_params_nv.h"
 #include "device_config/reset.h"
@@ -50,6 +51,9 @@ uint8_t             buttons_cnt = 0;
 relay_driver_t relay_drivers[10];
 relay_config_t relay_configs[10];
 uint8_t        relays_cnt = 0;
+
+device_interlock_config_t interlock_configs[INTERLOCK_MAX_GROUPS];
+uint8_t interlock_configs_cnt = 0;
 
 zigbee_basic_cluster basic_cluster = {
     .deviceEnable = 1,
@@ -81,6 +85,7 @@ battery_t battery = {
 };
 
 uint32_t parse_int(const char *s);
+static uint16_t config_parser_parse_hex(const char *s);
 char *seek_until(char *cursor, char needle);
 char *extract_next_entry(char **cursor);
 
@@ -125,6 +130,16 @@ void parse_config() {
             multi_click_gap_ms = (uint16_t)parse_int(entry + 1);
             for (int i = 0; i < buttons_cnt; i++) {
                 gesture_configs[i].multi_click_gap_ms = multi_click_gap_ms;
+            }
+        } else if (entry[0] == 'K' && interlock_configs_cnt < INTERLOCK_MAX_GROUPS) {
+            char *separator = seek_until(entry + 1, ':');
+
+            interlock_configs[interlock_configs_cnt].relay_mask =
+                config_parser_parse_hex(entry + 1);
+            interlock_configs[interlock_configs_cnt].dead_time_ms =
+                *separator == ':' ? (uint16_t)parse_int(separator + 1) : 0;
+            if (interlock_configs[interlock_configs_cnt].relay_mask != 0) {
+                interlock_configs_cnt++;
             }
         } else if (entry[0] == 'B' && entry[1] == 'T') {
             // Battery: BT<pin>, e.g. BTC5
@@ -463,4 +478,18 @@ uint32_t parse_int(const char *s) {
         s++;
     }
     return n;
+}
+
+static uint16_t config_parser_parse_hex(const char *s) {
+    uint16_t result = 0;
+
+    while ((*s >= '0' && *s <= '9') || (*s >= 'a' && *s <= 'f') ||
+           (*s >= 'A' && *s <= 'F')) {
+        uint8_t digit = *s <= '9' ? (uint8_t)(*s - '0')
+                                  : (uint8_t)((*s | 0x20) - 'a' + 10);
+
+        result = (uint16_t)((result << 4) | digit);
+        s++;
+    }
+    return result;
 }

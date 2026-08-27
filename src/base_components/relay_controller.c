@@ -1,5 +1,6 @@
 #include "relay_controller.h"
 
+#include "base_components/interlock.h"
 #include <stddef.h>
 
 typedef struct {
@@ -7,6 +8,9 @@ typedef struct {
     bool              state_applied;
     uint8_t           relay_id;
     auto_off_reason_t auto_off_reason;
+    auto_off_reason_t deferred_auto_off_reason;
+    uint32_t          deferred_auto_off_ms;
+    bool              deferred_on;
     app_timer_t       auto_off_timer;
     relay_config_t *  config;
     relay_driver_t *  driver;
@@ -19,6 +23,7 @@ static uint8_t         relay_ctrl_relay_count;
 
 void relay_ctrl_init(void) {
     relay_ctrl_relay_count = 0;
+    interlock_init();
 }
 
 static void relay_ctrl_auto_off(void *arg) {
@@ -40,14 +45,17 @@ uint8_t relay_ctrl_add(relay_driver_t *driver, relay_config_t *config) {
         return UINT8_MAX;
     }
 
-    relay_ctrl_runtimes[relay_id].is_on           = false;
-    relay_ctrl_runtimes[relay_id].state_applied   = false;
-    relay_ctrl_runtimes[relay_id].relay_id        = relay_id;
-    relay_ctrl_runtimes[relay_id].auto_off_reason = AUTO_OFF_NONE;
-    relay_ctrl_runtimes[relay_id].config          = config;
-    relay_ctrl_runtimes[relay_id].driver          = driver;
-    relay_ctrl_runtimes[relay_id].on_change       = NULL;
-    relay_ctrl_runtimes[relay_id].cb_param        = NULL;
+    relay_ctrl_runtimes[relay_id].is_on                    = false;
+    relay_ctrl_runtimes[relay_id].state_applied            = false;
+    relay_ctrl_runtimes[relay_id].relay_id                 = relay_id;
+    relay_ctrl_runtimes[relay_id].auto_off_reason          = AUTO_OFF_NONE;
+    relay_ctrl_runtimes[relay_id].deferred_auto_off_reason = AUTO_OFF_NONE;
+    relay_ctrl_runtimes[relay_id].deferred_auto_off_ms     = 0;
+    relay_ctrl_runtimes[relay_id].deferred_on              = false;
+    relay_ctrl_runtimes[relay_id].config                   = config;
+    relay_ctrl_runtimes[relay_id].driver                   = driver;
+    relay_ctrl_runtimes[relay_id].on_change                = NULL;
+    relay_ctrl_runtimes[relay_id].cb_param                 = NULL;
     timer_init(&relay_ctrl_runtimes[relay_id].auto_off_timer,
                relay_ctrl_auto_off, &relay_ctrl_runtimes[relay_id]);
     relay_driver_init(driver);
@@ -96,20 +104,44 @@ hal_zigbee_cmd_result_t relay_ctrl_submit(const relay_request_t *request) {
         return HAL_ZIGBEE_CMD_SKIPPED;
     }
 
-    timer_cancel(&runtime->auto_off_timer);
-    runtime->auto_off_reason = auto_off_reason;
-    if (auto_off_reason != AUTO_OFF_NONE) {
-        timer_restart(&runtime->auto_off_timer, auto_off_ms);
+    if (request->source == RELAY_SOURCE_INTERLOCK && runtime->deferred_on) {
+        auto_off_reason      = runtime->deferred_auto_off_reason;
+        auto_off_ms          = runtime->deferred_auto_off_ms;
+        runtime->deferred_on = false;
+    } else if (request->source != RELAY_SOURCE_INTERLOCK) {
+        runtime->deferred_on = false;
     }
 
+    timer_cancel(&runtime->auto_off_timer);
+    runtime->auto_off_reason = auto_off_reason;
+
     if (runtime->state_applied && runtime->is_on == target_on) {
+        if (auto_off_reason != AUTO_OFF_NONE) {
+            timer_restart(&runtime->auto_off_timer, auto_off_ms);
+        }
         return HAL_ZIGBEE_CMD_PROCESSED;
+    }
+
+    if (!target_on) {
+        runtime->deferred_on = false;
+        interlock_cancel_pending(request->relay_id);
+    } else if (!interlock_prepare(request->relay_id)) {
+        runtime->deferred_auto_off_reason = auto_off_reason;
+        runtime->deferred_auto_off_ms     = auto_off_ms;
+        runtime->deferred_on = true;
+        return HAL_ZIGBEE_CMD_PROCESSED;
+    }
+    if (auto_off_reason != AUTO_OFF_NONE) {
+        timer_restart(&runtime->auto_off_timer, auto_off_ms);
     }
 
     bool state_changed = runtime->is_on != target_on;
     runtime->is_on         = target_on;
     runtime->state_applied = true;
     relay_driver_apply(runtime->driver, target_on);
+    if (!target_on && state_changed) {
+        interlock_note_off(request->relay_id);
+    }
     if (state_changed && runtime->on_change != NULL) {
         runtime->on_change(runtime->cb_param, request->relay_id, target_on);
     }
@@ -137,8 +169,27 @@ uint16_t relay_ctrl_get_inching_ms(uint8_t relay_id) {
            : 0;
 }
 
+void relay_ctrl_set_interlock_group(uint8_t relay_id, uint8_t group_id) {
+    if (relay_id < relay_ctrl_relay_count) {
+        relay_ctrl_runtimes[relay_id].config->interlock_group = group_id;
+        interlock_set_relay_group(relay_id, group_id);
+    }
+}
+
+uint8_t relay_ctrl_get_interlock_group(uint8_t relay_id) {
+    return relay_id < relay_ctrl_relay_count
+           ? relay_ctrl_runtimes[relay_id].config->interlock_group
+           : INTERLOCK_NO_GROUP;
+}
+
 auto_off_reason_t relay_ctrl_auto_off_reason(uint8_t relay_id) {
     return relay_id < relay_ctrl_relay_count
            ? relay_ctrl_runtimes[relay_id].auto_off_reason
            : AUTO_OFF_NONE;
+}
+
+void relay_ctrl_cancel_deferred_on(uint8_t relay_id) {
+    if (relay_id < relay_ctrl_relay_count) {
+        relay_ctrl_runtimes[relay_id].deferred_on = false;
+    }
 }

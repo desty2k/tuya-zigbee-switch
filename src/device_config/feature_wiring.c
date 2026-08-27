@@ -3,8 +3,10 @@
 #include "base_components/action_mapper.h"
 #include "base_components/button_input.h"
 #include "base_components/gesture_fsm.h"
+#include "base_components/interlock.h"
 #include "base_components/relay_controller.h"
 #include "base_components/relay_driver.h"
+#include "zigbee/cover_cluster.h"
 #include "zigbee/cover_switch_cluster.h"
 #include "zigbee/consts.h"
 #include "zigbee/switch_cluster.h"
@@ -20,11 +22,42 @@ extern uint8_t                     cover_switch_clusters_cnt;
 extern relay_driver_t              relay_drivers[10];
 extern relay_config_t              relay_configs[10];
 extern uint8_t                     relays_cnt;
+extern zigbee_cover_cluster        cover_clusters[];
+extern uint8_t                     cover_clusters_cnt;
+
+extern device_interlock_config_t interlock_configs[INTERLOCK_MAX_GROUPS];
+extern uint8_t interlock_configs_cnt;
 
 void feature_wiring_init_relays(void) {
     relay_ctrl_init();
     for (uint8_t i = 0; i < relays_cnt; i++) {
         relay_ctrl_add(&relay_drivers[i], &relay_configs[i]);
+    }
+    for (uint8_t group_index = 0; group_index < interlock_configs_cnt;
+         group_index++) {
+        uint8_t group_id = group_index + 1;
+
+        interlock_add_group(group_id,
+                            interlock_configs[group_index].relay_mask,
+                            interlock_configs[group_index].dead_time_ms);
+        for (uint8_t relay_id = 0; relay_id < relays_cnt; relay_id++) {
+            if ((interlock_configs[group_index].relay_mask &
+                 ((uint16_t)1 << relay_id)) != 0) {
+                relay_ctrl_set_interlock_group(relay_id, group_id);
+            }
+        }
+    }
+    for (uint8_t cover_index = 0; cover_index < cover_clusters_cnt;
+         cover_index++) {
+        uint8_t  group_id = interlock_configs_cnt + cover_index + 1;
+        uint16_t mask     = ((uint16_t)1 << cover_clusters[cover_index].open_relay_id) |
+                            ((uint16_t)1 << cover_clusters[cover_index].close_relay_id);
+
+        interlock_add_group(group_id, mask, 200);
+        relay_ctrl_set_interlock_group(
+            cover_clusters[cover_index].open_relay_id, group_id);
+        relay_ctrl_set_interlock_group(
+            cover_clusters[cover_index].close_relay_id, group_id);
     }
 }
 
