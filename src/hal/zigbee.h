@@ -5,6 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define HAL_ZIGBEE_CMD_MAX_PAYLOAD    64
+
 /** Zigbee attribute access permissions */
 typedef enum {
     ATTR_READONLY,
@@ -152,6 +154,10 @@ typedef enum {
  * @return HAL_ZIGBEE_OK on success, error code otherwise
  */
 hal_zigbee_status_t hal_zigbee_send_cmd_to_bindings(const hal_zigbee_cmd *cmd);
+
+/** Send a command directly to coordinator endpoint 1. */
+hal_zigbee_status_t
+hal_zigbee_send_cmd_to_coordinator(const hal_zigbee_cmd *cmd);
 
 /**
  * Send attribute report to bound devices (notify of state changes)

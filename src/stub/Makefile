@@ -73,7 +73,8 @@ SOURCES := \
 	$(SRC_DIR)/zigbee/general_commands.c \
 	$(SRC_DIR)/zigbee/cover_switch_cluster.c \
 	$(SRC_DIR)/zigbee/cover_cluster.c \
-	$(SRC_DIR)/zigbee/battery_cluster.c
+	$(SRC_DIR)/zigbee/battery_cluster.c \
+	$(SRC_DIR)/zigbee/button_event_cluster.c
 
 INCLUDES := \
 	-I$(SRC_DIR) \
@@ -81,7 +82,7 @@ INCLUDES := \
 
 CFLAGS := -Wall -Wno-unused-parameter -Wno-unused-variable -g -O0 \
     -DHAL_STUB -DSTACK_BUILD=1001 -D_DEFAULT_SOURCE -DVERSION_STR="0.0.0" \
-	-DNVM_MIGRATIONS_VERSION=3 \
+	-DNVM_MIGRATIONS_VERSION=4 \
 	-std=c99
 
 LDFLAGS := -lpthread

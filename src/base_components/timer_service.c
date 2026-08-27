@@ -19,7 +19,7 @@ void timer_init(app_timer_t *timer, timer_callback_t callback, void *arg) {
     hal_tasks_init(&timer->task);
 }
 
-void timer_start(app_timer_t *timer, uint32_t delay_ms) {
+void app_timer_start(app_timer_t *timer, uint32_t delay_ms) {
     if (timer->active) {
         return;
     }

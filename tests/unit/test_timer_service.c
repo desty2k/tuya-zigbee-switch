@@ -23,9 +23,9 @@ TEST(start_keeps_active_deadline) {
 
     reset_fakes();
     timer_init(&timer, count_callback, &callback_count);
-    timer_start(&timer, 100);
+    app_timer_start(&timer, 100);
     fake_clock_advance_ms(25);
-    timer_start(&timer, 200);
+    app_timer_start(&timer, 200);
 
     ASSERT_EQ(75, timer_remaining_ms(&timer));
     fake_clock_advance_ms(74);
@@ -41,7 +41,7 @@ TEST(restart_replaces_deadline) {
 
     reset_fakes();
     timer_init(&timer, count_callback, &callback_count);
-    timer_start(&timer, 100);
+    app_timer_start(&timer, 100);
     fake_clock_advance_ms(25);
     timer_restart(&timer, 200);
 
@@ -59,7 +59,7 @@ TEST(cancel_prevents_callback) {
 
     reset_fakes();
     timer_init(&timer, count_callback, &callback_count);
-    timer_start(&timer, 10);
+    app_timer_start(&timer, 10);
     timer_cancel(&timer);
     timer_cancel(&timer);
     fake_clock_advance_ms(10);
@@ -76,7 +76,7 @@ TEST(remaining_decreases_and_wraps_safely) {
     reset_fakes();
     fake_clock_set(UINT32_MAX - 4);
     timer_init(&timer, count_callback, &callback_count);
-    timer_start(&timer, 10);
+    app_timer_start(&timer, 10);
     ASSERT_EQ(10, timer_remaining_ms(&timer));
     fake_clock_advance_ms(6);
     ASSERT_EQ(4, timer_remaining_ms(&timer));
@@ -89,7 +89,7 @@ static void restart_callback(void *arg) {
 
     callback_count++;
     if (callback_count == 1) {
-        timer_start(timer, 20);
+        app_timer_start(timer, 20);
     }
 }
 
@@ -98,7 +98,7 @@ TEST(callback_may_restart_own_timer) {
 
     reset_fakes();
     timer_init(&timer, restart_callback, &timer);
-    timer_start(&timer, 10);
+    app_timer_start(&timer, 10);
     fake_clock_advance_ms(10);
     fake_tasks_poll();
 
@@ -116,7 +116,7 @@ TEST(expiry_runs_at_exact_deadline) {
 
     reset_fakes();
     timer_init(&timer, count_callback, &callback_count);
-    timer_start(&timer, 50);
+    app_timer_start(&timer, 50);
     fake_clock_advance_ms(49);
     fake_tasks_poll();
     ASSERT_EQ(0, callback_count);

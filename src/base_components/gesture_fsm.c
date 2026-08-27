@@ -26,7 +26,8 @@ typedef struct {
 static gesture_config_t     gesture_configs[BUTTON_INPUT_MAX];
 static gesture_runtime_t    gesture_runtimes[BUTTON_INPUT_MAX];
 static gesture_sink_entry_t gesture_sinks[GESTURE_SINK_MAX];
-static uint8_t gesture_sink_count;
+static uint8_t  gesture_sink_count;
+static uint32_t gesture_events_emitted;
 
 static void gesture_fsm_emit(uint8_t button_id, gesture_type_t type,
                              uint8_t count, uint16_t duration_ms,
@@ -40,6 +41,7 @@ static void gesture_fsm_emit(uint8_t button_id, gesture_type_t type,
         .timestamp_ms = timestamp_ms,
     };
 
+    gesture_events_emitted++;
     for (uint8_t i = 0; i < gesture_sink_count; i++) {
         gesture_sinks[i].sink(&event, gesture_sinks[i].arg);
     }
@@ -130,7 +132,8 @@ static void gesture_fsm_button_event(const button_event_t *event, void *arg) {
 }
 
 void gesture_fsm_init(void) {
-    gesture_sink_count = 0;
+    gesture_sink_count     = 0;
+    gesture_events_emitted = 0;
     for (uint8_t i = 0; i < BUTTON_INPUT_MAX; i++) {
         gesture_runtimes[i].configured = false;
     }
@@ -187,4 +190,8 @@ void gesture_fsm_register_sink(gesture_sink_t sink, void *arg) {
     gesture_sinks[gesture_sink_count].sink = sink;
     gesture_sinks[gesture_sink_count].arg  = arg;
     gesture_sink_count++;
+}
+
+uint32_t gesture_fsm_events_emitted(void) {
+    return gesture_events_emitted;
 }

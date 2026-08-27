@@ -5,7 +5,7 @@ Tracking board for the input/relay pipeline refactor.
 - Branch: `refactor/input-pipeline`
 - Fork: `desty2k/tuya-zigbee-switch` (upstream `romasku/tuya-zigbee-switch`)
 - Base commit: `bf1059ee`
-- Current position: **stage 9 complete, stage 10 not started; stage 6 hardware gate deferred**
+- Current position: **stage 10 software implementation in progress; stage 6 hardware gate deferred**
 
 ## Stages
 
@@ -20,7 +20,7 @@ Tracking board for the input/relay pipeline refactor.
 | 7 | Relay driver + controller | done | — | `test_relay_controller`, relay/cover suites |
 | 8 | Inching + timed-off | done | — | `test_relay_inching.py`, `test_relay_timed_off.py` |
 | 9 | Interlock | done | — | `test_interlock` (unit + pytest) |
-| 10 | Zigbee event transport | not started | — | `test_button_events.py`, hardware pass 2 |
+| 10 | Zigbee event transport | in progress | — | native/stub validation complete; hardware pass 2 and received-event verification pending |
 
 Statuses: `not started`, `in progress`, `in review`, `done`, `blocked`.
 
@@ -43,20 +43,20 @@ Statuses: `not started`, `in progress`, `in review`, `done`, `blocked`.
 [x] src/device_config/system_action.*
 [x] src/device_config/feature_wiring.*
 [x] src/device_config/config_parser.c    config-only input parsing
-[ ] src/zigbee/button_event_cluster.*
+[x] src/zigbee/button_event_cluster.*
 [x] src/zigbee/switch_cluster.c          event/gesture consumer
 [x] src/zigbee/cover_switch_cluster.c    event/gesture consumer
 [x] src/zigbee/relay_cluster.c           controller client
 [x] src/zigbee/cover_cluster.c           controller client
-[ ] src/zigbee/basic_cluster.c           diagnostic counters
-[ ] src/hal/zigbee.h + impls             send-to-coordinator, report snapshot fix
+[x] src/zigbee/basic_cluster.c           diagnostic counters
+[x] src/hal/zigbee.h + impls             send-to-coordinator, report snapshot fix
 [x] tests/unit/support + test_gpio_edge_queue.c native unit test foundation
 [x] tests/conftest.py                    debounce + new helpers
 [x] tests/test_*.py                      input latency + gesture reset suites
 [x] .github/workflows/test.yml           run unit tests
-[ ] docs/                                user-facing docs for new features
-[ ] zigbee2mqtt/, zha/, homed/           regenerated converters
-[ ] NVM_MIGRATIONS_VERSION               bumped with migration step
+[x] docs/                                user-facing docs for new features
+[x] zigbee2mqtt/, zha/, homed/           regenerated converters
+[x] NVM_MIGRATIONS_VERSION               bumped with migration step
 [x] src/base_components/button.c/.h      deleted
 ```
 
@@ -71,7 +71,7 @@ Statuses: `not started`, `in progress`, `in review`, `done`, `blocked`.
 | # | Question | Owner | Resolution |
 | --- | --- | --- | --- |
 | 1 | Final `debounce_ms` default (8 ms assumed) | — | provisional until deferred stage 6 runs |
-| 2 | Whether `0xFC02` needs a manufacturer code for Z2M discovery | — | pending stage 10 |
+| 2 | Whether `0xFC02` needs a manufacturer code for Z2M discovery | — | Generated converter declares the custom cluster with manufacturer code `0`; confirm received events during hardware pass 2 |
 | 3 | `off_wait_time` support for `OnWithTimedOff` | — | out of scope unless requested |
 
 ## Decision log

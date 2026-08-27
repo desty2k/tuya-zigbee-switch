@@ -58,7 +58,7 @@ on DOWN(press_id):
     suppressed      = button_input_boot_press(button_id) and first press after boot
     timer_cancel(multi_click_timer)
     if hold_ms != 0 and not suppressed:
-        timer_start(hold_timer, hold_ms)
+        app_timer_start(hold_timer, hold_ms)
 
 on hold_timer expiry:
     if click_count > 0:
@@ -82,7 +82,7 @@ on UP(press_id):
         emit N_CLICK(click_count)
         click_count = 0
         return
-    timer_start(multi_click_timer, multi_click_gap_ms)
+    app_timer_start(multi_click_timer, multi_click_gap_ms)
 
 on multi_click_timer expiry:
     emit N_CLICK(click_count)
@@ -115,7 +115,7 @@ void gesture_fsm_set_multi_click_gap_ms(uint8_t button_id, uint16_t gap_ms);
 bool gesture_fsm_hold_active(uint8_t button_id);               // state query
 
 typedef void (*gesture_sink_t)(const gesture_event_t *event, void *arg);
-#define GESTURE_SINK_MAX 4
+#define GESTURE_SINK_MAX 6
 void gesture_fsm_register_sink(gesture_sink_t sink, void *arg);
 ```
 

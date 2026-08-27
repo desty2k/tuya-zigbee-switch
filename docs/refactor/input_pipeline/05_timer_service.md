@@ -17,7 +17,7 @@ typedef struct {
 } app_timer_t;
 
 void     timer_init(app_timer_t *t, timer_callback_t cb, void *arg);
-void     timer_start(app_timer_t *t, uint32_t delay_ms);    // no-op if already active
+void     app_timer_start(app_timer_t *t, uint32_t delay_ms); // no-op if already active
 void     timer_restart(app_timer_t *t, uint32_t delay_ms);  // always re-arms
 void     timer_cancel(app_timer_t *t);
 bool     timer_is_active(const app_timer_t *t);

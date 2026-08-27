@@ -101,6 +101,7 @@ UNIT_DEBOUNCE_FUZZ := $(UNIT_BUILD_DIR)/fuzz_debounce
 UNIT_GESTURE_TEST := $(UNIT_BUILD_DIR)/test_gesture_fsm
 UNIT_RELAY_TEST := $(UNIT_BUILD_DIR)/test_relay_controller
 UNIT_INTERLOCK_TEST := $(UNIT_BUILD_DIR)/test_interlock
+UNIT_BUTTON_EVENT_TEST := $(UNIT_BUILD_DIR)/test_button_event_queue
 
 $(UNIT_BUILD_DIR):
 	mkdir -p $(UNIT_BUILD_DIR)
@@ -153,9 +154,13 @@ $(UNIT_INTERLOCK_TEST): tests/unit/test_interlock.c \
 		tests/unit/support/fake_relay_hw.c | $(UNIT_BUILD_DIR)
 	$(CC) $(UNIT_CFLAGS) $^ -o $@
 
+$(UNIT_BUTTON_EVENT_TEST): tests/unit/test_button_event_queue.c \
+		src/zigbee/button_event_cluster.c | $(UNIT_BUILD_DIR)
+	$(CC) $(UNIT_CFLAGS) $^ -o $@
+
 unit_tests: $(UNIT_QUEUE_TEST) $(UNIT_TIMER_TEST) $(UNIT_BUTTON_TEST) \
 		$(UNIT_DEBOUNCE_FUZZ) $(UNIT_GESTURE_TEST) $(UNIT_RELAY_TEST) \
-		$(UNIT_INTERLOCK_TEST)
+		$(UNIT_INTERLOCK_TEST) $(UNIT_BUTTON_EVENT_TEST)
 	./$(UNIT_QUEUE_TEST)
 	./$(UNIT_TIMER_TEST)
 	./$(UNIT_BUTTON_TEST)
@@ -163,6 +168,7 @@ unit_tests: $(UNIT_QUEUE_TEST) $(UNIT_TIMER_TEST) $(UNIT_BUTTON_TEST) \
 	./$(UNIT_GESTURE_TEST)
 	./$(UNIT_RELAY_TEST)
 	./$(UNIT_INTERLOCK_TEST)
+	./$(UNIT_BUTTON_EVENT_TEST)
 
 # Format all C/H files using uncrustify
 format:

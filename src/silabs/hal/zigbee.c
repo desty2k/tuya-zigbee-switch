@@ -6,7 +6,7 @@
 #include <stddef.h>
 #include <string.h>
 
-#define MAX_CLUSTERS    32
+#define MAX_CLUSTERS    48
 #define MAX_ATTRS       128
 
 sl_zigbee_af_endpoint_type_t      endpoint_type_buffer[ZCL_FIXED_ENDPOINT_COUNT];
@@ -310,6 +310,24 @@ hal_zigbee_status_t hal_zigbee_send_cmd_to_bindings(const hal_zigbee_cmd *cmd) {
 
     return (st_unicast == SL_STATUS_OK || st_multicast == SL_STATUS_OK)
            ? HAL_ZIGBEE_OK : HAL_ZIGBEE_ERR_SEND_FAILED;
+}
+
+hal_zigbee_status_t
+hal_zigbee_send_cmd_to_coordinator(const hal_zigbee_cmd *cmd) {
+    sl_status_t status;
+
+    if (cmd == NULL || (cmd->payload_len != 0 && cmd->payload == NULL)) {
+        return HAL_ZIGBEE_ERR_BAD_ARG;
+    }
+    if (sl_zigbee_af_network_state() != SL_ZIGBEE_JOINED_NETWORK) {
+        return HAL_ZIGBEE_ERR_NOT_JOINED;
+    }
+    fill_cmd(cmd);
+    sl_zigbee_af_set_command_endpoints(cmd->endpoint, 1);
+    status = sl_zigbee_af_send_command_unicast(SL_ZIGBEE_OUTGOING_DIRECT,
+                                               0x0000);
+    return status == SL_STATUS_OK ? HAL_ZIGBEE_OK
+                                  : HAL_ZIGBEE_ERR_SEND_FAILED;
 }
 
 hal_zigbee_status_t

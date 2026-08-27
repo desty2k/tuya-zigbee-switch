@@ -9,6 +9,7 @@
 #include "zigbee/cover_cluster.h"
 #include "zigbee/cover_switch_cluster.h"
 #include "zigbee/consts.h"
+#include "zigbee/button_event_cluster.h"
 #include "zigbee/switch_cluster.h"
 
 extern button_config_t             button_configs[11];
@@ -65,10 +66,12 @@ void feature_wiring_init(void) {
     button_input_init();
     switch_cluster_register_input();
     cover_switch_cluster_register_input();
+    button_event_cluster_register_input();
     gesture_fsm_init();
     switch_cluster_register_gestures();
     cover_switch_cluster_register_gestures();
     action_mapper_init();
+    button_event_cluster_register_gestures();
 
     for (uint8_t i = 0; i < switch_clusters_cnt; i++) {
         uint8_t button_id = switch_clusters[i].button_id;
@@ -78,6 +81,10 @@ void feature_wiring_init(void) {
             ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_MOMENTARY_NC;
         gesture_configs[button_id].hold_ms =
             switch_clusters[i].hold_duration_ms;
+        gesture_configs[button_id].multi_click_gap_ms =
+            switch_clusters[i].multi_click_gap_ms;
+        button_configs[button_id].debounce_ms =
+            switch_clusters[i].debounce_ms;
     }
     for (uint8_t i = 0; i < cover_switch_clusters_cnt; i++) {
         uint8_t open_id  = cover_switch_clusters[i].open_button_id;
@@ -87,6 +94,14 @@ void feature_wiring_init(void) {
             cover_switch_clusters[i].hold_duration_ms;
         gesture_configs[close_id].hold_ms =
             cover_switch_clusters[i].hold_duration_ms;
+        gesture_configs[open_id].multi_click_gap_ms =
+            cover_switch_clusters[i].multi_click_gap_ms;
+        gesture_configs[close_id].multi_click_gap_ms =
+            cover_switch_clusters[i].multi_click_gap_ms;
+        button_configs[open_id].debounce_ms =
+            cover_switch_clusters[i].debounce_ms;
+        button_configs[close_id].debounce_ms =
+            cover_switch_clusters[i].debounce_ms;
     }
 
     for (uint8_t i = 0; i < buttons_cnt; i++) {
@@ -96,4 +111,5 @@ void feature_wiring_init(void) {
         action_mapper_add_reset_button(
             button_id, button_roles[i] == INPUT_BUTTON_ONBOARD);
     }
+    button_event_cluster_sync_states();
 }

@@ -6,9 +6,20 @@
 #include "silabs_config.h"
 #endif
 
-#define UNKNOWN_VERSION             0
-#define RELAY_CONFIG_VERSION        2
-#define INTERLOCK_CONFIG_VERSION    3
+#define UNKNOWN_VERSION                0
+#define RELAY_CONFIG_VERSION           2
+#define INTERLOCK_CONFIG_VERSION       3
+#define BUTTON_EVENT_CONFIG_VERSION    4
+
+static void delete_switch_configs(void) {
+    for (uint8_t switch_idx = 0; switch_idx < MAX_SWITCHES; switch_idx++) {
+        hal_nvm_delete(NV_ITEM_SWITCH_CLUSTER_DATA(switch_idx));
+    }
+    for (uint8_t switch_idx = 0; switch_idx < MAX_COVER_SWITCHES;
+         switch_idx++) {
+        hal_nvm_delete(NV_ITEM_COVER_SWITCH_CONFIG(switch_idx));
+    }
+}
 
 static void delete_relay_configs(void) {
     for (uint8_t relay_idx = 0; relay_idx < MAX_RELAYS; relay_idx++) {
@@ -61,6 +72,9 @@ void handle_version_changes() {
         delete_relay_configs();
     } else if (oldVersion < INTERLOCK_CONFIG_VERSION) {
         delete_relay_configs();
+    }
+    if (oldVersion < BUTTON_EVENT_CONFIG_VERSION) {
+        delete_switch_configs();
     }
     write_version_to_nv(currentVersion);
 }

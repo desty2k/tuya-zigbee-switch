@@ -8,13 +8,63 @@ const {
     windowCovering,
     deviceAddCustomCluster,
 } = require("zigbee-herdsman-converters/lib/modernExtend");
-const {assertString} = require("zigbee-herdsman-converters/lib/utils");
+const {assertString, postfixWithEndpointName} = require("zigbee-herdsman-converters/lib/utils");
 const reporting = require("zigbee-herdsman-converters/lib/reporting");
 const constants = require("zigbee-herdsman-converters/lib/constants");
+const exposes = require("zigbee-herdsman-converters/lib/exposes");
+const ea = exposes.access;
+const e = exposes.presets;
 const Zcl = require('zigbee-herdsman').Zcl;
 {% if z2m_v1 %}
 const ota = require("zigbee-herdsman-converters/lib/ota");
 {% endif%}
+
+const buttonEventActions = {0: "press", 1: "release", 2: "hold", 3: "hold_release"};
+const buttonEventClickNames = {1: "single", 2: "double", 3: "triple", 4: "quadruple"};
+const buttonEventActionNames = [
+    "press",
+    "release",
+    "hold",
+    "hold_release",
+    "single",
+    "double",
+    "triple",
+    "quadruple",
+    "multi_click",
+];
+
+// `seq` counts every event the device handed to its radio, so a gap means an
+// event was lost. It is published as `action_seq` to make that detectable.
+const buttonEventSequences = new WeakMap();
+const buttonEventConverter = {
+    cluster: "manuSpecificTuyaButtonEvent",
+    type: ["commandButtonEvent"],
+    convert: (model, msg, publish, options, meta) => {
+        const seq = msg.data.seq;
+        if (buttonEventSequences.get(msg.device) === seq) return;
+        buttonEventSequences.set(msg.device, seq);
+
+        if (msg.data.eventType === 4) {
+            const name = buttonEventClickNames[msg.data.count] || "multi_click";
+            return {
+                action: postfixWithEndpointName(name, msg, model, meta),
+                action_count: msg.data.count,
+                action_seq: seq,
+            };
+        }
+
+        const action = buttonEventActions[msg.data.eventType];
+        if (action === undefined) return;
+        const result = {
+            action: postfixWithEndpointName(action, msg, model, meta),
+            action_seq: seq,
+        };
+        if (msg.data.eventType === 3) {
+            result.action_duration = msg.data.durationMs;
+        }
+        return result;
+    },
+};
 
 /********************************************************************
   This file (`switch_custom.js`) is generated. 
@@ -28,6 +78,49 @@ const ota = require("zigbee-herdsman-converters/lib/ota");
 ********************************************************************/
 
 const romasku = {
+    buttonEvents: (endpointNames) => ({
+        fromZigbee: [buttonEventConverter],
+        exposes: [
+            e.action(
+                endpointNames.flatMap((endpointName) =>
+                    buttonEventActionNames.map((action) => `${action}_${endpointName}`),
+                ),
+            ),
+            e.numeric("action_count", ea.STATE),
+            e.numeric("action_duration", ea.STATE).withUnit("ms"),
+            e.numeric("action_seq", ea.STATE),
+        ],
+    }),
+    buttonTiming: (endpointName) => [
+        numeric({
+            name: `${endpointName}_multi_click_gap`,
+            endpointNames: [endpointName],
+            cluster: "manuSpecificTuyaButtonEvent",
+            attribute: "multiClickGap",
+            valueMin: 100,
+            valueMax: 2000,
+            unit: "ms",
+            entityCategory: "config",
+        }),
+        numeric({
+            name: `${endpointName}_debounce`,
+            endpointNames: [endpointName],
+            cluster: "manuSpecificTuyaButtonEvent",
+            attribute: "debounceMs",
+            valueMin: 1,
+            valueMax: 200,
+            unit: "ms",
+            entityCategory: "config",
+        }),
+    ],
+    diagnosticCounter: (name, attribute) =>
+        numeric({
+            name,
+            cluster: "genBasic",
+            attribute: {ID: attribute, type: Zcl.DataType.UINT32},
+            access: "STATE_GET",
+            entityCategory: "diagnostic",
+        }),
     switchAction: (name, endpointName) =>
         enumLookup({
             name,
@@ -373,6 +466,38 @@ const definitions = [
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
         {% set first_endpoint = device.switchNames[0] if device.switchNames else (device.relayNames[0] if device.relayNames else device.coverNames[0]) %}
         extend: [
+            {% if device.switchNames or device.coverSwitchNames %}
+            deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                ID: 0xFC02,
+                attributes: {
+                    buttonState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
+                    lastEventSeq: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    multiClickGap: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true},
+                    debounceMs: {ID: 0x0003, type: Zcl.DataType.UINT16, write: true},
+                },
+                commands: {},
+                commandsResponse: {
+                    buttonEvent: {
+                        ID: 0x00,
+                        parameters: [
+                            {name: "seq", type: Zcl.DataType.UINT16},
+                            {name: "pressId", type: Zcl.DataType.UINT16},
+                            {name: "eventType", type: Zcl.DataType.UINT8},
+                            {name: "count", type: Zcl.DataType.UINT8},
+                            {name: "durationMs", type: Zcl.DataType.UINT16},
+                        ],
+                    },
+                },
+            }),
+            romasku.buttonEvents([
+                {%- for switchName in device.switchNames -%}
+                    "{{switchName}}",{{" "}}
+                {%- endfor -%}
+                {%- for coverSwitchName in device.coverSwitchNames -%}
+                    "{{coverSwitchName}}",{{" "}}
+                {%- endfor -%}
+            ]),
+            {% endif %}
             {% if device.has_battery_cluster %}
             romasku.batteryPercentage(),
             {% endif %}
@@ -418,6 +543,12 @@ const definitions = [
             {% set first_endpoint = device.switchNames[0] if device.switchNames else (device.relayNames[0] if device.relayNames else (device.coverSwitchNames[0] if device.coverSwitchNames else device.coverNames[0])) %}
             romasku.deviceConfig("device_config", "{{first_endpoint}}"),
             romasku.multiPressResetCount("multi_press_reset_count", "{{first_endpoint}}"),
+            romasku.diagnosticCounter("gpio_edges_captured", 0xff10),
+            romasku.diagnosticCounter("gpio_edges_dropped", 0xff11),
+            romasku.diagnosticCounter("button_events_emitted", 0xff12),
+            romasku.diagnosticCounter("gestures_emitted", 0xff13),
+            romasku.diagnosticCounter("zb_button_events_dropped", 0xff14),
+            romasku.diagnosticCounter("gpio_rearm_limit_hits", 0xff15),
             {% if device.has_dedicated_net_led %}
             romasku.networkIndicator("network_led", "{{first_endpoint}}"),
             {% endif%}
@@ -426,6 +557,7 @@ const definitions = [
             {% endif %}
             {% for switchName in device.switchNames %}
             romasku.pressAction("{{switchName}}_press_action", "{{switchName}}"),
+            ...romasku.buttonTiming("{{switchName}}"),
             romasku.switchMode("{{switchName}}_mode", "{{switchName}}"),
             romasku.switchAction("{{switchName}}_action_mode", "{{switchName}}"),
             {% if device.relayNames %}
@@ -452,6 +584,7 @@ const definitions = [
             {% endfor %}
             {% for coverSwitchName in device.coverSwitchNames %}
             romasku.coverSwitchPressAction("{{coverSwitchName}}_press_action", "{{coverSwitchName}}"),
+            ...romasku.buttonTiming("{{coverSwitchName}}"),
             romasku.coverSwitchType("{{coverSwitchName}}_type", "{{coverSwitchName}}"),
             romasku.coverSwitchInvert("{{coverSwitchName}}_invert", "{{coverSwitchName}}"),
             {% if device.coverNames %}

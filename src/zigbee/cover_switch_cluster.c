@@ -29,6 +29,17 @@ extern uint8_t cover_switch_clusters_cnt;
 
 static zigbee_cover_switch_cluster *      cover_switch_cluster_by_endpoint[10];
 static zigbee_cover_switch_cluster_config nv_config_buffer;
+void cover_switch_cluster_store_attrs_to_nv(
+    zigbee_cover_switch_cluster *cluster);
+
+static void cover_switch_cluster_button_event_config_changed(void *arg) {
+    zigbee_cover_switch_cluster *cluster =
+        (zigbee_cover_switch_cluster *)arg;
+
+    cluster->multi_click_gap_ms = cluster->button_event.multi_click_gap_ms;
+    cluster->debounce_ms        = cluster->button_event.debounce_ms;
+    cover_switch_cluster_store_attrs_to_nv(cluster);
+}
 
 static const uint8_t  multistate_out_of_service = 0;
 static const uint8_t  multistate_flags          = 0;
@@ -318,11 +329,13 @@ static void cover_switch_cluster_handle_up(
 // ============================================================================
 
 void cover_switch_cluster_store_attrs_to_nv(zigbee_cover_switch_cluster *cluster) {
-    nv_config_buffer.cover_index = cluster->cover_index;
-    nv_config_buffer.reversal    = cluster->reversal;
-    nv_config_buffer.local_mode  = cluster->local_mode;
-    nv_config_buffer.binded_mode = cluster->binded_mode;
-    nv_config_buffer.switch_type = cluster->switch_type;
+    nv_config_buffer.cover_index        = cluster->cover_index;
+    nv_config_buffer.reversal           = cluster->reversal;
+    nv_config_buffer.local_mode         = cluster->local_mode;
+    nv_config_buffer.binded_mode        = cluster->binded_mode;
+    nv_config_buffer.switch_type        = cluster->switch_type;
+    nv_config_buffer.multi_click_gap_ms = cluster->multi_click_gap_ms;
+    nv_config_buffer.debounce_ms        = cluster->debounce_ms;
 
     hal_nvm_write(NV_ITEM_COVER_SWITCH_CONFIG(cluster->cover_switch_idx),
                   sizeof(zigbee_cover_switch_cluster_config),
@@ -340,11 +353,13 @@ void cover_switch_cluster_load_attrs_from_nv(zigbee_cover_switch_cluster *cluste
         return;
     }
 
-    cluster->cover_index = nv_config_buffer.cover_index;
-    cluster->reversal    = nv_config_buffer.reversal;
-    cluster->local_mode  = nv_config_buffer.local_mode;
-    cluster->binded_mode = nv_config_buffer.binded_mode;
-    cluster->switch_type = nv_config_buffer.switch_type;
+    cluster->cover_index        = nv_config_buffer.cover_index;
+    cluster->reversal           = nv_config_buffer.reversal;
+    cluster->local_mode         = nv_config_buffer.local_mode;
+    cluster->binded_mode        = nv_config_buffer.binded_mode;
+    cluster->switch_type        = nv_config_buffer.switch_type;
+    cluster->multi_click_gap_ms = nv_config_buffer.multi_click_gap_ms;
+    cluster->debounce_ms        = nv_config_buffer.debounce_ms;
 }
 
 // ============================================================================
@@ -467,4 +482,14 @@ void cover_switch_cluster_add_to_endpoint(zigbee_cover_switch_cluster *cluster,
     endpoint->clusters[endpoint->cluster_count].attributes      = cluster->multistate_attr_infos;
     endpoint->clusters[endpoint->cluster_count].is_server       = 1;
     endpoint->cluster_count++;
+
+    {
+        uint8_t button_ids[2] = { cluster->open_button_id,
+                                  cluster->close_button_id };
+
+        button_event_cluster_add_to_endpoint(
+            &cluster->button_event, endpoint, button_ids, 2,
+            cluster->multi_click_gap_ms, cluster->debounce_ms,
+            cover_switch_cluster_button_event_config_changed, cluster);
+    }
 }

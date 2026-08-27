@@ -197,6 +197,25 @@ hal_zigbee_status_t hal_zigbee_send_cmd_to_bindings(const hal_zigbee_cmd *cmd) {
 }
 
 hal_zigbee_status_t
+hal_zigbee_send_cmd_to_coordinator(const hal_zigbee_cmd *cmd) {
+    char buffer[HAL_ZIGBEE_CMD_MAX_PAYLOAD * 2 + 1];
+
+    if (cmd == NULL || cmd->payload_len > HAL_ZIGBEE_CMD_MAX_PAYLOAD ||
+        (cmd->payload_len != 0 && cmd->payload == NULL)) {
+        return HAL_ZIGBEE_ERR_BAD_ARG;
+    }
+    if (network_status != HAL_ZIGBEE_NETWORK_JOINED) {
+        return HAL_ZIGBEE_ERR_NOT_JOINED;
+    }
+    bytes_to_hexstr(cmd->payload, cmd->payload_len, buffer);
+    io_evt("zcl_cmd_send dst=coordinator ep=%u cluster=0x%04X cmd=0x%02X "
+           "len=%u data_hex=%s",
+           cmd->endpoint, cmd->cluster_id, cmd->command_id, cmd->payload_len,
+           buffer);
+    return HAL_ZIGBEE_OK;
+}
+
+hal_zigbee_status_t
 hal_zigbee_send_report_attr(uint8_t endpoint, uint16_t cluster_id,
                             uint16_t attr_id, uint8_t zcl_type_id,
                             const void *value, uint8_t value_len) {
@@ -212,6 +231,15 @@ hal_zigbee_send_report_attr(uint8_t endpoint, uint16_t cluster_id,
            "Sending attribute report: ep=%d, cluster=0x%04x, attr=0x%04x, "
            "type=0x%02x, len=%d",
            endpoint, cluster_id, attr_id, zcl_type_id, value_len);
+
+    {
+        char buffer[value_len * 2 + 1];
+
+        bytes_to_hexstr((const uint8_t *)value, value_len, buffer);
+        io_evt("zcl_attr_report ep=%u cluster=0x%04X attr=0x%04X type=0x%02X "
+               "len=%u data_hex=%s",
+               endpoint, cluster_id, attr_id, zcl_type_id, value_len, buffer);
+    }
 
     return HAL_ZIGBEE_OK;
 }

@@ -133,6 +133,7 @@ class ZCLCommandEvent:
     cluster: int
     cmd: int
     data: bytes
+    dst: str = "binding"
 
     @classmethod
     def from_event(cls, evt: Event) -> "ZCLCommandEvent":
@@ -141,6 +142,7 @@ class ZCLCommandEvent:
             cluster=int(evt.payload["cluster"], 16),
             cmd=int(evt.payload["cmd"], 16),
             data=bytes.fromhex(evt.payload["data_hex"]),
+            dst=evt.payload.get("dst", "binding"),
         )
 
 
@@ -364,6 +366,7 @@ class Device:
         ep: int,
         cluster: int,
         cmd: int | None = None,
+        dst: str | None = None,
         timeout: float = 2.0,
         interval: float = 0.05,
     ) -> ZCLCommandEvent:
@@ -376,6 +379,7 @@ class Device:
                     event.ep == ep
                     and event.cluster == cluster
                     and (cmd is None or event.cmd == cmd)
+                    and (dst is None or event.dst == dst)
                 ):
                     return event
             return None
@@ -396,15 +400,20 @@ class Device:
         wait_for(_announce_sent, timeout=timeout, interval=interval)
 
     def zcl_list_cmds(
-        self, endpoint: int | None = None, cluster: int | None = None
+        self,
+        endpoint: int | None = None,
+        cluster: int | None = None,
+        dst: str | None = "binding",
     ) -> list[ZCLCommandEvent]:
         res = []
         for evt in self._events:
             if evt.kind != "zcl_cmd_send":
                 continue
             e = ZCLCommandEvent.from_event(evt)
-            if (endpoint is None or e.ep == endpoint) and (
-                cluster is None or e.cluster == cluster
+            if (
+                (endpoint is None or e.ep == endpoint)
+                and (cluster is None or e.cluster == cluster)
+                and (dst is None or e.dst == dst)
             ):
                 res.append(e)
         return res

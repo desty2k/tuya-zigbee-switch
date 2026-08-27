@@ -10,6 +10,7 @@ static button_config_t   button_configs[BUTTON_INPUT_MAX];
 static button_runtime_t  button_runtimes[BUTTON_INPUT_MAX];
 static uint8_t           button_count;
 static uint32_t          button_event_seq;
+static uint32_t          button_events_emitted;
 static gpio_edge_queue_t button_edge_queue;
 static hal_task_t        button_worker_task;
 static volatile bool     button_worker_scheduled;
@@ -36,6 +37,7 @@ static void button_input_commit(uint8_t button_id, button_state_t state,
     event.timestamp_ms = timestamp_ms;
     event.seq          = button_event_seq++;
     event.press_id     = runtime->press_id;
+    button_events_emitted++;
     button_dispatcher_emit(&event);
 }
 
@@ -116,6 +118,7 @@ static void button_input_edge_sink(const hal_gpio_edge_t *edge) {
 void button_input_init(void) {
     button_count            = 0;
     button_event_seq        = 0;
+    button_events_emitted   = 0;
     button_worker_scheduled = false;
     gpio_edge_queue_init(&button_edge_queue);
     button_dispatcher_init();
@@ -186,4 +189,8 @@ uint8_t button_input_count(void) {
 
 uint32_t button_input_gpio_edges_dropped(void) {
     return button_edge_queue.dropped;
+}
+
+uint32_t button_input_events_emitted(void) {
+    return button_events_emitted;
 }

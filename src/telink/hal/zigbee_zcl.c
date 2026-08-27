@@ -2,6 +2,7 @@
 #include "tl_common.h"
 #include "zb_api.h"
 #include "zcl_cover_switch_config.h"
+#include "zcl_button_event.h"
 #include "zcl_include.h"
 #include "zcl_multistate_input.h"
 #include "zcl_onoff_configuration.h"
@@ -58,6 +59,9 @@ static cluster_registerFunc_t get_register_func_by_cluster_id(u16 cluster_id) {
     }
     if (cluster_id == 0xFC01) { // Cover Switch Config
         return zcl_cover_switch_config_register;
+    }
+    if (cluster_id == ZCL_CLUSTER_BUTTON_EVENT) {
+        return zcl_button_event_register;
     }
     if (cluster_id == ZCL_CLUSTER_GEN_POLL_CONTROL) {
         return zcl_pollCtrl_register;
@@ -259,22 +263,48 @@ hal_zigbee_status_t hal_zigbee_send_cmd_to_bindings(const hal_zigbee_cmd *cmd) {
 }
 
 hal_zigbee_status_t
+hal_zigbee_send_cmd_to_coordinator(const hal_zigbee_cmd *cmd) {
+    epInfo_t dstEpInfo;
+
+    if (cmd == NULL || (cmd->payload_len != 0 && cmd->payload == NULL)) {
+        return HAL_ZIGBEE_ERR_BAD_ARG;
+    }
+    if (!zb_isDeviceJoinedNwk()) {
+        return HAL_ZIGBEE_ERR_NOT_JOINED;
+    }
+    TL_SETSTRUCTCONTENT(dstEpInfo, 0);
+    dstEpInfo.profileId         = cmd->profile_id;
+    dstEpInfo.dstAddrMode       = APS_SHORT_DSTADDR_WITHEP;
+    dstEpInfo.dstAddr.shortAddr = 0x0000;
+    dstEpInfo.dstEp             = 1;
+    zcl_sendCmd(cmd->endpoint, &dstEpInfo, cmd->cluster_id, cmd->command_id,
+                cmd->cluster_specific,
+                cmd->direction == HAL_ZIGBEE_DIR_CLIENT_TO_SERVER
+                  ? ZCL_FRAME_CLIENT_SERVER_DIR
+                  : ZCL_FRAME_SERVER_CLIENT_DIR,
+                cmd->disable_default_rsp, cmd->manufacturer_code, ZCL_SEQ_NUM,
+                cmd->payload_len, (u8 *)cmd->payload);
+    return HAL_ZIGBEE_OK;
+}
+
+hal_zigbee_status_t
 hal_zigbee_send_report_attr(uint8_t endpoint, uint16_t cluster_id,
                             uint16_t attr_id, uint8_t zcl_type_id,
                             const void *value, uint8_t value_len) {
-    if (zb_isDeviceJoinedNwk()) {
-        epInfo_t dstEpInfo;
-        TL_SETSTRUCTCONTENT(dstEpInfo, 0);
+    epInfo_t dstEpInfo;
 
-        dstEpInfo.profileId   = HA_PROFILE_ID;
-        dstEpInfo.dstAddrMode = APS_DSTADDR_EP_NOTPRESETNT;
-
-        zclAttrInfo_t *pAttrEntry;
-        pAttrEntry = zcl_findAttribute(endpoint, cluster_id, attr_id);
-        zcl_sendReportCmd(endpoint, &dstEpInfo, TRUE, ZCL_FRAME_SERVER_CLIENT_DIR,
-                          cluster_id, pAttrEntry->id, pAttrEntry->type,
-                          pAttrEntry->data);
+    (void)value_len;
+    if (value == NULL) {
+        return HAL_ZIGBEE_ERR_BAD_ARG;
     }
+    if (!zb_isDeviceJoinedNwk()) {
+        return HAL_ZIGBEE_ERR_NOT_JOINED;
+    }
+    TL_SETSTRUCTCONTENT(dstEpInfo, 0);
+    dstEpInfo.profileId   = HA_PROFILE_ID;
+    dstEpInfo.dstAddrMode = APS_DSTADDR_EP_NOTPRESETNT;
+    zcl_sendReportCmd(endpoint, &dstEpInfo, TRUE, ZCL_FRAME_SERVER_CLIENT_DIR,
+                      cluster_id, attr_id, zcl_type_id, (u8 *)value);
     return HAL_ZIGBEE_OK;
 }
 

@@ -140,6 +140,7 @@ TELINK_SOURCES := \
 	custom_zcl/zcl_multistate_input.c \
 	custom_zcl/zcl_onoff_configuration.c \
 	custom_zcl/zcl_cover_switch_config.c \
+	custom_zcl/zcl_button_event.c \
 	patch_sdk/drv_nv.c
 
 # Common source files (shared with Silicon Labs build)
@@ -172,7 +173,8 @@ COMMON_SOURCES := \
 	$(SRC_DIR)/zigbee/switch_cluster.c \
 	$(SRC_DIR)/zigbee/cover_switch_cluster.c \
 	$(SRC_DIR)/zigbee/cover_cluster.c \
-	$(SRC_DIR)/zigbee/battery_cluster.c 
+	$(SRC_DIR)/zigbee/battery_cluster.c \
+	$(SRC_DIR)/zigbee/button_event_cluster.c
 
 # All application sources
 ALL_TELINK_SOURCES := $(TELINK_SOURCES) $(COMMON_SOURCES)

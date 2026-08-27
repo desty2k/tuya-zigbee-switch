@@ -37,11 +37,11 @@ static void led_blink_handler(void *arg) {
         if (led->blink_times_left != LED_BLINK_FOREVER) {
             led->blink_times_left--;
         }
-        timer_start(&led->blink_timer, led->blink_time_off);
+        app_timer_start(&led->blink_timer, led->blink_time_off);
     } else {
         led->on = 1;
         hal_gpio_write(led->pin, led->on_high);
-        timer_start(&led->blink_timer, led->blink_time_on);
+        app_timer_start(&led->blink_timer, led->blink_time_on);
     }
 }
 
@@ -61,5 +61,5 @@ void led_blink(led_t *led, uint16_t on_time_ms, uint16_t off_time_ms,
     hal_gpio_write(led->pin, led->on_high);
     led->on = 1;
     led->blink_times_left = times;
-    timer_start(&led->blink_timer, on_time_ms);
+    app_timer_start(&led->blink_timer, on_time_ms);
 }

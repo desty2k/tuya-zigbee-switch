@@ -48,5 +48,6 @@ bool button_input_is_down(uint8_t button_id);
 bool button_input_boot_press(uint8_t button_id);
 uint8_t button_input_count(void);
 uint32_t button_input_gpio_edges_dropped(void);
+uint32_t button_input_events_emitted(void);
 
 #endif

@@ -18,6 +18,7 @@ Please describe what you are working on, under ## Upcoming
 
 ### Features
 
+- **Button Event cluster** (`0xFC02`) sends press, release, hold, hold-release, and multi-click actions to the coordinator. Generated Zigbee2MQTT and ZHA integrations expose these actions, per-endpoint multi-click and debounce settings, and input diagnostics.
 - **Cover cluster** (window covering) for controlling the motor of curtains, blinds, and shutters.
   Supports open, close, and stop commands with motor safety delays.
 - **Cover switch cluster** for handling user input from window covering switches.

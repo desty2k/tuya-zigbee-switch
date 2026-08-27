@@ -7,7 +7,11 @@
 #include <stdint.h>
 
 #define GESTURE_MAX_N_CLICK    10
-#define GESTURE_SINK_MAX       4
+
+/* Consumers: switch cluster, cover switch cluster, action mapper, button event
+ * cluster, and one platform observer. Registration beyond the bound is ignored,
+ * so this must be raised whenever a consumer is added. */
+#define GESTURE_SINK_MAX       6
 
 typedef enum {
     GESTURE_HOLD_START,
@@ -37,5 +41,6 @@ void gesture_fsm_set_hold_ms(uint8_t button_id, uint16_t hold_ms);
 void gesture_fsm_set_multi_click_gap_ms(uint8_t button_id, uint16_t gap_ms);
 bool gesture_fsm_hold_active(uint8_t button_id);
 void gesture_fsm_register_sink(gesture_sink_t sink, void *arg);
+uint32_t gesture_fsm_events_emitted(void);
 
 #endif

@@ -61,6 +61,8 @@ source:
 - {path: ../../device_config/reset.h}
 - {path: ../../device_config/nvm_migrations.c}
 - {path: ../../zigbee/basic_cluster.c}
+- {path: ../../zigbee/button_event_cluster.c}
+- {path: ../../zigbee/button_event_cluster.h}
 - {path: ../../zigbee/battery_cluster.c}
 - {path: ../../zigbee/general_commands.c}
 - {path: ../../zigbee/group_cluster.c}

@@ -4,6 +4,7 @@
 #include "hal/printf_selector.h"
 #include "hal/system.h"
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 typedef enum {

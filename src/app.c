@@ -8,6 +8,7 @@
 #include "hal/zigbee.h"
 #include "hal/zigbee_ota.h"
 #include "zigbee/battery_cluster.h"
+#include "zigbee/basic_cluster.h"
 #include "zigbee/general_commands.h"
 #ifdef END_DEVICE
 #include "zigbee/poll_control_cluster.h"
@@ -56,6 +57,7 @@ void app_init(void) {
 static bool boot_announce_sent = false;
 
 void app_task() {
+    basic_cluster_update_diagnostics();
 #ifdef END_DEVICE
     poll_control_cluster_update();
 #endif

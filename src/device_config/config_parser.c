@@ -2,6 +2,7 @@
 #include "hal/printf_selector.h"
 #include "hal/zigbee.h"
 #include "zigbee/basic_cluster.h"
+#include "zigbee/button_event_cluster.h"
 #include "zigbee/battery_cluster.h"
 #include "zigbee/consts.h"
 #include "zigbee/cover_cluster.h"
@@ -73,7 +74,7 @@ uint8_t cover_switch_clusters_cnt = 0;
 zigbee_cover_cluster cover_clusters[3];
 uint8_t cover_clusters_cnt = 0;
 
-hal_zigbee_cluster  clusters[32];
+hal_zigbee_cluster  clusters[48];
 hal_zigbee_endpoint endpoints[10];
 
 uint8_t allow_simultaneous_latching_pulses = 0;
@@ -224,10 +225,13 @@ void parse_config() {
                 ZCL_ONOFF_CONFIGURATION_RELAY_MODE_SHORT;
             switch_clusters[switch_clusters_cnt].binded_mode =
                 ZCL_ONOFF_CONFIGURATION_BINDED_MODE_SHORT;
-            switch_clusters[switch_clusters_cnt].relay_index      = switch_clusters_cnt + 1;
-            switch_clusters[switch_clusters_cnt].button_id        = buttons_cnt;
-            switch_clusters[switch_clusters_cnt].hold_duration_ms = 800;
-            switch_clusters[switch_clusters_cnt].level_move_rate  = 50;
+            switch_clusters[switch_clusters_cnt].relay_index        = switch_clusters_cnt + 1;
+            switch_clusters[switch_clusters_cnt].button_id          = buttons_cnt;
+            switch_clusters[switch_clusters_cnt].hold_duration_ms   = 800;
+            switch_clusters[switch_clusters_cnt].multi_click_gap_ms =
+                multi_click_gap_ms;
+            switch_clusters[switch_clusters_cnt].debounce_ms     = debounce_ms;
+            switch_clusters[switch_clusters_cnt].level_move_rate = 50;
             buttons_cnt++;
             switch_clusters_cnt++;
         } else if (entry[0] == 'R') {
@@ -278,6 +282,10 @@ void parse_config() {
                 buttons_cnt++;
             cover_switch_clusters[cover_switch_clusters_cnt].hold_duration_ms =
                 800;
+            cover_switch_clusters[cover_switch_clusters_cnt].multi_click_gap_ms =
+                multi_click_gap_ms;
+            cover_switch_clusters[cover_switch_clusters_cnt].debounce_ms =
+                debounce_ms;
             cover_switch_clusters[cover_switch_clusters_cnt].cover_switch_idx =
                 cover_switch_clusters_cnt;
             cover_switch_clusters_cnt++;
@@ -322,6 +330,8 @@ void parse_config() {
 
     uint8_t total_endpoints = switch_clusters_cnt + relay_clusters_cnt +
                               cover_switch_clusters_cnt + cover_clusters_cnt;
+
+    button_event_cluster_init();
 
     hal_zigbee_cluster *cluster_ptr = clusters;
 
@@ -371,6 +381,10 @@ void parse_config() {
             cluster_ptr += endpoints[index - 1].cluster_count;
             endpoints[index].clusters = cluster_ptr;
         }
+        switch_clusters[index].multi_click_gap_ms =
+            gesture_configs[switch_clusters[index].button_id].multi_click_gap_ms;
+        switch_clusters[index].debounce_ms =
+            button_configs[switch_clusters[index].button_id].debounce_ms;
         switch_cluster_add_to_endpoint(&switch_clusters[index], &endpoints[index]);
     }
     for (int index = 0; index < relay_clusters_cnt; index++) {
@@ -391,6 +405,12 @@ void parse_config() {
             cluster_ptr += endpoints[cover_switch_base + index - 1].cluster_count;
             endpoints[cover_switch_base + index].clusters = cluster_ptr;
         }
+        cover_switch_clusters[index].multi_click_gap_ms =
+            gesture_configs[cover_switch_clusters[index].open_button_id]
+            .multi_click_gap_ms;
+        cover_switch_clusters[index].debounce_ms =
+            button_configs[cover_switch_clusters[index].open_button_id]
+            .debounce_ms;
         cover_switch_cluster_add_to_endpoint(&cover_switch_clusters[index],
                                              &endpoints[cover_switch_base + index]);
     }
@@ -422,6 +442,7 @@ void parse_config() {
 void network_indicator_on_network_status_change(
     hal_zigbee_network_status_t new_status) {
     printf("Network status changed to %d\r\n", new_status);
+    button_event_cluster_on_network_status_change(new_status);
     if (new_status == HAL_ZIGBEE_NETWORK_JOINED) {
         if (battery.pin != HAL_INVALID_PIN) {
             network_indicator.manual_state_when_connected = 0;

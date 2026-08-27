@@ -33,6 +33,15 @@ static void switch_cluster_relay_action_on(
     zigbee_switch_cluster *cluster, relay_request_source_t source);
 static void switch_cluster_relay_action_off(
     zigbee_switch_cluster *cluster, relay_request_source_t source);
+void switch_cluster_store_attrs_to_nv(zigbee_switch_cluster *cluster);
+
+static void switch_cluster_button_event_config_changed(void *arg) {
+    zigbee_switch_cluster *cluster = (zigbee_switch_cluster *)arg;
+
+    cluster->multi_click_gap_ms = cluster->button_event.multi_click_gap_ms;
+    cluster->debounce_ms        = cluster->button_event.debounce_ms;
+    switch_cluster_store_attrs_to_nv(cluster);
+}
 
 static void switch_cluster_button_event(const button_event_t *event, void *arg) {
     (void)arg;
@@ -188,6 +197,15 @@ void switch_cluster_add_to_endpoint(zigbee_switch_cluster *cluster,
         cluster->multistate_attr_infos;
     endpoint->clusters[endpoint->cluster_count].is_server = 1;
     endpoint->cluster_count++;
+
+    {
+        uint8_t button_id = cluster->button_id;
+
+        button_event_cluster_add_to_endpoint(
+            &cluster->button_event, endpoint, &button_id, 1,
+            cluster->multi_click_gap_ms, cluster->debounce_ms,
+            switch_cluster_button_event_config_changed, cluster);
+    }
 
     // Output Level for other devices
     endpoint->clusters[endpoint->cluster_count].cluster_id =
@@ -506,13 +524,15 @@ void switch_cluster_on_write_attr(zigbee_switch_cluster *cluster,
 zigbee_switch_cluster_config nv_config_buffer;
 
 void switch_cluster_store_attrs_to_nv(zigbee_switch_cluster *cluster) {
-    nv_config_buffer.action           = cluster->action;
-    nv_config_buffer.mode             = cluster->mode;
-    nv_config_buffer.relay_index      = cluster->relay_index;
-    nv_config_buffer.relay_mode       = cluster->relay_mode;
-    nv_config_buffer.hold_duration_ms = cluster->hold_duration_ms;
-    nv_config_buffer.level_move_rate  = cluster->level_move_rate;
-    nv_config_buffer.binded_mode      = cluster->binded_mode;
+    nv_config_buffer.action             = cluster->action;
+    nv_config_buffer.mode               = cluster->mode;
+    nv_config_buffer.relay_index        = cluster->relay_index;
+    nv_config_buffer.relay_mode         = cluster->relay_mode;
+    nv_config_buffer.hold_duration_ms   = cluster->hold_duration_ms;
+    nv_config_buffer.level_move_rate    = cluster->level_move_rate;
+    nv_config_buffer.binded_mode        = cluster->binded_mode;
+    nv_config_buffer.multi_click_gap_ms = cluster->multi_click_gap_ms;
+    nv_config_buffer.debounce_ms        = cluster->debounce_ms;
     hal_nvm_write(NV_ITEM_SWITCH_CLUSTER_DATA(cluster->switch_idx),
                   sizeof(zigbee_switch_cluster_config),
                   (uint8_t *)&nv_config_buffer);
@@ -527,13 +547,15 @@ void switch_cluster_load_attrs_from_nv(zigbee_switch_cluster *cluster) {
         printf("No switch config in NV, using defaults\r\n");
         return;
     }
-    cluster->action           = nv_config_buffer.action;
-    cluster->mode             = nv_config_buffer.mode;
-    cluster->relay_index      = nv_config_buffer.relay_index;
-    cluster->relay_mode       = nv_config_buffer.relay_mode;
-    cluster->hold_duration_ms = nv_config_buffer.hold_duration_ms;
-    cluster->level_move_rate  = nv_config_buffer.level_move_rate;
-    cluster->binded_mode      = nv_config_buffer.binded_mode;
+    cluster->action             = nv_config_buffer.action;
+    cluster->mode               = nv_config_buffer.mode;
+    cluster->relay_index        = nv_config_buffer.relay_index;
+    cluster->relay_mode         = nv_config_buffer.relay_mode;
+    cluster->hold_duration_ms   = nv_config_buffer.hold_duration_ms;
+    cluster->level_move_rate    = nv_config_buffer.level_move_rate;
+    cluster->binded_mode        = nv_config_buffer.binded_mode;
+    cluster->multi_click_gap_ms = nv_config_buffer.multi_click_gap_ms;
+    cluster->debounce_ms        = nv_config_buffer.debounce_ms;
 
     // Validate relay_index to prevent out-of-bounds access
     if (relay_clusters_cnt == 0) {
