@@ -48,6 +48,7 @@ input_button_role_t button_roles[11];
 uint8_t             buttons_cnt = 0;
 
 relay_driver_t relay_drivers[10];
+relay_config_t relay_configs[10];
 uint8_t        relays_cnt = 0;
 
 zigbee_basic_cluster basic_cluster = {

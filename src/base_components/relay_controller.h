@@ -8,6 +8,17 @@
 
 #define RELAY_CONTROLLER_MAX_RELAYS    10
 
+typedef struct {
+    uint16_t inching_ms;
+    uint8_t  interlock_group;
+} relay_config_t;
+
+typedef enum {
+    AUTO_OFF_NONE,
+    AUTO_OFF_PULSE,
+    AUTO_OFF_TIMED,
+} auto_off_reason_t;
+
 typedef enum {
     RELAY_REQUEST_ON,
     RELAY_REQUEST_OFF,
@@ -36,11 +47,14 @@ typedef struct {
 typedef void (*relay_state_cb_t)(void *param, uint8_t relay_id, bool is_on);
 
 void relay_ctrl_init(void);
-uint8_t relay_ctrl_add(relay_driver_t *driver);
+uint8_t relay_ctrl_add(relay_driver_t *driver, relay_config_t *config);
 void relay_ctrl_set_state_callback(uint8_t relay_id, relay_state_cb_t callback,
                                    void *param);
 hal_zigbee_cmd_result_t relay_ctrl_submit(const relay_request_t *request);
 bool relay_ctrl_is_on(uint8_t relay_id);
 uint8_t relay_ctrl_count(void);
+void relay_ctrl_set_inching_ms(uint8_t relay_id, uint16_t inching_ms);
+uint16_t relay_ctrl_get_inching_ms(uint8_t relay_id);
+auto_off_reason_t relay_ctrl_auto_off_reason(uint8_t relay_id);
 
 #endif

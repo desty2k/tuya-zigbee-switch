@@ -112,6 +112,11 @@ policies and interlock stay in one place.
 | On/Off `InchingDuration` attribute (`0xff03`) | writes `inching_ms` |
 | On/Off `InterlockGroup` attribute (`0xff04`) | writes `interlock_group` |
 
+When `InchingDuration` is nonzero, relay endpoint `On` and
+`OnWithRecallGlobalScene` commands submit `PULSE(0)` so the configured duration
+is used. Other callers submit an explicit `PULSE` when they want inching;
+`RELAY_REQUEST_ON` always retains its timer-cancelling meaning.
+
 Startup behaviour (`StartUpOnOff`, `0x4003`) is applied at boot as
 `relay_ctrl_submit(..., source = RELAY_SOURCE_STARTUP)`; `TOGGLE` and
 `PREVIOUS` modes keep persisting the relay state on change, exactly as today.

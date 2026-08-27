@@ -18,12 +18,13 @@ extern uint8_t                     switch_clusters_cnt;
 extern zigbee_cover_switch_cluster cover_switch_clusters[];
 extern uint8_t                     cover_switch_clusters_cnt;
 extern relay_driver_t              relay_drivers[10];
+extern relay_config_t              relay_configs[10];
 extern uint8_t                     relays_cnt;
 
 void feature_wiring_init_relays(void) {
     relay_ctrl_init();
     for (uint8_t i = 0; i < relays_cnt; i++) {
-        relay_ctrl_add(&relay_drivers[i]);
+        relay_ctrl_add(&relay_drivers[i], &relay_configs[i]);
     }
 }
 

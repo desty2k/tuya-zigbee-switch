@@ -5,7 +5,7 @@ Tracking board for the input/relay pipeline refactor.
 - Branch: `refactor/input-pipeline`
 - Fork: `desty2k/tuya-zigbee-switch` (upstream `romasku/tuya-zigbee-switch`)
 - Base commit: `bf1059ee`
-- Current position: **stage 7 complete, stage 8 not started; stage 6 hardware gate deferred**
+- Current position: **stage 8 complete, stage 9 not started; stage 6 hardware gate deferred**
 
 ## Stages
 
@@ -18,7 +18,7 @@ Tracking board for the input/relay pipeline refactor.
 | 5 | Gesture layer, old button layer deleted | done | — | `test_gesture_fsm`, `test_gesture_reset.py`, full pytest green |
 | 6 | Hardware regression | blocked | — | deferred until safe Telink + Silabs test hardware is available |
 | 7 | Relay driver + controller | done | — | `test_relay_controller`, relay/cover suites |
-| 8 | Inching + timed-off | not started | — | `test_relay_inching.py`, `test_relay_timed_off.py` |
+| 8 | Inching + timed-off | done | — | `test_relay_inching.py`, `test_relay_timed_off.py` |
 | 9 | Interlock | not started | — | `test_interlock` (unit + pytest) |
 | 10 | Zigbee event transport | not started | — | `test_button_events.py`, hardware pass 2 |
 

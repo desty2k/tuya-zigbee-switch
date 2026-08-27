@@ -6,7 +6,14 @@
 #include "silabs_config.h"
 #endif
 
-#define UNKNOWN_VERSION    0
+#define UNKNOWN_VERSION         0
+#define RELAY_CONFIG_VERSION    2
+
+static void delete_relay_configs(void) {
+    for (uint8_t relay_idx = 0; relay_idx < MAX_RELAYS; relay_idx++) {
+        hal_nvm_delete(NV_ITEM_RELAY_CLUSTER_DATA(relay_idx));
+    }
+}
 
 uint16_t read_version_in_nv() {
     uint16_t version;
@@ -49,9 +56,8 @@ void handle_version_changes() {
         return;
     }
 
-    // Handle migrations here
-    // Example:
-    // if (oldVersion < XX) {
-    //   migrate_to_vXX();
-    // }
+    if (oldVersion < RELAY_CONFIG_VERSION) {
+        delete_relay_configs();
+    }
+    write_version_to_nv(currentVersion);
 }

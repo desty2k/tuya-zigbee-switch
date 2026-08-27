@@ -2,7 +2,7 @@
 #define VERSION_STR               "0.0.0"
 
 // <o NVM_MIGRATIONS_VERSION>
-#define NVM_MIGRATIONS_VERSION    1
+#define NVM_MIGRATIONS_VERSION    2
 
 // <o DEFAULT_CONFIG>
 #define DEFAULT_CONFIG            "device;device;"

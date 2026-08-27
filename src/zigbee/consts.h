@@ -58,11 +58,13 @@
 
 // OnOff cluster
 
-#define ZCL_ATTR_ONOFF                    0x0000
-#define ZCL_ATTR_START_UP_ONOFF           0x4003
+#define ZCL_ATTR_ONOFF                     0x0000
+#define ZCL_ATTR_START_UP_ONOFF            0x4003
 
-#define ZCL_ATTR_ONOFF_INDICATOR_MODE     0xff01
-#define ZCL_ATTR_ONOFF_INDICATOR_STATE    0xff02
+#define ZCL_ATTR_ONOFF_INDICATOR_MODE      0xff01
+#define ZCL_ATTR_ONOFF_INDICATOR_STATE     0xff02
+#define ZCL_ATTR_ONOFF_INCHING_DURATION    0xff03
+#define ZCL_ATTR_ONOFF_INTERLOCK_GROUP     0xff04
 
 // OnOff configuration cluster
 

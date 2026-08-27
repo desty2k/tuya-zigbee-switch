@@ -118,6 +118,11 @@ feature wiring, config/runtime split, phased migration.
     The first explicit request therefore reaches the driver even when it is OFF;
     later requests for the current state remain deduplicated.
 
+20. **Relay endpoint On commands select configured inching.** Zigbee has no
+    separate pulse command, so an On command received by a relay endpoint submits
+    `PULSE(0)` when `InchingDuration` is nonzero. Typed `ON` requests remain
+    available to cancel auto-off exactly as the controller policy specifies.
+
 ## Deliberately out of scope
 
 Scenes, power monitoring, curtain-module features, touchlink, wireless-switch
