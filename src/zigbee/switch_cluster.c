@@ -61,14 +61,22 @@ static void switch_cluster_button_event(const button_event_t *event, void *arg) 
 static void switch_cluster_gesture_event(const gesture_event_t *event,
                                          void *arg) {
     (void)arg;
-    if (event->type != GESTURE_HOLD_START) {
-        return;
-    }
     for (uint8_t i = 0; i < switch_clusters_cnt; i++) {
-        if (switch_clusters[i].button_id == event->button_id) {
-            switch_cluster_handle_hold(&switch_clusters[i]);
-            return;
+        zigbee_switch_cluster *cluster = &switch_clusters[i];
+
+        if (cluster->button_id != event->button_id) {
+            continue;
         }
+        if (event->type == GESTURE_HOLD_START) {
+            switch_cluster_handle_hold(cluster);
+        } else if (event->type == GESTURE_N_CLICK &&
+                   (cluster->relay_mode ==
+                    ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DETACHED ||
+                    !switch_cluster_has_valid_relay(cluster))) {
+            indicator_feedback_request_click_count(cluster->indicator_led,
+                                                   event->count);
+        }
+        return;
     }
 }
 
@@ -92,7 +100,7 @@ static void sync_switch_indicator_led(zigbee_switch_cluster *cluster) {
         return;
     }
 
-    led_off(cluster->indicator_led);
+    indicator_feedback_set_base_state(cluster->indicator_led, false);
 }
 
 void update_switch_clusters() {
@@ -115,10 +123,7 @@ static void switch_cluster_flash_indicator(zigbee_switch_cluster *cluster) {
         switch_cluster_has_valid_relay(cluster)) {
         return;
     }
-    // Only flash when LED is idle (not in "not connected" forever-blink)
-    if (cluster->indicator_led->blink_times_left == 0) {
-        led_blink(cluster->indicator_led, 50, 50, 1);
-    }
+    indicator_feedback_request_press(cluster->indicator_led);
 }
 
 void switch_cluster_store_attrs_to_nv(zigbee_switch_cluster *cluster);

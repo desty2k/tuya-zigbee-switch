@@ -40,12 +40,14 @@ source:
 - {path: ../../device_config/feature_wiring.c}
 - {path: ../../base_components/battery.c}
 - {path: ../../base_components/led.c}
+- {path: ../../base_components/indicator_feedback.c}
 - {path: ../../base_components/network_indicator.c}
 - {path: ../../base_components/relay_driver.c}
 - {path: ../../base_components/relay_controller.c}
 - {path: ../../base_components/interlock.c}
 - {path: ../../base_components/battery.h}
 - {path: ../../base_components/led.h}
+- {path: ../../base_components/indicator_feedback.h}
 - {path: ../../base_components/network_indicator.h}
 - {path: ../../base_components/relay_driver.h}
 - {path: ../../base_components/relay_controller.h}

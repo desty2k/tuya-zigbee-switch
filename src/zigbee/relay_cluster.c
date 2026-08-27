@@ -207,8 +207,8 @@ void sync_indicator_led(zigbee_relay_cluster *cluster) {
         }
     }
 
-    cluster->indicator_state ? led_on(cluster->indicator_led)
-                           : led_off(cluster->indicator_led);
+    indicator_feedback_set_base_state(cluster->indicator_led,
+                                      cluster->indicator_state);
 
     hal_zigbee_notify_attribute_changed(cluster->endpoint, ZCL_CLUSTER_ON_OFF,
                                         ZCL_ATTR_ONOFF_INDICATOR_STATE);

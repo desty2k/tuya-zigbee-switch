@@ -3,7 +3,7 @@
 
 #include "base_components/button_input.h"
 #include "base_components/gesture_fsm.h"
-#include "base_components/led.h"
+#include "base_components/indicator_feedback.h"
 #include "hal/zigbee.h"
 #include "zigbee/button_event_cluster.h"
 #include <stdint.h>
@@ -37,7 +37,7 @@ typedef struct {
     hal_zigbee_attribute        multistate_attr_infos[4];
     uint8_t                     level_move_rate;
     uint8_t                     level_move_direction;
-    led_t *                     indicator_led;
+    indicator_feedback_t *      indicator_led;
     zigbee_button_event_cluster button_event;
 } zigbee_switch_cluster;
 

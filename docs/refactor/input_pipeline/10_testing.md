@@ -166,7 +166,7 @@ changes): `btn_event id= type= seq= press_id= t=` and
 - new helpers: `inject_edges(pin, [(value, at_ms), ...])`, `click_n(pin, n, gap_ms)`,
   `hold_button(pin, ms)`, `counters()`.
 
-New test files:
+New or expanded test files:
 
 | File | Coverage |
 | --- | --- |
@@ -176,12 +176,13 @@ New test files:
 | `test_relay_timed_off.py` | `OnWithTimedOff`, replacement, cancel by explicit `OFF` |
 | `test_interlock.py` | interlock across button, Zigbee, pulse, timed-on and toggle |
 | `test_input_latency.py` | edge bursts injected while tasks are not polled; exact relay transition count |
+| `test_indicator_flash.py` | detached immediate press pulse; no delayed single-click echo; finalised double/triple-click confirmation begins only after `multi_click_gap_ms`; attached-relay indicators remain relay-owned; disconnected and commissioning patterns are not interrupted |
 
 Existing suites must keep passing unchanged in intent:
 `test_switch_cluster.py`, `test_switch_cluster_toggle_mode.py`,
 `test_switch_cluster_momentary_mode.py`, `test_relay_cluster.py`,
 `test_latching_relay.py`, `test_cover_cluster.py`, `test_cover_switch_cluster.py`,
-`test_switches_without_relays.py`, `test_indicator_flash.py`,
+`test_switches_without_relays.py`,
 `test_network_join.py`, `test_basic_cluster.py`, `test_battery_cluster.py`,
 `test_poll_control_cluster.py`, `test_device_config_parser.py`,
 `test_base_components.py`.

@@ -17,6 +17,7 @@ Implementation order:
 8  Inching + timed-off
 9  Interlock
 10 Zigbee button event transport
+11 Detached-button indicator feedback
 ```
 
 ## Stage 1 — GPIO edge capture
@@ -99,6 +100,30 @@ diagnostic counters in Basic, regenerated Z2M converters and ZHA quirk.
 Multistate Input Basic stays as a state attribute.
 Gate: `test_button_events.py`, second hardware regression pass, received events
 verified in Z2M.
+
+## Stage 11 — Detached-button indicator feedback
+
+Scope: add `indicator_feedback` as the sole presentation owner for each
+indicator LED and migrate `switch_cluster`, `relay_cluster` and
+`network_indicator` to submit base-state, status and finite-feedback requests
+through it. `led` remains the GPIO/timer primitive. The component arbitrates
+shared LED use: disconnected-network indication wins over every local request,
+commissioning-success animation wins over button feedback, and a lower-priority
+request never restarts an active pattern.
+
+For a detached or relay-less switch endpoint, retain the immediate 50 ms press
+pulse. Once `gesture_fsm` has finalised the sequence, request a 60 ms on / 70 ms
+off count-confirmation pattern for `N_CLICK(2)` and `N_CLICK(3)` only. Do not
+add a delayed pattern for `N_CLICK(1)` or counts above three. This feedback
+confirms local gesture recognition only; it does not represent binding, Zigbee
+TX, automation or reset success. It is submitted synchronously by the endpoint
+consumer, with no new application queue, ZCL attribute, config token, persisted
+state or NVM migration.
+
+Gate: expanded `test_indicator_flash.py` with virtual time assertions for
+immediate, deferred double/triple-click and no-single-click feedback; coverage
+that attached relay LEDs stay relay-owned and disconnected/commissioning
+indication is never interrupted; full pytest suite green.
 
 ## Interface compatibility
 

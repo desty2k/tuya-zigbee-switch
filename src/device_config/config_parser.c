@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "base_components/indicator_feedback.h"
 #include "base_components/led.h"
 #include "base_components/button_input.h"
 #include "base_components/gesture_fsm.h"
@@ -36,12 +37,13 @@ void peripherals_init(void);
 // extern ota_preamble_t baseEndpoint_otaInfo;
 
 network_indicator_t network_indicator = {
-    .leds                        = { NULL, NULL, NULL, NULL },
+    .indicators                  = { NULL, NULL, NULL, NULL },
     .has_dedicated_led           = 0,
     .manual_state_when_connected = 1,
 };
 
-led_t   leds[5];
+led_t leds[5];
+indicator_feedback_t indicator_feedbacks[5];
 uint8_t leds_cnt = 0;
 
 button_config_t     button_configs[11];
@@ -165,11 +167,11 @@ void parse_config() {
             hal_gpio_init(pin, 0, HAL_GPIO_PULL_NONE);
             leds[leds_cnt].pin     = pin;
             leds[leds_cnt].on_high = entry[3] != 'i';
+            indicator_feedback_init(&indicator_feedbacks[leds_cnt],
+                                    &leds[leds_cnt]);
 
-            led_init(&leds[leds_cnt]);
-
-            network_indicator.leds[0]           = &leds[leds_cnt];
-            network_indicator.leds[1]           = NULL;
+            network_indicator.indicators[0]     = &indicator_feedbacks[leds_cnt];
+            network_indicator.indicators[1]     = NULL;
             network_indicator.has_dedicated_led = true;
 
             has_dedicated_status_led = true;
@@ -179,26 +181,30 @@ void parse_config() {
             hal_gpio_init(pin, 0, HAL_GPIO_PULL_NONE);
             leds[leds_cnt].pin     = pin;
             leds[leds_cnt].on_high = entry[3] != 'i';
-            led_init(&leds[leds_cnt]);
+            indicator_feedback_init(&indicator_feedbacks[leds_cnt],
+                                    &leds[leds_cnt]);
 
             for (int index = 0; index < 4; index++) {
                 if (relay_clusters[index].indicator_led == NULL) {
-                    relay_clusters[index].indicator_led = &leds[leds_cnt];
+                    relay_clusters[index].indicator_led =
+                        &indicator_feedbacks[leds_cnt];
                     break;
                 }
             }
 
             for (int index = 0; index < 4; index++) {
                 if (switch_clusters[index].indicator_led == NULL) {
-                    switch_clusters[index].indicator_led = &leds[leds_cnt];
+                    switch_clusters[index].indicator_led =
+                        &indicator_feedbacks[leds_cnt];
                     break;
                 }
             }
 
             if (!has_dedicated_status_led) {
                 for (int index = 0; index < 4; index++) {
-                    if (network_indicator.leds[index] == NULL) {
-                        network_indicator.leds[index] = &leds[leds_cnt];
+                    if (network_indicator.indicators[index] == NULL) {
+                        network_indicator.indicators[index] =
+                            &indicator_feedbacks[leds_cnt];
                         break;
                     }
                 }
@@ -457,7 +463,7 @@ void network_indicator_on_network_status_change(
 
 void peripherals_init() {
     for (int index = 0; index < leds_cnt; index++) {
-        led_init(&leds[index]);
+        indicator_feedback_init(&indicator_feedbacks[index], &leds[index]);
     }
     feature_wiring_init_relays();
     if (hal_zigbee_get_network_status() == HAL_ZIGBEE_NETWORK_JOINED) {

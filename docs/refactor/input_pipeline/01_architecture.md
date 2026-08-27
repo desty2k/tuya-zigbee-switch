@@ -60,6 +60,7 @@ gesture_fsm  relay_controller  interlock  cover_controller / led / indicator
 | Timers | `src/base_components/timer_service.*` | Deadline + callback | Feature knowledge |
 | Zigbee events | `src/zigbee/button_event_cluster.*` | Event framing, TX queue, sequence numbers | Gesture interpretation |
 | System actions | `src/device_config/system_action.*` | Factory reset, reboot, scheduled variants | Button knowledge |
+| Indicator presentation | `src/base_components/indicator_feedback.*` | Per-LED base state, priority arbitration and finite feedback patterns | Button/gesture interpretation, Zigbee delivery semantics, direct GPIO access |
 
 ## Ownership rules
 
@@ -71,6 +72,11 @@ gesture_fsm  relay_controller  interlock  cover_controller / led / indicator
 - `timer_service` is the only user of `hal_tasks` outside of HAL and platform code.
 - Every deadline belongs to exactly one owner module; timers are stored inside
   the owner's runtime struct.
+- `indicator_feedback` is the only caller of `led_on`, `led_off` and `led_blink`
+  for indicator LEDs. Switch, relay and network modules submit presentation
+  requests; they do not compete for a shared LED timer.
+- Indicator feedback requests are synchronous local presentation requests. They
+  never enter the Zigbee TX queue and never encode delivery or action success.
 
 ## Execution model
 
@@ -99,8 +105,9 @@ src/base_components/
     relay_driver.c/.h          (replaces relay.c/.h)
     relay_controller.c/.h
     interlock.c/.h
-    led.c/.h                   (unchanged API, timers via timer_service)
-    network_indicator.c/.h     (unchanged)
+    led.c/.h                   (GPIO/timer primitive)
+    indicator_feedback.c/.h    (indicator base state, priority and finite feedback)
+    network_indicator.c/.h     (indicator-feedback client)
     battery.c/.h               (unchanged)
 
 src/zigbee/

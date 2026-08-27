@@ -154,6 +154,7 @@ COMMON_SOURCES := \
 	$(SRC_DIR)/base_components/gesture_fsm.c \
 	$(SRC_DIR)/base_components/action_mapper.c \
 	$(SRC_DIR)/base_components/led.c \
+	$(SRC_DIR)/base_components/indicator_feedback.c \
 	$(SRC_DIR)/base_components/network_indicator.c \
 	$(SRC_DIR)/base_components/relay_driver.c \
 	$(SRC_DIR)/base_components/relay_controller.c \

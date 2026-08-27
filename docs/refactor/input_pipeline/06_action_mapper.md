@@ -68,7 +68,7 @@ skipped when the device is not joined.
 | `DOWN` | flash indicator; if `relay_mode != DETACHED`: ON-position relay effect; ON-position binding command; multistate `presentValue = 3` (POSITION_ON); Zigbee `ButtonEvent(DOWN)` |
 | `UP` | flash indicator; if `relay_mode != DETACHED`: OFF-position relay effect; OFF-position binding command; multistate `presentValue = 4` (POSITION_OFF); Zigbee `ButtonEvent(UP)` |
 | `HOLD_START` / `HOLD_END` | ignored for relay, bindings and multistate; still emitted as Zigbee events |
-| `N_CLICK(n)` | Zigbee event and system-action mapping only |
+| `N_CLICK(n)` | Zigbee event and system-action mapping; eligible detached or relay-less endpoints request finalised double/triple-click indicator feedback |
 
 ### Momentary switch types (`mode = MOMENTARY` or `MOMENTARY_NC`)
 
@@ -78,7 +78,7 @@ skipped when the device is not joined.
 | `HOLD_START` | if `relay_mode == LONG`: relay TOGGLE; if `binded_mode == LONG`: ON-position binding command; `Level Move (with On/Off)` to bindings using `level_move_rate` and the alternating direction; multistate `presentValue = 2` (LONG_PRESS); Zigbee `ButtonEvent(HOLD_START)` |
 | `UP` without preceding hold | if `relay_mode == SHORT`: ON-position relay effect; if `binded_mode == SHORT`: ON-position binding command; multistate `presentValue = 0`; Zigbee `ButtonEvent(UP)` |
 | `UP` after hold | `Level Stop (with On/Off)` to bindings; multistate `presentValue = 0`; Zigbee `ButtonEvent(UP)`; `HOLD_END` also published |
-| `N_CLICK(n)` | Zigbee event and system-action mapping only |
+| `N_CLICK(n)` | Zigbee event and system-action mapping; eligible detached or relay-less endpoints request finalised double/triple-click indicator feedback |
 
 `MOMENTARY_NC` differs only in `active_high = true` for the underlying button.
 Writing the switch mode attribute calls
@@ -87,9 +87,37 @@ Writing the switch mode attribute calls
 `level_move_direction` alternates on every `HOLD_START`, preserving the current
 "next long press moves the other way" behaviour.
 
-Indicator flash rules are unchanged: flash only when the endpoint is detached or
-its `relay_index` is invalid, only when `blink_times_left == 0`, on `DOWN` for
-momentary types and on both `DOWN` and `UP` for toggle type.
+### Detached-button indicator feedback
+
+Indicator presentation is local feedback, not an action mapping and not a Zigbee
+delivery acknowledgement. The switch endpoint requests it from
+`indicator_feedback`; it never calls `led_on`, `led_off` or `led_blink` directly.
+
+For an endpoint with `relay_mode = DETACHED` or an invalid `relay_index`:
+
+- Raw `DOWN` still requests the existing 50 ms press pulse (and a toggle endpoint
+  also requests it on `UP`).
+- When `gesture_fsm` finalises `N_CLICK(2)` or `N_CLICK(3)`, the endpoint requests
+  a count-confirmation pattern after the configured multi-click gap: two or three
+  60 ms on / 70 ms off pulses respectively.
+- `N_CLICK(1)` and counts above three have no delayed count pattern. This avoids
+  a delayed echo for normal use and avoids the long five-or-more-blink sequence
+  used by stock firmware.
+- A request means only that this firmware recognised completed clicks. It does
+  not claim that a bound command was delivered, an automation ran, or a system
+  action succeeded.
+
+`indicator_feedback` owns presentation arbitration for every shared indicator
+LED. Disconnected-network indication has priority over all local feedback;
+commissioning-success animation has priority over press and count confirmation;
+a busy equal- or higher-priority pattern is never restarted or shortened by a
+button request. Feedback ends by restoring the LED's current base state. Relay
+and network code set that base/status state through the same component, so no
+module outside it writes an indicator LED directly.
+
+The gesture FSM remains gesture-only, `action_mapper` remains action-only, and
+there is no presentation queue: the endpoint submits a bounded request
+synchronously from the event or gesture sink.
 
 ### Multistate compatibility attribute
 

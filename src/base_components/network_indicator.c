@@ -2,41 +2,41 @@
 #include <stddef.h>
 
 void network_indicator_connected(network_indicator_t *indicator) {
+    indicator_feedback_t **feedback = indicator->indicators;
+
+    while (*feedback != NULL && (feedback - indicator->indicators) < 4) {
+        indicator_feedback_network_connected(*feedback);
+        feedback++;
+    }
     network_indicator_from_manual_state(indicator);
 }
 
 void network_indicator_from_manual_state(network_indicator_t *indicator) {
-    led_t **led = indicator->leds;
+    indicator_feedback_t **feedback = indicator->indicators;
 
-    while (*led != NULL && (led - indicator->leds) < 4) {
-        (*led)->blink_times_left = 0;
+    while (*feedback != NULL && (feedback - indicator->indicators) < 4) {
         if (indicator->has_dedicated_led) {
-            if (indicator->manual_state_when_connected) {
-                led_on(*led);
-            } else {
-                led_off(*led);
-            }
+            indicator_feedback_set_base_state(
+                *feedback, indicator->manual_state_when_connected);
         }
-        led++;
+        feedback++;
     }
 }
 
 void network_indicator_commission_success(network_indicator_t *indicator) {
-    led_t **led = indicator->leds;
+    indicator_feedback_t **feedback = indicator->indicators;
 
-    while (*led != NULL && (led - indicator->leds) < 4) {
-        led_blink(*led, 500, 500, 7);
-        led++;
+    while (*feedback != NULL && (feedback - indicator->indicators) < 4) {
+        indicator_feedback_commission_success(*feedback);
+        feedback++;
     }
 }
 
 void network_indicator_not_connected(network_indicator_t *indicator) {
-    led_t **led = indicator->leds;
+    indicator_feedback_t **feedback = indicator->indicators;
 
-    while (*led != NULL && (led - indicator->leds) < 4) {
-        if ((*led)->blink_times_left != LED_BLINK_FOREVER) {
-            led_blink(*led, 500, 500, LED_BLINK_FOREVER);
-        }
-        led++;
+    while (*feedback != NULL && (feedback - indicator->indicators) < 4) {
+        indicator_feedback_network_not_connected(*feedback);
+        feedback++;
     }
 }

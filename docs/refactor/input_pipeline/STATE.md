@@ -5,7 +5,7 @@ Tracking board for the input/relay pipeline refactor.
 - Branch: `refactor/input-pipeline`
 - Fork: `desty2k/tuya-zigbee-switch` (upstream `romasku/tuya-zigbee-switch`)
 - Base commit: `bf1059ee`
-- Current position: **stage 10 software implementation in progress; stage 6 hardware gate deferred**
+- Current position: **stage 10 software implementation in progress; stage 11 software implementation complete; stage 6 hardware gate deferred**
 
 ## Stages
 
@@ -21,6 +21,7 @@ Tracking board for the input/relay pipeline refactor.
 | 8 | Inching + timed-off | done | — | `test_relay_inching.py`, `test_relay_timed_off.py` |
 | 9 | Interlock | done | — | `test_interlock` (unit + pytest) |
 | 10 | Zigbee event transport | in progress | — | native/stub validation complete; hardware pass 2 and received-event verification pending |
+| 11 | Detached-button indicator feedback | done | — | `make tests` (236 passed); Telink/Silabs hardware verification deferred with stage 6 |
 
 Statuses: `not started`, `in progress`, `in review`, `done`, `blocked`.
 
@@ -45,6 +46,8 @@ Statuses: `not started`, `in progress`, `in review`, `done`, `blocked`.
 [x] src/device_config/config_parser.c    config-only input parsing
 [x] src/zigbee/button_event_cluster.*
 [x] src/zigbee/switch_cluster.c          event/gesture consumer
+[x] src/base_components/indicator_feedback.* indicator presentation owner (stage 11)
+[x] tests/test_indicator_flash.py         stage 11 finalised multi-click and priority coverage
 [x] src/zigbee/cover_switch_cluster.c    event/gesture consumer
 [x] src/zigbee/relay_cluster.c           controller client
 [x] src/zigbee/cover_cluster.c           controller client

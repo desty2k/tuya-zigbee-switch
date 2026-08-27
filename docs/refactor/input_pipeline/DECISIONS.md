@@ -129,6 +129,14 @@ feature wiring, config/runtime split, phased migration.
     after a direction relay is switched off. Deferred pulse and timed-on
     deadlines start only when the target is energised.
 
+22. **Indicator presentation has one owner per LED.** `indicator_feedback` owns
+    base state, finite button feedback and network-status priority arbitration;
+    `led` remains the timer/GPIO primitive. Switch endpoints decide whether a
+    detached gesture is eligible for feedback but do not control LEDs directly.
+    This prevents shared relay, network and button writers from racing the same
+    blink timer while keeping gesture recognition and Zigbee delivery separate
+    from presentation.
+
 ## Deliberately out of scope
 
 Scenes, power monitoring, curtain-module features, touchlink, wireless-switch
