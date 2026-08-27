@@ -471,6 +471,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -626,6 +627,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -781,6 +783,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -936,6 +939,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -1091,6 +1095,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -1168,6 +1173,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -1271,6 +1277,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -1374,6 +1381,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -1461,6 +1469,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -1549,6 +1558,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -1626,6 +1636,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -1729,6 +1740,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -1858,6 +1870,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -2015,6 +2028,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -2094,6 +2108,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -2199,6 +2214,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -2330,6 +2346,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -2485,6 +2502,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -2614,6 +2632,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -2769,6 +2788,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -2847,6 +2867,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -2925,6 +2946,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -3028,6 +3050,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -3131,6 +3154,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -3260,6 +3284,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -3363,6 +3388,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -3466,6 +3492,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -3543,6 +3570,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -3646,6 +3674,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -3750,6 +3779,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -3828,6 +3858,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -3957,6 +3988,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -4034,6 +4066,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -4137,6 +4170,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -4214,6 +4248,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -4292,6 +4327,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -4395,6 +4431,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -4502,6 +4539,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -4645,6 +4683,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -4722,6 +4761,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -4799,6 +4839,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -4876,6 +4917,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -4953,6 +4995,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -5030,6 +5073,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -5133,6 +5177,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -5236,6 +5281,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -5314,6 +5360,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -5443,6 +5490,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -5598,6 +5646,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -5675,6 +5724,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -5752,6 +5802,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -5829,6 +5880,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -5932,6 +5984,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -6060,6 +6113,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -6137,6 +6191,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -6240,6 +6295,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -6369,6 +6425,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -6524,6 +6581,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -6601,6 +6659,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -6678,6 +6737,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -6755,6 +6815,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -6832,6 +6893,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -6935,6 +6997,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -7064,6 +7127,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -7141,6 +7205,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -7219,6 +7284,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -7322,6 +7388,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -7477,6 +7544,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -7606,6 +7674,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -7683,6 +7752,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -7760,6 +7830,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -7837,6 +7908,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -7914,6 +7986,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -7991,6 +8064,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -8070,6 +8144,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -8174,6 +8249,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -8303,6 +8379,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -8380,6 +8457,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -8457,6 +8535,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -8560,6 +8639,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -8689,6 +8769,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -8766,6 +8847,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -8869,6 +8951,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -8946,6 +9029,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -9049,6 +9133,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -9156,6 +9241,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -9285,6 +9371,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -9362,6 +9449,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -9465,6 +9553,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -9568,6 +9657,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -9645,6 +9735,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -9722,6 +9813,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -9799,6 +9891,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -9954,6 +10047,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -10057,6 +10151,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -10161,6 +10256,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -10238,6 +10334,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -10325,6 +10422,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -10412,6 +10510,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -10499,6 +10598,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -10586,6 +10686,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -10709,6 +10810,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -10795,6 +10897,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -10881,6 +10984,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -10967,6 +11071,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -11053,6 +11158,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -11139,6 +11245,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -11273,6 +11380,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -11353,6 +11461,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -11433,6 +11542,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -11568,6 +11678,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -11702,6 +11813,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -11782,6 +11894,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -11862,6 +11975,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -11960,6 +12074,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -12076,6 +12191,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -12210,6 +12326,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -12344,6 +12461,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -12424,6 +12542,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -12504,6 +12623,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -12584,6 +12704,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -12682,6 +12803,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -12798,6 +12920,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -12914,6 +13037,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -13048,6 +13172,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -13146,6 +13271,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -13226,6 +13352,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -13360,6 +13487,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -13437,6 +13565,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -13541,6 +13670,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -13670,6 +13800,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -13826,6 +13957,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -13914,6 +14046,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -14038,6 +14171,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -14167,6 +14301,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -14256,6 +14391,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -14380,6 +14516,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -14539,6 +14676,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -14616,6 +14754,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -14720,6 +14859,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -14850,6 +14990,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -15005,6 +15146,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -15092,6 +15234,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -15179,6 +15322,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -15292,6 +15436,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -15405,6 +15550,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -15493,6 +15639,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -15616,6 +15763,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -15739,6 +15887,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -15898,6 +16047,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -15985,6 +16135,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -16108,6 +16259,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -16268,6 +16420,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -16463,6 +16616,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -16550,6 +16704,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -16673,6 +16828,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -16832,6 +16988,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -17026,6 +17183,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -17112,6 +17270,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -17189,6 +17348,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -17292,6 +17452,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -17421,6 +17582,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -17498,6 +17660,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -17601,6 +17764,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -17730,6 +17894,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -17852,6 +18017,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -18010,6 +18176,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -18204,6 +18371,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -18311,6 +18479,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -18397,6 +18566,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -18519,6 +18689,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -18677,6 +18848,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -18763,6 +18935,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -18885,6 +19058,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -19043,6 +19217,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -19130,6 +19305,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -19253,6 +19429,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -19412,6 +19589,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -19571,6 +19749,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -19767,6 +19946,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -19854,6 +20034,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -19977,6 +20158,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -20135,6 +20317,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -20329,6 +20512,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -20523,6 +20707,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -20681,6 +20866,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -20768,6 +20954,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -20892,6 +21079,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -20980,6 +21168,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -21103,6 +21292,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -21262,6 +21452,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -21348,6 +21539,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -21434,6 +21626,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -21556,6 +21749,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -21714,6 +21908,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -21872,6 +22067,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -22066,6 +22262,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -22143,6 +22340,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -22298,6 +22496,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -22385,6 +22584,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -22507,6 +22707,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
@@ -22593,6 +22794,7 @@ const definitions = [
                 commands: {},
                 commandsResponse: {
                     buttonEvent: {
+                        name: "buttonEvent",
                         ID: 0x00,
                         parameters: [
                             {name: "seq", type: Zcl.DataType.UINT16},
