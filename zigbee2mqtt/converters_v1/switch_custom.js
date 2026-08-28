@@ -149,10 +149,10 @@ const romasku = {
         enumLookup({
             name,
             endpointName,
-            lookup: { detached: 0, press_start: 1, short_press: 3, long_press: 2},
+            lookup: { detached: 0, press_start: 1, short_press: 3, long_press: 2, deferred_single: 4},
             cluster: "genOnOffSwitchCfg",
             attribute: { ID: 0xff01, type: 0x30 }, // Enum8
-            description: "When to turn on/off internal relay",
+            description: "When to turn on/off internal relay; deferred_single acts only after a single click is resolved",
             entityCategory: "config",
         }),
     relayIndex: (name, endpointName, relay_cnt) =>
