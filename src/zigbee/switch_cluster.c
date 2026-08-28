@@ -69,12 +69,17 @@ static void switch_cluster_gesture_event(const gesture_event_t *event,
         }
         if (event->type == GESTURE_HOLD_START) {
             switch_cluster_handle_hold(cluster);
-        } else if (event->type == GESTURE_N_CLICK &&
-                   (cluster->relay_mode ==
-                    ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DETACHED ||
-                    !switch_cluster_has_valid_relay(cluster))) {
-            indicator_feedback_request_click_count(cluster->indicator_led,
-                                                   event->count);
+        } else if (event->type == GESTURE_N_CLICK) {
+            if (cluster->relay_mode ==
+                ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DEFERRED_SINGLE &&
+                event->count == 1) {
+                switch_cluster_relay_action_on(cluster, RELAY_SOURCE_GESTURE);
+            } else if (cluster->relay_mode ==
+                       ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DETACHED ||
+                       !switch_cluster_has_valid_relay(cluster)) {
+                indicator_feedback_request_click_count(cluster->indicator_led,
+                                                       event->count);
+            }
         }
         return;
     }
@@ -394,7 +399,9 @@ static void switch_cluster_handle_down(zigbee_switch_cluster *cluster) {
 
     if (cluster->mode == ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_TOGGLE) {
         // Toggle does not support modes (RISE, SHORT, LONG)
-        if (cluster->relay_mode != ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DETACHED) {
+        if (cluster->relay_mode != ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DETACHED &&
+            cluster->relay_mode !=
+            ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DEFERRED_SINGLE) {
             switch_cluster_relay_action_on(cluster, RELAY_SOURCE_BUTTON);
         }
         switch_cluster_binding_action_on(cluster);
@@ -428,7 +435,9 @@ static void switch_cluster_handle_up(zigbee_switch_cluster *cluster) {
 
     if (cluster->mode == ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_TOGGLE) {
         // Toggle does not support modes (RISE, SHORT, LONG)
-        if (cluster->relay_mode != ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DETACHED) {
+        if (cluster->relay_mode != ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DETACHED &&
+            cluster->relay_mode !=
+            ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DEFERRED_SINGLE) {
             switch_cluster_relay_action_off(cluster, RELAY_SOURCE_BUTTON);
         }
         switch_cluster_binding_action_off(cluster);

@@ -65,10 +65,11 @@ skipped when the device is not joined.
 
 | Trigger | Effect |
 | --- | --- |
-| `DOWN` | flash indicator; if `relay_mode != DETACHED`: ON-position relay effect; ON-position binding command; multistate `presentValue = 3` (POSITION_ON); Zigbee `ButtonEvent(DOWN)` |
-| `UP` | flash indicator; if `relay_mode != DETACHED`: OFF-position relay effect; OFF-position binding command; multistate `presentValue = 4` (POSITION_OFF); Zigbee `ButtonEvent(UP)` |
+| `DOWN` | flash indicator; unless `relay_mode = DETACHED` or `DEFERRED_SINGLE`, ON-position relay effect; ON-position binding command; multistate `presentValue = 3` (POSITION_ON); Zigbee `ButtonEvent(DOWN)` |
+| `UP` | flash indicator; unless `relay_mode = DETACHED` or `DEFERRED_SINGLE`, OFF-position relay effect; OFF-position binding command; multistate `presentValue = 4` (POSITION_OFF); Zigbee `ButtonEvent(UP)` |
 | `HOLD_START` / `HOLD_END` | ignored for relay, bindings and multistate; still emitted as Zigbee events |
-| `N_CLICK(n)` | Zigbee event and system-action mapping; eligible detached or relay-less endpoints request finalised double/triple-click indicator feedback |
+| `N_CLICK(1)` | if `relay_mode = DEFERRED_SINGLE`, ON-position relay effect; Zigbee event and system-action mapping |
+| `N_CLICK(n != 1)` | Zigbee event and system-action mapping; eligible detached or relay-less endpoints request finalised double/triple-click indicator feedback |
 
 ### Momentary switch types (`mode = MOMENTARY` or `MOMENTARY_NC`)
 
@@ -78,7 +79,8 @@ skipped when the device is not joined.
 | `HOLD_START` | if `relay_mode == LONG`: relay TOGGLE; if `binded_mode == LONG`: ON-position binding command; `Level Move (with On/Off)` to bindings using `level_move_rate` and the alternating direction; multistate `presentValue = 2` (LONG_PRESS); Zigbee `ButtonEvent(HOLD_START)` |
 | `UP` without preceding hold | if `relay_mode == SHORT`: ON-position relay effect; if `binded_mode == SHORT`: ON-position binding command; multistate `presentValue = 0`; Zigbee `ButtonEvent(UP)` |
 | `UP` after hold | `Level Stop (with On/Off)` to bindings; multistate `presentValue = 0`; Zigbee `ButtonEvent(UP)`; `HOLD_END` also published |
-| `N_CLICK(n)` | Zigbee event and system-action mapping; eligible detached or relay-less endpoints request finalised double/triple-click indicator feedback |
+| `N_CLICK(1)` | if `relay_mode = DEFERRED_SINGLE`, ON-position relay effect; Zigbee event and system-action mapping |
+| `N_CLICK(n != 1)` | Zigbee event and system-action mapping; eligible detached or relay-less endpoints request finalised double/triple-click indicator feedback |
 
 `MOMENTARY_NC` differs only in `active_high = true` for the underlying button.
 Writing the switch mode attribute calls
@@ -176,8 +178,9 @@ Rules for the mapper:
 
 ## Relation between immediate actions and N-click
 
-Relay and binding behaviour is driven by raw press cycles. A double click on a
-switch configured with `relay_mode = SHORT` toggles the relay twice **and**
-publishes `N_CLICK(2)`. This is intentional: local control latency is never
-traded for gesture resolution. Automations that need "double click" without local
-toggling use `relay_mode = DETACHED`.
+Relay and binding behaviour is normally driven by raw press cycles. A double
+click on a switch configured with `relay_mode = SHORT` toggles the relay twice
+**and** publishes `N_CLICK(2)`. `relay_mode = DEFERRED_SINGLE` instead waits for
+gesture resolution: `N_CLICK(1)` performs the ON-position relay effect, while
+double and higher click counts leave the relay untouched. Binding behaviour
+remains driven by `binded_mode` on raw press cycles.

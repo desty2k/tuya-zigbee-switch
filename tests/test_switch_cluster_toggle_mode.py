@@ -8,6 +8,8 @@ from tests.zcl_consts import (
     ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_RELAY_MODE,
     ZCL_CLUSTER_ON_OFF,
     ZCL_CLUSTER_ON_OFF_SWITCH_CONFIG,
+    ZCL_CLUSTER_BUTTON_EVENT,
+    ZCL_CMD_BUTTON_EVENT,
     ZCL_CMD_ONOFF_OFF,
     ZCL_CMD_ONOFF_ON,
     ZCL_CMD_ONOFF_TOGGLE,
@@ -15,6 +17,7 @@ from tests.zcl_consts import (
     ZCL_ONOFF_CONFIGURATION_BINDED_MODE_RISE,
     ZCL_ONOFF_CONFIGURATION_BINDED_MODE_SHORT,
     ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DETACHED,
+    ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DEFERRED_SINGLE,
     ZCL_ONOFF_CONFIGURATION_RELAY_MODE_LONG,
     ZCL_ONOFF_CONFIGURATION_RELAY_MODE_RISE,
     ZCL_ONOFF_CONFIGURATION_RELAY_MODE_SHORT,
@@ -359,6 +362,42 @@ def test_toggle_mode_relay_mode_flips_only_on_edges(
     # Release flips back.
     toggle_device.release_button(relay_button_pair.button_pin)
     assert toggle_device.zcl_relay_get(relay_button_pair.relay_endpoint) != relay_after_press
+
+
+@pytest.mark.parametrize("click_count", [1, 2, 3], ids=["single", "double", "triple"])
+def test_toggle_mode_deferred_single_resolves_before_relay_action(
+    toggle_device: Device, relay_button_pair: RelayButtonPair, click_count: int
+):
+    toggle_device.zcl_switch_relay_mode_set(
+        relay_button_pair.switch_endpoint,
+        ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DEFERRED_SINGLE,
+    )
+
+    for _ in range(click_count):
+        toggle_device.click_button(relay_button_pair.button_pin)
+        assert toggle_device.zcl_relay_get(relay_button_pair.relay_endpoint) == "0"
+
+    toggle_device.step_time(349)
+    assert toggle_device.zcl_relay_get(relay_button_pair.relay_endpoint) == "0"
+
+    toggle_device.step_time(1)
+    expected_relay_state = "1" if click_count == 1 else "0"
+    assert (
+        toggle_device.zcl_relay_get(relay_button_pair.relay_endpoint)
+        == expected_relay_state
+    )
+
+    n_click_events = [
+        command
+        for command in toggle_device.zcl_list_cmds(
+            relay_button_pair.switch_endpoint,
+            ZCL_CLUSTER_BUTTON_EVENT,
+            dst="coordinator",
+        )
+        if command.cmd == ZCL_CMD_BUTTON_EVENT and command.data[4] == 4
+    ]
+    assert len(n_click_events) == 1
+    assert n_click_events[0].data[5] == click_count
 
 
 # Test multistate state

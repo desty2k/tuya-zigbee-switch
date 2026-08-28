@@ -26,6 +26,7 @@ class RelayMode(t.enum8):
     PressStart = 0x01
     LongPress = 0x02
     ShortPress = 0x03
+    DeferredSingle = 0x04
 
 class BindedMode(t.enum8):
     PressStart = 0x01
