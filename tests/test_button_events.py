@@ -72,6 +72,7 @@ def test_hold_preserves_press_id_and_duration(device, button_pin):
     device.press_button(button_pin)
     device.step_time(800)
     device.release_button(button_pin)
+    device.step_time(120)
 
     events = [
         decode_event(command.data)

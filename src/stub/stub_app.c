@@ -118,6 +118,8 @@ void stub_app_print_help(void) {
     puts("  diag                                  - Show diagnostic counters");
     puts(
         "  net                                   - Toggle network joined status");
+    puts("  tx_fail <count>                       - Reject coordinator sends");
+    puts("  announce_fail <count>                 - Reject announce attempts");
     puts("  set_pin <pin> <0|1>                   - Simulate GPIO input");
     puts("  pin_edge <pin> <0|1> [after_ms]       - Queue GPIO edge");
     puts("  read_pin <pin>                        - Read GPIO output");
@@ -125,6 +127,7 @@ void stub_app_print_help(void) {
     puts("  zcl_read <ep> <cluster> <attr>        - Read attribute (ep dec, IDs "
          "hex)");
     puts("  zcl_write <ep> <cluster> <attr> <v>   - Write attribute (v dec/hex)");
+    puts("  zcl_attr_callback <ep> <cluster> <attr> - Inject an attribute callback");
     puts("  zcl_cmd <ep> <cluster> <cmd> [bytes]  - Simulate ZCL command (hex "
          "bytes)");
     puts("  freeze_time <0|1>                     - Freeze/unfreeze time");

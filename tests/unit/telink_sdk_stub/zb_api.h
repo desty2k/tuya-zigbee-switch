@@ -1,0 +1,4 @@
+#ifndef TEST_TELINK_SDK_ZB_API_H
+#define TEST_TELINK_SDK_ZB_API_H
+
+#endif

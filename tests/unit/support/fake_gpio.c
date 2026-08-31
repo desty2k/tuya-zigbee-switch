@@ -87,6 +87,9 @@ void hal_gpio_unwatch_pin(hal_gpio_pin_t pin) {
     }
 }
 
+void hal_gpio_process_pending(void) {
+}
+
 hal_gpio_diagnostics_t hal_gpio_get_diagnostics(void) {
     return fake_gpio_diagnostics;
 }

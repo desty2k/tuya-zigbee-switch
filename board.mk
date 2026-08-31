@@ -93,6 +93,18 @@ FORCE_OTA_FILE := $(BIN_PATH)/$(PROJECT_NAME)-$(VERSION_STR)-forced.zigbee
 Z2M_INDEX_FILE := zigbee2mqtt/ota/index_$(DEVICE_TYPE).json
 Z2M_FORCE_INDEX_FILE := zigbee2mqtt/ota/index_$(DEVICE_TYPE)-FORCE.json
 
+ifeq ($(PLATFORM_PREFIX),telink)
+# OTA packaging must use the board-configured binary rather than Telink defaults.
+OTA_BUILD_ARGS := \
+	VERSION_STR=$(VERSION_STR) \
+	NVM_MIGRATIONS_VERSION=$(NVM_MIGRATIONS_VERSION) \
+	FILE_VERSION=$(FILE_VERSION) \
+	DEVICE_TYPE=$(DEVICE_TYPE) \
+	CONFIG_STR="$(CONFIG_STR)" \
+	IMAGE_TYPE=$(FIRMWARE_IMAGE_TYPE) \
+	BIN_FILE=../../$(BIN_FILE)
+endif
+
 # Main target - builds firmware and generates all OTA files
 build: drop-old-files build-firmware generate-ota-files update-indexes
 
@@ -132,6 +144,7 @@ generate-ota-files: generate-normal-ota generate-tuya-ota generate-force-ota
 
 generate-normal-ota:
 	$(MAKE) $(PLATFORM_PREFIX)/ota \
+		$(OTA_BUILD_ARGS) \
 		DEVICE_TYPE=$(DEVICE_TYPE) \
 		FILE_VERSION=$(FILE_VERSION) \
 		OTA_IMAGE_TYPE=$(FIRMWARE_IMAGE_TYPE) \
@@ -140,6 +153,7 @@ generate-normal-ota:
 generate-tuya-ota:
 ifneq ($(PLATFORM_PREFIX),silabs)  # Silabs platform does not support Tuya migration OTAs
 	$(MAKE) $(PLATFORM_PREFIX)/ota \
+		$(OTA_BUILD_ARGS) \
 		OTA_VERSION=0xFFFFFFFF \
 		DEVICE_TYPE=$(DEVICE_TYPE) \
 		OTA_IMAGE_TYPE=$(FROM_STOCK_IMAGE_TYPE) \
@@ -149,6 +163,7 @@ endif
 
 generate-force-ota:
 	$(MAKE) $(PLATFORM_PREFIX)/ota \
+		$(OTA_BUILD_ARGS) \
 		OTA_VERSION=0xFFFFFFFF \
 		DEVICE_TYPE=$(DEVICE_TYPE) \
 		OTA_IMAGE_TYPE=$(FIRMWARE_IMAGE_TYPE) \

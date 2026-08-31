@@ -3,7 +3,6 @@
 #pragma pack(pop)
 
 #include "hal/gpio.h"
-#include "hal/tasks.h"
 #include "hal/timer.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -21,11 +20,21 @@ typedef struct {
 static watched_pin_t          watched_pins[MAX_WATCHED_PINS];
 static hal_gpio_edge_sink_t   edge_sink;
 static hal_gpio_diagnostics_t diagnostics;
-static hal_task_t             gpio_dispatch_task;
-static uint32_t edge_seq;
-static bool     is_dispatch_initialized;
-static bool     is_isr_initialized;
-static uint8_t  dispatch_delay;
+static uint32_t      edge_seq;
+static bool          is_isr_initialized;
+static volatile bool gpio_dispatch_pending;
+
+static void gpio_watch_init(void) {
+    static bool initialized;
+
+    if (initialized) {
+        return;
+    }
+    for (uint8_t i = 0; i < MAX_WATCHED_PINS; i++) {
+        watched_pins[i].pin = HAL_INVALID_PIN;
+    }
+    initialized = true;
+}
 
 static uint8_t pin_port(hal_gpio_pin_t pin) {
     return (uint8_t)((pin >> 8) & 0x07);
@@ -102,12 +111,15 @@ static void set_irq_polarities(const uint8_t *snapshot) {
     }
 }
 
-static void gpio_dispatch_handler(void *arg) {
+void hal_gpio_process_pending(void) {
     uint8_t snapshot[GPIO_PORT_COUNT];
     uint8_t tries = 0;
     bool    changed;
 
-    (void)arg;
+    if (!gpio_dispatch_pending) {
+        return;
+    }
+    gpio_dispatch_pending = false;
     read_snapshot(snapshot);
     do {
         set_irq_polarities(snapshot);
@@ -128,21 +140,7 @@ static void gpio_isr_callback(void) {
     diagnostics.gpio_irq_count++;
     capture_snapshot(snapshot);
     disable_watched_irqs();
-    hal_tasks_schedule(&gpio_dispatch_task, dispatch_delay);
-    dispatch_delay = (uint8_t)((dispatch_delay + 1) & 0x03);
-}
-
-static void gpio_dispatch_init(void) {
-    if (is_dispatch_initialized) {
-        return;
-    }
-    gpio_dispatch_task.handler = gpio_dispatch_handler;
-    gpio_dispatch_task.arg     = NULL;
-    hal_tasks_init(&gpio_dispatch_task);
-    for (uint8_t i = 0; i < MAX_WATCHED_PINS; i++) {
-        watched_pins[i].pin = HAL_INVALID_PIN;
-    }
-    is_dispatch_initialized = true;
+    gpio_dispatch_pending = true;
 }
 
 static void init_isr(void) {
@@ -164,7 +162,7 @@ void hal_gpio_set_edge_sink(hal_gpio_edge_sink_t sink) {
 void hal_gpio_watch_pin(hal_gpio_pin_t gpio_pin) {
     watched_pin_t *slot = NULL;
 
-    gpio_dispatch_init();
+    gpio_watch_init();
     init_isr();
     for (uint8_t i = 0; i < MAX_WATCHED_PINS; i++) {
         if (watched_pins[i].pin == gpio_pin) {
@@ -206,7 +204,8 @@ void telink_gpio_reinit_interrupts(void) {
     is_isr_initialized = false;
     init_isr();
     capture_snapshot(snapshot);
-    gpio_dispatch_handler(NULL);
+    gpio_dispatch_pending = true;
+    hal_gpio_process_pending();
 }
 
 void telink_gpio_hal_setup_wake_ups(void) {

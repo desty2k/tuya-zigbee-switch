@@ -1,5 +1,6 @@
 #include "base_components/button_dispatcher.h"
 #include "base_components/gesture_fsm.h"
+#include "support/fake_tasks.h"
 #include "support/runner.h"
 #include "zigbee/button_event_cluster.h"
 #include "zigbee/consts.h"
@@ -84,6 +85,7 @@ static void reset_queue(void) {
     uint8_t button_id = 0;
 
     now_ms        = 0;
+    fake_tasks_reset();
     network_status = HAL_ZIGBEE_NETWORK_JOINED;
     send_fails    = true;
     sent_count    = 0;
@@ -91,11 +93,20 @@ static void reset_queue(void) {
     memset(&test_cluster, 0, sizeof(test_cluster));
     memset(endpoint_clusters, 0, sizeof(endpoint_clusters));
     memset(&endpoint, 0, sizeof(endpoint));
-    endpoint.endpoint = 1;
-    endpoint.clusters = endpoint_clusters;
+    endpoint.endpoint         = 1;
+    endpoint.cluster_capacity = sizeof(endpoint_clusters) /
+                                sizeof(endpoint_clusters[0]);
+    endpoint.clusters         = endpoint_clusters;
     button_event_cluster_init();
     button_event_cluster_add_to_endpoint(&test_cluster, &endpoint, &button_id,
                                          1, 350, 8, NULL, NULL);
+}
+
+static void drain_queue(void) {
+    while (button_event_cluster_queue_used() != 0) {
+        fake_tasks_poll();
+        now_ms += ZB_BUTTON_EVENT_TX_INTERVAL_MS;
+    }
 }
 
 static void emit_button(uint32_t press_id) {
@@ -118,7 +129,7 @@ TEST(events_drain_in_fifo_order) {
     ASSERT_EQ(3, button_event_cluster_queue_used());
 
     send_fails = false;
-    button_event_cluster_drain();
+    drain_queue();
     ASSERT_EQ(0, button_event_cluster_queue_used());
     ASSERT_EQ(3, sent_count);
     ASSERT_EQ(0, decode_u16(sent[0].payload));
@@ -137,7 +148,7 @@ TEST(overflow_drops_oldest_and_keeps_newest) {
     ASSERT_EQ(2, button_event_cluster_dropped());
 
     send_fails = false;
-    button_event_cluster_drain();
+    drain_queue();
     ASSERT_EQ(ZB_BUTTON_EVENT_QUEUE_SIZE, sent_count);
     ASSERT_EQ(2, decode_u16(sent[0].payload));
     ASSERT_EQ(17, decode_u16(sent[ZB_BUTTON_EVENT_QUEUE_SIZE - 1].payload));
@@ -154,6 +165,7 @@ TEST(sequence_advances_while_not_joined) {
     network_status = HAL_ZIGBEE_NETWORK_JOINED;
     send_fails     = false;
     emit_button(4);
+    fake_tasks_poll();
     ASSERT_EQ(1, sent_count);
     ASSERT_EQ(3, decode_u16(sent[0].payload));
 }
@@ -182,7 +194,7 @@ TEST(queued_payload_is_an_immutable_snapshot) {
     event.press_id = 0x9999;
     event.type     = BUTTON_EVENT_UP;
     send_fails     = false;
-    button_event_cluster_drain();
+    fake_tasks_poll();
     ASSERT_EQ(0x1234, decode_u16(&sent[0].payload[2]));
     ASSERT_EQ(ZB_BUTTON_DOWN, sent[0].payload[4]);
 }

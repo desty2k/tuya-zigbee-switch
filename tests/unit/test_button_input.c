@@ -37,7 +37,16 @@ static uint8_t setup_button(uint8_t initial_level, bool active_high) {
 
 static void poll_at(uint32_t timestamp_ms) {
     fake_clock_set(timestamp_ms);
+    button_input_process_pending();
     fake_tasks_poll();
+}
+
+TEST(edge_capture_never_schedules_the_worker) {
+    setup_button(1, false);
+    fake_gpio_inject_edge(TEST_PIN, 0, 10);
+    ASSERT_EQ(0, fake_tasks_pending());
+    button_input_process_pending();
+    ASSERT_EQ(1, fake_tasks_pending());
 }
 
 TEST(bounce_on_press) {
@@ -159,6 +168,7 @@ TEST(two_buttons_interleave_with_global_sequence) {
 }
 
 int main(void) {
+    RUN_TEST(edge_capture_never_schedules_the_worker);
     RUN_TEST(bounce_on_press);
     RUN_TEST(very_short_valid_press);
     RUN_TEST(worker_delayed_preserves_four_events);

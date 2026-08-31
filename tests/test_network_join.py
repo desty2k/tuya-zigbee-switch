@@ -3,7 +3,12 @@ import pytest
 from tests.client import StubProc
 from tests.conftest import Device
 from tests.zcl_consts import (
+    ZCL_ATTR_BASIC_ANNOUNCE_ATTEMPTS,
+    ZCL_ATTR_BASIC_ANNOUNCE_FAILURES,
     ZCL_ATTR_BASIC_MULTI_PRESS_RESET_COUNT,
+    ZCL_ATTR_BASIC_NETWORK_JOINS,
+    ZCL_ATTR_BASIC_NETWORK_LOSSES,
+    ZCL_ATTR_BASIC_NETWORK_TRANSITIONS,
     ZCL_CLUSTER_BASIC,
 )
 
@@ -166,3 +171,53 @@ def test_announces_after_join() -> None:
         device.set_network(HAL_ZIGBEE_NETWORK_JOINED)
 
         device.wait_for_announce()
+
+
+def test_network_monitor_deduplicates_transitions_and_exposes_diagnostics() -> None:
+    with StubProc(device_config="A;B;LB0;") as proc:
+        device = Device(proc)
+
+        device.set_network(HAL_ZIGBEE_NETWORK_NOT_JOINED)
+        device.set_network(HAL_ZIGBEE_NETWORK_JOINED)
+        device.step_time(0)
+        device.set_network(HAL_ZIGBEE_NETWORK_JOINED)
+        device.step_time(0)
+
+        counters = device.counters()
+        assert counters["network_transitions"] == 2
+        assert counters["network_losses"] == 1
+        assert counters["network_joins"] == 1
+        assert counters["last_network_transition_ms"] == 0
+        assert int(device.read_zigbee_attr(
+            1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_NETWORK_TRANSITIONS
+        )) == 2
+        assert int(device.read_zigbee_attr(
+            1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_NETWORK_LOSSES
+        )) == 1
+        assert int(device.read_zigbee_attr(
+            1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_NETWORK_JOINS
+        )) == 1
+
+
+def test_failed_announce_retries_after_bounded_delay() -> None:
+    with StubProc(device_config="A;B;LB0;", joined=False) as proc:
+        device = Device(proc)
+
+        assert proc.exec("announce_fail 1").ok
+        device.set_network(HAL_ZIGBEE_NETWORK_JOINED)
+        device.step_time(0)
+        assert device.counters()["announce_failures"] == 1
+        assert device.counters()["announce_attempts"] == 1
+
+        device.clear_events()
+        device.step_time(999)
+        assert device.counters()["announce_attempts"] == 1
+        device.step_time(1)
+        device.step_time(0)
+        device.wait_for_announce()
+        assert int(device.read_zigbee_attr(
+            1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_ANNOUNCE_ATTEMPTS
+        )) == 2
+        assert int(device.read_zigbee_attr(
+            1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_ANNOUNCE_FAILURES
+        )) == 1

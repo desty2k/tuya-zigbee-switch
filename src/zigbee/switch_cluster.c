@@ -93,7 +93,14 @@ void switch_cluster_register_gestures(void) {
     gesture_fsm_register_sink(switch_cluster_gesture_event, NULL);
 }
 
-zigbee_switch_cluster *switch_cluster_by_endpoint[10];
+zigbee_switch_cluster *switch_cluster_by_endpoint[HAL_ZIGBEE_ENDPOINT_ID_MAX + 1];
+
+static zigbee_switch_cluster *switch_cluster_find(uint8_t endpoint) {
+    if (endpoint > HAL_ZIGBEE_ENDPOINT_ID_MAX) {
+        return NULL;
+    }
+    return switch_cluster_by_endpoint[endpoint];
+}
 
 static void sync_switch_indicator_led(zigbee_switch_cluster *cluster) {
     if (cluster->indicator_led == NULL) {
@@ -140,12 +147,20 @@ void switch_cluster_report_action(zigbee_switch_cluster *cluster);
 
 void switch_cluster_callback_attr_write_trampoline(uint8_t endpoint,
                                                    uint16_t attribute_id) {
-    switch_cluster_on_write_attr(switch_cluster_by_endpoint[endpoint],
-                                 attribute_id);
+    zigbee_switch_cluster *cluster = switch_cluster_find(endpoint);
+
+    if (cluster != NULL) {
+        switch_cluster_on_write_attr(cluster, attribute_id);
+    }
 }
 
 void switch_cluster_add_to_endpoint(zigbee_switch_cluster *cluster,
                                     hal_zigbee_endpoint *endpoint) {
+    if (!hal_zigbee_endpoint_reserve_clusters(endpoint,
+                                              endpoint->cluster_capacity, 5)) {
+        return;
+    }
+
     switch_cluster_by_endpoint[endpoint->endpoint] = cluster;
     cluster->endpoint = endpoint->endpoint;
     switch_cluster_load_attrs_from_nv(cluster);
@@ -168,20 +183,15 @@ void switch_cluster_add_to_endpoint(zigbee_switch_cluster *cluster,
     SETUP_ATTR(7, ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_BINDING_MODE,
                ZCL_DATA_TYPE_ENUM8, ATTR_WRITABLE, cluster->binded_mode);
 
-    // Configuration
-    endpoint->clusters[endpoint->cluster_count].cluster_id =
-        ZCL_CLUSTER_ON_OFF_SWITCH_CONFIG;
-    endpoint->clusters[endpoint->cluster_count].attribute_count = 8;
-    endpoint->clusters[endpoint->cluster_count].attributes      = cluster->attr_infos;
-    endpoint->clusters[endpoint->cluster_count].is_server       = 1;
-    endpoint->cluster_count++;
-
-    // Output ON OFF to bind to other devices
-    endpoint->clusters[endpoint->cluster_count].cluster_id      = ZCL_CLUSTER_ON_OFF;
-    endpoint->clusters[endpoint->cluster_count].attribute_count = 0;
-    endpoint->clusters[endpoint->cluster_count].attributes      = NULL;
-    endpoint->clusters[endpoint->cluster_count].is_server       = 0;
-    endpoint->cluster_count++;
+    hal_zigbee_cluster config_cluster = {
+        .cluster_id      = ZCL_CLUSTER_ON_OFF_SWITCH_CONFIG,
+        .is_server       =                                1,
+        .attribute_count =                                8,
+        .attributes      = cluster->attr_infos,
+    };
+    hal_zigbee_cluster on_off_cluster = {
+        .cluster_id = ZCL_CLUSTER_ON_OFF,
+    };
 
     SETUP_ATTR_FOR_TABLE(cluster->multistate_attr_infos, 0,
                          ZCL_ATTR_MULTISTATE_INPUT_NUMBER_OF_STATES,
@@ -199,14 +209,22 @@ void switch_cluster_add_to_endpoint(zigbee_switch_cluster *cluster,
                          ZCL_ATTR_MULTISTATE_INPUT_STATUS_FLAGS,
                          ZCL_DATA_TYPE_BITMAP8, ATTR_READONLY, multistate_flags);
 
-    // Output
-    endpoint->clusters[endpoint->cluster_count].cluster_id =
-        ZCL_CLUSTER_MULTISTATE_INPUT_BASIC;
-    endpoint->clusters[endpoint->cluster_count].attribute_count = 4;
-    endpoint->clusters[endpoint->cluster_count].attributes      =
-        cluster->multistate_attr_infos;
-    endpoint->clusters[endpoint->cluster_count].is_server = 1;
-    endpoint->cluster_count++;
+    hal_zigbee_cluster multistate_cluster = {
+        .cluster_id      = ZCL_CLUSTER_MULTISTATE_INPUT_BASIC,
+        .is_server       =                                  1,
+        .attribute_count =                                  4,
+        .attributes      = cluster->multistate_attr_infos,
+    };
+    hal_zigbee_cluster level_cluster = {
+        .cluster_id = ZCL_CLUSTER_LEVEL_CONTROL,
+    };
+
+    hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity,
+                                    &config_cluster);
+    hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity,
+                                    &on_off_cluster);
+    hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity,
+                                    &multistate_cluster);
 
     {
         uint8_t button_id = cluster->button_id;
@@ -217,13 +235,8 @@ void switch_cluster_add_to_endpoint(zigbee_switch_cluster *cluster,
             switch_cluster_button_event_config_changed, cluster);
     }
 
-    // Output Level for other devices
-    endpoint->clusters[endpoint->cluster_count].cluster_id =
-        ZCL_CLUSTER_LEVEL_CONTROL;
-    endpoint->clusters[endpoint->cluster_count].attribute_count = 0;
-    endpoint->clusters[endpoint->cluster_count].attributes      = NULL;
-    endpoint->clusters[endpoint->cluster_count].is_server       = 0;
-    endpoint->cluster_count++;
+    hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity,
+                                    &level_cluster);
 }
 
 // Perform the relay action for ON position (position 1 in ZCL docs)
@@ -523,9 +536,9 @@ void switch_cluster_on_write_attr(zigbee_switch_cluster *cluster,
         }
     }
     if (attribute_id == ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_MODE) {
-        button_input_set_active_high(
-            cluster->button_id,
-            cluster->mode == ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_MOMENTARY_NC);
+        button_input_apply_switch_mode(
+            cluster->button_id, cluster->mode ==
+            ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_MOMENTARY_NC);
         synchronize_multistate_state(cluster);
     }
     if (attribute_id == ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_LONG_PRESS_DUR) {

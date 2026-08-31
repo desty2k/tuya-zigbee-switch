@@ -80,6 +80,9 @@ void hal_gpio_watch_pin(hal_gpio_pin_t gpio_pin);
 /** Stop capturing transitions on a pin. */
 void hal_gpio_unwatch_pin(hal_gpio_pin_t gpio_pin);
 
+/** Process GPIO IRQ work deferred to normal application context. */
+void hal_gpio_process_pending(void);
+
 /** Return a snapshot of platform GPIO capture counters. */
 hal_gpio_diagnostics_t hal_gpio_get_diagnostics(void);
 

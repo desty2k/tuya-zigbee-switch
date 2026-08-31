@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #define HAL_ZIGBEE_CMD_MAX_PAYLOAD    64
+#define HAL_ZIGBEE_ENDPOINT_ID_MAX    10
 
 /** Zigbee attribute access permissions */
 typedef enum {
@@ -60,8 +61,103 @@ typedef struct {
     uint8_t             device_version;
 
     uint8_t             cluster_count;
+    uint8_t             cluster_capacity;
     hal_zigbee_cluster *clusters;
 } hal_zigbee_endpoint;
+
+typedef enum {
+    HAL_ZIGBEE_DESCRIPTOR_OK,
+    HAL_ZIGBEE_DESCRIPTOR_ENDPOINT_COUNT,
+    HAL_ZIGBEE_DESCRIPTOR_ENDPOINT_ID,
+    HAL_ZIGBEE_DESCRIPTOR_DUPLICATE_ENDPOINT,
+    HAL_ZIGBEE_DESCRIPTOR_CLUSTER_CAPACITY,
+    HAL_ZIGBEE_DESCRIPTOR_ATTRIBUTE_CAPACITY,
+    HAL_ZIGBEE_DESCRIPTOR_NULL_POINTER,
+    HAL_ZIGBEE_DESCRIPTOR_UNREGISTERED_CLUSTER,
+} hal_zigbee_descriptor_error_t;
+
+typedef struct {
+    uint32_t                      descriptor_validation_failures;
+    hal_zigbee_descriptor_error_t last_descriptor_error;
+} hal_zigbee_diagnostics_t;
+
+/** Reserve cluster entries before constructing a multi-cluster endpoint. */
+static inline bool hal_zigbee_endpoint_reserve_clusters(
+    const hal_zigbee_endpoint *endpoint, uint8_t cluster_capacity,
+    uint8_t cluster_count) {
+    return endpoint != NULL && endpoint->clusters != NULL &&
+           endpoint->cluster_capacity == cluster_capacity &&
+           endpoint->cluster_count <= cluster_capacity &&
+           cluster_count <= cluster_capacity - endpoint->cluster_count;
+}
+
+/** Append one cluster after validating the endpoint's assigned storage. */
+static inline bool hal_zigbee_endpoint_add_cluster(
+    hal_zigbee_endpoint *endpoint, uint8_t cluster_capacity,
+    const hal_zigbee_cluster *cluster) {
+    if (cluster == NULL || !hal_zigbee_endpoint_reserve_clusters(
+            endpoint, cluster_capacity, 1)) {
+        return false;
+    }
+
+    endpoint->clusters[endpoint->cluster_count] = *cluster;
+    endpoint->cluster_count++;
+    return true;
+}
+
+/** Validate descriptor storage before a platform copies it into fixed buffers. */
+static inline hal_zigbee_descriptor_error_t
+hal_zigbee_validate_descriptor_graph(const hal_zigbee_endpoint *endpoints,
+                                     uint8_t endpoint_count,
+                                     uint8_t endpoint_capacity,
+                                     uint8_t endpoint_id_max,
+                                     size_t cluster_capacity,
+                                     size_t attribute_capacity) {
+    bool   endpoint_seen[HAL_ZIGBEE_ENDPOINT_ID_MAX + 1] = { false };
+    size_t cluster_count   = 0;
+    size_t attribute_count = 0;
+
+    if ((endpoints == NULL && endpoint_count != 0) ||
+        endpoint_count > endpoint_capacity) {
+        return HAL_ZIGBEE_DESCRIPTOR_ENDPOINT_COUNT;
+    }
+    if (endpoint_id_max > HAL_ZIGBEE_ENDPOINT_ID_MAX) {
+        return HAL_ZIGBEE_DESCRIPTOR_ENDPOINT_ID;
+    }
+    for (uint8_t i = 0; i < endpoint_count; i++) {
+        const hal_zigbee_endpoint *endpoint = &endpoints[i];
+
+        if (endpoint->endpoint == 0 || endpoint->endpoint > endpoint_id_max) {
+            return HAL_ZIGBEE_DESCRIPTOR_ENDPOINT_ID;
+        }
+        if (endpoint_seen[endpoint->endpoint]) {
+            return HAL_ZIGBEE_DESCRIPTOR_DUPLICATE_ENDPOINT;
+        }
+        endpoint_seen[endpoint->endpoint] = true;
+        if (endpoint->cluster_count != 0 && endpoint->clusters == NULL) {
+            return HAL_ZIGBEE_DESCRIPTOR_NULL_POINTER;
+        }
+        if (endpoint->cluster_count > endpoint->cluster_capacity) {
+            return HAL_ZIGBEE_DESCRIPTOR_CLUSTER_CAPACITY;
+        }
+        cluster_count += endpoint->cluster_count;
+        if (cluster_count > cluster_capacity) {
+            return HAL_ZIGBEE_DESCRIPTOR_CLUSTER_CAPACITY;
+        }
+        for (uint8_t j = 0; j < endpoint->cluster_count; j++) {
+            const hal_zigbee_cluster *cluster = &endpoint->clusters[j];
+
+            if (cluster->attribute_count != 0 && cluster->attributes == NULL) {
+                return HAL_ZIGBEE_DESCRIPTOR_NULL_POINTER;
+            }
+            attribute_count += cluster->attribute_count;
+            if (attribute_count > attribute_capacity) {
+                return HAL_ZIGBEE_DESCRIPTOR_ATTRIBUTE_CAPACITY;
+            }
+        }
+    }
+    return HAL_ZIGBEE_DESCRIPTOR_OK;
+}
 
 /**
  * Initialize Zigbee stack with device endpoints and clusters
@@ -69,6 +165,8 @@ typedef struct {
  * @param endpoints_cnt Number of endpoints
  */
 void hal_zigbee_init(hal_zigbee_endpoint *endpoints, uint8_t endpoints_cnt);
+
+hal_zigbee_diagnostics_t hal_zigbee_get_diagnostics(void);
 
 // Network membership control
 

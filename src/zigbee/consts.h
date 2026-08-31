@@ -27,30 +27,44 @@
 
 // Basic cluster
 
-#define ZCL_ATTR_BASIC_ZCL_VER                     0x0000
-#define ZCL_ATTR_BASIC_APP_VER                     0x0001
-#define ZCL_ATTR_BASIC_STACK_VER                   0x0002
-#define ZCL_ATTR_BASIC_HW_VER                      0x0003
-#define ZCL_ATTR_BASIC_MFR_NAME                    0x0004
-#define ZCL_ATTR_BASIC_MODEL_ID                    0x0005
-#define ZCL_ATTR_BASIC_DATE_CODE                   0x0006
-#define ZCL_ATTR_BASIC_POWER_SOURCE                0x0007
-#define ZCL_ATTR_BASIC_LOC_DESC                    0x0010
-#define ZCL_ATTR_BASIC_PHY_ENV                     0x0011
-#define ZCL_ATTR_BASIC_DEV_ENABLED                 0x0012
-#define ZCL_ATTR_BASIC_ALARM_MASK                  0x0013
-#define ZCL_ATTR_BASIC_DISABLE_LOCAL_CFG           0x0014
-#define ZCL_ATTR_BASIC_SW_BUILD_ID                 0x4000
+#define ZCL_ATTR_BASIC_ZCL_VER                           0x0000
+#define ZCL_ATTR_BASIC_APP_VER                           0x0001
+#define ZCL_ATTR_BASIC_STACK_VER                         0x0002
+#define ZCL_ATTR_BASIC_HW_VER                            0x0003
+#define ZCL_ATTR_BASIC_MFR_NAME                          0x0004
+#define ZCL_ATTR_BASIC_MODEL_ID                          0x0005
+#define ZCL_ATTR_BASIC_DATE_CODE                         0x0006
+#define ZCL_ATTR_BASIC_POWER_SOURCE                      0x0007
+#define ZCL_ATTR_BASIC_LOC_DESC                          0x0010
+#define ZCL_ATTR_BASIC_PHY_ENV                           0x0011
+#define ZCL_ATTR_BASIC_DEV_ENABLED                       0x0012
+#define ZCL_ATTR_BASIC_ALARM_MASK                        0x0013
+#define ZCL_ATTR_BASIC_DISABLE_LOCAL_CFG                 0x0014
+#define ZCL_ATTR_BASIC_SW_BUILD_ID                       0x4000
 
-#define ZCL_ATTR_BASIC_DEVICE_CONFIG               0xff00
-#define ZCL_ATTR_BASIC_STATUS_LED_STATE            0xff01
-#define ZCL_ATTR_BASIC_MULTI_PRESS_RESET_COUNT     0xff02
-#define ZCL_ATTR_BASIC_GPIO_EDGES_CAPTURED         0xff10
-#define ZCL_ATTR_BASIC_GPIO_EDGES_DROPPED          0xff11
-#define ZCL_ATTR_BASIC_BUTTON_EVENTS_EMITTED       0xff12
-#define ZCL_ATTR_BASIC_GESTURES_EMITTED            0xff13
-#define ZCL_ATTR_BASIC_ZB_BUTTON_EVENTS_DROPPED    0xff14
-#define ZCL_ATTR_BASIC_GPIO_REARM_LIMIT_HITS       0xff15
+#define ZCL_ATTR_BASIC_DEVICE_CONFIG                     0xff00
+#define ZCL_ATTR_BASIC_STATUS_LED_STATE                  0xff01
+#define ZCL_ATTR_BASIC_MULTI_PRESS_RESET_COUNT           0xff02
+#define ZCL_ATTR_BASIC_GPIO_EDGES_CAPTURED               0xff10
+#define ZCL_ATTR_BASIC_GPIO_EDGES_DROPPED                0xff11
+#define ZCL_ATTR_BASIC_BUTTON_EVENTS_EMITTED             0xff12
+#define ZCL_ATTR_BASIC_GESTURES_EMITTED                  0xff13
+#define ZCL_ATTR_BASIC_ZB_BUTTON_EVENTS_DROPPED          0xff14
+#define ZCL_ATTR_BASIC_GPIO_REARM_LIMIT_HITS             0xff15
+#define ZCL_ATTR_BASIC_ZB_BUTTON_EVENTS_EXPIRED          0xff16
+#define ZCL_ATTR_BASIC_ZB_BUTTON_EVENTS_SEND_FAILED      0xff17
+#define ZCL_ATTR_BASIC_ZB_BUTTON_EVENTS_HIGH_WATER       0xff18
+#define ZCL_ATTR_BASIC_ZB_BUTTON_EVENTS_SUBMITTED        0xff19
+#define ZCL_ATTR_BASIC_NETWORK_TRANSITIONS               0xff1a
+#define ZCL_ATTR_BASIC_NETWORK_LOSSES                    0xff1b
+#define ZCL_ATTR_BASIC_NETWORK_JOINS                     0xff1c
+#define ZCL_ATTR_BASIC_ANNOUNCE_ATTEMPTS                 0xff1d
+#define ZCL_ATTR_BASIC_ANNOUNCE_FAILURES                 0xff1e
+#define ZCL_ATTR_BASIC_STEERING_ATTEMPTS                 0xff1f
+#define ZCL_ATTR_BASIC_UPTIME_MS                         0xff20
+#define ZCL_ATTR_BASIC_LAST_NETWORK_TRANSITION_MS        0xff21
+#define ZCL_ATTR_BASIC_DESCRIPTOR_VALIDATION_FAILURES    0xff22
+#define ZCL_ATTR_BASIC_LAST_DESCRIPTOR_ERROR             0xff23
 
 // Button Event cluster
 

@@ -18,6 +18,11 @@ static void battery_cluster_update_handler(void *arg) {
 
 void battery_cluster_add_to_endpoint(zigbee_battery_cluster *cluster,
                                      hal_zigbee_endpoint *endpoint) {
+    if (!hal_zigbee_endpoint_reserve_clusters(endpoint,
+                                              endpoint->cluster_capacity, 1)) {
+        return;
+    }
+
     cluster->endpoint = endpoint->endpoint;
 
     cluster->voltage_100mv        = 30;  // 3.0V default
@@ -30,13 +35,15 @@ void battery_cluster_add_to_endpoint(zigbee_battery_cluster *cluster,
     SETUP_ATTR(2, ZCL_ATTR_GLOBAL_CLUSTER_REVISION, ZCL_DATA_TYPE_UINT16,
                ATTR_READONLY, battery_cluster_revision);
 
-    endpoint->clusters[endpoint->cluster_count].cluster_id =
-        ZCL_CLUSTER_POWER_CFG;
-    endpoint->clusters[endpoint->cluster_count].attribute_count = 3;
-    endpoint->clusters[endpoint->cluster_count].attributes      = cluster->attr_infos;
-    endpoint->clusters[endpoint->cluster_count].is_server       = 1;
-    endpoint->clusters[endpoint->cluster_count].cmd_callback    = NULL;
-    endpoint->cluster_count++;
+    hal_zigbee_cluster endpoint_cluster = {
+        .cluster_id      = ZCL_CLUSTER_POWER_CFG,
+        .is_server       =                     1,
+        .attribute_count =                     3,
+        .attributes      = cluster->attr_infos,
+    };
+
+    hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity,
+                                    &endpoint_cluster);
 
     // Initial battery reading
     timer_init(&cluster->refresh_values_timer,

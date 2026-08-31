@@ -79,6 +79,11 @@ uint8_t cover_clusters_cnt = 0;
 hal_zigbee_cluster  clusters[48];
 hal_zigbee_endpoint endpoints[10];
 
+#define CONFIG_PARSER_ENDPOINT_CAPACITY \
+        (sizeof(endpoints) / sizeof(endpoints[0]))
+#define CONFIG_PARSER_CLUSTER_CAPACITY \
+        (sizeof(clusters) / sizeof(clusters[0]))
+
 uint8_t allow_simultaneous_latching_pulses = 0;
 
 battery_t battery = {
@@ -91,6 +96,24 @@ uint32_t parse_int(const char *s);
 static uint16_t config_parser_parse_hex(const char *s);
 char *seek_until(char *cursor, char needle);
 char *extract_next_entry(char **cursor);
+
+static bool button_active_high_from_pull(hal_gpio_pull_t pull) {
+    return pull == HAL_GPIO_PULL_DOWN;
+}
+
+static void config_parser_assign_endpoint_clusters(
+    hal_zigbee_endpoint *endpoint, hal_zigbee_cluster **cluster_cursor,
+    size_t *cluster_remaining, uint8_t cluster_capacity) {
+    if (endpoint == NULL || cluster_cursor == NULL || cluster_remaining == NULL ||
+        cluster_capacity > *cluster_remaining) {
+        reset_all();
+    }
+
+    endpoint->clusters         = *cluster_cursor;
+    endpoint->cluster_capacity = cluster_capacity;
+    *cluster_cursor           += cluster_capacity;
+    *cluster_remaining        -= cluster_capacity;
+}
 
 void parse_config() {
     device_config_read_from_nv();
@@ -154,8 +177,11 @@ void parse_config() {
             hal_gpio_pull_t pull = hal_gpio_parse_pull(entry + 3);
             hal_gpio_init(pin, 1, pull);
 
-            button_configs[buttons_cnt].pin                 = pin;
-            button_configs[buttons_cnt].active_high         = 0;
+            button_configs[buttons_cnt].pin = pin;
+            button_configs[buttons_cnt].electrical_active_high =
+                button_active_high_from_pull(pull);
+            button_configs[buttons_cnt].active_high =
+                button_configs[buttons_cnt].electrical_active_high;
             button_configs[buttons_cnt].debounce_ms         = debounce_ms;
             gesture_configs[buttons_cnt].hold_ms            = 2000;
             gesture_configs[buttons_cnt].multi_click_gap_ms =
@@ -215,8 +241,11 @@ void parse_config() {
             hal_gpio_pull_t pull = hal_gpio_parse_pull(entry + 3);
             hal_gpio_init(pin, 1, pull);
 
-            button_configs[buttons_cnt].pin                 = pin;
-            button_configs[buttons_cnt].active_high         = entry[3] == 'd';
+            button_configs[buttons_cnt].pin = pin;
+            button_configs[buttons_cnt].electrical_active_high =
+                button_active_high_from_pull(pull);
+            button_configs[buttons_cnt].active_high =
+                button_configs[buttons_cnt].electrical_active_high;
             button_configs[buttons_cnt].debounce_ms         = debounce_ms;
             gesture_configs[buttons_cnt].hold_ms            = 800;
             gesture_configs[buttons_cnt].multi_click_gap_ms =
@@ -267,8 +296,11 @@ void parse_config() {
             hal_gpio_init(open_pin, 1, pull);
             hal_gpio_init(close_pin, 1, pull);
 
-            button_configs[buttons_cnt].pin                 = open_pin;
-            button_configs[buttons_cnt].active_high         = 0;
+            button_configs[buttons_cnt].pin = open_pin;
+            button_configs[buttons_cnt].electrical_active_high =
+                button_active_high_from_pull(pull);
+            button_configs[buttons_cnt].active_high =
+                button_configs[buttons_cnt].electrical_active_high;
             button_configs[buttons_cnt].debounce_ms         = debounce_ms;
             gesture_configs[buttons_cnt].hold_ms            = 800;
             gesture_configs[buttons_cnt].multi_click_gap_ms =
@@ -277,8 +309,11 @@ void parse_config() {
             cover_switch_clusters[cover_switch_clusters_cnt].open_button_id =
                 buttons_cnt++;
 
-            button_configs[buttons_cnt].pin                 = close_pin;
-            button_configs[buttons_cnt].active_high         = 0;
+            button_configs[buttons_cnt].pin = close_pin;
+            button_configs[buttons_cnt].electrical_active_high =
+                button_active_high_from_pull(pull);
+            button_configs[buttons_cnt].active_high =
+                button_configs[buttons_cnt].electrical_active_high;
             button_configs[buttons_cnt].debounce_ms         = debounce_ms;
             gesture_configs[buttons_cnt].hold_ms            = 800;
             gesture_configs[buttons_cnt].multi_click_gap_ms =
@@ -334,12 +369,10 @@ void parse_config() {
            switch_clusters_cnt, relay_clusters_cnt, cover_switch_clusters_cnt,
            cover_clusters_cnt);
 
-    uint8_t total_endpoints = switch_clusters_cnt + relay_clusters_cnt +
-                              cover_switch_clusters_cnt + cover_clusters_cnt;
+    size_t total_endpoints = switch_clusters_cnt + relay_clusters_cnt +
+                             cover_switch_clusters_cnt + cover_clusters_cnt;
 
     button_event_cluster_init();
-
-    hal_zigbee_cluster *cluster_ptr = clusters;
 
     for (int index = 0; index < switch_clusters_cnt; index++) {
         if (switch_clusters[index].relay_index > relay_clusters_cnt) {
@@ -354,20 +387,62 @@ void parse_config() {
     // "clean" device and configure it while running endpoint 1 still needs to be
     // initialised even though wenn no switches or relays are defined, so it can
     // join the network!
-    if (total_endpoints == 0)
+    if (total_endpoints == 0) {
         total_endpoints = 1;
+    }
+    if (total_endpoints > CONFIG_PARSER_ENDPOINT_CAPACITY) {
+        printf("Too many Zigbee endpoints\r\n");
+        reset_all();
+    }
 
-    for (int index = 0; index < total_endpoints; index++) {
+    memset(endpoints, 0, sizeof(endpoints));
+    memset(clusters, 0, sizeof(clusters));
+
+    for (size_t index = 0; index < total_endpoints; index++) {
         endpoints[index].endpoint   = index + 1;
         endpoints[index].profile_id = 0x0104;
         endpoints[index].device_id  = 0xffff;
     }
 
-    endpoints[0].clusters = cluster_ptr;
+    hal_zigbee_cluster *cluster_ptr = clusters;
+    size_t  cluster_remaining       = CONFIG_PARSER_CLUSTER_CAPACITY;
+    uint8_t base_cluster_capacity   = 2;
+
+    if (battery.pin != HAL_INVALID_PIN) {
+        base_cluster_capacity++;
+    }
+#ifdef END_DEVICE
+    base_cluster_capacity++;
+#endif
+    for (size_t endpoint_index = 0; endpoint_index < total_endpoints;
+         endpoint_index++) {
+        uint8_t endpoint_cluster_capacity =
+            endpoint_index == 0 ? base_cluster_capacity : 0;
+
+        if (switch_clusters_cnt + relay_clusters_cnt +
+            cover_switch_clusters_cnt + cover_clusters_cnt != 0) {
+            if (endpoint_index < switch_clusters_cnt) {
+                endpoint_cluster_capacity += 5;
+            } else if (endpoint_index < switch_clusters_cnt + relay_clusters_cnt) {
+                endpoint_cluster_capacity += 3;
+            } else if (endpoint_index < switch_clusters_cnt + relay_clusters_cnt +
+                       cover_switch_clusters_cnt) {
+                endpoint_cluster_capacity += 4;
+            } else {
+                endpoint_cluster_capacity++;
+            }
+        }
+        config_parser_assign_endpoint_clusters(&endpoints[endpoint_index],
+                                               &cluster_ptr, &cluster_remaining,
+                                               endpoint_cluster_capacity);
+    }
+
     basic_cluster_add_to_endpoint(&basic_cluster, &endpoints[0]);
 
-    hal_ota_cluster_setup(&endpoints[0].clusters[endpoints[0].cluster_count]);
-    endpoints[0].cluster_count++;
+    hal_zigbee_cluster ota_cluster;
+    hal_ota_cluster_setup(&ota_cluster);
+    hal_zigbee_endpoint_add_cluster(&endpoints[0],
+                                    endpoints[0].cluster_capacity, &ota_cluster);
 
     // Add battery cluster for battery-powered devices
     if (battery.pin != HAL_INVALID_PIN) {
@@ -383,10 +458,6 @@ void parse_config() {
 #endif
 
     for (int index = 0; index < switch_clusters_cnt; index++) {
-        if (index != 0) {
-            cluster_ptr += endpoints[index - 1].cluster_count;
-            endpoints[index].clusters = cluster_ptr;
-        }
         switch_clusters[index].multi_click_gap_ms =
             gesture_configs[switch_clusters[index].button_id].multi_click_gap_ms;
         switch_clusters[index].debounce_ms =
@@ -394,23 +465,17 @@ void parse_config() {
         switch_cluster_add_to_endpoint(&switch_clusters[index], &endpoints[index]);
     }
     for (int index = 0; index < relay_clusters_cnt; index++) {
-        if (switch_clusters_cnt + index != 0) {
-            cluster_ptr += endpoints[switch_clusters_cnt + index - 1].cluster_count;
-            endpoints[switch_clusters_cnt + index].clusters = cluster_ptr;
-        }
+        size_t endpoint_index = switch_clusters_cnt + index;
+
         relay_cluster_add_to_endpoint(&relay_clusters[index],
-                                      &endpoints[switch_clusters_cnt + index]);
+                                      &endpoints[endpoint_index]);
         // Group cluster is stateless, safe to add to multiple endpoints
         group_cluster_add_to_endpoint(&group_cluster,
-                                      &endpoints[switch_clusters_cnt + index]);
+                                      &endpoints[endpoint_index]);
     }
 
     int cover_switch_base = switch_clusters_cnt + relay_clusters_cnt;
     for (int index = 0; index < cover_switch_clusters_cnt; index++) {
-        if (cover_switch_base + index != 0) {
-            cluster_ptr += endpoints[cover_switch_base + index - 1].cluster_count;
-            endpoints[cover_switch_base + index].clusters = cluster_ptr;
-        }
         cover_switch_clusters[index].multi_click_gap_ms =
             gesture_configs[cover_switch_clusters[index].open_button_id]
             .multi_click_gap_ms;
@@ -424,10 +489,6 @@ void parse_config() {
     int cover_base =
         switch_clusters_cnt + relay_clusters_cnt + cover_switch_clusters_cnt;
     for (int index = 0; index < cover_clusters_cnt; index++) {
-        if (cover_base + index != 0) {
-            cluster_ptr += endpoints[cover_base + index - 1].cluster_count;
-            endpoints[cover_base + index].clusters = cluster_ptr;
-        }
         cover_cluster_add_to_endpoint(&cover_clusters[index],
                                       &endpoints[cover_base + index]);
     }

@@ -177,6 +177,46 @@ class CustomBasicCluster(CustomCluster, Basic):
             is_manufacturer_specific=False,
         )
 
+        zb_button_events_expired = ZCLAttributeDef(
+            id=0xff16, type=t.uint32_t, access="r", is_manufacturer_specific=False,
+        )
+        zb_button_events_send_failed = ZCLAttributeDef(
+            id=0xff17, type=t.uint32_t, access="r", is_manufacturer_specific=False,
+        )
+        zb_button_events_high_water = ZCLAttributeDef(
+            id=0xff18, type=t.uint32_t, access="r", is_manufacturer_specific=False,
+        )
+        zb_button_events_submitted = ZCLAttributeDef(
+            id=0xff19, type=t.uint32_t, access="r", is_manufacturer_specific=False,
+        )
+        network_transitions = ZCLAttributeDef(
+            id=0xff1a, type=t.uint32_t, access="r", is_manufacturer_specific=False,
+        )
+        network_losses = ZCLAttributeDef(
+            id=0xff1b, type=t.uint32_t, access="r", is_manufacturer_specific=False,
+        )
+        network_joins = ZCLAttributeDef(
+            id=0xff1c, type=t.uint32_t, access="r", is_manufacturer_specific=False,
+        )
+        announce_attempts = ZCLAttributeDef(
+            id=0xff1d, type=t.uint32_t, access="r", is_manufacturer_specific=False,
+        )
+        announce_failures = ZCLAttributeDef(
+            id=0xff1e, type=t.uint32_t, access="r", is_manufacturer_specific=False,
+        )
+        steering_attempts = ZCLAttributeDef(
+            id=0xff1f, type=t.uint32_t, access="r", is_manufacturer_specific=False,
+        )
+        uptime_ms = ZCLAttributeDef(
+            id=0xff20, type=t.uint32_t, access="r", is_manufacturer_specific=False,
+        )
+        descriptor_validation_failures = ZCLAttributeDef(
+            id=0xff22, type=t.uint32_t, access="r", is_manufacturer_specific=False,
+        )
+        last_descriptor_error = ZCLAttributeDef(
+            id=0xff23, type=t.uint8_t, access="r", is_manufacturer_specific=False,
+        )
+
 
 class ButtonState(t.enum8):
     Released = 0x00
@@ -767,6 +807,15 @@ for config in CONFIGS:
         ("gestures_emitted", "Gestures emitted"),
         ("zb_button_events_dropped", "Button events dropped"),
         ("gpio_rearm_limit_hits", "GPIO rearm limit hits"),
+        ("network_transitions", "Network transitions"),
+        ("network_losses", "Network losses"),
+        ("network_joins", "Network joins"),
+        ("announce_attempts", "Announce attempts"),
+        ("announce_failures", "Announce failures"),
+        ("steering_attempts", "Steering attempts"),
+        ("uptime_ms", "Uptime milliseconds"),
+        ("descriptor_validation_failures", "Descriptor validation failures"),
+        ("last_descriptor_error", "Last descriptor error"),
     ):
         builder = builder.sensor(
             counter_name,

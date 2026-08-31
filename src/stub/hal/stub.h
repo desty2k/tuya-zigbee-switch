@@ -22,6 +22,8 @@ void stub_nvm_set_data_dir(const char *dir);
 // Zigbee stub functions
 void stub_zigbee_enable_debug(int enable);
 void stub_zigbee_set_network_status(hal_zigbee_network_status_t status);
+void stub_zigbee_reject_next_coordinator_sends(uint32_t count);
+void stub_zigbee_reject_next_announces(uint32_t count);
 void stub_zigbee_add_binding(uint16_t short_addr, uint8_t endpoint,
                              uint16_t cluster_id);
 void stub_zigbee_clear_bindings(void);

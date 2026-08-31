@@ -16,6 +16,7 @@ sl_zigbee_af_attribute_metadata_t attributes_buffer[MAX_ATTRS];
 hal_zigbee_endpoint *hal_endpoints;
 uint8_t hal_endpoints_cnt;
 static hal_zcl_activity_callback_t zcl_activity_callback = NULL;
+static hal_zigbee_diagnostics_t    diagnostics;
 
 static void notify_zcl_activity(void) {
     if (zcl_activity_callback != NULL) {
@@ -79,6 +80,17 @@ bool sl_zigbee_af_pre_command_received_cb(sl_zigbee_af_cluster_command_t *cmd) {
 }
 
 void hal_zigbee_init(hal_zigbee_endpoint *endpoints, uint8_t endpoints_cnt) {
+    hal_zigbee_descriptor_error_t descriptor_error =
+        hal_zigbee_validate_descriptor_graph(
+            endpoints, endpoints_cnt, ZCL_FIXED_ENDPOINT_COUNT,
+            HAL_ZIGBEE_ENDPOINT_ID_MAX, MAX_CLUSTERS, MAX_ATTRS);
+
+    if (descriptor_error != HAL_ZIGBEE_DESCRIPTOR_OK) {
+        diagnostics.descriptor_validation_failures++;
+        diagnostics.last_descriptor_error = descriptor_error;
+        return;
+    }
+
     hal_endpoints     = endpoints;
     hal_endpoints_cnt = endpoints_cnt;
 
@@ -86,11 +98,6 @@ void hal_zigbee_init(hal_zigbee_endpoint *endpoints, uint8_t endpoints_cnt) {
         sl_zigbee_af_endpoint_enable_disable(sli_zigbee_af_endpoints[i].endpoint,
                                              false);
     }
-
-    // Avoid settings more endpoints then device supports
-    endpoints_cnt = endpoints_cnt <= ZCL_FIXED_ENDPOINT_COUNT
-                      ? endpoints_cnt
-                      : ZCL_FIXED_ENDPOINT_COUNT;
 
     sl_zigbee_af_endpoint_type_t *     endpoint_type_ptr = endpoint_type_buffer;
     sl_zigbee_af_cluster_t *           cluster_ptr       = clusters_buffer;
@@ -144,6 +151,10 @@ void hal_zigbee_init(hal_zigbee_endpoint *endpoints, uint8_t endpoints_cnt) {
                                              true);
         endpoint_type_ptr++;
     }
+}
+
+hal_zigbee_diagnostics_t hal_zigbee_get_diagnostics(void) {
+    return diagnostics;
 }
 
 void hal_zigbee_notify_attribute_changed(uint8_t endpoint, uint16_t cluster_id,

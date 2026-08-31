@@ -29,6 +29,7 @@ typedef struct {
 typedef struct {
     hal_gpio_pin_t pin;
     uint8_t        active_high;
+    uint8_t        electrical_active_high;
     uint16_t       debounce_ms;
 } button_config_t;
 
@@ -41,8 +42,12 @@ typedef struct {
 } button_runtime_t;
 
 void button_input_init(void);
+
+/** Schedule input processing requested by a captured GPIO edge. */
+void button_input_process_pending(void);
 uint8_t button_input_add(const button_config_t *config);
 void button_input_set_active_high(uint8_t button_id, bool active_high);
+void button_input_apply_switch_mode(uint8_t button_id, bool momentary_nc);
 void button_input_set_debounce_ms(uint8_t button_id, uint16_t debounce_ms);
 bool button_input_is_down(uint8_t button_id);
 bool button_input_boot_press(uint8_t button_id);

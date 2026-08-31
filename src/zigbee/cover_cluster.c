@@ -17,7 +17,15 @@
 // shock to motor/gears when reversing direction.
 #define RELAY_MIN_SWITCH_TIME_MS    200
 
-static zigbee_cover_cluster *      cover_cluster_by_endpoint[10];
+static zigbee_cover_cluster *cover_cluster_by_endpoint[HAL_ZIGBEE_ENDPOINT_ID_MAX + 1];
+
+static zigbee_cover_cluster *cover_cluster_find(uint8_t endpoint) {
+    if (endpoint > HAL_ZIGBEE_ENDPOINT_ID_MAX) {
+        return NULL;
+    }
+    return cover_cluster_by_endpoint[endpoint];
+}
+
 static zigbee_cover_cluster_config nv_config_buffer;
 
 // Window covering type attribute - required by ZCL spec but not actively used.
@@ -175,7 +183,11 @@ void cover_cluster_on_write_attr(zigbee_cover_cluster *cluster, uint16_t attribu
 }
 
 void cover_cluster_callback_attr_write_trampoline(uint8_t endpoint, uint16_t attribute_id) {
-    cover_cluster_on_write_attr(cover_cluster_by_endpoint[endpoint], attribute_id);
+    zigbee_cover_cluster *cluster = cover_cluster_find(endpoint);
+
+    if (cluster != NULL) {
+        cover_cluster_on_write_attr(cluster, attribute_id);
+    }
 }
 
 hal_zigbee_cmd_result_t cover_cluster_callback(zigbee_cover_cluster *cluster,
@@ -205,8 +217,11 @@ hal_zigbee_cmd_result_t cover_cluster_callback_trampoline(uint8_t endpoint,
                                                           uint8_t command_id,
                                                           void *cmd_payload,
                                                           uint16_t cmd_payload_len) {
-    return(cover_cluster_callback(cover_cluster_by_endpoint[endpoint], command_id,
-                                  cmd_payload, cmd_payload_len));
+    zigbee_cover_cluster *cluster = cover_cluster_find(endpoint);
+
+    return cluster == NULL ? HAL_ZIGBEE_CMD_SKIPPED :
+           cover_cluster_callback(cluster, command_id, cmd_payload,
+                                  cmd_payload_len);
 }
 
 // ============================================================================
@@ -227,6 +242,11 @@ void cover_cluster_init(zigbee_cover_cluster *cluster) {
 }
 
 void cover_cluster_add_to_endpoint(zigbee_cover_cluster *cluster, hal_zigbee_endpoint *endpoint) {
+    if (!hal_zigbee_endpoint_reserve_clusters(endpoint,
+                                              endpoint->cluster_capacity, 1)) {
+        return;
+    }
+
     cover_cluster_by_endpoint[endpoint->endpoint] = cluster;
     cluster->endpoint = endpoint->endpoint;
     cover_cluster_init(cluster);
@@ -253,10 +273,14 @@ void cover_cluster_add_to_endpoint(zigbee_cover_cluster *cluster, hal_zigbee_end
                ATTR_WRITABLE,
                cluster->motor_reversal);
 
-    endpoint->clusters[endpoint->cluster_count].cluster_id      = ZCL_CLUSTER_WINDOW_COVERING;
-    endpoint->clusters[endpoint->cluster_count].attribute_count = 4;
-    endpoint->clusters[endpoint->cluster_count].attributes      = cluster->attr_infos;
-    endpoint->clusters[endpoint->cluster_count].is_server       = 1;
-    endpoint->clusters[endpoint->cluster_count].cmd_callback    = cover_cluster_callback_trampoline;
-    endpoint->cluster_count++;
+    hal_zigbee_cluster endpoint_cluster = {
+        .cluster_id      = ZCL_CLUSTER_WINDOW_COVERING,
+        .is_server       =                                 1,
+        .attribute_count =                                 4,
+        .attributes      = cluster->attr_infos,
+        .cmd_callback    = cover_cluster_callback_trampoline,
+    };
+
+    hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity,
+                                    &endpoint_cluster);
 }

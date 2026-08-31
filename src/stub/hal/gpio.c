@@ -84,6 +84,9 @@ void hal_gpio_unwatch_pin(hal_gpio_pin_t gpio_pin) {
     io_log("GPIO", "Stopped watching pin %d", gpio_pin);
 }
 
+void hal_gpio_process_pending(void) {
+}
+
 hal_gpio_diagnostics_t hal_gpio_get_diagnostics(void) {
     return diagnostics;
 }

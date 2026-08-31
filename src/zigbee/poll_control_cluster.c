@@ -257,6 +257,11 @@ void poll_control_cluster_callback_attr_write(uint16_t attribute_id) {
 void poll_control_cluster_add_to_endpoint(zigbee_poll_control_cluster *cluster,
                                           hal_zigbee_endpoint *endpoint,
                                           bool is_battery_device) {
+    if (!hal_zigbee_endpoint_reserve_clusters(endpoint,
+                                              endpoint->cluster_capacity, 1)) {
+        return;
+    }
+
     poll_ctrl_instance        = cluster;
     cluster->endpoint         = endpoint->endpoint;
     cluster->in_fast_poll     = false;
@@ -291,15 +296,16 @@ void poll_control_cluster_add_to_endpoint(zigbee_poll_control_cluster *cluster,
     SETUP_ATTR(4, ZCL_ATTR_GLOBAL_CLUSTER_REVISION, ZCL_DATA_TYPE_UINT16,
                ATTR_READONLY, cluster->cluster_revision);
 
-    // Register cluster on endpoint
-    endpoint->clusters[endpoint->cluster_count].cluster_id =
-        ZCL_CLUSTER_POLL_CONTROL;
-    endpoint->clusters[endpoint->cluster_count].attribute_count = 5;
-    endpoint->clusters[endpoint->cluster_count].attributes      = cluster->attr_infos;
-    endpoint->clusters[endpoint->cluster_count].is_server       = 1;
-    endpoint->clusters[endpoint->cluster_count].cmd_callback    =
-        poll_control_cmd_trampoline;
-    endpoint->cluster_count++;
+    hal_zigbee_cluster endpoint_cluster = {
+        .cluster_id      = ZCL_CLUSTER_POLL_CONTROL,
+        .is_server       =                           1,
+        .attribute_count =                           5,
+        .attributes      = cluster->attr_infos,
+        .cmd_callback    = poll_control_cmd_trampoline,
+    };
+
+    hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity,
+                                    &endpoint_cluster);
 
     // Register ZCL activity callback
     hal_zigbee_register_on_zcl_activity_callback(on_zcl_activity);

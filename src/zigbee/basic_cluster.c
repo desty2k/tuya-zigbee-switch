@@ -1,4 +1,5 @@
 #include "basic_cluster.h"
+#include "app.h"
 #include "base_components/button_input.h"
 #include "base_components/gesture_fsm.h"
 #include "base_components/network_indicator.h"
@@ -37,6 +38,19 @@ static uint32_t button_events_emitted;
 static uint32_t gestures_emitted;
 static uint32_t zb_button_events_dropped;
 static uint32_t gpio_rearm_limit_hits;
+static uint32_t zb_button_events_expired;
+static uint32_t zb_button_events_send_failed;
+static uint32_t zb_button_events_high_water;
+static uint32_t zb_button_events_submitted;
+static uint32_t network_transitions;
+static uint32_t network_losses;
+static uint32_t network_joins;
+static uint32_t announce_attempts;
+static uint32_t announce_failures;
+static uint32_t steering_attempts;
+static uint32_t uptime_ms;
+static uint32_t descriptor_validation_failures;
+static uint8_t  last_descriptor_error;
 
 void basic_cluster_store_attrs_to_nv();
 void basic_cluster_load_attrs_from_nv();
@@ -60,6 +74,11 @@ void basic_cluster_callback_attr_write_trampoline(uint16_t attribute_id) {
 void basic_cluster_add_to_endpoint(zigbee_basic_cluster *cluster,
                                    hal_zigbee_endpoint *endpoint) {
     uint8_t attr_index = 13;
+
+    if (!hal_zigbee_endpoint_reserve_clusters(endpoint,
+                                              endpoint->cluster_capacity, 1)) {
+        return;
+    }
 
     // Set power source based on runtime battery configuration
     if (battery.pin != HAL_INVALID_PIN) {
@@ -135,12 +154,75 @@ void basic_cluster_add_to_endpoint(zigbee_basic_cluster *cluster,
                          ZCL_DATA_TYPE_UINT32, ATTR_READONLY,
                          gpio_rearm_limit_hits);
     attr_index++;
+    SETUP_ATTR_FOR_TABLE(cluster->attr_infos, attr_index,
+                         ZCL_ATTR_BASIC_ZB_BUTTON_EVENTS_EXPIRED,
+                         ZCL_DATA_TYPE_UINT32, ATTR_READONLY,
+                         zb_button_events_expired);
+    attr_index++;
+    SETUP_ATTR_FOR_TABLE(cluster->attr_infos, attr_index,
+                         ZCL_ATTR_BASIC_ZB_BUTTON_EVENTS_SEND_FAILED,
+                         ZCL_DATA_TYPE_UINT32, ATTR_READONLY,
+                         zb_button_events_send_failed);
+    attr_index++;
+    SETUP_ATTR_FOR_TABLE(cluster->attr_infos, attr_index,
+                         ZCL_ATTR_BASIC_ZB_BUTTON_EVENTS_HIGH_WATER,
+                         ZCL_DATA_TYPE_UINT32, ATTR_READONLY,
+                         zb_button_events_high_water);
+    attr_index++;
+    SETUP_ATTR_FOR_TABLE(cluster->attr_infos, attr_index,
+                         ZCL_ATTR_BASIC_ZB_BUTTON_EVENTS_SUBMITTED,
+                         ZCL_DATA_TYPE_UINT32, ATTR_READONLY,
+                         zb_button_events_submitted);
+    attr_index++;
+    SETUP_ATTR_FOR_TABLE(cluster->attr_infos, attr_index,
+                         ZCL_ATTR_BASIC_NETWORK_TRANSITIONS,
+                         ZCL_DATA_TYPE_UINT32, ATTR_READONLY,
+                         network_transitions);
+    attr_index++;
+    SETUP_ATTR_FOR_TABLE(cluster->attr_infos, attr_index,
+                         ZCL_ATTR_BASIC_NETWORK_LOSSES, ZCL_DATA_TYPE_UINT32,
+                         ATTR_READONLY, network_losses);
+    attr_index++;
+    SETUP_ATTR_FOR_TABLE(cluster->attr_infos, attr_index,
+                         ZCL_ATTR_BASIC_NETWORK_JOINS, ZCL_DATA_TYPE_UINT32,
+                         ATTR_READONLY, network_joins);
+    attr_index++;
+    SETUP_ATTR_FOR_TABLE(cluster->attr_infos, attr_index,
+                         ZCL_ATTR_BASIC_ANNOUNCE_ATTEMPTS, ZCL_DATA_TYPE_UINT32,
+                         ATTR_READONLY, announce_attempts);
+    attr_index++;
+    SETUP_ATTR_FOR_TABLE(cluster->attr_infos, attr_index,
+                         ZCL_ATTR_BASIC_ANNOUNCE_FAILURES, ZCL_DATA_TYPE_UINT32,
+                         ATTR_READONLY, announce_failures);
+    attr_index++;
+    SETUP_ATTR_FOR_TABLE(cluster->attr_infos, attr_index,
+                         ZCL_ATTR_BASIC_STEERING_ATTEMPTS, ZCL_DATA_TYPE_UINT32,
+                         ATTR_READONLY, steering_attempts);
+    attr_index++;
+    SETUP_ATTR_FOR_TABLE(cluster->attr_infos, attr_index,
+                         ZCL_ATTR_BASIC_UPTIME_MS, ZCL_DATA_TYPE_UINT32,
+                         ATTR_READONLY, uptime_ms);
+    attr_index++;
+    SETUP_ATTR_FOR_TABLE(cluster->attr_infos, attr_index,
+                         ZCL_ATTR_BASIC_DESCRIPTOR_VALIDATION_FAILURES,
+                         ZCL_DATA_TYPE_UINT32, ATTR_READONLY,
+                         descriptor_validation_failures);
+    attr_index++;
+    SETUP_ATTR_FOR_TABLE(cluster->attr_infos, attr_index,
+                         ZCL_ATTR_BASIC_LAST_DESCRIPTOR_ERROR,
+                         ZCL_DATA_TYPE_ENUM8, ATTR_READONLY,
+                         last_descriptor_error);
+    attr_index++;
 
-    endpoint->clusters[endpoint->cluster_count].cluster_id      = ZCL_CLUSTER_BASIC;
-    endpoint->clusters[endpoint->cluster_count].attribute_count = attr_index;
-    endpoint->clusters[endpoint->cluster_count].attributes      = cluster->attr_infos;
-    endpoint->clusters[endpoint->cluster_count].is_server       = 1;
-    endpoint->cluster_count++;
+    hal_zigbee_cluster endpoint_cluster = {
+        .cluster_id      = ZCL_CLUSTER_BASIC,
+        .is_server       =                   1,
+        .attribute_count = attr_index,
+        .attributes      = cluster->attr_infos,
+    };
+
+    hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity,
+                                    &endpoint_cluster);
 
     device_params_load_from_nv();
     basic_cluster_load_attrs_from_nv();
@@ -151,14 +233,30 @@ void basic_cluster_add_to_endpoint(zigbee_basic_cluster *cluster,
 }
 
 void basic_cluster_update_diagnostics(void) {
-    hal_gpio_diagnostics_t gpio_diagnostics = hal_gpio_get_diagnostics();
+    hal_gpio_diagnostics_t    gpio_diagnostics   = hal_gpio_get_diagnostics();
+    app_network_diagnostics_t app_diagnostics    = app_network_get_diagnostics();
+    hal_zigbee_diagnostics_t  zigbee_diagnostics = hal_zigbee_get_diagnostics();
 
-    gpio_edges_captured      = gpio_diagnostics.gpio_edges_captured;
-    gpio_edges_dropped       = button_input_gpio_edges_dropped();
-    button_events_emitted    = button_input_events_emitted();
-    gestures_emitted         = gesture_fsm_events_emitted();
-    zb_button_events_dropped = button_event_cluster_dropped();
-    gpio_rearm_limit_hits    = gpio_diagnostics.gpio_rearm_limit_hits;
+    gpio_edges_captured          = gpio_diagnostics.gpio_edges_captured;
+    gpio_edges_dropped           = button_input_gpio_edges_dropped();
+    button_events_emitted        = button_input_events_emitted();
+    gestures_emitted             = gesture_fsm_events_emitted();
+    zb_button_events_dropped     = button_event_cluster_dropped();
+    gpio_rearm_limit_hits        = gpio_diagnostics.gpio_rearm_limit_hits;
+    zb_button_events_expired     = button_event_cluster_expired();
+    zb_button_events_send_failed = button_event_cluster_send_failed();
+    zb_button_events_high_water  = button_event_cluster_high_water();
+    zb_button_events_submitted   = button_event_cluster_submitted();
+    network_transitions          = app_diagnostics.network_transitions;
+    network_losses    = app_diagnostics.network_losses;
+    network_joins     = app_diagnostics.network_joins;
+    announce_attempts = app_diagnostics.announce_attempts;
+    announce_failures = app_diagnostics.announce_failures;
+    steering_attempts = app_diagnostics.steering_attempts;
+    uptime_ms         = app_diagnostics.uptime_ms;
+    descriptor_validation_failures =
+        zigbee_diagnostics.descriptor_validation_failures;
+    last_descriptor_error = zigbee_diagnostics.last_descriptor_error;
 }
 
 typedef struct {

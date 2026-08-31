@@ -12,6 +12,19 @@ DIAGNOSTIC_COUNTERS = (
     ("gesturesEmitted", 0xff13),
     ("buttonEventsDropped", 0xff14),
     ("gpioRearmLimitHits", 0xff15),
+    ("buttonEventsExpired", 0xff16),
+    ("buttonEventsSendFailed", 0xff17),
+    ("buttonEventsHighWater", 0xff18),
+    ("buttonEventsSubmitted", 0xff19),
+    ("networkTransitions", 0xff1a),
+    ("networkLosses", 0xff1b),
+    ("networkJoins", 0xff1c),
+    ("announceAttempts", 0xff1d),
+    ("announceFailures", 0xff1e),
+    ("steeringAttempts", 0xff1f),
+    ("uptimeMs", 0xff20),
+    ("descriptorValidationFailures", 0xff22),
+    ("lastDescriptorError", 0xff23),
 )
 
 

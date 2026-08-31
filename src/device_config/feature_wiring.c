@@ -77,8 +77,9 @@ void feature_wiring_init(void) {
         uint8_t button_id = switch_clusters[i].button_id;
 
         button_configs[button_id].active_high =
-            switch_clusters[i].mode ==
-            ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_MOMENTARY_NC;
+            button_configs[button_id].electrical_active_high !=
+            (switch_clusters[i].mode ==
+             ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_MOMENTARY_NC);
         gesture_configs[button_id].hold_ms =
             switch_clusters[i].hold_duration_ms;
         gesture_configs[button_id].multi_click_gap_ms =

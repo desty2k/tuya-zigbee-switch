@@ -57,6 +57,7 @@ TEST(deterministic_bounce_sequences) {
             fake_gpio_inject_edge(FUZZ_PIN, 1, now + 1);
             fake_gpio_inject_edge(FUZZ_PIN, 0, now + 2);
             fake_gpio_inject_edge(FUZZ_PIN, 1, release_at);
+            button_input_process_pending();
             now = release_at + 20 + seed % 40;
             if (press % 4 == 3) {
                 fake_clock_set(now);
@@ -64,6 +65,7 @@ TEST(deterministic_bounce_sequences) {
             }
         }
         fake_clock_set(now + 20);
+        button_input_process_pending();
         fake_tasks_poll();
         ASSERT_TRUE(!event_invariant_failed);
         ASSERT_EQ((uint16_t)press_count * 2, event_count);

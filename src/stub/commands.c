@@ -4,6 +4,7 @@
 #include "hal/gpio.h"
 #include "hal/timer.h"
 #include "hal/zigbee.h"
+#include "app.h"
 
 #include "stub/hal/stub.h"
 
@@ -79,18 +80,30 @@ static int cmd_status(int argc, char **argv) {
 }
 
 static int cmd_diag(int argc, char **argv) {
-    hal_gpio_diagnostics_t diag = hal_gpio_get_diagnostics();
+    hal_gpio_diagnostics_t    diag         = hal_gpio_get_diagnostics();
+    app_network_diagnostics_t network_diag = app_network_get_diagnostics();
 
     (void)argc;
     (void)argv;
     io_res_ok("gpio_irq_count=%u gpio_edges_captured=%u gpio_edges_dropped=%u "
               "button_events_emitted=%u gestures_emitted=%u "
-              "zb_button_events_dropped=%u gpio_rearm_limit_hits=%u",
+              "zb_button_events_dropped=%u zb_button_events_expired=%u "
+              "zb_button_events_send_failed=%u zb_button_events_high_water=%u "
+              "zb_button_events_submitted=%u gpio_rearm_limit_hits=%u "
+              "network_transitions=%u network_losses=%u network_joins=%u "
+              "steering_attempts=%u announce_attempts=%u announce_failures=%u "
+              "uptime_ms=%u last_network_transition_ms=%u",
               diag.gpio_irq_count, diag.gpio_edges_captured,
               button_input_gpio_edges_dropped(),
               button_input_events_emitted(), gesture_fsm_events_emitted(),
-              button_event_cluster_dropped(),
-              diag.gpio_rearm_limit_hits);
+              button_event_cluster_dropped(), button_event_cluster_expired(),
+              button_event_cluster_send_failed(), button_event_cluster_high_water(),
+              button_event_cluster_submitted(),
+              diag.gpio_rearm_limit_hits, network_diag.network_transitions,
+              network_diag.network_losses, network_diag.network_joins,
+              network_diag.steering_attempts, network_diag.announce_attempts,
+              network_diag.announce_failures, network_diag.uptime_ms,
+              network_diag.last_transition_ms);
     return 0;
 }
 
@@ -134,6 +147,42 @@ static int cmd_net(int argc, char **argv) {
     }
     printf("Network status: %s\n", status_str);
     io_res_ok("joined=%ld status=%s", val, status_str);
+    return 0;
+}
+
+static int cmd_tx_fail(int argc, char **argv) {
+    char *        e;
+    unsigned long count;
+
+    if (argc != 2) {
+        io_res_err("usage");
+        return -1;
+    }
+    count = strtoul(argv[1], &e, 10);
+    if (*argv[1] == '\0' || *e || count > UINT32_MAX) {
+        io_res_err("bad_value");
+        return -1;
+    }
+    stub_zigbee_reject_next_coordinator_sends((uint32_t)count);
+    io_res_ok("count=%lu", count);
+    return 0;
+}
+
+static int cmd_announce_fail(int argc, char **argv) {
+    char *        e;
+    unsigned long count;
+
+    if (argc != 2) {
+        io_res_err("usage");
+        return -1;
+    }
+    count = strtoul(argv[1], &e, 10);
+    if (*argv[1] == '\0' || *e || count > UINT32_MAX) {
+        io_res_err("bad_value");
+        return -1;
+    }
+    stub_zigbee_reject_next_announces((uint32_t)count);
+    io_res_ok("count=%lu", count);
     return 0;
 }
 
@@ -234,6 +283,21 @@ static int cmd_zcl_write(int argc, char **argv) {
     stub_simulate_zigbee_attribute_write(ep, cl, at);
     io_res_ok("ep=%d cluster=0x%04X attr=0x%04X value=%s", ep, cl, at, argv[4]);
 
+    return 0;
+}
+
+static int cmd_zcl_attr_callback(int argc, char **argv) {
+    uint8_t  ep;
+    uint16_t cl;
+    uint16_t at;
+
+    if (argc != 4 || parse_u8_dec(argv[1], &ep) ||
+        parse_u16_hex(argv[2], &cl) || parse_u16_hex(argv[3], &at)) {
+        io_res_err("usage");
+        return -1;
+    }
+    stub_simulate_zigbee_attribute_write(ep, cl, at);
+    io_res_ok("ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
     return 0;
 }
 
@@ -463,11 +527,14 @@ static const SimpleReplCommand kCmds[] = {
     { "status",              cmd_status              },
     { "diag",                cmd_diag                },
     { "net",                 cmd_net                 },
+    { "tx_fail",             cmd_tx_fail             },
+    { "announce_fail",       cmd_announce_fail       },
     { "set_pin",             cmd_pin                 },
     { "pin_edge",            cmd_pin_edge            },
     { "read_pin",            cmd_read_pin            },
     { "zcl_read",            cmd_zcl_read            },
     { "zcl_write",           cmd_zcl_write           },
+    { "zcl_attr_callback",   cmd_zcl_attr_callback   },
     { "zcl_list_attrs",      cmd_zcl_list_attrs      },
     { "zcl_cmd",             cmd_zcl_cmd             },
     { "zcl_cmd_no_activity", cmd_zcl_cmd_no_activity },

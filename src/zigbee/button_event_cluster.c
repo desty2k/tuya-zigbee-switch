@@ -4,6 +4,7 @@
 #include "cluster_common.h"
 #include "consts.h"
 #include "hal/timer.h"
+#include "hal/tasks.h"
 #include <stddef.h>
 
 typedef struct {
@@ -12,12 +13,31 @@ typedef struct {
     uint8_t                 tail;
     uint8_t                 used;
     uint32_t                dropped;
+    uint32_t                expired;
+    uint32_t                send_failed;
+    uint32_t                high_water;
+    uint32_t                submitted;
 } button_event_queue_t;
 
 static zigbee_button_event_cluster *button_event_clusters[ZB_BUTTON_EVENT_MAX_CLUSTERS];
 static uint8_t              button_event_cluster_count;
 static uint16_t             button_event_seq;
 static button_event_queue_t button_event_queue;
+static hal_task_t           button_event_tx_task;
+static bool button_event_tx_scheduled;
+
+static void button_event_cluster_tx_task(void *arg) {
+    (void)arg;
+    button_event_cluster_drain();
+}
+
+static void button_event_cluster_schedule(uint32_t delay_ms) {
+    if (button_event_tx_scheduled) {
+        hal_tasks_unschedule(&button_event_tx_task);
+    }
+    button_event_tx_scheduled = true;
+    hal_tasks_schedule(&button_event_tx_task, delay_ms);
+}
 
 static bool button_event_cluster_has_button(
     const zigbee_button_event_cluster *cluster, uint8_t button_id) {
@@ -85,7 +105,12 @@ static void button_event_cluster_enqueue(
     button_event_queue.head =
         (uint8_t)((button_event_queue.head + 1) % ZB_BUTTON_EVENT_QUEUE_SIZE);
     button_event_queue.used++;
-    button_event_cluster_drain();
+    if (button_event_queue.used > button_event_queue.high_water) {
+        button_event_queue.high_water = button_event_queue.used;
+    }
+    if (!button_event_tx_scheduled) {
+        button_event_cluster_schedule(0);
+    }
 }
 
 static void button_event_cluster_emit(uint8_t endpoint,
@@ -104,12 +129,20 @@ static void button_event_cluster_emit(uint8_t endpoint,
 }
 
 void button_event_cluster_init(void) {
-    button_event_cluster_count = 0;
-    button_event_seq           = 0;
-    button_event_queue.head    = 0;
-    button_event_queue.tail    = 0;
-    button_event_queue.used    = 0;
-    button_event_queue.dropped = 0;
+    button_event_cluster_count     = 0;
+    button_event_seq               = 0;
+    button_event_queue.head        = 0;
+    button_event_queue.tail        = 0;
+    button_event_queue.used        = 0;
+    button_event_queue.dropped     = 0;
+    button_event_queue.expired     = 0;
+    button_event_queue.send_failed = 0;
+    button_event_queue.high_water  = 0;
+    button_event_queue.submitted   = 0;
+    button_event_tx_scheduled      = false;
+    button_event_tx_task.handler   = button_event_cluster_tx_task;
+    button_event_tx_task.arg       = NULL;
+    hal_tasks_init(&button_event_tx_task);
 }
 
 void button_event_cluster_add_to_endpoint(
@@ -119,7 +152,9 @@ void button_event_cluster_add_to_endpoint(
     button_event_config_changed_t config_changed, void *config_changed_arg) {
     if (cluster == NULL || endpoint == NULL || button_ids == NULL ||
         button_count == 0 || button_count > ZB_BUTTON_EVENT_MAX_BUTTONS ||
-        button_event_cluster_count >= ZB_BUTTON_EVENT_MAX_CLUSTERS) {
+        button_event_cluster_count >= ZB_BUTTON_EVENT_MAX_CLUSTERS ||
+        !hal_zigbee_endpoint_reserve_clusters(endpoint,
+                                              endpoint->cluster_capacity, 1)) {
         return;
     }
     cluster->endpoint           = endpoint->endpoint;
@@ -152,12 +187,15 @@ void button_event_cluster_add_to_endpoint(
                          ZCL_ATTR_BUTTON_EVENT_DEBOUNCE_MS,
                          ZCL_DATA_TYPE_UINT16, ATTR_WRITABLE,
                          cluster->debounce_ms);
-    endpoint->clusters[endpoint->cluster_count].cluster_id =
-        ZCL_CLUSTER_BUTTON_EVENT;
-    endpoint->clusters[endpoint->cluster_count].attribute_count = 4;
-    endpoint->clusters[endpoint->cluster_count].attributes      = cluster->attr_infos;
-    endpoint->clusters[endpoint->cluster_count].is_server       = 1;
-    endpoint->cluster_count++;
+    hal_zigbee_cluster endpoint_cluster = {
+        .cluster_id      = ZCL_CLUSTER_BUTTON_EVENT,
+        .is_server       =                        1,
+        .attribute_count =                        4,
+        .attributes      = cluster->attr_infos,
+    };
+
+    hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity,
+                                    &endpoint_cluster);
     button_event_clusters[button_event_cluster_count++] = cluster;
 }
 
@@ -272,13 +310,16 @@ void button_event_cluster_on_write_attr(uint8_t endpoint,
 void button_event_cluster_on_network_status_change(
     hal_zigbee_network_status_t status) {
     if (status == HAL_ZIGBEE_NETWORK_JOINED) {
-        button_event_cluster_drain();
+        if (button_event_queue.used != 0 && !button_event_tx_scheduled) {
+            button_event_cluster_schedule(0);
+        }
     }
 }
 
 void button_event_cluster_drain(void) {
-    while (button_event_queue.used != 0 &&
-           hal_zigbee_get_network_status() == HAL_ZIGBEE_NETWORK_JOINED) {
+    button_event_tx_scheduled = false;
+    if (button_event_queue.used != 0 &&
+        hal_zigbee_get_network_status() == HAL_ZIGBEE_NETWORK_JOINED) {
         zb_button_event_entry_t *entry =
             &button_event_queue.entries[button_event_queue.tail];
         zigbee_button_event_cluster *cluster;
@@ -287,7 +328,9 @@ void button_event_cluster_drain(void) {
 
         if (hal_millis() - entry->enqueued_at_ms > ZB_BUTTON_EVENT_TTL_MS) {
             button_event_cluster_pop();
-            continue;
+            button_event_queue.expired++;
+            button_event_cluster_schedule(0);
+            return;
         }
         button_event_cluster_encode_payload(&entry->payload, payload);
         cmd.endpoint            = entry->endpoint;
@@ -301,6 +344,12 @@ void button_event_cluster_drain(void) {
         cmd.payload             = payload;
         cmd.payload_len         = sizeof(payload);
         if (hal_zigbee_send_cmd_to_coordinator(&cmd) != HAL_ZIGBEE_OK) {
+            button_event_queue.send_failed++;
+            uint32_t age       = hal_millis() - entry->enqueued_at_ms;
+            uint32_t remaining = ZB_BUTTON_EVENT_TTL_MS - age;
+
+            button_event_cluster_schedule(remaining < ZB_BUTTON_EVENT_RETRY_MS ?
+                                          remaining : ZB_BUTTON_EVENT_RETRY_MS);
             return;
         }
         cluster = button_event_cluster_find_by_endpoint(entry->endpoint);
@@ -311,6 +360,10 @@ void button_event_cluster_drain(void) {
                 ZCL_ATTR_BUTTON_EVENT_LAST_EVENT_SEQ);
         }
         button_event_cluster_pop();
+        button_event_queue.submitted++;
+        if (button_event_queue.used != 0) {
+            button_event_cluster_schedule(ZB_BUTTON_EVENT_TX_INTERVAL_MS);
+        }
     }
 }
 
@@ -320,4 +373,20 @@ uint32_t button_event_cluster_dropped(void) {
 
 uint8_t button_event_cluster_queue_used(void) {
     return button_event_queue.used;
+}
+
+uint32_t button_event_cluster_expired(void) {
+    return button_event_queue.expired;
+}
+
+uint32_t button_event_cluster_send_failed(void) {
+    return button_event_queue.send_failed;
+}
+
+uint32_t button_event_cluster_high_water(void) {
+    return button_event_queue.high_water;
+}
+
+uint32_t button_event_cluster_submitted(void) {
+    return button_event_queue.submitted;
 }

@@ -6,10 +6,12 @@
 #include "hal/zigbee.h"
 #include <stdint.h>
 
-#define ZB_BUTTON_EVENT_QUEUE_SIZE      16
-#define ZB_BUTTON_EVENT_TTL_MS          5000
-#define ZB_BUTTON_EVENT_MAX_CLUSTERS    7
-#define ZB_BUTTON_EVENT_MAX_BUTTONS     2
+#define ZB_BUTTON_EVENT_QUEUE_SIZE        16
+#define ZB_BUTTON_EVENT_TTL_MS            5000
+#define ZB_BUTTON_EVENT_TX_INTERVAL_MS    40
+#define ZB_BUTTON_EVENT_RETRY_MS          100
+#define ZB_BUTTON_EVENT_MAX_CLUSTERS      7
+#define ZB_BUTTON_EVENT_MAX_BUTTONS       2
 
 typedef enum {
     ZB_BUTTON_DOWN       = 0,
@@ -67,6 +69,10 @@ void button_event_cluster_on_network_status_change(
     hal_zigbee_network_status_t status);
 void button_event_cluster_drain(void);
 uint32_t button_event_cluster_dropped(void);
+uint32_t button_event_cluster_expired(void);
+uint32_t button_event_cluster_send_failed(void);
+uint32_t button_event_cluster_high_water(void);
+uint32_t button_event_cluster_submitted(void);
 uint8_t button_event_cluster_queue_used(void);
 
 #endif

@@ -1,7 +1,7 @@
 import pytest
 
 from client import StubProc
-from conftest import Device
+from conftest import Device, wait_for
 from zcl_consts import (
     ZCL_ATTR_BASIC_MFR_NAME,
     ZCL_ATTR_COVER_SWITCH_SWITCH_TYPE,
@@ -97,5 +97,53 @@ def test_various_configs_boot(cfg: str):
     try:
         d = Device(p)
         _ = d.read_zigbee_attr(1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_MFR_NAME)
+    finally:
+        p.stop()
+
+
+@pytest.mark.parametrize("endpoint", [0, 9, 10, 11, 255])
+@pytest.mark.parametrize(
+    "cluster, attribute",
+    [
+        (ZCL_CLUSTER_ON_OFF_SWITCH_CONFIG, ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_MODE),
+        (ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF),
+        (ZCL_CLUSTER_COVER_SWITCH_CONFIG, ZCL_ATTR_COVER_SWITCH_SWITCH_TYPE),
+        (ZCL_CLUSTER_WINDOW_COVERING, ZCL_ATTR_WINDOW_COVERING_MOVING),
+    ],
+)
+def test_invalid_attribute_dispatch_is_ignored(
+    device: Device, endpoint: int, cluster: int, attribute: int
+):
+    result = device.p.exec(
+        f"zcl_attr_callback {endpoint} {cluster:04x} {attribute:04x}"
+    )
+    assert result.ok, result.payload
+
+
+@pytest.mark.parametrize(
+    "config, pressed_level",
+    [
+        ("X;Y;BA0u;", 0),
+        ("X;Y;BA0d;", 1),
+        ("X;Y;SA0u;RA1;", 0),
+        ("X;Y;SA0d;RA1;", 1),
+        ("X;Y;XA0A1u;CB0B1;", 0),
+        ("X;Y;XA0A1d;CB0B1;", 1),
+    ],
+)
+def test_input_polarity_derives_from_pull(config: str, pressed_level: int):
+    p = StubProc(device_config=config).start()
+    events = []
+    try:
+        p.on_event.append(events.append)
+        d = Device(p)
+        d.set_gpio("A0", pressed_level)
+        d.step_time(8)
+        wait_for(
+            lambda: any(
+                event.kind == "btn_event" and event.payload.get("type") == "DOWN"
+                for event in events
+            )
+        )
     finally:
         p.stop()

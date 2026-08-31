@@ -27,7 +27,16 @@ extern uint8_t cover_clusters_cnt;
 extern zigbee_cover_switch_cluster cover_switch_clusters[];
 extern uint8_t cover_switch_clusters_cnt;
 
-static zigbee_cover_switch_cluster *      cover_switch_cluster_by_endpoint[10];
+static zigbee_cover_switch_cluster *
+    cover_switch_cluster_by_endpoint[HAL_ZIGBEE_ENDPOINT_ID_MAX + 1];
+
+static zigbee_cover_switch_cluster *cover_switch_cluster_find(uint8_t endpoint) {
+    if (endpoint > HAL_ZIGBEE_ENDPOINT_ID_MAX) {
+        return NULL;
+    }
+    return cover_switch_cluster_by_endpoint[endpoint];
+}
+
 static zigbee_cover_switch_cluster_config nv_config_buffer;
 void cover_switch_cluster_store_attrs_to_nv(
     zigbee_cover_switch_cluster *cluster);
@@ -400,8 +409,11 @@ void cover_switch_cluster_on_write_attr(zigbee_cover_switch_cluster *cluster,
 
 void cover_switch_cluster_callback_attr_write_trampoline(uint8_t endpoint,
                                                          uint16_t attribute_id) {
-    cover_switch_cluster_on_write_attr(cover_switch_cluster_by_endpoint[endpoint],
-                                       attribute_id);
+    zigbee_cover_switch_cluster *cluster = cover_switch_cluster_find(endpoint);
+
+    if (cluster != NULL) {
+        cover_switch_cluster_on_write_attr(cluster, attribute_id);
+    }
 }
 
 // ============================================================================
@@ -423,6 +435,11 @@ void cover_switch_cluster_init(zigbee_cover_switch_cluster *cluster) {
 
 void cover_switch_cluster_add_to_endpoint(zigbee_cover_switch_cluster *cluster,
                                           hal_zigbee_endpoint *endpoint) {
+    if (!hal_zigbee_endpoint_reserve_clusters(endpoint,
+                                              endpoint->cluster_capacity, 4)) {
+        return;
+    }
+
     cover_switch_cluster_by_endpoint[endpoint->endpoint] = cluster;
     cluster->endpoint = endpoint->endpoint;
     cover_switch_cluster_init(cluster);
@@ -448,19 +465,15 @@ void cover_switch_cluster_add_to_endpoint(zigbee_cover_switch_cluster *cluster,
                          ZCL_ATTR_COVER_SWITCH_CONFIG_LONG_PRESS_DUR, ZCL_DATA_TYPE_UINT16,
                          ATTR_WRITABLE, cluster->hold_duration_ms);
 
-    // CoverSwitchConfig SERVER cluster (manufacturer-specific)
-    endpoint->clusters[endpoint->cluster_count].cluster_id      = ZCL_CLUSTER_COVER_SWITCH_CONFIG;
-    endpoint->clusters[endpoint->cluster_count].attribute_count = 6;
-    endpoint->clusters[endpoint->cluster_count].attributes      = cluster->config_attr_infos;
-    endpoint->clusters[endpoint->cluster_count].is_server       = 1;
-    endpoint->cluster_count++;
-
-    // WindowCovering CLIENT cluster (for binding to other devices)
-    endpoint->clusters[endpoint->cluster_count].cluster_id      = ZCL_CLUSTER_WINDOW_COVERING;
-    endpoint->clusters[endpoint->cluster_count].attribute_count = 0;
-    endpoint->clusters[endpoint->cluster_count].attributes      = NULL;
-    endpoint->clusters[endpoint->cluster_count].is_server       = 0; // CLIENT
-    endpoint->cluster_count++;
+    hal_zigbee_cluster config_cluster = {
+        .cluster_id      = ZCL_CLUSTER_COVER_SWITCH_CONFIG,
+        .is_server       =                               1,
+        .attribute_count =                               6,
+        .attributes      = cluster->config_attr_infos,
+    };
+    hal_zigbee_cluster covering_cluster = {
+        .cluster_id = ZCL_CLUSTER_WINDOW_COVERING,
+    };
 
     // MultiStateInput for button press action reporting
     SETUP_ATTR_FOR_TABLE(cluster->multistate_attr_infos, 0,
@@ -476,12 +489,19 @@ void cover_switch_cluster_add_to_endpoint(zigbee_cover_switch_cluster *cluster,
                          ZCL_ATTR_MULTISTATE_INPUT_STATUS_FLAGS, ZCL_DATA_TYPE_BITMAP8,
                          ATTR_READONLY, multistate_flags);
 
-    endpoint->clusters[endpoint->cluster_count].cluster_id =
-        ZCL_CLUSTER_MULTISTATE_INPUT_BASIC;
-    endpoint->clusters[endpoint->cluster_count].attribute_count = 4;
-    endpoint->clusters[endpoint->cluster_count].attributes      = cluster->multistate_attr_infos;
-    endpoint->clusters[endpoint->cluster_count].is_server       = 1;
-    endpoint->cluster_count++;
+    hal_zigbee_cluster multistate_cluster = {
+        .cluster_id      = ZCL_CLUSTER_MULTISTATE_INPUT_BASIC,
+        .is_server       =                                  1,
+        .attribute_count =                                  4,
+        .attributes      = cluster->multistate_attr_infos,
+    };
+
+    hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity,
+                                    &config_cluster);
+    hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity,
+                                    &covering_cluster);
+    hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity,
+                                    &multistate_cluster);
 
     {
         uint8_t button_ids[2] = { cluster->open_button_id,

@@ -32,20 +32,23 @@ static hal_zigbee_network_status_t network_status =
 static hal_attribute_change_callback_t attr_change_callback  = NULL;
 static hal_zcl_activity_callback_t     zcl_activity_callback = NULL;
 static uint32_t poll_rate_ms = 0;
+static uint32_t coordinator_send_failures;
+static uint32_t announce_failures;
+static hal_zigbee_diagnostics_t diagnostics;
 
 static stub_binding_t bindings[MAX_BINDINGS];
 static int            binding_count = 0;
 
 void hal_zigbee_init(hal_zigbee_endpoint *ep_list, uint8_t ep_count) {
-    if (!ep_list && ep_count > 0) {
-        io_log("ZIGBEE", "Error: NULL endpoint list with non-zero count %d",
-               ep_count);
-        exit(1);
-    }
+    hal_zigbee_descriptor_error_t validation =
+        hal_zigbee_validate_descriptor_graph(
+            ep_list, ep_count, MAX_ENDPOINTS, HAL_ZIGBEE_ENDPOINT_ID_MAX, 48,
+            128);
 
-    if (ep_count > MAX_ENDPOINTS) {
-        io_log("ZIGBEE", "Error: Endpoint count %d exceeds maximum %d", ep_count,
-               MAX_ENDPOINTS);
+    if (validation != HAL_ZIGBEE_DESCRIPTOR_OK) {
+        diagnostics.descriptor_validation_failures++;
+        diagnostics.last_descriptor_error = validation;
+        io_log("ZIGBEE", "Error: invalid descriptor graph (%d)", validation);
         exit(1);
     }
 
@@ -89,6 +92,10 @@ void hal_zigbee_init(hal_zigbee_endpoint *ep_list, uint8_t ep_count) {
             }
         }
     }
+}
+
+hal_zigbee_diagnostics_t hal_zigbee_get_diagnostics(void) {
+    return diagnostics;
 }
 
 hal_zigbee_network_status_t hal_zigbee_get_network_status(void) {
@@ -207,6 +214,10 @@ hal_zigbee_send_cmd_to_coordinator(const hal_zigbee_cmd *cmd) {
     if (network_status != HAL_ZIGBEE_NETWORK_JOINED) {
         return HAL_ZIGBEE_ERR_NOT_JOINED;
     }
+    if (coordinator_send_failures != 0) {
+        coordinator_send_failures--;
+        return HAL_ZIGBEE_ERR_SEND_FAILED;
+    }
     bytes_to_hexstr(cmd->payload, cmd->payload_len, buffer);
     io_evt("zcl_cmd_send dst=coordinator ep=%u cluster=0x%04X cmd=0x%02X "
            "len=%u data_hex=%s",
@@ -245,6 +256,11 @@ hal_zigbee_send_report_attr(uint8_t endpoint, uint16_t cluster_id,
 }
 
 hal_zigbee_status_t hal_zigbee_send_announce(void) {
+    if (announce_failures != 0) {
+        announce_failures--;
+        io_log("ZIGBEE", "Rejecting Zigbee announce");
+        return HAL_ZIGBEE_ERR_SEND_FAILED;
+    }
     io_log("ZIGBEE", "Sending Zigbee announce");
     io_evt("zdo_announce");
     return HAL_ZIGBEE_OK;
@@ -256,6 +272,14 @@ void stub_zigbee_set_network_status(hal_zigbee_network_status_t status) {
     if (network_status_change_callback != NULL) {
         network_status_change_callback(hal_zigbee_get_network_status());
     }
+}
+
+void stub_zigbee_reject_next_coordinator_sends(uint32_t count) {
+    coordinator_send_failures = count;
+}
+
+void stub_zigbee_reject_next_announces(uint32_t count) {
+    announce_failures = count;
 }
 
 void stub_zigbee_add_binding(uint16_t short_addr, uint8_t endpoint,

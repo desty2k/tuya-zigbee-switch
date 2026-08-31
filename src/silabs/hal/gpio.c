@@ -147,6 +147,9 @@ void hal_gpio_set_edge_sink(hal_gpio_edge_sink_t sink) {
     edge_sink = sink;
 }
 
+void hal_gpio_process_pending(void) {
+}
+
 void hal_gpio_watch_pin(hal_gpio_pin_t gpio_pin) {
     hal_gpio_ensure_clock();
     hal_gpio_ensure_gpio_init();

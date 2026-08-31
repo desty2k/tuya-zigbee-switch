@@ -14,6 +14,7 @@ static uint32_t          button_events_emitted;
 static gpio_edge_queue_t button_edge_queue;
 static hal_task_t        button_worker_task;
 static volatile bool     button_worker_scheduled;
+static volatile bool     button_work_pending;
 
 static button_state_t button_input_level_to_state(uint8_t button_id,
                                                   uint8_t level) {
@@ -109,10 +110,7 @@ static void button_input_worker(void *arg) {
 
 static void button_input_edge_sink(const hal_gpio_edge_t *edge) {
     gpio_edge_queue_push(&button_edge_queue, edge);
-    if (!button_worker_scheduled) {
-        button_worker_scheduled = true;
-        hal_tasks_schedule(&button_worker_task, 0);
-    }
+    button_work_pending = true;
 }
 
 void button_input_init(void) {
@@ -120,12 +118,24 @@ void button_input_init(void) {
     button_event_seq        = 0;
     button_events_emitted   = 0;
     button_worker_scheduled = false;
+    button_work_pending     = false;
     gpio_edge_queue_init(&button_edge_queue);
     button_dispatcher_init();
     button_worker_task.handler = button_input_worker;
     button_worker_task.arg     = NULL;
     hal_tasks_init(&button_worker_task);
     hal_gpio_set_edge_sink(button_input_edge_sink);
+}
+
+void button_input_process_pending(void) {
+    if (!button_work_pending) {
+        return;
+    }
+
+    button_work_pending = false;
+    if (!button_worker_scheduled) {
+        button_input_schedule_worker(0);
+    }
 }
 
 uint8_t button_input_add(const button_config_t *config) {
@@ -166,6 +176,15 @@ void button_input_set_active_high(uint8_t button_id, bool active_high) {
     button_runtimes[button_id].raw_state =
         button_runtimes[button_id].stable_state;
     button_runtimes[button_id].raw_since_ms = hal_millis();
+}
+
+void button_input_apply_switch_mode(uint8_t button_id, bool momentary_nc) {
+    if (button_id >= button_count) {
+        return;
+    }
+    button_input_set_active_high(
+        button_id, button_configs[button_id].electrical_active_high !=
+        momentary_nc);
 }
 
 void button_input_set_debounce_ms(uint8_t button_id, uint16_t debounce_ms) {

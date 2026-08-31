@@ -102,6 +102,9 @@ UNIT_GESTURE_TEST := $(UNIT_BUILD_DIR)/test_gesture_fsm
 UNIT_RELAY_TEST := $(UNIT_BUILD_DIR)/test_relay_controller
 UNIT_INTERLOCK_TEST := $(UNIT_BUILD_DIR)/test_interlock
 UNIT_BUTTON_EVENT_TEST := $(UNIT_BUILD_DIR)/test_button_event_queue
+UNIT_DESCRIPTOR_TEST := $(UNIT_BUILD_DIR)/test_zigbee_descriptor
+UNIT_TELINK_ZIGBEE_INIT_TEST := $(UNIT_BUILD_DIR)/test_telink_zigbee_init
+TELINK_INIT_TEST_CFLAGS := $(UNIT_CFLAGS) -Itests/unit/telink_sdk_stub -Isrc/telink -Isrc/telink/hal
 
 $(UNIT_BUILD_DIR):
 	mkdir -p $(UNIT_BUILD_DIR)
@@ -155,12 +158,20 @@ $(UNIT_INTERLOCK_TEST): tests/unit/test_interlock.c \
 	$(CC) $(UNIT_CFLAGS) $^ -o $@
 
 $(UNIT_BUTTON_EVENT_TEST): tests/unit/test_button_event_queue.c \
-		src/zigbee/button_event_cluster.c | $(UNIT_BUILD_DIR)
+		src/zigbee/button_event_cluster.c tests/unit/support/fake_tasks.c | $(UNIT_BUILD_DIR)
 	$(CC) $(UNIT_CFLAGS) $^ -o $@
+
+$(UNIT_DESCRIPTOR_TEST): tests/unit/test_zigbee_descriptor.c | $(UNIT_BUILD_DIR)
+	$(CC) $(UNIT_CFLAGS) $< -o $@
+
+$(UNIT_TELINK_ZIGBEE_INIT_TEST): tests/unit/test_telink_zigbee_init.c \
+		src/telink/hal/zigbee.c | $(UNIT_BUILD_DIR)
+	$(CC) $(TELINK_INIT_TEST_CFLAGS) $^ -o $@
 
 unit_tests: $(UNIT_QUEUE_TEST) $(UNIT_TIMER_TEST) $(UNIT_BUTTON_TEST) \
 		$(UNIT_DEBOUNCE_FUZZ) $(UNIT_GESTURE_TEST) $(UNIT_RELAY_TEST) \
-		$(UNIT_INTERLOCK_TEST) $(UNIT_BUTTON_EVENT_TEST)
+		$(UNIT_INTERLOCK_TEST) $(UNIT_BUTTON_EVENT_TEST) $(UNIT_DESCRIPTOR_TEST) \
+		$(UNIT_TELINK_ZIGBEE_INIT_TEST)
 	./$(UNIT_QUEUE_TEST)
 	./$(UNIT_TIMER_TEST)
 	./$(UNIT_BUTTON_TEST)
@@ -169,6 +180,8 @@ unit_tests: $(UNIT_QUEUE_TEST) $(UNIT_TIMER_TEST) $(UNIT_BUTTON_TEST) \
 	./$(UNIT_RELAY_TEST)
 	./$(UNIT_INTERLOCK_TEST)
 	./$(UNIT_BUTTON_EVENT_TEST)
+	./$(UNIT_DESCRIPTOR_TEST)
+	./$(UNIT_TELINK_ZIGBEE_INIT_TEST)
 
 # Format all C/H files using uncrustify
 format:
