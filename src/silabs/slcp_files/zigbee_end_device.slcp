@@ -55,6 +55,7 @@ source:
 - {path: ../../device_config/config_nv.c}
 - {path: ../../device_config/config_nv.h}
 - {path: ../../device_config/config_parser.c}
+- {path: ../../device_config/device_composition.c}
 - {path: ../../device_config/config_parser.h}
 - {path: ../../device_config/device_params_nv.c}
 - {path: ../../device_config/device_params_nv.h}
