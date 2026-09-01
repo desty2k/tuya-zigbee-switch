@@ -7,14 +7,14 @@ and [02_phases.md](./02_phases.md).
 - Branch: `refactor/input-pipeline`
 - Design baseline: `505b82c3`
 - Created: 2026-09-01
-- Current position: **Phase 1 implementation complete; Phase 2 in progress**
+- Current position: **Phase 1 complete; Phase 2 not started**
 
 ## Phases
 
 | # | Phase | Status | Gate |
 | --- | --- | --- | --- |
 | 1 | Normalized composition root | done | pure parser and normalized composition root verified in `tuya-telink-build` |
-| 2 | Capability-safe relay and action contracts | in progress | native contracts + existing switch/relay suites |
+| 2 | Capability-safe relay and action contracts | not started | native contracts + existing switch/relay suites |
 | 3 | Cover domain extraction | not started | controller unit tests + cover regressions |
 | 4 | Cover position and calibration | not started | virtual-time/NVM/Zigbee tests + TS130F hardware |
 | 5 | Meter HAL, driver and service | not started | software may proceed; completion needs exact outlet hardware/IC confirmation |
@@ -29,7 +29,7 @@ Statuses: `not started`, `in progress`, `in review`, `done`, `blocked`.
 | Area | Current fact |
 | --- | --- |
 | Input/output foundation | input pipeline, timer service, relay driver/controller, interlock and indicator feedback exist |
-| Composition | `feature_wiring` exists, but `config_parser` still performs initialization and endpoint/Zigbee construction |
+| Composition | `config_parser` produces a pure validated composition; `feature_wiring` is the sole composition root |
 | Relay API | returns `hal_zigbee_cmd_result_t`; one state callback per relay; no protection source/inhibit |
 | Cover | behavior and NVM live in `cover_cluster`; no GOTO; position is a global placeholder 50 |
 | Metering | no counter HAL, meter driver/service, Electrical Measurement or Metering adapter in application code |
@@ -121,7 +121,7 @@ Detailed evidence, candidate configurations and acceptance procedures are in
 | Date | Phase | Commit | Target | Evidence | Result |
 | --- | --- | --- | --- | --- | --- |
 | — | — | — | — | — | — |
-| 2026-09-01 | 1 | uncommitted | `tuya-telink-build` | Installed GCC, pytest and uncrustify in the Colima profile; `make stub/build` and `make -B unit_tests` pass, and `make tests` reports 270 passed in 42.99 s. | Phase 1 behavior preserved; final format, diff, board build and Phase 2 verification remain pending. |
+| 2026-09-01 | 1 | `6069bb29` | `tuya-telink-build` | `make stub/build`, `make -B unit_tests`, and `make tests` passed (277); compatible Uncrustify 0.83 ran twice with an identical diff hash; `git diff --check` passed; `BOARD=SWITCH_BSEED_TS0726_4GANG DEVICE_TYPE=router make board/build` passed with `IMAGE_TYPE=43627`. | Phase 1 correction gate complete. |
 
 Large compiler logs, UART logs and packet captures stay outside `docs/`. Record a
 stable path/link and a concise counter/result summary here.
