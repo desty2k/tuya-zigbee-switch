@@ -7,7 +7,7 @@
 #include "cluster_common.h"
 #include "consts.h"
 #include "device_config/config_nv.h"
-#include "device_config/config_parser.h"
+#include "device_config/feature_wiring.h"
 #include "device_config/device_params_nv.h"
 #include "device_config/nvm_items.h"
 #include "device_config/reset.h"

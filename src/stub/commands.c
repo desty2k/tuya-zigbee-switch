@@ -85,7 +85,8 @@ static int cmd_diag(int argc, char **argv) {
 
     (void)argc;
     (void)argv;
-    io_res_ok("gpio_irq_count=%u gpio_edges_captured=%u gpio_edges_dropped=%u "
+    io_res_ok("gpio_init_count=%u gpio_write_count=%u tasks_active=%u "
+              "gpio_irq_count=%u gpio_edges_captured=%u gpio_edges_dropped=%u "
               "button_events_emitted=%u gestures_emitted=%u "
               "zb_button_events_dropped=%u zb_button_events_expired=%u "
               "zb_button_events_send_failed=%u zb_button_events_high_water=%u "
@@ -93,7 +94,9 @@ static int cmd_diag(int argc, char **argv) {
               "network_transitions=%u network_losses=%u network_joins=%u "
               "steering_attempts=%u announce_attempts=%u announce_failures=%u "
               "uptime_ms=%u last_network_transition_ms=%u",
-              diag.gpio_irq_count, diag.gpio_edges_captured,
+              stub_gpio_init_count(), stub_gpio_write_count(),
+              stub_tasks_active_count(), diag.gpio_irq_count,
+              diag.gpio_edges_captured,
               button_input_gpio_edges_dropped(),
               button_input_events_emitted(), gesture_fsm_events_emitted(),
               button_event_cluster_dropped(), button_event_cluster_expired(),

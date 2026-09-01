@@ -2,7 +2,7 @@
 
 #include "cluster_common.h"
 #include "consts.h"
-#include "device_config/config_parser.h"
+#include "device_config/feature_wiring.h"
 #include "base_components/battery.h"
 #include "hal/printf_selector.h"
 #include "hal/timer.h"

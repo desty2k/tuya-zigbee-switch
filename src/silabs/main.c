@@ -18,7 +18,7 @@
 #include "base_components/led.h"
 #include "base_components/network_indicator.h"
 #include "device_config/config_nv.h"
-#include "device_config/config_parser.h"
+#include "device_config/feature_wiring.h"
 #include "hal/gpio.h"
 #include "hal/timer.h"
 #include "hal/zigbee.h"

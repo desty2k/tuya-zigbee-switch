@@ -25,6 +25,12 @@ void stub_millis_init() {
 }
 
 void stub_millis_freeze() {
+    if (!initialized) {
+        frozen_millis = 0;
+        time_frozen   = 1;
+        io_log("TIMER", "Time frozen at 0 ms");
+        return;
+    }
     frozen_millis = hal_millis();
     time_frozen   = 1;
     io_log("TIMER", "Time frozen at %llu ms", (unsigned long long)frozen_millis);

@@ -9,7 +9,7 @@
 
 #include "telink_size_t_hack.h"
 
-#include "device_config/config_parser.h"
+#include "device_config/feature_wiring.h"
 
 #include "app.h"
 #include "hal/gpio.h"

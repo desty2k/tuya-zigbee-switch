@@ -89,7 +89,9 @@ static void endpoint_slots(const device_composition_t *c) {
 }
 
 feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
-    if (!c || c->endpoint_count > 10) return FEATURE_WIRING_INVALID;
+    if (device_composition_validate(c) != CONFIG_PARSE_OK) {
+        return FEATURE_WIRING_INVALID;
+    }
 
     memset(leds, 0, sizeof(leds)); memset(indicator_feedbacks, 0, sizeof(indicator_feedbacks));
     memset(button_configs, 0, sizeof(button_configs));
@@ -101,6 +103,8 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
     memset(cover_switch_clusters, 0, sizeof(cover_switch_clusters));
     memset(cover_clusters, 0, sizeof(cover_clusters)); memset(endpoints, 0, sizeof(endpoints));
     memset(clusters, 0, sizeof(clusters));
+    memset(network_indicator.indicators, 0, sizeof(network_indicator.indicators));
+    network_indicator.has_dedicated_led = 0;
     leds_cnt                  = c->indicator_count; buttons_cnt = c->button_count;
     relays_cnt                = c->relay_count;
     switch_clusters_cnt       = c->switch_count; relay_clusters_cnt = c->relay_endpoint_count;
@@ -113,6 +117,18 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
     memcpy(basic_cluster.manuName + 1, c->manufacturer, basic_cluster.manuName[0]);
     basic_cluster.modelId[0] = strlen(c->model);
     memcpy(basic_cluster.modelId + 1, c->model, basic_cluster.modelId[0]);
+    for (uint8_t i = 0; i < relays_cnt; i++) {
+        hal_gpio_init(c->relays[i].on_pin, 0, HAL_GPIO_PULL_NONE);
+        if (c->relays[i].is_latching) hal_gpio_init(c->relays[i].off_pin, 0, HAL_GPIO_PULL_NONE);
+        relay_drivers[i].on_pin      = c->relays[i].on_pin;
+        relay_drivers[i].off_pin     = c->relays[i].off_pin; relay_drivers[i].on_high = 1;
+        relay_drivers[i].is_latching = c->relays[i].is_latching;
+    }
+    relay_ctrl_init();
+    for (uint8_t i = 0; i < relays_cnt;
+         i++) if (relay_ctrl_add(&relay_drivers[i],
+                                 &relay_configs[i]) == UINT8_MAX) return FEATURE_WIRING_INVALID;
+
     for (uint8_t i = 0; i < leds_cnt; i++) {
         hal_gpio_init(c->indicators[i].pin, 0, HAL_GPIO_PULL_NONE);
         leds[i].pin = c->indicators[i].pin; leds[i].on_high = c->indicators[i].on_high;
@@ -139,13 +155,6 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
                                                  .multi_click_gap_ms =
                                                      c->buttons[i].multi_click_gap_ms };
         button_roles[i] = (input_button_role_t)c->buttons[i].role;
-    }
-    for (uint8_t i = 0; i < relays_cnt; i++) {
-        hal_gpio_init(c->relays[i].on_pin, 0, HAL_GPIO_PULL_NONE);
-        if (c->relays[i].is_latching) hal_gpio_init(c->relays[i].off_pin, 0, HAL_GPIO_PULL_NONE);
-        relay_drivers[i].on_pin      = c->relays[i].on_pin;
-        relay_drivers[i].off_pin     = c->relays[i].off_pin; relay_drivers[i].on_high = 1;
-        relay_drivers[i].is_latching = c->relays[i].is_latching;
     }
     for (uint8_t i = 0; i < relay_clusters_cnt; i++) {
         uint8_t relay_id = c->relay_endpoint_ids[i];
@@ -200,11 +209,6 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
         cover_clusters[i].open_relay_id  = c->covers[i].open_relay_id;
         cover_clusters[i].close_relay_id = c->covers[i].close_relay_id;
     }
-    relay_ctrl_init();
-    for (uint8_t i = 0; i < relays_cnt;
-         i++) if (relay_ctrl_add(&relay_drivers[i],
-                                 &relay_configs[i]) == UINT8_MAX) return FEATURE_WIRING_INVALID;
-
     for (uint8_t i = 0; i < interlocks_cnt; i++) {
         uint8_t g = i + 1;
         interlock_add_group(g, interlocks[i].relay_mask, interlocks[i].dead_time_ms);
@@ -312,10 +316,10 @@ void feature_wiring_start(void) {
         action_mapper_add_reset_button(id, button_roles[i] == INPUT_BUTTON_ONBOARD);
     }
     button_event_cluster_sync_states();
-    hal_register_on_network_status_change_callback(network_changed);
-    network_changed(hal_zigbee_get_network_status());
     hal_zigbee_init(endpoints,
                     switch_clusters_cnt + relay_clusters_cnt + cover_switch_clusters_cnt +
                     cover_clusters_cnt ? switch_clusters_cnt + relay_clusters_cnt +
                     cover_switch_clusters_cnt + cover_clusters_cnt : 1);
+    hal_register_on_network_status_change_callback(network_changed);
+    network_changed(hal_zigbee_get_network_status());
 }

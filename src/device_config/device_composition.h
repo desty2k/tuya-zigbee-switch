@@ -46,4 +46,8 @@ typedef struct {
     uint8_t                      cover_count, switch_count, cover_switch_count, endpoint_count;
     bool                         simultaneous_latching_pulses, momentary_switches;
 } device_composition_t;
+
+config_parse_result_t device_composition_validate(
+    const device_composition_t *composition);
+
 #endif

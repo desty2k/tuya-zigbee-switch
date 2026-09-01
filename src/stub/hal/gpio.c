@@ -21,6 +21,8 @@ typedef struct {
 static stub_gpio_pin_t        gpio_pins[MAX_GPIO_PINS];
 static hal_gpio_edge_sink_t   edge_sink;
 static hal_gpio_diagnostics_t diagnostics;
+static uint32_t init_count;
+static uint32_t write_count;
 static uint32_t edge_seq;
 
 void ensure_valid_input_pin(hal_gpio_pin_t gpio_pin);
@@ -32,11 +34,12 @@ void hal_gpio_init(hal_gpio_pin_t gpio_pin, uint8_t is_input,
         return;
 
     gpio_pins[gpio_pin].initialized = 1;
-    gpio_pins[gpio_pin].is_input    = is_input;
-    gpio_pins[gpio_pin].pull        = pull;
-    gpio_pins[gpio_pin].value       = (pull == HAL_GPIO_PULL_UP) ? 1 : 0;
-    gpio_pins[gpio_pin].watched     = 0;
-    gpio_pins[gpio_pin].last_level  = gpio_pins[gpio_pin].value;
+    init_count++;
+    gpio_pins[gpio_pin].is_input   = is_input;
+    gpio_pins[gpio_pin].pull       = pull;
+    gpio_pins[gpio_pin].value      = (pull == HAL_GPIO_PULL_UP) ? 1 : 0;
+    gpio_pins[gpio_pin].watched    = 0;
+    gpio_pins[gpio_pin].last_level = gpio_pins[gpio_pin].value;
 
     io_log("GPIO", "Init pin %d as %s, pull=%d", gpio_pin,
            is_input ? "input" : "output", pull);
@@ -46,6 +49,7 @@ void hal_gpio_set(hal_gpio_pin_t gpio_pin) {
     ensure_valid_output_pin(gpio_pin);
 
     gpio_pins[gpio_pin].value = 1;
+    write_count++;
     io_log("GPIO", "Set pin %d = 1", gpio_pin);
     io_evt("gpio pin=%d value=%d", gpio_pin, 1);
 }
@@ -54,6 +58,7 @@ void hal_gpio_clear(hal_gpio_pin_t gpio_pin) {
     ensure_valid_output_pin(gpio_pin);
 
     gpio_pins[gpio_pin].value = 0;
+    write_count++;
     io_log("GPIO", "Clear pin %d = 0", gpio_pin);
     io_evt("gpio pin=%d value=%d", gpio_pin, 0);
 }
@@ -173,6 +178,14 @@ uint8_t stub_gpio_get_output(hal_gpio_pin_t gpio_pin) {
         return 0;
     }
     return gpio_pins[gpio_pin].value;
+}
+
+uint32_t stub_gpio_init_count(void) {
+    return init_count;
+}
+
+uint32_t stub_gpio_write_count(void) {
+    return write_count;
 }
 
 // Helper funcs

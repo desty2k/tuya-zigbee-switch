@@ -54,6 +54,17 @@ void stub_tasks_resume(void) {
     tasks_paused = 0;
 }
 
+uint32_t stub_tasks_active_count(void) {
+    uint32_t count = 0;
+
+    for (int i = 0; i < MAX_TASKS; i++) {
+        if (tasks[i].active) {
+            count++;
+        }
+    }
+    return count;
+}
+
 void hal_tasks_init(hal_task_t *task) {
     if (!task) {
         io_log("TASKS", "Error: NULL task pointer passed to hal_init_task");

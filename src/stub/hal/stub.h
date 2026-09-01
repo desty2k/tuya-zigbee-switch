@@ -9,11 +9,14 @@
 void stub_gpio_enable_debug(int enable);
 void stub_gpio_simulate_input(hal_gpio_pin_t gpio_pin, uint8_t value);
 uint8_t stub_gpio_get_output(hal_gpio_pin_t gpio_pin);
+uint32_t stub_gpio_init_count(void);
+uint32_t stub_gpio_write_count(void);
 
 // Tasks stub functions
 void stub_tasks_poll(void);
 void stub_tasks_pause(void);
 void stub_tasks_resume(void);
+uint32_t stub_tasks_active_count(void);
 
 // NVM stub functions
 void stub_nvm_enable_debug(int enable);
