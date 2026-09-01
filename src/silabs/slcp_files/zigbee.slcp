@@ -35,6 +35,8 @@ source:
 - {path: ../../base_components/button_input.c}
 - {path: ../../base_components/gesture_fsm.c}
 - {path: ../../base_components/action_mapper.c}
+- {path: ../../device_config/capability_state.c}
+- {path: ../../device_config/capability_state.h}
 - {path: ../../base_components/timer_service.h}
 - {path: ../../device_config/system_action.c}
 - {path: ../../device_config/feature_wiring.c}

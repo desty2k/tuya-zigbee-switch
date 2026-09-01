@@ -40,13 +40,12 @@ static void add_group(uint16_t dead_time_ms) {
 
 static void submit(uint8_t relay_id, relay_request_type_t type,
                    relay_request_source_t source, uint32_t duration_ms) {
-    ASSERT_EQ(HAL_ZIGBEE_CMD_PROCESSED,
-              relay_ctrl_submit(&(relay_request_t){
+    ASSERT_TRUE(relay_ctrl_submit(&(relay_request_t){
         .relay_id    = relay_id,
         .type        = type,
         .duration_ms = duration_ms,
         .source      = source,
-    }));
+    }) != RELAY_RESULT_INVALID);
 }
 
 TEST(group_keeps_only_latest_relay_on) {

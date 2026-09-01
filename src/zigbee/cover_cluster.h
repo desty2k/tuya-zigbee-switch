@@ -34,6 +34,7 @@ void cover_cluster_add_to_endpoint(zigbee_cover_cluster *cluster, hal_zigbee_end
 void cover_open(zigbee_cover_cluster *cluster);
 void cover_close(zigbee_cover_cluster *cluster);
 void cover_stop(zigbee_cover_cluster *cluster);
+void cover_cluster_action(void *context, uint8_t cover_id, uint16_t command);
 
 void cover_cluster_callback_attr_write_trampoline(uint8_t endpoint, uint16_t attribute_id);
 

@@ -1,6 +1,7 @@
 #include "feature_wiring.h"
 #include "config_nv.h"
 #include "device_config/config_parser.h"
+#include "device_config/system_action.h"
 #include "base_components/action_mapper.h"
 #include "base_components/battery.h"
 #include "base_components/button_input.h"
@@ -55,6 +56,12 @@ hal_zigbee_endpoint              endpoints[10];
 static device_interlock_config_t interlocks[10]; static uint8_t interlocks_cnt;
 static zigbee_basic_cluster      basic_cluster = { .deviceEnable = 1 };
 static zigbee_group_cluster      group_cluster; static hal_zigbee_cluster clusters[48];
+
+static void action_mapper_system_sink(void *context, uint8_t action,
+                                      uint16_t delay_ms) {
+    (void)context;
+    system_action_execute((system_action_t)action, delay_ms);
+}
 
 static void network_changed(hal_zigbee_network_status_t s) {
     button_event_cluster_on_network_status_change(s); if (s == HAL_ZIGBEE_NETWORK_JOINED) {
@@ -280,6 +287,10 @@ void feature_wiring_start(void) {
     switch_cluster_register_gestures();
     cover_switch_cluster_register_gestures();
     action_mapper_init();
+    action_mapper_set_sinks(&(action_mapper_sinks_t){
+        .cover  = cover_cluster_action,
+        .system = action_mapper_system_sink,
+    });
     button_event_cluster_register_gestures();
 
     for (uint8_t i = 0; i < switch_clusters_cnt; i++) {

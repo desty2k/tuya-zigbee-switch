@@ -1,15 +1,17 @@
 #include "hal/nvm.h"
 #include "hal/printf_selector.h"
 #include "nvm_items.h"
+#include "capability_state.h"
 
 #ifdef HAL_SILABS
 #include "silabs_config.h"
 #endif
 
-#define UNKNOWN_VERSION                0
-#define RELAY_CONFIG_VERSION           2
-#define INTERLOCK_CONFIG_VERSION       3
-#define BUTTON_EVENT_CONFIG_VERSION    4
+#define UNKNOWN_VERSION                 0
+#define RELAY_CONFIG_VERSION            2
+#define INTERLOCK_CONFIG_VERSION        3
+#define BUTTON_EVENT_CONFIG_VERSION     4
+#define CAPABILITY_OWNERSHIP_VERSION    5
 
 static void delete_switch_configs(void) {
     for (uint8_t switch_idx = 0; switch_idx < MAX_SWITCHES; switch_idx++) {
@@ -75,6 +77,10 @@ void handle_version_changes() {
     }
     if (oldVersion < BUTTON_EVENT_CONFIG_VERSION) {
         delete_switch_configs();
+    }
+    if (oldVersion < CAPABILITY_OWNERSHIP_VERSION &&
+        !capability_state_migrate_released()) {
+        capability_state_clear_owned();
     }
     write_version_to_nv(currentVersion);
 }

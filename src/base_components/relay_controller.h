@@ -2,11 +2,12 @@
 #define _RELAY_CONTROLLER_H_
 
 #include "base_components/relay_driver.h"
-#include "hal/zigbee.h"
 #include <stdbool.h>
 #include <stdint.h>
 
-#define RELAY_CONTROLLER_MAX_RELAYS    10
+#define RELAY_CONTROLLER_MAX_RELAYS        10
+#define RELAY_CONTROLLER_MAX_OBSERVERS     4
+#define RELAY_CONTROLLER_MAX_INHIBITORS    16
 
 typedef struct {
     uint16_t inching_ms;
@@ -18,6 +19,14 @@ typedef enum {
     AUTO_OFF_PULSE,
     AUTO_OFF_TIMED,
 } auto_off_reason_t;
+
+typedef enum {
+    RELAY_RESULT_APPLIED,
+    RELAY_RESULT_UNCHANGED,
+    RELAY_RESULT_DEFERRED,
+    RELAY_RESULT_BLOCKED,
+    RELAY_RESULT_INVALID,
+} relay_result_t;
 
 typedef enum {
     RELAY_REQUEST_ON,
@@ -35,6 +44,7 @@ typedef enum {
     RELAY_SOURCE_INTERLOCK,
     RELAY_SOURCE_STARTUP,
     RELAY_SOURCE_COVER,
+    RELAY_SOURCE_PROTECTION,
 } relay_request_source_t;
 
 typedef struct {
@@ -44,13 +54,14 @@ typedef struct {
     relay_request_source_t source;
 } relay_request_t;
 
-typedef void (*relay_state_cb_t)(void *param, uint8_t relay_id, bool is_on);
+typedef void (*relay_state_cb_t)(void *context, uint8_t relay_id, bool is_on,
+                                 relay_request_source_t source);
 
 void relay_ctrl_init(void);
 uint8_t relay_ctrl_add(relay_driver_t *driver, relay_config_t *config);
-void relay_ctrl_set_state_callback(uint8_t relay_id, relay_state_cb_t callback,
-                                   void *param);
-hal_zigbee_cmd_result_t relay_ctrl_submit(const relay_request_t *request);
+bool relay_ctrl_subscribe(uint8_t relay_id, relay_state_cb_t callback,
+                          void *context);
+relay_result_t relay_ctrl_submit(const relay_request_t *request);
 bool relay_ctrl_is_on(uint8_t relay_id);
 uint8_t relay_ctrl_count(void);
 void relay_ctrl_set_inching_ms(uint8_t relay_id, uint16_t inching_ms);
@@ -59,5 +70,7 @@ void relay_ctrl_set_interlock_group(uint8_t relay_id, uint8_t group_id);
 uint8_t relay_ctrl_get_interlock_group(uint8_t relay_id);
 auto_off_reason_t relay_ctrl_auto_off_reason(uint8_t relay_id);
 void relay_ctrl_cancel_deferred_on(uint8_t relay_id);
+bool relay_ctrl_inhibit(uint16_t relay_mask, uint8_t inhibit_id);
+bool relay_ctrl_release(uint16_t relay_mask, uint8_t inhibit_id);
 
 #endif

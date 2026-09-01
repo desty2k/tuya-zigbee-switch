@@ -58,6 +58,7 @@ SOURCES := \
 	$(SRC_DIR)/base_components/button_input.c \
 	$(SRC_DIR)/base_components/gesture_fsm.c \
 	$(SRC_DIR)/base_components/action_mapper.c \
+	$(SRC_DIR)/device_config/capability_state.c \
 	$(SRC_DIR)/base_components/battery.c \
 	$(SRC_DIR)/base_components/network_indicator.c \
 	$(SRC_DIR)/device_config/config_parser.c \
@@ -84,7 +85,7 @@ INCLUDES := \
 
 CFLAGS := -Wall -Wno-unused-parameter -Wno-unused-variable -g -O0 \
     -DHAL_STUB -DSTACK_BUILD=1001 -D_DEFAULT_SOURCE -DVERSION_STR="0.0.0" \
-	-DNVM_MIGRATIONS_VERSION=4 \
+	-DNVM_MIGRATIONS_VERSION=5 \
 	-std=c99
 
 LDFLAGS := -lpthread

@@ -153,6 +153,7 @@ COMMON_SOURCES := \
 	$(SRC_DIR)/base_components/button_input.c \
 	$(SRC_DIR)/base_components/gesture_fsm.c \
 	$(SRC_DIR)/base_components/action_mapper.c \
+	$(SRC_DIR)/device_config/capability_state.c \
 	$(SRC_DIR)/base_components/led.c \
 	$(SRC_DIR)/base_components/indicator_feedback.c \
 	$(SRC_DIR)/base_components/network_indicator.c \

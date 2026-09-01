@@ -140,6 +140,25 @@ void cover_stop(zigbee_cover_cluster *cluster) {
     cover_request_movement(cluster, ZCL_ATTR_WINDOW_COVERING_MOVING_STOPPED);
 }
 
+void cover_cluster_action(void *context, uint8_t cover_id, uint16_t command) {
+    extern zigbee_cover_cluster cover_clusters[];
+    extern uint8_t        cover_clusters_cnt;
+    zigbee_cover_cluster *cluster;
+
+    (void)context;
+    if (cover_id >= cover_clusters_cnt) {
+        return;
+    }
+    cluster = &cover_clusters[cover_id];
+    if (command == ZCL_CMD_WINDOW_COVERING_UP_OPEN) {
+        cover_open(cluster);
+    } else if (command == ZCL_CMD_WINDOW_COVERING_DOWN_CLOSE) {
+        cover_close(cluster);
+    } else if (command == ZCL_CMD_WINDOW_COVERING_STOP) {
+        cover_stop(cluster);
+    }
+}
+
 void cover_delay_handler(void *arg) {
     zigbee_cover_cluster *cluster = (zigbee_cover_cluster *)arg;
 

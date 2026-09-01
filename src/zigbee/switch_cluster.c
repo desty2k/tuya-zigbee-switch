@@ -1,9 +1,9 @@
 #include "switch_cluster.h"
 #include "base_components/button_dispatcher.h"
-#include "base_components/relay_controller.h"
+#include "base_components/action_mapper.h"
 #include "cluster_common.h"
 #include "consts.h"
-#include "device_config/nvm_items.h"
+#include "device_config/capability_state.h"
 #include "hal/nvm.h"
 
 #include "hal/printf_selector.h"
@@ -243,13 +243,7 @@ void switch_cluster_add_to_endpoint(zigbee_switch_cluster *cluster,
 static void switch_cluster_submit_relay(zigbee_switch_cluster *cluster,
                                         relay_request_type_t type,
                                         relay_request_source_t source) {
-    relay_request_t request = {
-        .relay_id = cluster->relay_index - 1,
-        .type     = type,
-        .source   = source,
-    };
-
-    relay_ctrl_submit(&request);
+    (void)action_mapper_relay_request(cluster->relay_index - 1, type, source);
 }
 
 static void switch_cluster_relay_action_on(
@@ -548,7 +542,7 @@ void switch_cluster_on_write_attr(zigbee_switch_cluster *cluster,
     switch_cluster_store_attrs_to_nv(cluster);
 }
 
-zigbee_switch_cluster_config nv_config_buffer;
+action_switch_record_t nv_config_buffer;
 
 void switch_cluster_store_attrs_to_nv(zigbee_switch_cluster *cluster) {
     nv_config_buffer.action             = cluster->action;
@@ -560,17 +554,11 @@ void switch_cluster_store_attrs_to_nv(zigbee_switch_cluster *cluster) {
     nv_config_buffer.binded_mode        = cluster->binded_mode;
     nv_config_buffer.multi_click_gap_ms = cluster->multi_click_gap_ms;
     nv_config_buffer.debounce_ms        = cluster->debounce_ms;
-    hal_nvm_write(NV_ITEM_SWITCH_CLUSTER_DATA(cluster->switch_idx),
-                  sizeof(zigbee_switch_cluster_config),
-                  (uint8_t *)&nv_config_buffer);
+    (void)capability_state_store_switch(cluster->switch_idx, &nv_config_buffer);
 }
 
 void switch_cluster_load_attrs_from_nv(zigbee_switch_cluster *cluster) {
-    hal_nvm_status_t st = hal_nvm_read(
-        NV_ITEM_SWITCH_CLUSTER_DATA(cluster->switch_idx),
-        sizeof(zigbee_switch_cluster_config), (uint8_t *)&nv_config_buffer);
-
-    if (st != HAL_NVM_SUCCESS) {
+    if (!capability_state_load_switch(cluster->switch_idx, &nv_config_buffer)) {
         printf("No switch config in NV, using defaults\r\n");
         return;
     }

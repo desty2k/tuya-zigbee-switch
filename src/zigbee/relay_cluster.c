@@ -1,7 +1,7 @@
 #include "relay_cluster.h"
 #include "cluster_common.h"
 #include "consts.h"
-#include "device_config/nvm_items.h"
+#include "device_config/capability_state.h"
 #include "hal/nvm.h"
 #include "hal/printf_selector.h"
 
@@ -26,7 +26,10 @@ hal_zigbee_cmd_result_t relay_cluster_level_callback_trampoline(uint8_t endpoint
                                                                 uint16_t cmd_payload_len);
 
 static void relay_cluster_on_relay_change(void *param, uint8_t relay_id,
-                                          bool is_on);
+                                          bool is_on,
+                                          relay_request_source_t source);
+static hal_zigbee_cmd_result_t relay_cluster_result_to_zigbee(
+    relay_result_t result);
 void relay_cluster_on_write_attr(zigbee_relay_cluster *cluster,
                                  uint16_t attribute_id);
 
@@ -79,8 +82,10 @@ void relay_cluster_add_to_endpoint(zigbee_relay_cluster *cluster,
                                    cluster->interlock_group);
 
     cluster->on_off = relay_ctrl_is_on(cluster->relay_id);
-    relay_ctrl_set_state_callback(cluster->relay_id,
-                                  relay_cluster_on_relay_change, cluster);
+    if (!relay_ctrl_subscribe(cluster->relay_id, relay_cluster_on_relay_change,
+                              cluster)) {
+        return;
+    }
 
     relay_cluster_handle_startup_mode(cluster);
     sync_indicator_led(cluster);
@@ -131,6 +136,23 @@ hal_zigbee_cmd_result_t relay_cluster_callback_trampoline(uint8_t endpoint,
                                   cmd_payload_len);
 }
 
+static hal_zigbee_cmd_result_t relay_cluster_result_to_zigbee(
+    relay_result_t result) {
+    switch (result) {
+    case RELAY_RESULT_APPLIED:
+    case RELAY_RESULT_UNCHANGED:
+    case RELAY_RESULT_DEFERRED:
+        return HAL_ZIGBEE_CMD_PROCESSED;
+
+    case RELAY_RESULT_BLOCKED:
+        return HAL_ZIGBEE_CMD_SKIPPED;
+
+    case RELAY_RESULT_INVALID:
+    default:
+        return HAL_ZIGBEE_INVALID_VALUE;
+    }
+}
+
 hal_zigbee_cmd_result_t relay_cluster_callback(zigbee_relay_cluster *cluster,
                                                uint8_t command_id,
                                                void *cmd_payload,
@@ -138,27 +160,27 @@ hal_zigbee_cmd_result_t relay_cluster_callback(zigbee_relay_cluster *cluster,
     switch (command_id) {
     case ZCL_CMD_ONOFF_ON:
     case ZCL_CMD_ON_WITH_RECALL_GLOBAL_SCENE:
-        return relay_ctrl_submit(&(relay_request_t){
+        return relay_cluster_result_to_zigbee(relay_ctrl_submit(&(relay_request_t){
             .relay_id = cluster->relay_id,
             .type     = cluster->inching_ms == 0 ? RELAY_REQUEST_ON
                                                  : RELAY_REQUEST_PULSE,
             .source = RELAY_SOURCE_ZIGBEE,
-        });
+        }));
 
     case ZCL_CMD_ONOFF_OFF:
     case ZCL_CMD_OFF_WITH_EFFECT:
-        return relay_ctrl_submit(&(relay_request_t){
+        return relay_cluster_result_to_zigbee(relay_ctrl_submit(&(relay_request_t){
             .relay_id = cluster->relay_id,
             .type     = RELAY_REQUEST_OFF,
             .source   = RELAY_SOURCE_ZIGBEE,
-        });
+        }));
 
     case ZCL_CMD_ONOFF_TOGGLE:
-        return relay_ctrl_submit(&(relay_request_t){
+        return relay_cluster_result_to_zigbee(relay_ctrl_submit(&(relay_request_t){
             .relay_id = cluster->relay_id,
             .type     = RELAY_REQUEST_TOGGLE,
             .source   = RELAY_SOURCE_ZIGBEE,
-        });
+        }));
 
     case ZCL_CMD_ON_WITH_TIMED_OFF: {
         uint8_t *payload = (uint8_t *)cmd_payload;
@@ -168,12 +190,12 @@ hal_zigbee_cmd_result_t relay_cluster_callback(zigbee_relay_cluster *cluster,
         }
         uint16_t on_time = (uint16_t)payload[1] |
                            ((uint16_t)payload[2] << 8);
-        return relay_ctrl_submit(&(relay_request_t){
+        return relay_cluster_result_to_zigbee(relay_ctrl_submit(&(relay_request_t){
                 .relay_id    = cluster->relay_id,
                 .type        = RELAY_REQUEST_ON_TIMED,
                 .duration_ms = (uint32_t)on_time * 100,
                 .source      = RELAY_SOURCE_ZIGBEE,
-            });
+            }));
     }
 
     default:
@@ -204,11 +226,11 @@ hal_zigbee_cmd_result_t relay_cluster_level_callback(zigbee_relay_cluster *clust
             return HAL_ZIGBEE_MALFORMED_COMMAND;
         }
         uint8_t level = *(uint8_t *)cmd_payload;
-        return relay_ctrl_submit(&(relay_request_t){
+        return relay_cluster_result_to_zigbee(relay_ctrl_submit(&(relay_request_t){
             .relay_id = cluster->relay_id,
             .type     = level == 0 ? RELAY_REQUEST_OFF : RELAY_REQUEST_ON,
             .source   = RELAY_SOURCE_ZIGBEE,
-        });
+        }));
 
     default:
         printf("Unknown LevelCtrl command: %d\r\n", command_id);
@@ -237,10 +259,12 @@ void sync_indicator_led(zigbee_relay_cluster *cluster) {
 }
 
 static void relay_cluster_on_relay_change(void *param, uint8_t relay_id,
-                                          bool is_on) {
+                                          bool is_on,
+                                          relay_request_source_t source) {
     zigbee_relay_cluster *cluster = (zigbee_relay_cluster *)param;
 
     (void)relay_id;
+    (void)source;
     cluster->on_off = is_on;
     hal_zigbee_notify_attribute_changed(cluster->endpoint, ZCL_CLUSTER_ON_OFF,
                                         ZCL_ATTR_ONOFF);
@@ -270,54 +294,29 @@ void relay_cluster_on_write_attr(zigbee_relay_cluster *cluster,
     relay_cluster_store_attrs_to_nv(cluster);
 }
 
-typedef struct {
-    uint8_t  on_off;
-    uint8_t  startup_mode;
-    uint8_t  indicator_led_mode;
-    uint8_t  indicator_led_on;
-    uint16_t inching_ms;
-    uint8_t  interlock_group;
-} zigbee_relay_cluster_config;
-
-static zigbee_relay_cluster_config nv_config_buffer;
+static relay_state_record_t nv_config_buffer;
 
 void relay_cluster_store_attrs_to_nv(zigbee_relay_cluster *cluster) {
-    nv_config_buffer.on_off             = cluster->on_off;
-    nv_config_buffer.startup_mode       = cluster->startup_mode;
-    nv_config_buffer.indicator_led_mode = cluster->indicator_led_mode;
-    if (cluster->indicator_led != NULL) {
-        nv_config_buffer.indicator_led_on = cluster->indicator_state;
-    }
-    nv_config_buffer.inching_ms      = cluster->inching_ms;
-    nv_config_buffer.interlock_group = cluster->interlock_group;
-
-    hal_nvm_write(NV_ITEM_RELAY_CLUSTER_DATA(cluster->relay_idx),
-                  sizeof(zigbee_relay_cluster_config),
-                  (uint8_t *)&nv_config_buffer);
+    nv_config_buffer = (relay_state_record_t){
+        .on_off         = cluster->on_off, .startup_mode = cluster->startup_mode,
+        .indicator_mode = cluster->indicator_led_mode, .indicator_state = cluster->indicator_state,
+        .inching_ms     = cluster->inching_ms, .interlock_group = cluster->interlock_group,
+    };
+    (void)capability_state_store_relay(cluster->relay_idx, &nv_config_buffer);
 }
 
 void relay_cluster_load_attrs_from_nv(zigbee_relay_cluster *cluster) {
-    hal_nvm_status_t st = hal_nvm_read(
-        NV_ITEM_RELAY_CLUSTER_DATA(cluster->relay_idx),
-        sizeof(zigbee_relay_cluster_config), (uint8_t *)&nv_config_buffer);
-
-    if (st != HAL_NVM_SUCCESS)
-        return;
+    if (!capability_state_load_relay(cluster->relay_idx, &nv_config_buffer)) return;
 
     cluster->startup_mode       = nv_config_buffer.startup_mode;
-    cluster->indicator_led_mode = nv_config_buffer.indicator_led_mode;
-    cluster->indicator_state    = nv_config_buffer.indicator_led_on;
+    cluster->indicator_led_mode = nv_config_buffer.indicator_mode;
+    cluster->indicator_state    = nv_config_buffer.indicator_state;
     cluster->inching_ms         = nv_config_buffer.inching_ms;
     cluster->interlock_group    = nv_config_buffer.interlock_group;
 }
 
 void relay_cluster_handle_startup_mode(zigbee_relay_cluster *cluster) {
-    hal_nvm_status_t st = hal_nvm_read(
-        NV_ITEM_RELAY_CLUSTER_DATA(cluster->relay_idx),
-        sizeof(zigbee_relay_cluster_config), (uint8_t *)&nv_config_buffer);
-
-    if (st != HAL_NVM_SUCCESS)
-        return;
+    if (!capability_state_load_relay(cluster->relay_idx, &nv_config_buffer)) return;
 
     uint8_t prev_on = nv_config_buffer.on_off;
 
