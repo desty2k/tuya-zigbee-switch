@@ -7,14 +7,14 @@ and [02_phases.md](./02_phases.md).
 - Branch: `refactor/input-pipeline`
 - Design baseline: `505b82c3`
 - Created: 2026-09-01
-- Current position: **Phase 1 complete; Phase 2 not started**
+- Current position: **Phase 2 complete; Phase 3 not started**
 
 ## Phases
 
 | # | Phase | Status | Gate |
 | --- | --- | --- | --- |
 | 1 | Normalized composition root | done | pure parser and normalized composition root verified in `tuya-telink-build` |
-| 2 | Capability-safe relay and action contracts | not started | native contracts + existing switch/relay suites |
+| 2 | Capability-safe relay and action contracts | done | domain contracts, owner-record migrations, native contracts, and switch/relay regressions verified in `tuya-telink-build` |
 | 3 | Cover domain extraction | not started | controller unit tests + cover regressions |
 | 4 | Cover position and calibration | not started | virtual-time/NVM/Zigbee tests + TS130F hardware |
 | 5 | Meter HAL, driver and service | not started | software may proceed; completion needs exact outlet hardware/IC confirmation |
@@ -30,7 +30,9 @@ Statuses: `not started`, `in progress`, `in review`, `done`, `blocked`.
 | --- | --- |
 | Input/output foundation | input pipeline, timer service, relay driver/controller, interlock and indicator feedback exist |
 | Composition | `config_parser` produces a pure validated composition; `feature_wiring` is the sole composition root |
-| Relay API | returns `hal_zigbee_cmd_result_t`; one state callback per relay; no protection source/inhibit |
+| Relay API | protocol-independent `relay_result_t`, four ordered observers per relay, and source-owned inhibit masks; Zigbee maps results at its adapter boundary |
+| Local actions | bounded typed mapper records dispatch relay, cover, binding, button-event, and system intents through injected sinks; adapters retain Zigbee frame encoding |
+| Phase 2 persistence | owner-record IDs start at 40; version-5 migration converts released relay, switch, and cover-switch records, and clears owner records on conversion failure |
 | Cover | behavior and NVM live in `cover_cluster`; no GOTO; position is a global placeholder 50 |
 | Metering | no counter HAL, meter driver/service, Electrical Measurement or Metering adapter in application code |
 | Device schema | flat legacy metadata plus `config_str`; no capability/profile objects |
@@ -64,8 +66,8 @@ calibration-time attributes, but no public GPIO trace.
 [x] src/device_config/device_composition.*
 [x] src/device_config/config_parser.*       parse only
 [x] src/device_config/feature_wiring.*       sole composition root
-[ ] src/base_components/action_mapper.*      typed local mappings
-[ ] src/base_components/relay_controller.*   domain result, observers, inhibit
+[x] src/base_components/action_mapper.*      typed local mappings
+[x] src/base_components/relay_controller.*   domain result, observers, inhibit
 [ ] src/base_components/cover_controller.*
 [ ] src/hal/gpio_counter.h + 3 implementations
 [ ] src/base_components/energy_meter.h
@@ -76,8 +78,8 @@ calibration-time attributes, but no public GPIO trace.
 [ ] src/zigbee/electrical_measurement_cluster.*
 [ ] src/zigbee/metering_cluster.*
 [ ] Telink/Silabs/stub cluster registration
-[ ] NVM item ids and explicit migrations
-[ ] native unit tests with fake relays/meters
+[x] NVM item ids and explicit migrations
+[x] native unit tests with fake relays/action sinks and migration fixtures
 [ ] stub/pytest integration tests
 [ ] generator templates and separately regenerated outputs
 [ ] exact outlet and cover database profiles
@@ -125,3 +127,4 @@ Detailed evidence, candidate configurations and acceptance procedures are in
 
 Large compiler logs, UART logs and packet captures stay outside `docs/`. Record a
 stable path/link and a concise counter/result summary here.
+| 2026-09-01 | 2 | `01f7ed76` | `tuya-telink-build` | Fresh `/workspace/stage2-phase2` copy: `make stub/build`, `make -B unit_tests`, and `make tests` passed (277); compatible Uncrustify 0.83 ran twice with no second-pass source diff; `git diff --check` passed on the source tree; `BOARD=SWITCH_BSEED_TS0726_4GANG DEVICE_TYPE=router make board/build` passed with `IMAGE_TYPE=43627` and preserved TS0726 config. Native coverage includes relay results/observers/inhibits/wrap, typed mapper fake sinks, and released-record migration fixtures. | Phase 2 complete. |
