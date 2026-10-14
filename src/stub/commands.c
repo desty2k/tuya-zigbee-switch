@@ -861,9 +861,10 @@ static int cmd_input_diag(int argc, char **argv) {
     (void)argc;
     (void)argv;
     io_res_ok("button_schedule_failures=%u timer_schedule_failures=%u "
-              "gpio_edges_dropped=%u",
+              "gpio_edges_dropped=%u zb_button_event_schedule_failures=%u",
               button_input_schedule_failures(), timer_schedule_failures(),
-              button_input_gpio_edges_dropped());
+              button_input_gpio_edges_dropped(),
+              button_event_cluster_schedule_failures());
     return 0;
 }
 

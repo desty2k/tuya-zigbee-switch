@@ -121,6 +121,7 @@ void app_task() {
 
     hal_gpio_process_pending();
     button_input_process_pending();
+    button_event_cluster_process_pending();
     app_track_network_status(network_status);
     network_diagnostics.uptime_ms = hal_millis();
     diagnostics_service_set_provider(app_diagnostics_provider, NULL);

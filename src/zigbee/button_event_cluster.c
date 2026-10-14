@@ -27,7 +27,9 @@ static uint8_t              button_event_cluster_count;
 static uint16_t             button_event_seq;
 static button_event_queue_t button_event_queue;
 static hal_task_t           button_event_tx_task;
-static bool button_event_tx_scheduled;
+static bool     button_event_tx_scheduled;
+static bool     button_event_tx_retry_pending;
+static uint32_t button_event_schedule_failures;
 
 static void button_event_cluster_tx_task(void *arg) {
     (void)arg;
@@ -38,8 +40,25 @@ static void button_event_cluster_schedule(uint32_t delay_ms) {
     if (button_event_tx_scheduled) {
         hal_tasks_unschedule(&button_event_tx_task);
     }
-    button_event_tx_scheduled = true;
-    hal_tasks_schedule(&button_event_tx_task, delay_ms);
+    button_event_tx_scheduled = hal_tasks_schedule(&button_event_tx_task, delay_ms);
+    if (!button_event_tx_scheduled) {
+        // Retried by button_event_cluster_process_pending() from the main loop.
+        button_event_schedule_failures++;
+        button_event_tx_retry_pending = true;
+    }
+}
+
+void button_event_cluster_process_pending(void) {
+    if (!button_event_tx_retry_pending) return;
+
+    button_event_tx_retry_pending = false;
+    if (!button_event_tx_scheduled) {
+        button_event_cluster_schedule(0);
+    }
+}
+
+uint32_t button_event_cluster_schedule_failures(void) {
+    return button_event_schedule_failures;
 }
 
 static bool button_event_cluster_has_button(
@@ -147,6 +166,8 @@ void button_event_cluster_init(void) {
     button_event_queue.high_water  = 0;
     button_event_queue.submitted   = 0;
     button_event_tx_scheduled      = false;
+    button_event_tx_retry_pending  = false;
+    button_event_schedule_failures = 0;
     button_event_tx_task.handler   = button_event_cluster_tx_task;
     button_event_tx_task.arg       = NULL;
     hal_tasks_init(&button_event_tx_task);

@@ -121,6 +121,22 @@ static void emit_button(uint32_t press_id) {
     button_event_cluster_on_button_event(&event, NULL);
 }
 
+TEST(refused_transmit_task_is_retried_from_the_main_loop) {
+    reset_queue();
+    send_fails = false;
+    fake_tasks_reject_next(1);
+    emit_button(20);
+    ASSERT_EQ(1, button_event_cluster_schedule_failures());
+    ASSERT_EQ(0, fake_tasks_pending());
+
+    /* A later event alone must not be needed to get the queue moving. */
+    button_event_cluster_process_pending();
+    ASSERT_EQ(1, fake_tasks_pending());
+    drain_queue();
+    ASSERT_EQ(1, sent_count);
+    ASSERT_EQ(20, decode_u16(&sent[0].payload[2]));
+}
+
 TEST(events_drain_in_fifo_order) {
     reset_queue();
     emit_button(10);
@@ -200,6 +216,7 @@ TEST(queued_payload_is_an_immutable_snapshot) {
 }
 
 int main(void) {
+    RUN_TEST(refused_transmit_task_is_retried_from_the_main_loop);
     RUN_TEST(events_drain_in_fifo_order);
     RUN_TEST(overflow_drops_oldest_and_keeps_newest);
     RUN_TEST(sequence_advances_while_not_joined);

@@ -66,6 +66,10 @@ void button_event_cluster_on_gesture_event(const gesture_event_t *event,
 void button_event_cluster_on_network_status_change(
     hal_zigbee_network_status_t status);
 void button_event_cluster_drain(void);
+
+/** Retry a transmit task the scheduler refused; call from the main loop. */
+void button_event_cluster_process_pending(void);
+uint32_t button_event_cluster_schedule_failures(void);
 uint32_t button_event_cluster_dropped(void);
 uint32_t button_event_cluster_expired(void);
 uint32_t button_event_cluster_send_failed(void);
