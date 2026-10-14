@@ -284,8 +284,26 @@ TEST(read_reporting_configuration_records_are_whole_and_counted) {
     ASSERT_TRUE(!zcl_frame_is_well_formed(ZCL_FRAME_CMD_READ_REPORT_CFG, many, 3 * 18, &limits));
 }
 
+TEST(fixed_payload_commands_need_their_whole_payload) {
+    /* Default Response: command id, status. Discover Attributes (Extended):
+     * start attribute id, maximum attribute ids. */
+    const uint8_t two[]   = { 0x02, 0x00 };
+    const uint8_t three[] = { 0x00, 0x00, 0x10 };
+
+    ASSERT_TRUE(FRAME_OK(ZCL_FRAME_CMD_DEFAULT_RSP, two));
+    ASSERT_TRUE(zcl_frame_is_well_formed(ZCL_FRAME_CMD_DEFAULT_RSP, two, 1, &limits) == false);
+    ASSERT_TRUE(zcl_frame_is_well_formed(ZCL_FRAME_CMD_DEFAULT_RSP, NULL, 0, &limits) == false);
+    ASSERT_TRUE(FRAME_OK(ZCL_FRAME_CMD_DISCOVER_ATTR, three));
+    ASSERT_TRUE(zcl_frame_is_well_formed(ZCL_FRAME_CMD_DISCOVER_ATTR, three, 2, &limits) == false);
+    ASSERT_TRUE(zcl_frame_is_well_formed(ZCL_FRAME_CMD_DISCOVER_ATTR, NULL, 0, &limits) == false);
+    ASSERT_TRUE(FRAME_OK(ZCL_FRAME_CMD_DISCOVER_ATTR_EXTD, three));
+    ASSERT_TRUE(zcl_frame_is_well_formed(ZCL_FRAME_CMD_DISCOVER_ATTR_EXTD, three, 2, &limits) == false);
+    ASSERT_TRUE(zcl_frame_is_well_formed(ZCL_FRAME_CMD_DISCOVER_ATTR_EXTD, NULL, 0, &limits) == false);
+}
+
 int main(void) {
     RUN_TEST(write_and_report_frames_must_end_after_their_last_record);
+    RUN_TEST(fixed_payload_commands_need_their_whole_payload);
     RUN_TEST(read_reporting_configuration_records_are_whole_and_counted);
     RUN_TEST(read_response_values_are_bounded_only_for_successful_records);
     RUN_TEST(configure_reporting_records_are_bounded_and_counted);

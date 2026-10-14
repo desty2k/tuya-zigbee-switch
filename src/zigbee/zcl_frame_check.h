@@ -30,6 +30,9 @@
 #define ZCL_FRAME_CMD_READ_REPORT_CFG         0x08u
 #define ZCL_FRAME_CMD_READ_REPORT_CFG_RSP     0x09u
 #define ZCL_FRAME_CMD_REPORT                  0x0Au
+#define ZCL_FRAME_CMD_DEFAULT_RSP             0x0Bu
+#define ZCL_FRAME_CMD_DISCOVER_ATTR           0x0Cu
+#define ZCL_FRAME_CMD_DISCOVER_ATTR_EXTD      0x15u
 
 #define ZCL_FRAME_SEND_ATTR_REPORTS           0x00u
 #define ZCL_FRAME_STATUS_SUCCESS              0x00u
@@ -37,6 +40,10 @@
 #define ZCL_FRAME_MAX_RECORDS                 255u
 /* Read Reporting Configuration record: direction (1), attribute id (2). */
 #define ZCL_FRAME_READ_REPORT_CFG_REC_SIZE    3u
+/* Default Response: command id (1), status (1). */
+#define ZCL_FRAME_DEFAULT_RSP_SIZE            2u
+/* Discover Attributes (Extended): start attribute id (2), maximum ids (1). */
+#define ZCL_FRAME_DISCOVER_ATTR_SIZE          3u
 
 /*
  * Record counts beyond which the SDK's u8-sized allocations for a command's
@@ -248,6 +255,14 @@ static inline bool zcl_frame_is_well_formed(uint8_t command_id, const uint8_t *d
 
     case ZCL_FRAME_CMD_READ_REPORT_CFG_RSP:
         return zcl_frame_read_report_cfg_rsp_is_bounded(data, len);
+
+    /* The SDK reads these fixed fields without checking the length. */
+    case ZCL_FRAME_CMD_DEFAULT_RSP:
+        return len >= ZCL_FRAME_DEFAULT_RSP_SIZE;
+
+    case ZCL_FRAME_CMD_DISCOVER_ATTR:
+    case ZCL_FRAME_CMD_DISCOVER_ATTR_EXTD:
+        return len >= ZCL_FRAME_DISCOVER_ATTR_SIZE;
 
     default:
         return true;
