@@ -3116,6 +3116,34 @@ OUTLET_BSEED_TS011F:
   info: Supported
   threads: https://github.com/romasku/tuya-zigbee-switch/issues/145
   store: https://www.aliexpress.com/item/1005004402438527.html
+OUTLET_BSEED_TS011F_PROBE:
+  human_name: BSEED outlet GPIO probe (drzlxjne)
+  category: outlet
+  power: mains
+  neutral: required
+  output: relay
+  device_type: router
+  stock_model_name: TS011F
+  stock_manufacturer_name: _TZ3210_drzlxjne
+  stock_converter_manufacturer: Tuya
+  stock_converter_model: TS011F_plug_1
+  override_z2m_device: null
+  tuya_module: null
+  mcu_family: Telink
+  mcu: TLSR8258
+  config_str: _TZ3210_drzlxjne;TS011F-probe;
+  alt_config_str: null
+  features: [probe]
+  old_manufacturer_names: null
+  old_zb_models: null
+  stock_manufacturer_id: 4417
+  stock_image_type: 54179
+  firmware_image_type: 47116
+  build: no
+  status: in_progress
+  info: GPIO probe image for pin discovery, not a working outlet firmware; built on demand (docs/contribute/porting.md)
+  threads: null
+  store: null
 OUTLET_MAKEGOOD_PM_TS011F_2GANG:
   human_name: MakeGood MG-GPO01 double socket
   category: outlet

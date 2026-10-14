@@ -1,0 +1,96 @@
+"""OTA index safety and probe board rules of the helper scripts."""
+
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+import yaml
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "helper_scripts"))
+
+import board_features  # noqa: E402
+
+INDEX_SCRIPT = ROOT / "helper_scripts/make_z2m_ota_index.py"
+STOCK_IMAGE_TYPE = 54179
+PROBE_BOARD = "OUTLET_BSEED_TS011F_PROBE"
+
+
+def ota_file(path: Path, image_type: int, manufacturer: int = 4417) -> Path:
+    header = bytearray(56)
+    header[0:4] = b"\x1e\xf1\xee\x0b"
+    header[10:12] = manufacturer.to_bytes(2, "little")
+    header[12:14] = image_type.to_bytes(2, "little")
+    header[14:18] = (1).to_bytes(4, "little")
+    header[20:52] = b"probe test".ljust(32, b"\x00")
+    path.write_bytes(bytes(header) + b"\x00" * 64)
+    return path
+
+
+def run_index(tmp_path: Path, image_type: int, board: str | None,
+              db: Path = ROOT / "device_db.yaml") -> subprocess.CompletedProcess:
+    args = [sys.executable, str(INDEX_SCRIPT), "--db_file", str(db),
+            "--base-url", "https://example.invalid",
+            str(ota_file(tmp_path / "image.zigbee", image_type)),
+            str(tmp_path / "index.json")]
+    if board:
+        args += ["--board", board]
+    return subprocess.run(args, capture_output=True, text=True)
+
+
+def test_index_refuses_stock_image_type_without_manufacturer_filter(tmp_path: Path) -> None:
+    result = run_index(tmp_path, STOCK_IMAGE_TYPE, board=None)
+    assert result.returncode != 0
+    assert "manufacturerName" in result.stderr
+    assert not (tmp_path / "index.json").exists()
+
+
+def test_index_refuses_an_unfiltered_stock_entry_already_in_the_index(tmp_path: Path) -> None:
+    (tmp_path / "index.json").write_text(json.dumps([{
+        "fileName": "old.zigbee", "imageType": STOCK_IMAGE_TYPE,
+        "manufacturerCode": 4417,
+    }]))
+    result = run_index(tmp_path, 47116, board=PROBE_BOARD)
+    assert result.returncode != 0
+    assert "old.zigbee" in result.stderr
+
+
+def test_index_accepts_fork_image_type_without_board(tmp_path: Path) -> None:
+    assert run_index(tmp_path, 47116, board=None).returncode == 0
+
+
+def test_probe_stock_entry_is_filtered_to_its_outlet(tmp_path: Path) -> None:
+    result = run_index(tmp_path, STOCK_IMAGE_TYPE, board=PROBE_BOARD)
+    assert result.returncode == 0, result.stderr
+    (entry,) = json.loads((tmp_path / "index.json").read_text())
+    assert entry["imageType"] == STOCK_IMAGE_TYPE
+    assert entry["manufacturerCode"] == 4417
+    assert entry["manufacturerName"] == ["_TZ3210_drzlxjne"]
+
+
+def test_probe_board_is_a_unique_probe_only_telink_image() -> None:
+    db = yaml.safe_load((ROOT / "device_db.yaml").read_text())
+    board = db[PROBE_BOARD]
+    order = board_features.known_features()
+    assert board_features.board_features(board, order) == ["probe"]
+    assert board_features.check_board(PROBE_BOARD, board, order) == ([], [])
+    assert (board["stock_manufacturer_id"], board["stock_image_type"]) == (4417, 54179)
+    assert board["build"] in (False, "no")
+    image_types = [other["firmware_image_type"] for other in db.values()]
+    assert image_types.count(board["firmware_image_type"]) == 1
+
+
+@pytest.mark.parametrize("change, message", [
+    ({"features": ["probe", "relay"]}, "only feature"),
+    ({"mcu_family": "Silabs"}, "Telink"),
+    ({"device_type": "end_device"}, "router"),
+    ({"config_str": "_TZ3210_drzlxjne;TS011F-probe;LC2;"}, "claim no pins"),
+])
+def test_probe_board_rules(change: dict, message: str) -> None:
+    db = yaml.safe_load((ROOT / "device_db.yaml").read_text())
+    board = {**db[PROBE_BOARD], **change}
+    errors, _ = board_features.check_board(PROBE_BOARD, board, board_features.known_features())
+    assert any(message in error for error in errors), errors
+

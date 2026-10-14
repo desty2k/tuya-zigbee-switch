@@ -6,6 +6,9 @@ absent, the features its config tokens need. The token classification mirrors
 src/device_config/config_parser.c: a token belongs to a feature when the code
 it instantiates is compiled only with that feature (src/features.mk).
 
+The `probe` feature builds a GPIO probe image: it must be the board's only
+feature, on a Telink router, with a config that claims no pins.
+
   board_features.py check            validate every board, exit 1 on errors
   board_features.py features BOARD   print BOARD's features, exit 1 if invalid
 """
@@ -81,6 +84,21 @@ def board_features(board, order):
     return [feature for feature in order if feature in features]
 
 
+def check_probe_board(name, board, features):
+    errors = []
+    if features != {"probe"}:
+        errors.append(f"{name}: feature 'probe' must be the only feature, "
+                      f"not {sorted(features)}")
+    if board.get("mcu_family") != "Telink":
+        errors.append(f"{name}: feature 'probe' has a Telink HAL only")
+    if board.get("device_type") != "router":
+        errors.append(f"{name}: a probe board must be a router")
+    for text in config_strings(board):
+        if config_tokens(text):
+            errors.append(f"{name}: a probe board config must claim no pins: '{text}'")
+    return errors
+
+
 def check_board(name, board, order):
     """Return (errors, warnings) for one board."""
     errors = []
@@ -92,6 +110,8 @@ def check_board(name, board, order):
                 errors.append(f"{name}: unknown feature '{feature}'")
     features = set(board_features(board, order))
     buildable = board.get("build") in (True, "yes")
+    if "probe" in features:
+        errors += check_probe_board(name, board, features)
     for text in config_strings(board):
         for token in config_tokens(text):
             known, feature = token_feature(token)

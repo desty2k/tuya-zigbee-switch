@@ -139,7 +139,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["relay", "switch", "cover", "battery", "meter"]
+            "enum": ["relay", "switch", "cover", "battery", "meter", "probe"]
           },
           "uniqueItems": true,
           "description": "Features compiled into this board's firmware image. Omitted: derived from the config_str and alt_config_str tokens"

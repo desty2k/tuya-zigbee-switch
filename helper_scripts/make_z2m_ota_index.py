@@ -77,6 +77,37 @@ def make_ota_index_entry(file: Path, base_url: str, manufacturer_names: list[str
         res["manufacturerName"] = manufacturer_names
     return res
 
+def board_manufacturer_names(db: dict, board: str | None) -> list[str]:
+    """manufacturerName filter of a board's entries, without duplicates."""
+    device = db.get(board) if board else None
+    if not device:
+        return []
+    names = []
+    if device.get("stock_manufacturer_name"):
+        names.append(device["stock_manufacturer_name"])
+    if device.get("old_manufacturer_names"):
+        names.extend(device["old_manufacturer_names"])
+    names.append(device["config_str"].split(";")[0])
+    return list(dict.fromkeys(names))
+
+
+def stock_image_types(db: dict) -> set[int]:
+    return {device["stock_image_type"] for device in db.values()
+            if isinstance(device, dict) and device.get("stock_image_type") is not None}
+
+
+def check_entry(entry: dict, db: dict) -> None:
+    """Refuse an entry that a stock device of another model could accept.
+
+    Stock Tuya images share image types (54179 is used by many models), so an
+    entry with a stock image type must be restricted by manufacturerName.
+    """
+    if entry["imageType"] in stock_image_types(db) and not entry.get("manufacturerName"):
+        raise SystemExit(
+            f"{entry['fileName']}: image type {entry['imageType']} is a stock image type; "
+            "refusing an index entry without a manufacturerName filter")
+
+
 def get_raw_github_link():
     try:
         branch = subprocess.run(
@@ -131,17 +162,7 @@ if __name__ == "__main__":
     db_str = Path(args.db_file).read_text()
     db = yaml.safe_load(db_str)
 
-    manufacturer_names = []
-    device = db.get(args.board)
-    if device:
-      
-        if device.get("stock_manufacturer_name"):
-            manufacturer_names.append(device["stock_manufacturer_name"])
-        if device.get("old_manufacturer_names"):
-            manufacturer_names.extend(device["old_manufacturer_names"])
-        manufacturer_names.append(
-            device["config_str"].split(";")[0]
-        )
+    manufacturer_names = board_manufacturer_names(db, args.board)
 
     entry = make_ota_index_entry(
         file=Path(args.filename),
@@ -162,6 +183,8 @@ if __name__ == "__main__":
         ) 
     ]
     index_data.append(entry)
+    for indexed in index_data:
+        check_entry(indexed, db)
     index_file.write_text(json.dumps(
         index_data,
         indent=2,
