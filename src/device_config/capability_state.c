@@ -45,3 +45,24 @@ void capability_state_clear_owned(void) {
         hal_nvm_delete(NV_ITEM_ACTION_COVER_SWITCH_STATE(i));
     }
 }
+
+void capability_state_add_cover_switch_hold(void) {
+    struct { uint8_t  cover_index, reversal, local_mode, binded_mode, switch_type;
+             uint16_t multi_click_gap_ms, debounce_ms; } old;
+
+    for (uint8_t i = 0; i < MAX_COVER_SWITCHES; i++) {
+        if (!load(NV_ITEM_ACTION_COVER_SWITCH_STATE(i), sizeof(old), &old)) continue;
+
+        action_cover_switch_record_t record = {
+            .cover_index        = old.cover_index,
+            .reversal           = old.reversal,
+            .local_mode         = old.local_mode,
+            .binded_mode        = old.binded_mode,
+            .switch_type        = old.switch_type,
+            .multi_click_gap_ms = old.multi_click_gap_ms,
+            .debounce_ms        = old.debounce_ms,
+            .hold_duration_ms   = COVER_SWITCH_DEFAULT_HOLD_MS,
+        };
+        (void)store(NV_ITEM_ACTION_COVER_SWITCH_STATE(i), sizeof(record), &record);
+    }
+}

@@ -10,7 +10,11 @@ typedef struct { uint8_t  mode, action, relay_mode, relay_index;
                  uint16_t hold_duration_ms; uint8_t level_move_rate, binded_mode;
                  uint16_t multi_click_gap_ms, debounce_ms; } action_switch_record_t;
 typedef struct { uint8_t  cover_index, reversal, local_mode, binded_mode, switch_type;
-                 uint16_t multi_click_gap_ms, debounce_ms; } action_cover_switch_record_t;
+                 uint16_t multi_click_gap_ms, debounce_ms, hold_duration_ms; }
+action_cover_switch_record_t;
+
+/* Long-press duration of a cover switch without a stored one, in ms. */
+#define COVER_SWITCH_DEFAULT_HOLD_MS    800
 
 bool capability_state_load_relay(uint8_t id, relay_state_record_t *record);
 bool capability_state_store_relay(uint8_t id, const relay_state_record_t *record);
@@ -19,5 +23,9 @@ bool capability_state_store_switch(uint8_t id, const action_switch_record_t *rec
 bool capability_state_load_cover_switch(uint8_t id, action_cover_switch_record_t *record);
 bool capability_state_store_cover_switch(uint8_t id, const action_cover_switch_record_t *record);
 void capability_state_clear_owned(void);
+
+/** Rewrites cover switch records stored without the long-press duration,
+ * keeping their settings and adding COVER_SWITCH_DEFAULT_HOLD_MS. */
+void capability_state_add_cover_switch_hold(void);
 
 #endif
