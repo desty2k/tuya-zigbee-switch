@@ -54,46 +54,21 @@ void interlock_init(void) {
     }
 }
 
-bool interlock_add_group(uint8_t group_id, uint16_t relay_mask,
-                         uint16_t dead_time_ms) {
+bool interlock_add_group(uint8_t group_id, uint16_t dead_time_ms) {
     interlock_group_t *group;
 
-    if (group_id == INTERLOCK_NO_GROUP || relay_mask == 0) {
+    if (group_id == INTERLOCK_NO_GROUP || interlock_find_group(group_id) != NULL ||
+        interlock_group_count >= INTERLOCK_MAX_GROUPS) {
         return false;
     }
-    group = interlock_find_group(group_id);
-    if (group == NULL) {
-        if (interlock_group_count >= INTERLOCK_MAX_GROUPS) {
-            return false;
-        }
-        group = &interlock_groups[interlock_group_count++];
-        timer_init(&group->dead_time_timer, interlock_dead_time_elapsed, group);
-    } else {
-        timer_cancel(&group->dead_time_timer);
-        if (group->pending_on_relay != INTERLOCK_NO_PENDING) {
-            relay_ctrl_cancel_deferred_on(group->pending_on_relay);
-        }
-        for (uint8_t relay_id = 0;
-             relay_id < RELAY_CONTROLLER_MAX_RELAYS; relay_id++) {
-            if ((group->relay_mask & ((uint16_t)1 << relay_id)) != 0) {
-                interlock_relay_groups[relay_id] = INTERLOCK_NO_GROUP;
-            }
-        }
-    }
-    group->group_id         = group_id;
-    group->relay_mask       = 0;
-    group->dead_time_ms     = dead_time_ms;
-    group->pending_on_relay = INTERLOCK_NO_PENDING;
-    group->resume_relay     = INTERLOCK_NO_PENDING;
-    group->last_off_ms      = 0;
-    group->has_last_off     = false;
-
-    for (uint8_t relay_id = 0; relay_id < RELAY_CONTROLLER_MAX_RELAYS;
-         relay_id++) {
-        if ((relay_mask & ((uint16_t)1 << relay_id)) != 0) {
-            interlock_set_relay_group(relay_id, group_id);
-        }
-    }
+    group  = &interlock_groups[interlock_group_count++];
+    *group = (interlock_group_t){
+        .group_id         = group_id,
+        .dead_time_ms     = dead_time_ms,
+        .pending_on_relay = INTERLOCK_NO_PENDING,
+        .resume_relay     = INTERLOCK_NO_PENDING,
+    };
+    timer_init(&group->dead_time_timer, interlock_dead_time_elapsed, group);
     return true;
 }
 
@@ -137,6 +112,11 @@ bool interlock_set_relay_group(uint8_t relay_id, uint8_t group_id) {
         }
     }
     return true;
+}
+
+uint8_t interlock_relay_group(uint8_t relay_id) {
+    return relay_id < RELAY_CONTROLLER_MAX_RELAYS ? interlock_relay_groups[relay_id]
+                                                  : INTERLOCK_NO_GROUP;
 }
 
 bool interlock_prepare(uint8_t relay_id) {

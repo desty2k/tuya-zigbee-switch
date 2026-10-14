@@ -59,20 +59,11 @@ uint8_t relay_ctrl_add(relay_driver_t *driver, relay_config_t *config) {
         return UINT8_MAX;
     }
 
-    relay_ctrl_runtimes[relay_id].is_on                    = false;
-    relay_ctrl_runtimes[relay_id].state_applied            = false;
-    relay_ctrl_runtimes[relay_id].relay_id                 = relay_id;
-    relay_ctrl_runtimes[relay_id].inhibit_mask             = 0;
-    relay_ctrl_runtimes[relay_id].auto_off_reason          = AUTO_OFF_NONE;
-    relay_ctrl_runtimes[relay_id].deferred_auto_off_reason = AUTO_OFF_NONE;
-    relay_ctrl_runtimes[relay_id].deferred_auto_off_ms     = 0;
-    relay_ctrl_runtimes[relay_id].deferred_on              = false;
-    relay_ctrl_runtimes[relay_id].config                   = config;
-    relay_ctrl_runtimes[relay_id].driver                   = driver;
-    for (uint8_t i = 0; i < RELAY_CONTROLLER_MAX_OBSERVERS; i++) {
-        relay_ctrl_runtimes[relay_id].observers[i].callback = NULL;
-        relay_ctrl_runtimes[relay_id].observers[i].context  = NULL;
-    }
+    relay_ctrl_runtimes[relay_id] = (relay_runtime_t){
+        .relay_id = relay_id,
+        .config   = config,
+        .driver   = driver,
+    };
     timer_init(&relay_ctrl_runtimes[relay_id].auto_off_timer,
                relay_ctrl_auto_off, &relay_ctrl_runtimes[relay_id]);
     relay_driver_init(driver);
@@ -228,21 +219,6 @@ uint16_t relay_ctrl_get_inching_ms(uint8_t relay_id) {
     return relay_id < relay_ctrl_relay_count
            ? relay_ctrl_runtimes[relay_id].config->inching_ms
            : 0;
-}
-
-bool relay_ctrl_set_interlock_group(uint8_t relay_id, uint8_t group_id) {
-    if (relay_id >= relay_ctrl_relay_count ||
-        !interlock_set_relay_group(relay_id, group_id)) {
-        return false;
-    }
-    relay_ctrl_runtimes[relay_id].config->interlock_group = group_id;
-    return true;
-}
-
-uint8_t relay_ctrl_get_interlock_group(uint8_t relay_id) {
-    return relay_id < relay_ctrl_relay_count
-           ? relay_ctrl_runtimes[relay_id].config->interlock_group
-           : INTERLOCK_NO_GROUP;
 }
 
 auto_off_reason_t relay_ctrl_auto_off_reason(uint8_t relay_id) {

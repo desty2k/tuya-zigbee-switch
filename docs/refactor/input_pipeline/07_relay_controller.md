@@ -221,8 +221,8 @@ void relay_driver_apply(relay_driver_t *d, bool on);
   `allow_simultaneous_latching_pulses` (`SLP` config token) is set.
 - The coil is energised only after its end-of-pulse timer is armed. When the
   timer cannot be armed (task pool full), neither the pulse nor the wait
-  starts; the driver queues itself and `relay_driver_process_pending()`, run
-  from the application loop, starts it again. A coil is never left powered
+  starts; the driver flags itself and `relay_ctrl_process_pending()`, run
+  from the application loop, starts every flagged driver again. A coil is never left powered
   and a pulse is never dropped.
 - The latching coil pulse is a hardware detail and is unrelated to
   `RELAY_REQUEST_PULSE` (inching). The two never share a timer or a name.

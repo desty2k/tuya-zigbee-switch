@@ -9,25 +9,14 @@
 #include "hal/printf_selector.h"
 #include <string.h>
 
-hal_zigbee_cmd_result_t relay_cluster_callback(zigbee_relay_cluster *cluster,
-                                               uint8_t command_id,
-                                               void *cmd_payload,
-                                               uint16_t cmd_payload_len);
-hal_zigbee_cmd_result_t relay_cluster_callback_trampoline(
+static hal_zigbee_cmd_result_t relay_cluster_on_off_command(
     const hal_zigbee_incoming_command_t *command);
-
-hal_zigbee_cmd_result_t relay_cluster_level_callback(zigbee_relay_cluster *cluster,
-                                                     uint8_t command_id,
-                                                     void *cmd_payload,
-                                                     uint16_t cmd_payload_len);
-hal_zigbee_cmd_result_t relay_cluster_level_callback_trampoline(
+static hal_zigbee_cmd_result_t relay_cluster_level_command(
     const hal_zigbee_incoming_command_t *command);
 
 static void relay_cluster_on_relay_change(void *param, uint8_t relay_id,
                                           bool is_on,
                                           relay_request_source_t source);
-static hal_zigbee_cmd_result_t relay_cluster_result_to_zigbee(
-    relay_result_t result);
 static void relay_cluster_on_write_attr(zigbee_relay_cluster *cluster,
                                         uint16_t attribute_id);
 
@@ -99,7 +88,7 @@ void relay_cluster_add_to_endpoint(zigbee_relay_cluster *cluster,
     relay_cluster_by_endpoint[endpoint->endpoint] = cluster;
     cluster->endpoint = endpoint->endpoint;
     cluster->config_interlock_group =
-        relay_ctrl_get_interlock_group(cluster->relay_id);
+        interlock_relay_group(cluster->relay_id);
     cluster->interlock_group = cluster->config_interlock_group;
     relay_cluster_load_attrs_from_nv(cluster);
     if (!relay_cluster_interlock_group_allowed(cluster,
@@ -107,8 +96,8 @@ void relay_cluster_add_to_endpoint(zigbee_relay_cluster *cluster,
         cluster->interlock_group = cluster->config_interlock_group;
     }
     relay_ctrl_set_inching_ms(cluster->relay_id, cluster->inching_ms);
-    (void)relay_ctrl_set_interlock_group(cluster->relay_id,
-                                         cluster->interlock_group);
+    (void)interlock_set_relay_group(cluster->relay_id,
+                                    cluster->interlock_group);
 
     cluster->on_off = relay_ctrl_is_on(cluster->relay_id);
     if (!relay_ctrl_subscribe(cluster->relay_id, relay_cluster_on_relay_change,
@@ -140,13 +129,13 @@ void relay_cluster_add_to_endpoint(zigbee_relay_cluster *cluster,
         .role                = HAL_ZIGBEE_ROLE_SERVER,
         .attribute_count     = cluster->indicator_led != NULL ? 6 : 4,
         .attributes          = cluster->attr_infos,
-        .cmd_callback        = relay_cluster_callback_trampoline,
+        .cmd_callback        = relay_cluster_on_off_command,
         .attr_write_callback = relay_cluster_attr_write,
     };
     hal_zigbee_cluster level_cluster = {
         .cluster_id   = ZCL_CLUSTER_LEVEL_CONTROL,
         .role         = HAL_ZIGBEE_ROLE_SERVER,
-        .cmd_callback = relay_cluster_level_callback_trampoline,
+        .cmd_callback = relay_cluster_level_command,
     };
 
     hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity,
@@ -155,32 +144,21 @@ void relay_cluster_add_to_endpoint(zigbee_relay_cluster *cluster,
                                     &level_cluster);
 }
 
-hal_zigbee_cmd_result_t relay_cluster_callback_trampoline(
-    const hal_zigbee_incoming_command_t *command) {
-    if (command == NULL) return HAL_ZIGBEE_CMD_SKIPPED;
+static hal_zigbee_cmd_result_t relay_cluster_submit(
+    const zigbee_relay_cluster *cluster, relay_request_type_t type,
+    uint32_t duration_ms) {
+    relay_result_t result = relay_ctrl_submit(&(relay_request_t){
+        .relay_id    = cluster->relay_id,
+        .type        = type,
+        .duration_ms = duration_ms,
+        .source      = RELAY_SOURCE_ZIGBEE,
+    });
 
-    zigbee_relay_cluster *cluster = relay_cluster_find(command->destination_endpoint);
-
-    return cluster == NULL ? HAL_ZIGBEE_CMD_SKIPPED :
-           relay_cluster_callback(cluster, command->command_id,
-                                  (void *)command->payload, command->payload_len);
-}
-
-static hal_zigbee_cmd_result_t relay_cluster_result_to_zigbee(
-    relay_result_t result) {
-    switch (result) {
-    case RELAY_RESULT_APPLIED:
-    case RELAY_RESULT_UNCHANGED:
-    case RELAY_RESULT_DEFERRED:
-        return HAL_ZIGBEE_CMD_PROCESSED;
-
-    case RELAY_RESULT_BLOCKED:
+    if (result == RELAY_RESULT_BLOCKED) {
         return HAL_ZIGBEE_CMD_SKIPPED;
-
-    case RELAY_RESULT_INVALID:
-    default:
-        return HAL_ZIGBEE_INVALID_VALUE;
     }
+    return result == RELAY_RESULT_INVALID ? HAL_ZIGBEE_INVALID_VALUE
+                                          : HAL_ZIGBEE_CMD_PROCESSED;
 }
 
 /*
@@ -194,12 +172,7 @@ static hal_zigbee_cmd_result_t relay_cluster_result_to_zigbee(
 static hal_zigbee_cmd_result_t relay_cluster_on_with_timed_off(
     zigbee_relay_cluster *cluster, const void *cmd_payload,
     uint16_t cmd_payload_len) {
-    const uint8_t * payload = (const uint8_t *)cmd_payload;
-    relay_request_t request = {
-        .relay_id = cluster->relay_id,
-        .type     = RELAY_REQUEST_ON,
-        .source   = RELAY_SOURCE_ZIGBEE,
-    };
+    const uint8_t *payload = (const uint8_t *)cmd_payload;
 
     if (payload == NULL || cmd_payload_len < 5) {
         return HAL_ZIGBEE_MALFORMED_COMMAND;
@@ -208,92 +181,73 @@ static hal_zigbee_cmd_result_t relay_cluster_on_with_timed_off(
         !relay_ctrl_is_on(cluster->relay_id)) {
         return HAL_ZIGBEE_CMD_PROCESSED;
     }
-    uint16_t on_time = (uint16_t)payload[1] | ((uint16_t)payload[2] << 8);
+    uint16_t             on_time    = (uint16_t)payload[1] | ((uint16_t)payload[2] << 8);
+    relay_request_type_t type       = RELAY_REQUEST_ON;
+    uint32_t             on_time_ms = 0;
 
     if (on_time != ZCL_ONOFF_ON_TIME_NO_TIMEOUT) {
-        uint32_t on_time_ms   = (uint32_t)on_time * 100;
         uint32_t remaining_ms = relay_ctrl_timed_on_remaining_ms(cluster->relay_id);
 
+        on_time_ms = (uint32_t)on_time * 100;
         if (remaining_ms > on_time_ms) {
             on_time_ms = remaining_ms;
         }
         if (on_time_ms == 0) {
             return HAL_ZIGBEE_CMD_PROCESSED;
         }
-        request.type        = RELAY_REQUEST_ON_TIMED;
-        request.duration_ms = on_time_ms;
+        type = RELAY_REQUEST_ON_TIMED;
     }
-    return relay_cluster_result_to_zigbee(relay_ctrl_submit(&request));
+    return relay_cluster_submit(cluster, type, on_time_ms);
 }
 
-hal_zigbee_cmd_result_t relay_cluster_callback(zigbee_relay_cluster *cluster,
-                                               uint8_t command_id,
-                                               void *cmd_payload,
-                                               uint16_t cmd_payload_len) {
-    switch (command_id) {
+static hal_zigbee_cmd_result_t relay_cluster_on_off_command(
+    const hal_zigbee_incoming_command_t *command) {
+    zigbee_relay_cluster *cluster =
+        command == NULL ? NULL : relay_cluster_find(command->destination_endpoint);
+
+    if (cluster == NULL) return HAL_ZIGBEE_CMD_SKIPPED;
+
+    switch (command->command_id) {
     case ZCL_CMD_ONOFF_ON:
     case ZCL_CMD_ON_WITH_RECALL_GLOBAL_SCENE:
-        return relay_cluster_result_to_zigbee(relay_ctrl_submit(&(relay_request_t){
-            .relay_id = cluster->relay_id,
-            .type     = RELAY_REQUEST_ON,
-            .source   = RELAY_SOURCE_ZIGBEE,
-        }));
+        return relay_cluster_submit(cluster, RELAY_REQUEST_ON, 0);
 
     case ZCL_CMD_ONOFF_OFF:
     case ZCL_CMD_OFF_WITH_EFFECT:
-        return relay_cluster_result_to_zigbee(relay_ctrl_submit(&(relay_request_t){
-            .relay_id = cluster->relay_id,
-            .type     = RELAY_REQUEST_OFF,
-            .source   = RELAY_SOURCE_ZIGBEE,
-        }));
+        return relay_cluster_submit(cluster, RELAY_REQUEST_OFF, 0);
 
     case ZCL_CMD_ONOFF_TOGGLE:
-        return relay_cluster_result_to_zigbee(relay_ctrl_submit(&(relay_request_t){
-            .relay_id = cluster->relay_id,
-            .type     = RELAY_REQUEST_TOGGLE,
-            .source   = RELAY_SOURCE_ZIGBEE,
-        }));
+        return relay_cluster_submit(cluster, RELAY_REQUEST_TOGGLE, 0);
 
     case ZCL_CMD_ON_WITH_TIMED_OFF:
-        return relay_cluster_on_with_timed_off(cluster, cmd_payload,
-                                               cmd_payload_len);
+        return relay_cluster_on_with_timed_off(cluster, command->payload,
+                                               command->payload_len);
 
     default:
-        printf("Unknown OnOff command: %d\r\n", command_id);
+        printf("Unknown OnOff command: %d\r\n", command->command_id);
         return HAL_ZIGBEE_CMD_SKIPPED;
     }
 }
 
-hal_zigbee_cmd_result_t relay_cluster_level_callback_trampoline(
+static hal_zigbee_cmd_result_t relay_cluster_level_command(
     const hal_zigbee_incoming_command_t *command) {
-    if (command == NULL) return HAL_ZIGBEE_CMD_SKIPPED;
+    zigbee_relay_cluster *cluster =
+        command == NULL ? NULL : relay_cluster_find(command->destination_endpoint);
 
-    zigbee_relay_cluster *cluster = relay_cluster_find(command->destination_endpoint);
+    if (cluster == NULL) return HAL_ZIGBEE_CMD_SKIPPED;
 
-    return cluster == NULL ? HAL_ZIGBEE_CMD_SKIPPED :
-           relay_cluster_level_callback(cluster, command->command_id,
-                                        (void *)command->payload,
-                                        command->payload_len);
-}
-
-hal_zigbee_cmd_result_t relay_cluster_level_callback(zigbee_relay_cluster *cluster,
-                                                     uint8_t command_id,
-                                                     void *cmd_payload,
-                                                     uint16_t cmd_payload_len) {
-    switch (command_id) {
+    switch (command->command_id) {
     case ZCL_CMD_LEVEL_MOVE_TO_LEVEL_WITH_ON_OFF:
-        if (cmd_payload == NULL || cmd_payload_len < 1) {
+        if (command->payload == NULL || command->payload_len < 1) {
             return HAL_ZIGBEE_MALFORMED_COMMAND;
         }
-        uint8_t level = *(uint8_t *)cmd_payload;
-        return relay_cluster_result_to_zigbee(relay_ctrl_submit(&(relay_request_t){
-            .relay_id = cluster->relay_id,
-            .type     = level == 0 ? RELAY_REQUEST_OFF : RELAY_REQUEST_ON,
-            .source   = RELAY_SOURCE_ZIGBEE,
-        }));
+        return relay_cluster_submit(cluster,
+                                    command->payload[0] == 0 ? RELAY_REQUEST_OFF
+                                                             : RELAY_REQUEST_ON,
+                                    0);
 
     default:
-        printf("Unknown LevelCtrl command: %d\r\n", command_id);
+        printf("Unknown LevelCtrl command: %d\r\n", command->command_id);
         return HAL_ZIGBEE_CMD_SKIPPED;
     }
 }
@@ -341,8 +295,8 @@ static void relay_cluster_on_write_attr(zigbee_relay_cluster *cluster,
         relay_ctrl_set_inching_ms(cluster->relay_id, cluster->inching_ms);
     }
     if (attribute_id == ZCL_ATTR_ONOFF_INTERLOCK_GROUP) {
-        relay_ctrl_set_interlock_group(cluster->relay_id,
-                                       cluster->interlock_group);
+        interlock_set_relay_group(cluster->relay_id,
+                                  cluster->interlock_group);
     }
     if (attribute_id == ZCL_ATTR_ONOFF_INDICATOR_STATE) {
         sync_indicator_led(cluster);

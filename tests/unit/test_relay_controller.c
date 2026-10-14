@@ -51,7 +51,6 @@ static void reset_controller(bool is_latching) {
     driver.on_high          = 1;
     driver.is_latching      = is_latching;
     config.inching_ms       = 0;
-    config.interlock_group  = 0;
     observer_order_count    = 0;
     allow_simultaneous_latching_pulses = 0;
     for (uint8_t i = 0; i < RELAY_CONTROLLER_MAX_OBSERVERS + 1; i++) {
@@ -165,9 +164,9 @@ TEST(interlock_deferral_notifies_only_on_applied_activation) {
     reset_controller(false);
     ASSERT_EQ(1, relay_ctrl_add(&peer_driver, &peer_config));
     ASSERT_TRUE(relay_ctrl_subscribe(1, record_state, &state_logs[1]));
-    ASSERT_TRUE(interlock_add_group(1, 0x03, 50));
-    relay_ctrl_set_interlock_group(0, 1);
-    relay_ctrl_set_interlock_group(1, 1);
+    ASSERT_TRUE(interlock_add_group(1, 50));
+    ASSERT_TRUE(interlock_set_relay_group(0, 1));
+    ASSERT_TRUE(interlock_set_relay_group(1, 1));
     ASSERT_EQ(RELAY_RESULT_APPLIED, submit(RELAY_REQUEST_ON, RELAY_SOURCE_BUTTON));
     state_logs[0].count = 0;
     state_logs[1].count = 0;
@@ -190,9 +189,9 @@ TEST(off_cancels_a_deferred_relay_that_was_previously_initialized_off) {
 
     reset_controller(false);
     ASSERT_EQ(1, relay_ctrl_add(&peer_driver, &peer_config));
-    ASSERT_TRUE(interlock_add_group(1, 0x03, 50));
-    relay_ctrl_set_interlock_group(0, 1);
-    relay_ctrl_set_interlock_group(1, 1);
+    ASSERT_TRUE(interlock_add_group(1, 50));
+    ASSERT_TRUE(interlock_set_relay_group(0, 1));
+    ASSERT_TRUE(interlock_set_relay_group(1, 1));
     ASSERT_EQ(RELAY_RESULT_APPLIED, submit(RELAY_REQUEST_OFF, RELAY_SOURCE_COVER));
     ASSERT_EQ(RELAY_RESULT_APPLIED, relay_ctrl_submit(&(relay_request_t){
         .relay_id = 1, .type = RELAY_REQUEST_OFF, .source = RELAY_SOURCE_COVER,
@@ -294,7 +293,9 @@ TEST(blocked_interlock_resume_drops_the_deferred_on) {
 
     reset_controller(false);
     ASSERT_EQ(1, relay_ctrl_add(&peer_driver, &peer_config));
-    ASSERT_TRUE(interlock_add_group(1, 0x03, 50));
+    ASSERT_TRUE(interlock_add_group(1, 50));
+    ASSERT_TRUE(interlock_set_relay_group(0, 1));
+    ASSERT_TRUE(interlock_set_relay_group(1, 1));
     ASSERT_EQ(RELAY_RESULT_APPLIED, submit(RELAY_REQUEST_ON, RELAY_SOURCE_BUTTON));
     ASSERT_EQ(RELAY_RESULT_DEFERRED, relay_ctrl_submit(&toggle_peer));
     ASSERT_TRUE(relay_ctrl_inhibit(0x02, 1));
@@ -315,12 +316,13 @@ TEST(joining_a_group_with_an_energised_peer_switches_off) {
 
     reset_controller(false);
     ASSERT_EQ(1, relay_ctrl_add(&peer_driver, &peer_config));
-    ASSERT_TRUE(interlock_add_group(1, 0x01, 0));
+    ASSERT_TRUE(interlock_add_group(1, 0));
+    ASSERT_TRUE(interlock_set_relay_group(0, 1));
     ASSERT_EQ(RELAY_RESULT_APPLIED, submit(RELAY_REQUEST_ON, RELAY_SOURCE_BUTTON));
     ASSERT_EQ(RELAY_RESULT_APPLIED, relay_ctrl_submit(&(relay_request_t){
         .relay_id = 1, .type = RELAY_REQUEST_ON, .source = RELAY_SOURCE_BUTTON,
     }));
-    ASSERT_TRUE(relay_ctrl_set_interlock_group(1, 1));
+    ASSERT_TRUE(interlock_set_relay_group(1, 1));
     ASSERT_TRUE(relay_ctrl_is_on(0));
     ASSERT_TRUE(!relay_ctrl_is_on(1));
 }

@@ -11,7 +11,6 @@
 
 typedef struct {
     uint16_t inching_ms;
-    uint8_t  interlock_group;
 } relay_config_t;
 
 typedef enum {
@@ -70,9 +69,6 @@ uint8_t relay_ctrl_count(void);
 void relay_ctrl_set_inching_ms(uint8_t relay_id, uint16_t inching_ms);
 uint16_t relay_ctrl_get_inching_ms(uint8_t relay_id);
 
-/** Fails, leaving the relay unchanged, when group_id names no existing group. */
-bool relay_ctrl_set_interlock_group(uint8_t relay_id, uint8_t group_id);
-uint8_t relay_ctrl_get_interlock_group(uint8_t relay_id);
 auto_off_reason_t relay_ctrl_auto_off_reason(uint8_t relay_id);
 
 /** Time left before an ON_TIMED deadline switches the relay off; 0 if none. */
