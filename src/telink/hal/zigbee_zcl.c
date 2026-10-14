@@ -168,6 +168,51 @@ static status_t cmd_callback(zclIncomingAddrInfo_t *addr_info, u8 cmd_id,
     return(ZCL_STA_SUCCESS);
 }
 
+/*
+ * zcl_parseInWriteCmd() takes every record's length from its data type or
+ * string prefix without checking it against the frame, so a short frame
+ * makes it copy bytes from past the frame. Walk the received frame with
+ * bounds checks and refuse every record of a frame that does not end exactly
+ * after its last record.
+ */
+static bool write_frame_is_well_formed(const zclIncoming_t *message) {
+    const u8 *data = message->pData;
+    u16       left = message->dataLen;
+
+    while (left != 0) {
+        u8  data_type;
+        u16 value_len;
+
+        if (left < 3) return false; // attribute id + data type
+
+        data_type = data[2];
+        data     += 3;
+        left     -= 3;
+        if (data_type == ZCL_DATA_TYPE_LONG_CHAR_STR ||
+            data_type == ZCL_DATA_TYPE_LONG_OCTET_STR) {
+            if (left < 2) return false;
+        } else if (data_type == ZCL_DATA_TYPE_CHAR_STR ||
+                   data_type == ZCL_DATA_TYPE_OCTET_STR) {
+            if (left < 1) return false;
+        } else if (data_type == ZCL_DATA_TYPE_STRUCT) {
+            return false; // no writable attribute has this type
+        }
+        value_len = zcl_getAttrSize(data_type, (u8 *)data);
+        if (value_len == 0 || value_len > left) return false;
+
+        data += value_len;
+        left -= value_len;
+    }
+    return true;
+}
+
+/*
+ * Called by the patched zcl_attrWrite() before its own checks and before
+ * zcl_setAttrVal() copies the record into the attribute storage, which gives
+ * the HAL write contract of hal/zigbee.h: VALIDATE, COMMIT, then the copy.
+ * `enable` is false in the first pass of Write Attributes Undivided, which
+ * only validates; the second pass writes each record with `enable` true.
+ */
 status_t hal_zigbee_telink_pre_write(zclIncoming_t *message, u8 endpoint,
                                      u16 cluster_id, zclWriteRec_t *record,
                                      bool enable) {
@@ -175,8 +220,7 @@ status_t hal_zigbee_telink_pre_write(zclIncoming_t *message, u8 endpoint,
     hal_zigbee_attribute *attribute;
     uint16_t candidate_len;
 
-    if (message == NULL || record == NULL ||
-        message->hdr.cmd == ZCL_CMD_WRITE_UNDIVIDED) {
+    if (message == NULL || record == NULL) {
         return ZCL_STA_UNSUPPORTED_ATTRIBUTE;
     }
     if (endpoint != message->msg->indInfo.dst_ep ||
@@ -184,6 +228,8 @@ status_t hal_zigbee_telink_pre_write(zclIncoming_t *message, u8 endpoint,
         message->hdr.frmCtrl.bf.dir != ZCL_FRAME_CLIENT_SERVER_DIR) {
         return ZCL_STA_UNSUPPORTED_ATTRIBUTE;
     }
+    if (!write_frame_is_well_formed(message)) return ZCL_STA_MALFORMED_COMMAND;
+
     cluster = hal_zigbee_find_cluster_exact(
         hal_endpoints, hal_endpoints_cnt, endpoint, cluster_id,
         HAL_ZIGBEE_ROLE_SERVER, message->hdr.manufCode);
@@ -197,8 +243,9 @@ status_t hal_zigbee_telink_pre_write(zclIncoming_t *message, u8 endpoint,
     }
     if (record->dataType != attribute->data_type_id) return ZCL_STA_INVALID_DATA_TYPE;
 
+    // zcl_setAttrVal() copies this many bytes into the attribute storage.
     candidate_len = zcl_getAttrSize(record->dataType, record->attrData);
-    if (candidate_len == 0) return ZCL_STA_INVALID_VALUE;
+    if (candidate_len == 0 || candidate_len > attribute->size) return ZCL_STA_INVALID_VALUE;
 
     if (cluster->attr_write_callback == NULL) return ZCL_STA_SUCCESS;
 
