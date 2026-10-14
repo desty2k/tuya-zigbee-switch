@@ -9,7 +9,10 @@ SRC_DIR := $(PROJECT_ROOT)/src
 # Version and board configuration
 VERSION_STR ?= "0.0.0"
 FILE_VERSION ?= 0
-NVM_MIGRATIONS_VERSION ?= $(shell cat ../../NVM_MIGRATIONS_VERSION 2>/dev/null || echo "1")
+NVM_MIGRATIONS_VERSION ?= $(shell cat ../../NVM_MIGRATIONS_VERSION)
+ifeq ($(NVM_MIGRATIONS_VERSION),)
+$(error NVM_MIGRATIONS_VERSION file is missing or empty)
+endif
 
 FIRMWARE_BASENAME ?= tlc_switch
 DEVICE_TYPE ?= router

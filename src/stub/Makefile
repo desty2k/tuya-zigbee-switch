@@ -6,6 +6,11 @@ BINARY             := $(BUILD_DIR)/stub_device
 
 CONFIG ?= X;Y;BA0u;LA1;SA2u;RA3;IA4;
 
+NVM_MIGRATIONS_VERSION := $(shell cat ../../NVM_MIGRATIONS_VERSION)
+ifeq ($(NVM_MIGRATIONS_VERSION),)
+$(error NVM_MIGRATIONS_VERSION file is missing or empty)
+endif
+
 # Default target
 help:
 	@echo "Stub Device Build System"
@@ -91,7 +96,7 @@ INCLUDES := \
 
 CFLAGS := -Wall -Wno-unused-parameter -Wno-unused-variable -g -O0 \
     -DHAL_STUB -DSTACK_BUILD=1001 -D_DEFAULT_SOURCE -DVERSION_STR="0.0.0" \
-	-DNVM_MIGRATIONS_VERSION=9 \
+	-DNVM_MIGRATIONS_VERSION=$(NVM_MIGRATIONS_VERSION) \
 	-std=c99
 
 LDFLAGS := -lpthread
