@@ -112,6 +112,66 @@ Additional options:
 | **`BT<pin>`** | Battery mode                | • Enables battery-powered behavior <br> • Adds battery measurement/reporting using the selected ADC pin |
 | **`SLP`**    | Simultaneous Latching Pulses |  • Enable simultaneous pulses for latching relays (they are disallowed by default)|
 
+## GPIO probe (devices that cannot be opened)
+
+When a device cannot be opened, its pins are found with the GPIO probe image
+running on the device itself. A probe board in `device_db.yaml` has
+`features: [probe]`, a config string with only the manufacturer and model
+fields (it claims no pins), its own `firmware_image_type`, and the stock
+`stock_manufacturer_id` / `stock_image_type` read from that exact device.
+Example: `OUTLET_BSEED_TS011F_PROBE` for TS011F `_TZ3210_drzlxjne`.
+`make tools/check_device_features` enforces the probe rules (only feature,
+Telink router, no pins). The board has `build: no`, so it is never published
+in the OTA index; build it on demand with
+`BOARD=OUTLET_BSEED_TS011F_PROBE make board/build`.
+
+> [!WARNING]
+> Conversion from stock is one-way: returning to stock or recovering a bad
+> image needs the SWS pad, which needs opening. Use an expendable device. The
+> outlet board is not isolated from mains: probe only over Zigbee, with the
+> device closed and **nothing plugged in** while pins are driven.
+
+Before converting, record the stock identity from Zigbee2MQTT: `genBasic`
+`appVersion`, `stackVersion`, `hwVersion`, `dateCode`, `swBuildId`, and from
+the OTA "check for update" log `manufacturerCode`, `imageType`, `fileVersion`.
+The probe board's stock ids come from these values, never from a sibling.
+The OTA index generator refuses an entry with a stock image type and no
+`manufacturerName` filter; the probe's entries are filtered to the board's
+stock manufacturer name.
+
+What the probe does (commands on cluster `0xFC11`, fork manufacturer code,
+defined in `helper_scripts/management_protocol.json`):
+
+| Step | Effect |
+| --- | --- |
+| Boot | No pin is touched; nothing is persisted |
+| Snapshot | Reads every probeable pin without changing its mode |
+| Pull test | Pull-up, pull-down, twice, 25 ms each; classifies each pin *floating*, *driven high*, *driven low* or *active*; ends with no pull |
+| Watch | Counts rising edges on up to 2 pins for 1–300 s: count, min/max interval, last level; a pin above 20 kHz is stopped and flagged |
+| Arm + pulse | Drives one *floating* pin to a level for 1–500 ms, then input without pull. Needs an arm before each pulse; the pin must follow both pulls again right before it is driven; cutoff by timer and main loop |
+| Stop | Ends every operation, returns its pins to input without pull |
+
+Pins needed by the platform (TLSR8258 SWS `PA7`, flash `PE0`–`PE3`, debug UART
+and 32 kHz crystal pins when used) and pins claimed by the config are never
+probeable.
+
+Procedure, with `helper_scripts/probe_discovery.py <friendly name>` driving
+Zigbee2MQTT over MQTT (needs `paho-mqtt` and the fork converter for the probe
+board):
+
+1. OTA the probe image onto one expendable device with nothing plugged in.
+2. Snapshot, then pull test all pins.
+3. Watch the non-floating pins with no load: steady pulses are BL0937 `CF1`
+   (mains voltage).
+4. Watch while pressing the button: the pin with edges is the button.
+5. Watch with a resistive load: a pin whose rate rises with the load is `CF`.
+   No pulse activity at all suggests a BL0942 (UART).
+6. Unplug the load. Pulse each floating pin high and low and answer what was
+   heard (relay click) or seen (LED). A pin that changes the `CF1` rate while
+   high is `SEL`.
+7. The helper prints a proposed config string and meter pin map. Record them
+   in `docs/refactor/capabilities/STATE.md`, then write the real profile.
+
 ## Build and install
 
 [`device_db.yaml`]: /device_db.yaml

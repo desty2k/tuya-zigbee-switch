@@ -1,6 +1,7 @@
 """OTA index safety and probe board rules of the helper scripts."""
 
 import json
+import struct
 import subprocess
 import sys
 from pathlib import Path
@@ -94,3 +95,30 @@ def test_probe_board_rules(change: dict, message: str) -> None:
     errors, _ = board_features.check_board(PROBE_BOARD, board, board_features.known_features())
     assert any(message in error for error in errors), errors
 
+
+def test_discovery_helper_decodes_probe_attributes_and_proposes_a_config() -> None:
+    import probe_discovery as pd
+
+    raw_pins = struct.pack("<HHH", 0x0000, 0x0203, 0x0302)
+    pins = pd.parse_pins(raw_pins)
+    assert pins == ["A0", "C3", "D2"]
+    assert pd.parse_classes(pins, bytes([1, 4, 2])) == {
+        "A0": "FLOATING", "C3": "ACTIVE", "D2": "DRIVEN_HIGH"}
+    assert pd.parse_levels(pins, 0b100) == {"A0": 0, "C3": 0, "D2": 1}
+    elapsed, records = pd.parse_watch(
+        struct.pack("<I", 2000) + struct.pack("<HIIIBB", 0x0203, 2000, 1000, 1000, 1, 0)
+        + struct.pack("<HIIIBB", 0x0204, 2000, 40, 40, 0, 2))
+    assert elapsed == 2000
+    assert records["C3"].edges == 2000 and not records["C3"].over_rate
+    assert records["C4"].over_rate
+    assert pd.rate_hz(records["C3"], elapsed) == 1000.0
+
+    found = pd.Findings(idle_hz={"C3": 1000.0, "C2": 0.0},
+                        loaded_hz={"C3": 1000.0, "C2": 250.0},
+                        button_edges={"D2": 3, "A1": 0}, relay=["A0"],
+                        leds={"B5": 0}, sel=["B4"])
+    config, meter = pd.propose(found, "drzlxjne", "TS011F-BS-PM")
+    assert config == "drzlxjne;TS011F-BS-PM;LB5i;SD2u;RA0;M;"
+    assert meter == {"ic": "BL0937", "cf": "C2", "cf1": "C3", "sel": "B4"}
+    _, silent = pd.propose(pd.Findings(), "x", "y")
+    assert "BL0942" in silent["ic"]

@@ -18,6 +18,8 @@ Please describe what you are working on, under ## Upcoming
 
 ### Features
 
+- **GPIO probe image** (`features: [probe]`): discovers the pins of a device that cannot be opened, over Zigbee (cluster `0xFC11`); first board `OUTLET_BSEED_TS011F_PROBE` for TS011F `_TZ3210_drzlxjne`
+- OTA index generator refuses entries with a stock image type and no `manufacturerName` filter
 - **Button Event cluster** (`0xFC02`) sends press, release, hold, hold-release, and multi-click actions to the coordinator. Generated Zigbee2MQTT and ZHA integrations expose these actions, per-endpoint multi-click and debounce settings, and input diagnostics.
 - **Cover cluster** (window covering) for controlling the motor of curtains, blinds, and shutters.
   Supports open, close, and stop commands with motor safety delays.

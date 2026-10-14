@@ -83,7 +83,7 @@ remain usable when optional diagnostics are unsupported or resource-exhausted.
 | Management topology/integrations | EP1 has Basic, Device Config, Device Diagnostics and OTA in normal and recovery graphs; source integration templates and generated outputs still need the management-protocol conversion |
 | Device schema | flat metadata plus `config_str`; no capability/profile objects |
 | TS0726 target | key `SWITCH_BSEED_TS0726_4GANG`, TLSR8258 router, image type `43627`, eight endpoints |
-| Exact outlet fingerprint | `_TZ3210_drzlxjne` absent from `device_db.yaml` |
+| Exact outlet fingerprint | `_TZ3210_drzlxjne` only as the probe board `OUTLET_BSEED_TS011F_PROBE` (`features: [probe]`, no pins); no outlet profile |
 | Exact cover fingerprint | `_TZ3000_vsj5o7dm` absent from `device_db.yaml` |
 
 ## Target hardware characterization
@@ -91,7 +91,7 @@ remain usable when optional diagnostics are unsupported or resource-exhausted.
 | Device | MCU/module | Relay/button/LED pins | Meter IC/pins | Ratings/calibration | OTA ids | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | TS0726 `_TZ3002_pzao9ls1` | ZTU / TLSR8258 | known in existing config | none known | n/a | stock `54179`, firmware `43627` | profile present |
-| TS011F `_TZ3210_drzlxjne` | Telink (OUI), module unknown; cannot be opened | unknown; to be found with the GPIO probe (REVIEW_FINDINGS section 10) | unknown: BL0937 or BL0942 | 16 A product class; calibration unknown | stock manufacturer `4417`, image type `54179`, file version `82` (owner capture 2026-10-14); probe image type unassigned | blocked: probe workstream |
+| TS011F `_TZ3210_drzlxjne` | Telink (OUI), module unknown; cannot be opened | unknown; to be found with the GPIO probe (REVIEW_FINDINGS section 10) | unknown: BL0937 or BL0942 | 16 A product class; calibration unknown | stock manufacturer `4417`, image type `54179`, file version `82` (owner capture 2026-10-14); probe board `OUTLET_BSEED_TS011F_PROBE`, image type `47116` | probe image built, not flashed; run the GPIO probe procedure (`docs/contribute/porting.md`) |
 | TS130F `_TZ3000_vsj5o7dm` | TLSR8258/ZT-family candidate | stop/up/down, two relays and backlight all unknown | n/a unless found | stock travel/calibration behavior known; hardware values unknown | unknown | blocked: open and trace exact unit |
 
 Do not resolve unknown cells from another TS011F/TS130F profile. Record board
