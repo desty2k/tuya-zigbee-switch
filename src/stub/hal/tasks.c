@@ -22,7 +22,12 @@ typedef struct {
 } stub_task_entry_t;
 
 static stub_task_entry_t tasks[MAX_TASKS];
-static int tasks_paused;
+static int      tasks_paused;
+static uint32_t tasks_rejections;
+
+void stub_tasks_reject_next(uint32_t count) {
+    tasks_rejections = count;
+}
 
 void stub_tasks_poll(void) {
     uint64_t current_time;
@@ -39,13 +44,16 @@ void stub_tasks_poll(void) {
         tasks_executed = 0;
         for (int i = 0; i < MAX_TASKS; i++) {
             if (tasks[i].active && current_time >= tasks[i].scheduled_time) {
-                if (tasks[i].task && tasks[i].task->handler) {
+                hal_task_t *task = tasks[i].task;
+
+                // Free the slot first: the handler may reschedule the task.
+                tasks[i].active = 0;
+                if (task && task->handler) {
                     io_log("TASKS", "Executing task %p from slot %d",
-                           (void *)tasks[i].task, i);
-                    tasks[i].task->handler(tasks[i].task->arg);
+                           (void *)task, i);
+                    task->handler(task->arg);
                     tasks_executed++;
                 }
-                tasks[i].active = 0;
                 io_log("TASKS", "Task completed and removed from slot %d", i);
             }
         }
@@ -81,7 +89,7 @@ void hal_tasks_init(hal_task_t *task) {
     io_log("TASKS", "Initialized task at %p", (void *)task);
 }
 
-void hal_tasks_schedule(hal_task_t *task, uint32_t delay_ms) {
+bool hal_tasks_schedule(hal_task_t *task, uint32_t delay_ms) {
     if (!task) {
         io_log("TASKS", "Error: NULL task pointer passed to hal_schedule_task");
         exit(1);
@@ -90,6 +98,14 @@ void hal_tasks_schedule(hal_task_t *task, uint32_t delay_ms) {
     if (!task->handler) {
         io_log("TASKS", "Error: Task at %p has NULL handler", (void *)task);
         exit(1);
+    }
+
+    // Like the Telink event timer, a rejected schedule also drops the old one.
+    hal_tasks_unschedule(task);
+    if (tasks_rejections > 0) {
+        tasks_rejections--;
+        io_log("TASKS", "Rejected schedule of task %p", (void *)task);
+        return false;
     }
 
     // Find free slot
@@ -114,6 +130,7 @@ void hal_tasks_schedule(hal_task_t *task, uint32_t delay_ms) {
     io_log("TASKS", "Scheduled task %p in slot %d, delay=%u ms, execute_at=%llu",
            (void *)task, slot, delay_ms,
            (unsigned long long)tasks[slot].scheduled_time);
+    return true;
 }
 
 void hal_tasks_unschedule(hal_task_t *task) {

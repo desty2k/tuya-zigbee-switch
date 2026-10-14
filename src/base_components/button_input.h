@@ -55,4 +55,7 @@ uint8_t button_input_count(void);
 uint32_t button_input_gpio_edges_dropped(void);
 uint32_t button_input_events_emitted(void);
 
+/** Worker schedules the platform rejected; each is retried from the main loop. */
+uint32_t button_input_schedule_failures(void);
+
 #endif

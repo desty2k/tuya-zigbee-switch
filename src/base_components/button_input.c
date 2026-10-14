@@ -16,6 +16,7 @@ static hal_task_t        button_worker_task;
 static volatile bool     button_worker_scheduled;
 static volatile bool     button_work_pending;
 static volatile bool     button_resync_pending;
+static uint32_t          button_schedule_failures;
 
 static button_state_t button_input_level_to_state(uint8_t button_id,
                                                   uint8_t level) {
@@ -105,8 +106,12 @@ static void button_input_schedule_worker(uint32_t delay_ms) {
     if (button_worker_scheduled) {
         hal_tasks_unschedule(&button_worker_task);
     }
-    button_worker_scheduled = true;
-    hal_tasks_schedule(&button_worker_task, delay_ms);
+    button_worker_scheduled = hal_tasks_schedule(&button_worker_task, delay_ms);
+    if (!button_worker_scheduled) {
+        // Retried by button_input_process_pending() on the next main loop pass.
+        button_schedule_failures++;
+        button_work_pending = true;
+    }
 }
 
 static void button_input_worker(void *arg) {
@@ -156,12 +161,13 @@ static void button_input_edge_sink(const hal_gpio_edge_t *edge) {
 }
 
 void button_input_init(void) {
-    button_count            = 0;
-    button_event_seq        = 0;
-    button_events_emitted   = 0;
-    button_worker_scheduled = false;
-    button_work_pending     = false;
-    button_resync_pending   = false;
+    button_count             = 0;
+    button_event_seq         = 0;
+    button_events_emitted    = 0;
+    button_worker_scheduled  = false;
+    button_work_pending      = false;
+    button_resync_pending    = false;
+    button_schedule_failures = 0;
     gpio_edge_queue_init(&button_edge_queue);
     button_dispatcher_init();
     button_worker_task.handler = button_input_worker;
@@ -251,6 +257,10 @@ uint8_t button_input_count(void) {
 
 uint32_t button_input_gpio_edges_dropped(void) {
     return button_edge_queue.dropped;
+}
+
+uint32_t button_input_schedule_failures(void) {
+    return button_schedule_failures;
 }
 
 uint32_t button_input_events_emitted(void) {

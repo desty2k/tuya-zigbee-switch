@@ -11,6 +11,7 @@
 #include "stub/stub_app.h"
 #include "base_components/button_input.h"
 #include "base_components/gesture_fsm.h"
+#include "base_components/timer_service.h"
 #include "zigbee/zcl_cluster_defs.h"
 #include "zigbee/button_event_cluster.h"
 #include <stdio.h>
@@ -699,6 +700,28 @@ static int cmd_pin_late(int argc, char **argv) {
     return 0;
 }
 
+static int cmd_task_fail(int argc, char **argv) {
+    unsigned long long count;
+
+    if (argc != 2 || parse_ulong_arg(argv[1], UINT32_MAX, &count) != 0) {
+        io_res_err("usage");
+        return -1;
+    }
+    stub_tasks_reject_next((uint32_t)count);
+    io_res_ok("count=%llu", count);
+    return 0;
+}
+
+static int cmd_input_diag(int argc, char **argv) {
+    (void)argc;
+    (void)argv;
+    io_res_ok("button_schedule_failures=%u timer_schedule_failures=%u "
+              "gpio_edges_dropped=%u",
+              button_input_schedule_failures(), timer_schedule_failures(),
+              button_input_gpio_edges_dropped());
+    return 0;
+}
+
 /* Command table */
 static const SimpleReplCommand kCmds[] = {
     { "machine",             cmd_machine             },
@@ -729,6 +752,8 @@ static const SimpleReplCommand kCmds[] = {
     { "time_set",            cmd_time_set            },
     { "pin_burst",           cmd_pin_burst           },
     { "pin_late",            cmd_pin_late            },
+    { "task_fail",           cmd_task_fail           },
+    { "input_diag",          cmd_input_diag          },
     { "q",                   cmd_quit                },
     { "quit",                cmd_quit                },
 };

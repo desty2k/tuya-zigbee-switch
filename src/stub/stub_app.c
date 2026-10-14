@@ -138,6 +138,8 @@ void stub_app_print_help(void) {
     puts("  time_set <virtual_ms>                 - Jump frozen time forward");
     puts("  pin_burst <pin> <count>               - Toggle input count times");
     puts("  pin_late <pin> <0|1> <lag_ms>         - Edge stamped lag_ms late");
+    puts("  task_fail <count>                     - Reject task schedules");
+    puts("  input_diag                            - Input scheduling counters");
     puts("  q, quit                               - Exit");
 }
 

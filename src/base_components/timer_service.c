@@ -2,6 +2,8 @@
 
 #include "hal/timer.h"
 
+static uint32_t schedule_failures;
+
 static void timer_task_handler(void *arg) {
     app_timer_t *timer = (app_timer_t *)arg;
 
@@ -32,8 +34,10 @@ void timer_restart(app_timer_t *timer, uint32_t delay_ms) {
         hal_tasks_unschedule(&timer->task);
     }
     timer->deadline_ms = hal_millis() + delay_ms;
-    timer->active      = true;
-    hal_tasks_schedule(&timer->task, delay_ms);
+    timer->active      = hal_tasks_schedule(&timer->task, delay_ms);
+    if (!timer->active) {
+        schedule_failures++;
+    }
 }
 
 void timer_cancel(app_timer_t *timer) {
@@ -47,6 +51,10 @@ void timer_cancel(app_timer_t *timer) {
 
 bool timer_is_active(const app_timer_t *timer) {
     return timer->active;
+}
+
+uint32_t timer_schedule_failures(void) {
+    return schedule_failures;
 }
 
 uint32_t timer_remaining_ms(const app_timer_t *timer) {

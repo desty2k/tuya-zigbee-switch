@@ -150,7 +150,27 @@ TEST(tick_clock_milliseconds_wrap_at_2_pow_32) {
     ASSERT_EQ(6, hal_tick_clock_update(&clock, 9 * 16000, 16000));
 }
 
+TEST(failed_schedule_leaves_timer_inactive_and_counts) {
+    app_timer_t timer;
+    uint32_t    failures_before = timer_schedule_failures();
+
+    reset_fakes();
+    timer_init(&timer, count_callback, &callback_count);
+    fake_tasks_reject_next(1);
+    app_timer_start(&timer, 100);
+    ASSERT_TRUE(!timer_is_active(&timer));
+    ASSERT_EQ(0, timer_remaining_ms(&timer));
+    ASSERT_EQ(failures_before + 1, timer_schedule_failures());
+
+    app_timer_start(&timer, 100);
+    ASSERT_TRUE(timer_is_active(&timer));
+    fake_clock_advance_ms(100);
+    fake_tasks_poll();
+    ASSERT_EQ(1, callback_count);
+}
+
 int main(void) {
+    RUN_TEST(failed_schedule_leaves_timer_inactive_and_counts);
     RUN_TEST(tick_clock_is_exact_and_continuous_across_tick_wraps);
     RUN_TEST(tick_clock_milliseconds_wrap_at_2_pow_32);
     RUN_TEST(start_keeps_active_deadline);

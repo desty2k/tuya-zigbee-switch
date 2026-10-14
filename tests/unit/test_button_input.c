@@ -232,6 +232,33 @@ TEST(deferred_edge_level_is_debounced_from_observation) {
     ASSERT_EQ(200, events[1].timestamp_ms);
 }
 
+TEST(failed_worker_schedule_is_retried_from_main_loop) {
+    uint8_t button_id = setup_button(1, false);
+
+    fake_gpio_inject_edge(TEST_PIN, 0, 100);
+    fake_tasks_reject_next(1);
+    poll_at(100);
+    ASSERT_EQ(0, fake_tasks_pending());
+    poll_at(101);
+    poll_at(120);
+    ASSERT_TRUE(button_input_is_down(button_id));
+    ASSERT_EQ(1, event_count);
+    ASSERT_EQ(100, events[0].timestamp_ms);
+}
+
+TEST(failed_debounce_schedule_is_retried_from_main_loop) {
+    uint8_t button_id = setup_button(1, false);
+
+    fake_gpio_inject_edge(TEST_PIN, 0, 100);
+    button_input_process_pending();
+    fake_tasks_reject_next(1);
+    fake_tasks_poll();
+    ASSERT_EQ(0, fake_tasks_pending());
+    poll_at(101);
+    poll_at(120);
+    ASSERT_TRUE(button_input_is_down(button_id));
+}
+
 int main(void) {
     RUN_TEST(edge_capture_never_schedules_the_worker);
     RUN_TEST(bounce_on_press);
@@ -248,5 +275,7 @@ int main(void) {
     RUN_TEST(edge_captured_during_drain_is_still_debounced);
     RUN_TEST(deferred_edge_does_not_prove_previous_level);
     RUN_TEST(deferred_edge_level_is_debounced_from_observation);
+    RUN_TEST(failed_worker_schedule_is_retried_from_main_loop);
+    RUN_TEST(failed_debounce_schedule_is_retried_from_main_loop);
     return test_runner_failures == 0 ? 0 : 1;
 }

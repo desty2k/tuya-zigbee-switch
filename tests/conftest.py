@@ -303,6 +303,15 @@ class Device:
         res = self.p.exec(f"pin_late {self._parse_pin(pin)} {value} {lag_ms}")
         assert res.ok, f"pin_late failed: {res.payload}"
 
+    def task_fail(self, count: int) -> None:
+        res = self.p.exec(f"task_fail {count}")
+        assert res.ok, f"task_fail failed: {res.payload}"
+
+    def input_diag(self) -> dict[str, int]:
+        res = self.p.exec("input_diag")
+        assert res.ok, f"input_diag failed: {res.payload}"
+        return {key: int(value) for key, value in res.payload.items()}
+
     def millis(self) -> int:
         return int(self.status()["uptime_ms"])
 

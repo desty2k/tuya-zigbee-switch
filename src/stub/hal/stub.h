@@ -25,6 +25,9 @@ void stub_tasks_pause(void);
 void stub_tasks_resume(void);
 uint32_t stub_tasks_active_count(void);
 
+/** Make the next count hal_tasks_schedule() calls fail like a full pool. */
+void stub_tasks_reject_next(uint32_t count);
+
 // NVM stub functions
 void stub_nvm_enable_debug(int enable);
 void stub_nvm_set_data_dir(const char *dir);
