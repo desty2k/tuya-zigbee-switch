@@ -103,7 +103,15 @@ report Basic `appVersion` 82, `stackVersion` 0, `hwVersion` 1, an empty
 `dateCode` and no `swBuildId` (unsupported attribute), and the OTA query
 `manufacturerCode` 4417, `imageType` 54179, `fileVersion` 82 (2026-10-14).
 Image type 54179 is shared by 149 stock Tuya entries in the OTA index, so
-every entry must be filtered by manufacturer name. Its endpoint has OnOff, Electrical
+every entry must be filtered by manufacturer name.
+
+Stock Z2M state of the owner's outlet (`TS011F_plug_1`), the feature baseline a
+replacement profile must cover or explicitly drop: `state`, `power` (W),
+`voltage` (V, 236 observed), `current` (A), `energy` (kWh, cumulative),
+`power_outage_memory` (restore/on/off), `indicator_mode`, `child_lock`,
+`countdown` (s), `switch_type_button`, `identify`. Some TS011F BL0937 plugs
+switch off above ~240 V in stock firmware; record whether this unit does
+before choosing protection defaults. Its endpoint has OnOff, Electrical
 Measurement and Metering. The candidate pins come from the hardware-confirmed
 `_TZ3000_2uollq9d` sibling and remain unconfirmed for `drzlxjne`. The exact cover
 reports app version `70`, position, moving, calibration, motor reversal and
