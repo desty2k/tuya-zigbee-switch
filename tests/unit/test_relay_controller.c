@@ -240,6 +240,52 @@ TEST(controller_capacity_is_bounded) {
                                         &configs[RELAY_CONTROLLER_MAX_RELAYS]));
 }
 
+TEST(latching_pulse_is_retried_when_its_timer_cannot_be_armed) {
+    reset_controller(true);
+    fake_tasks_reject_next(1);
+    ASSERT_EQ(RELAY_RESULT_APPLIED, submit(RELAY_REQUEST_ON, RELAY_SOURCE_ZIGBEE));
+    ASSERT_EQ(0, fake_relay_hw_level(10));
+    fake_clock_advance_ms(500);
+    fake_tasks_poll();
+    ASSERT_EQ(0, fake_relay_hw_level(10));
+
+    relay_driver_process_pending();
+    ASSERT_EQ(1, fake_relay_hw_level(10));
+    fake_clock_advance_ms(RELAY_LATCH_PULSE_MS - 1);
+    fake_tasks_poll();
+    ASSERT_EQ(1, fake_relay_hw_level(10));
+    fake_clock_advance_ms(1);
+    fake_tasks_poll();
+    ASSERT_EQ(0, fake_relay_hw_level(10));
+    relay_driver_process_pending();
+    ASSERT_EQ(0, fake_relay_hw_level(10));
+}
+
+TEST(latching_wait_is_retried_when_its_timer_cannot_be_armed) {
+    relay_driver_t peer_driver = {
+        .on_pin = 12, .off_pin = 13, .on_high = 1, .is_latching = 1,
+    };
+    relay_config_t peer_config = { 0 };
+
+    reset_controller(true);
+    ASSERT_EQ(1, relay_ctrl_add(&peer_driver, &peer_config));
+    ASSERT_EQ(RELAY_RESULT_APPLIED, submit(RELAY_REQUEST_ON, RELAY_SOURCE_ZIGBEE));
+    fake_tasks_reject_next(1);
+    ASSERT_EQ(RELAY_RESULT_APPLIED, relay_ctrl_submit(&(relay_request_t){
+        .relay_id = 1, .type = RELAY_REQUEST_ON, .source = RELAY_SOURCE_ZIGBEE,
+    }));
+    fake_clock_advance_ms(RELAY_LATCH_PULSE_MS);
+    fake_tasks_poll();
+    ASSERT_EQ(0, fake_relay_hw_level(10));
+    ASSERT_EQ(0, fake_relay_hw_level(12));
+
+    relay_driver_process_pending();
+    ASSERT_EQ(1, fake_relay_hw_level(12));
+    fake_clock_advance_ms(RELAY_LATCH_PULSE_MS);
+    fake_tasks_poll();
+    ASSERT_EQ(0, fake_relay_hw_level(12));
+}
+
 int main(void) {
     RUN_TEST(domain_outcomes_and_unchanged_requests);
     RUN_TEST(invalid_requests_are_rejected);
@@ -250,5 +296,7 @@ int main(void) {
     RUN_TEST(off_cancels_a_deferred_relay_that_was_previously_initialized_off);
     RUN_TEST(source_owned_inhibitors_block_on_like_requests_and_preserve_off);
     RUN_TEST(controller_capacity_is_bounded);
+    RUN_TEST(latching_pulse_is_retried_when_its_timer_cannot_be_armed);
+    RUN_TEST(latching_wait_is_retried_when_its_timer_cannot_be_armed);
     return test_runner_failures == 0 ? 0 : 1;
 }
