@@ -1,6 +1,8 @@
 #ifndef DEVICE_CONFIG_NVM_ITEMS_H_
 #define DEVICE_CONFIG_NVM_ITEMS_H_
 
+#include "device_config/device_composition.h"
+
 #define MAX_RELAYS                       5
 #define MAX_SWITCHES                     5
 #define MAX_COVER_SWITCHES               3
@@ -26,8 +28,12 @@
 // Adding room for future items, so starting from 32
 #define NV_ITEM_DEVICE_TYPE    32
 
-#define MAX_RELAY_STATES       10
-#define MAX_SWITCH_STATES      10
+/* Relay and switch records sit in windows of 10 NV ids (see below). */
+#define MAX_RELAY_STATES       DEVICE_COMPOSITION_MAX_RELAYS
+#define MAX_SWITCH_STATES      DEVICE_COMPOSITION_MAX_SWITCHES
+#if MAX_RELAY_STATES > 10 || MAX_SWITCH_STATES > 10
+#error "relay or switch records overflow their NV id window"
+#endif
 
 #define NV_ITEM_RELAY_STATE(relay_idx)                   (40 + (relay_idx))
 #define NV_ITEM_INDICATOR_STATE(indicator_idx)           (50 + (indicator_idx))

@@ -6,15 +6,24 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define DEVICE_COMPOSITION_MAX_RELAYS            10
-#define DEVICE_COMPOSITION_MAX_BUTTONS           11
-#define DEVICE_COMPOSITION_MAX_INDICATORS        5
-#define DEVICE_COMPOSITION_MAX_COVERS            3
-#define DEVICE_COMPOSITION_MAX_METERS            2
-#define DEVICE_COMPOSITION_MAX_SWITCHES          10
-#define DEVICE_COMPOSITION_MAX_COVER_SWITCHES    3
-#define DEVICE_COMPOSITION_MAX_INTERLOCKS        10
-#define DEVICE_COMPOSITION_MAX_ENDPOINTS         HAL_ZIGBEE_MAX_ENDPOINTS
+#define DEVICE_COMPOSITION_MAX_RELAYS              10
+#define DEVICE_COMPOSITION_MAX_BUTTONS             11
+#define DEVICE_COMPOSITION_MAX_INDICATORS          5
+#define DEVICE_COMPOSITION_MAX_COVERS              3
+#define DEVICE_COMPOSITION_MAX_METERS              2
+#define DEVICE_COMPOSITION_MAX_SWITCHES            10
+#define DEVICE_COMPOSITION_MAX_COVER_SWITCHES      3
+#define DEVICE_COMPOSITION_MAX_INTERLOCKS          10
+#define DEVICE_COMPOSITION_MAX_ENDPOINTS           HAL_ZIGBEE_MAX_ENDPOINTS
+
+/*
+ * Dead time for groups that do not state one: the `K` token without `:ms`
+ * and the implicit group of each cover's direction relays. A relay contact
+ * opens within ~10-15 ms of de-energising, but the arc of an inductive load
+ * and a reversing motor's back-EMF need longer to decay; 200 ms covers both
+ * while staying below the delay a user notices on a switch press.
+ */
+#define DEVICE_COMPOSITION_DEFAULT_DEAD_TIME_MS    200
 
 typedef enum { CONFIG_PARSE_OK, CONFIG_PARSE_SYNTAX, CONFIG_PARSE_LIMIT,
                CONFIG_PARSE_REFERENCE, CONFIG_PARSE_PIN_CONFLICT,

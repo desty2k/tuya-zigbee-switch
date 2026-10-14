@@ -34,6 +34,10 @@
 #include "zigbee/switch_cluster.h"
 #include <string.h>
 
+#if DEVICE_COMPOSITION_MAX_RELAYS > RELAY_CONTROLLER_MAX_RELAYS
+#error "a parsed relay layout must fit the relay controller"
+#endif
+
 void parse_config(void) {
     device_composition_t  c;
     config_parse_result_t result = config_parser_parse(device_config_service_config(), &c);
@@ -273,7 +277,7 @@ static feature_wiring_result_t wire_covers(const device_composition_t *c) {
             .close_relay_id    = c->covers[i].close_relay_id,
             .manual_max_run_ms = COVER_DEFAULT_MANUAL_MAX_RUN_MS,
         };
-        if (!interlock_add_group(g, mask, INTERLOCK_DEFAULT_DEAD_TIME_MS) ||
+        if (!interlock_add_group(g, mask, DEVICE_COMPOSITION_DEFAULT_DEAD_TIME_MS) ||
             !relay_ctrl_set_interlock_group(c->covers[i].open_relay_id, g) ||
             !relay_ctrl_set_interlock_group(c->covers[i].close_relay_id, g)) {
             return FEATURE_WIRING_INVALID;
