@@ -13,9 +13,14 @@ options and OTA updating.
 - Two MCU families: **Telink** (TLSR8258 / TLSR8253) and **Silabs**
   (EFR32MG21 / EFR32MG22).
 - 160+ supported devices, all described in one database: `device_db.yaml`.
-- One firmware binary per board, but hardware layout is **not** compiled in: it
-  comes from a *device config string* (pins, buttons, relays, LEDs) stored in NVM
-  and parsed at boot by `src/device_config/config_parser.c`.
+- One firmware binary per board. The board's *features* (relay, switch, cover,
+  battery, meter; `features` in `device_db.yaml`, otherwise derived from its
+  config tokens) are selected at build time through `src/features.mk`; code of
+  other features is left out of the image.
+- The hardware layout is **not** compiled in: it comes from a *device config
+  string* (pins, buttons, relays, LEDs) stored in NVM and parsed at boot by
+  `src/device_config/config_parser.c`. A token for a feature the image lacks
+  boots the recovery graph with Device Config LastError `FEATURE_MISSING`.
 - Behaviour is configured at runtime through ZCL attributes, including custom
   manufacturer-specific ones.
 - A host-native **stub** build simulates the whole firmware for tests.
@@ -84,7 +89,9 @@ lives in `src/telink/`, `src/silabs/`, `src/stub/` and implements the HAL.
 
 ```bash
 make stub/build                  # host simulation binary (fast, always do this first)
-make tests                       # builds stub + end-device stub, runs pytest
+make tests                       # builds the stub variants, runs pytest
+make stub/build_switch_only      # stub with only the relay and switch features
+make tools/check_device_features # config tokens vs. board features, all boards
 pytest tests/test_relay_cluster.py -v
 make stub/run                    # interactive REPL
 make format                      # uncrustify, required before commit
@@ -93,7 +100,8 @@ make telink/build                # needs telink_tools (make setup)
 make silabs/build                # needs silabs_tools (make setup)
 ```
 
-CI runs two jobs: an uncrustify `--check` over `src/`, and `make tests`. Both must
+CI runs two jobs: an uncrustify `--check` over `src/`, and the test job
+(`make tools/check_device_features`, `make unit_tests`, `make tests`). Both must
 pass. Formatting is enforced, so run `make format` and commit the result.
 
 Verification expectations for any code change:
@@ -192,8 +200,8 @@ Documentation rules:
 ## Adding a device
 
 Add one block to `device_db.yaml` (see `docs/contribute/device_db_explained.md`
-and validate against `device_db.schema.json`), then regenerate outputs with the
-`make tools/...` targets. Do not edit `zigbee2mqtt/`, `zha/`, `homed/` or
+and validate against `device_db.schema.json`), run `make tools/check_device_features`,
+then regenerate outputs with the `make tools/...` targets. Do not edit `zigbee2mqtt/`, `zha/`, `homed/` or
 `docs/supported_devices.md` by hand.
 
 ## Git
