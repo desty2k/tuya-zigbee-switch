@@ -88,9 +88,10 @@ The domain rules are:
 1. Protocol adapters sit at the outside of the domain graph. They depend on
    services/controllers; services/controllers never depend on Zigbee.
 2. Internal cover position is `0 = closed`, `10000 = open`. The Window Covering
-   adapter converts to the cluster's lift-percentage convention. The existing
-   Zigbee2MQTT template uses `coverInverted: true`, preserving user-facing
-   `0 = closed`, `100 = open`.
+   adapter converts to the cluster's lift-percentage convention (`0 = open`,
+   `100 = closed`). Zigbee2MQTT's `windowCovering` extend converts that
+   standard convention to user-facing `0 = closed`, `100 = open` only without
+   `coverInverted`, so the template must not set it.
 3. Runtime calibration uses hardware-independent gain values. IC-specific pulse,
    register and reference constants remain in the tagged driver configuration;
    they are not generic meter attributes.
@@ -305,6 +306,19 @@ logical range. Endpoint overrun starts only for OPEN/CLOSE or GOTO 0/10000,
 clamps reported position immediately, then stops after `overrun_ms` and marks the
 endpoint KNOWN. Intermediate timed stops are ESTIMATED.
 
+While the position is UNKNOWN, an endpoint move is timed as if it started at
+the opposite endpoint (full travel plus overrun), and only its completion makes
+the position KNOWN. STOP, an external relay change or the manual safety stop
+never raise confidence. Intermediate GOTO is refused (`ACTION_DENIED`) while
+UNKNOWN. A GOTO in the current direction of motion retimes the running motor
+without a stop or NVM write; a GOTO less than 1 ms of travel away is a STOP
+(nothing when already stopped).
+
+Every motor start arms its cutoff (movement timer when calibrated, safety timer
+in manual mode) with one retry; if neither attempt arms it, the motor is
+stopped at once. `cover_controller_state()` returns the last computed state
+without side effects; the 100 ms position timer refreshes it while moving.
+
 On movement start, the controller persists a compact `motion_active` marker. On
 clean stop it persists position and confidence and clears the marker. Booting
 with the marker set yields UNKNOWN position while OPEN/CLOSE/STOP remain usable.
@@ -321,7 +335,14 @@ GoToLiftPercentage p    → cover_goto((100 - p) * 100)
 
 internal open basis points → CurrentPositionLiftPercentage
                               = 100 - ((open_bp + 50) / 100)
+UNKNOWN position or manual mode → CurrentPositionLiftPercentage = 0xFF
 ```
+
+`0xFF` is the ZCL non-value for `uint8`; Zigbee2MQTT ignores lift values above
+100. Setting writes are range-checked in the VALIDATE phase: travel times above
+429,496 ms and deadzones that are not below 10000 or whose sum is not below
+10000 fail with `INVALID_VALUE` and leave the attribute unchanged. Overrun
+accepts the full `uint16` range.
 
 Existing custom `Moving` (`0xff00`) and `MotorReversal` (`0xff01`) semantics are
 preserved. New controller-owned settings use `0xff02..0xff06` for open time ms,

@@ -153,7 +153,11 @@ static void cover_update_position(cover_runtime_t *runtime) {
 
     travel_time = cover_effective_time(runtime, runtime->state.motion);
     elapsed     = hal_millis() - runtime->movement_started_ms;
-    delta       = (elapsed * COVER_POSITION_MAX_BP) / travel_time;
+
+    /* elapsed < travel_time <= COVER_MAX_TRAVEL_TIME_MS keeps the product
+     * within 32 bits; the overrun phase runs past travel_time. */
+    delta = elapsed >= travel_time ? COVER_POSITION_MAX_BP :
+            (elapsed * COVER_POSITION_MAX_BP) / travel_time;
     if (runtime->state.motion == COVER_OPENING) {
         uint32_t candidate = (uint32_t)runtime->movement_started_bp + delta;
         position = candidate >= runtime->state.target_travel_bp ?
@@ -169,10 +173,13 @@ static void cover_update_position(cover_runtime_t *runtime) {
     cover_changed(runtime, before);
 }
 
+/* Only a completed endpoint move turns an UNKNOWN position into a known one. */
 static void cover_finish(cover_runtime_t *runtime,
                          cover_position_confidence_t confidence) {
     cover_state_t before = runtime->state;
 
+    if (before.confidence == COVER_POSITION_UNKNOWN && confidence != COVER_POSITION_KNOWN)
+        confidence = COVER_POSITION_UNKNOWN;
     cover_update_position(runtime);
     cover_cancel_timers(runtime);
     runtime->prepared         = false;
@@ -221,24 +228,51 @@ static void cover_safety_timeout(void *arg) {
     cover_finish((cover_runtime_t *)arg, COVER_POSITION_UNKNOWN);
 }
 
+static cover_position_confidence_t cover_stop_confidence(const cover_runtime_t *runtime) {
+    return cover_is_manual(runtime) ? COVER_POSITION_UNKNOWN : COVER_POSITION_ESTIMATED;
+}
+
+/* A second attempt covers a transiently full task pool. */
+static bool cover_arm(app_timer_t *timer, uint32_t delay_ms) {
+    timer_restart(timer, delay_ms);
+    if (!timer_is_active(timer)) timer_restart(timer, delay_ms);
+    return timer_is_active(timer);
+}
+
+/* Arms the timer that stops the motor; false when none could be armed. */
+static bool cover_arm_cutoff(cover_runtime_t *runtime, cover_motion_t direction) {
+    if (cover_is_manual(runtime))
+        return cover_arm(&runtime->safety_timer, runtime->config.manual_max_run_ms);
+
+    if (!cover_arm(&runtime->movement_timer, cover_movement_duration_ms(runtime, direction)))
+        return false;
+
+    timer_restart(&runtime->position_timer, COVER_POSITION_UPDATE_MS);
+    return true;
+}
+
 static void cover_start_applied(cover_runtime_t *runtime, cover_motion_t direction) {
     cover_state_t before = runtime->state;
 
     runtime->state.motion        = direction;
     runtime->movement_started_ms = hal_millis();
-    runtime->movement_started_bp = runtime->state.travel_position_bp;
     if (!runtime->prepared) {
         runtime->prepared               = true;
         runtime->endpoint_target        = true;
         runtime->state.target_travel_bp = direction == COVER_OPENING ?
                                           COVER_POSITION_MAX_BP : 0;
     }
-    if (cover_is_manual(runtime)) {
-        timer_restart(&runtime->safety_timer, runtime->config.manual_max_run_ms);
-    } else {
-        timer_restart(&runtime->movement_timer,
-                      cover_movement_duration_ms(runtime, direction));
-        timer_restart(&runtime->position_timer, COVER_POSITION_UPDATE_MS);
+
+    /* From an unknown position an endpoint move times the full travel, as if
+     * starting at the opposite endpoint. */
+    if (runtime->endpoint_target && runtime->state.confidence == COVER_POSITION_UNKNOWN)
+        runtime->state.travel_position_bp = direction == COVER_OPENING ? 0 :
+                                            COVER_POSITION_MAX_BP;
+    runtime->movement_started_bp = runtime->state.travel_position_bp;
+    cover_update_open_position(runtime);
+    if (!cover_arm_cutoff(runtime, direction)) {
+        cover_finish(runtime, cover_stop_confidence(runtime));
+        return;
     }
     cover_changed(runtime, before);
 }
@@ -269,8 +303,7 @@ static void cover_relay_changed(void *context, uint8_t relay_id, bool is_on,
     } else if (relay_ctrl_is_on(close_relay)) {
         cover_start_applied(runtime, COVER_CLOSING);
     } else if (runtime->state.motion != COVER_STOPPED) {
-        cover_finish(runtime, cover_is_manual(runtime) ? COVER_POSITION_UNKNOWN :
-                     COVER_POSITION_ESTIMATED);
+        cover_finish(runtime, cover_stop_confidence(runtime));
     }
 }
 
@@ -364,7 +397,6 @@ cover_motion_t cover_controller_motion(uint8_t cover_id) {
 bool cover_controller_state(uint8_t cover_id, cover_state_t *state) {
     if (cover_id >= cover_count || state == NULL) return false;
 
-    cover_update_position(&cover_runtimes[cover_id]);
     *state = cover_runtimes[cover_id].state;
     return true;
 }
@@ -394,8 +426,7 @@ cover_result_t cover_stop(uint8_t cover_id) {
                  timer_is_active(&runtime->movement_timer);
     if (!was_active) return COVER_RESULT_UNCHANGED;
 
-    cover_finish(runtime, cover_is_manual(runtime) ? COVER_POSITION_UNKNOWN :
-                 COVER_POSITION_ESTIMATED);
+    cover_finish(runtime, cover_stop_confidence(runtime));
     return COVER_RESULT_APPLIED;
 }
 
@@ -411,10 +442,18 @@ static cover_result_t cover_start(uint8_t cover_id, cover_motion_t direction,
     runtime      = &cover_runtimes[cover_id];
     target_relay = direction == COVER_OPENING ? cover_open_relay(runtime) :
                    cover_close_relay(runtime);
-    if (runtime->state.motion == direction && relay_ctrl_is_on(target_relay) &&
-        runtime->state.target_travel_bp == target_travel_bp) return COVER_RESULT_UNCHANGED;
-
     cover_update_position(runtime);
+    if (runtime->state.motion == direction && relay_ctrl_is_on(target_relay)) {
+        if (runtime->state.target_travel_bp == target_travel_bp) return COVER_RESULT_UNCHANGED;
+
+        /* Same direction: retime the running motor, no stop and no NVM write. */
+        runtime->endpoint_target        = endpoint_target;
+        runtime->state.target_travel_bp = target_travel_bp;
+        cover_start_applied(runtime, direction);
+        return runtime->state.motion == direction ? COVER_RESULT_APPLIED :
+               COVER_RESULT_BLOCKED;
+    }
+
     cover_cancel_timers(runtime);
     runtime->prepared               = true;
     runtime->endpoint_target        = endpoint_target;
@@ -435,6 +474,12 @@ static cover_result_t cover_start(uint8_t cover_id, cover_motion_t direction,
         runtime->prepared = false;
         (void)cover_store(runtime, false);
     }
+
+    /* An applied relay starts the motor synchronously; it is stopped again
+     * when no cutoff timer could be armed. */
+    if (result == RELAY_RESULT_APPLIED && runtime->state.motion != direction)
+        return COVER_RESULT_BLOCKED;
+
     return cover_result_from_relay(result);
 }
 
@@ -448,7 +493,9 @@ cover_result_t cover_close(uint8_t cover_id) {
 
 cover_result_t cover_goto(uint8_t cover_id, uint16_t open_position_bp) {
     cover_runtime_t *runtime;
+    cover_motion_t   direction;
     uint16_t         target;
+    uint16_t         distance;
     uint32_t         usable;
 
     if (cover_id >= cover_count || open_position_bp > COVER_POSITION_MAX_BP)
@@ -461,13 +508,23 @@ cover_result_t cover_goto(uint8_t cover_id, uint16_t open_position_bp) {
 
     if (open_position_bp == COVER_POSITION_MAX_BP) return cover_open(cover_id);
 
+    /* An intermediate target needs a trustworthy start; OPEN or CLOSE
+     * re-establishes it. */
+    if (runtime->state.confidence == COVER_POSITION_UNKNOWN) return COVER_RESULT_BLOCKED;
+
+    cover_update_position(runtime);
     usable = COVER_POSITION_MAX_BP - runtime->state.closed_deadzone_bp -
              runtime->state.open_deadzone_bp;
     target = (uint16_t)(runtime->state.closed_deadzone_bp +
                         ((uint32_t)open_position_bp * usable) / COVER_POSITION_MAX_BP);
-    return target >= runtime->state.travel_position_bp ?
-           cover_start(cover_id, COVER_OPENING, target, false) :
-           cover_start(cover_id, COVER_CLOSING, target, false);
+    direction = target >= runtime->state.travel_position_bp ? COVER_OPENING : COVER_CLOSING;
+    distance  = direction == COVER_OPENING ? target - runtime->state.travel_position_bp :
+                runtime->state.travel_position_bp - target;
+    /* Less than 1 ms of travel away: the cover is already there. */
+    if ((uint32_t)distance * cover_effective_time(runtime, direction) < COVER_POSITION_MAX_BP)
+        return cover_stop(cover_id);
+
+    return cover_start(cover_id, direction, target, false);
 }
 
 cover_result_t cover_controller_set_motor_reversal(uint8_t cover_id, bool motor_reversal) {

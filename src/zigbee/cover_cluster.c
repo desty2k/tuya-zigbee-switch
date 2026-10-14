@@ -161,10 +161,11 @@ static hal_zigbee_cmd_result_t cover_cluster_callback(zigbee_cover_cluster *clus
 
         result = cover_goto(cluster->controller_id,
                             (uint16_t)(100 - percentage) * 100);
-        if (result == COVER_RESULT_BLOCKED) return HAL_ZIGBEE_ACTION_DENIED;
     } else {
         return HAL_ZIGBEE_CMD_SKIPPED;
     }
+    if (result == COVER_RESULT_BLOCKED) return HAL_ZIGBEE_ACTION_DENIED;
+
     return result == COVER_RESULT_INVALID ? HAL_ZIGBEE_CMD_SKIPPED :
            HAL_ZIGBEE_CMD_PROCESSED;
 }

@@ -1,4 +1,5 @@
 #include "feature_wiring.h"
+#include "capability_state.h"
 #include "config_nv.h"
 #include "device_config/build_features.h"
 #include "device_config/config_parser.h"
@@ -237,7 +238,7 @@ static feature_wiring_result_t wire_covers(const device_composition_t *c) {
         cover_switch_clusters[i].cover_switch_idx   = i;
         cover_switch_clusters[i].open_button_id     = c->cover_switches[i].open_button_id;
         cover_switch_clusters[i].close_button_id    = c->cover_switches[i].close_button_id;
-        cover_switch_clusters[i].hold_duration_ms   = 800;
+        cover_switch_clusters[i].hold_duration_ms   = COVER_SWITCH_DEFAULT_HOLD_MS;
         cover_switch_clusters[i].multi_click_gap_ms = open_button->multi_click_gap_ms;
         cover_switch_clusters[i].debounce_ms        = open_button->debounce_ms;
     }
