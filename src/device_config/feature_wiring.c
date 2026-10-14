@@ -437,7 +437,32 @@ feature_wiring_result_t feature_wiring_preflight(const device_composition_t *c) 
            FEATURE_WIRING_OK : FEATURE_WIRING_INVALID;
 }
 
+/*
+ * A graph that cannot run leaves the device as safe as a config that failed
+ * to parse: every relay off, no input action and no cover movement. Relays
+ * are switched off through their drivers because the controller is reset
+ * afterwards; pending deferred switch-ons are cancelled first.
+ */
+static void stop_wired_features(void) {
+    for (uint8_t i = 0; i < relays_cnt; i++) {
+        relay_ctrl_cancel_deferred_on(i);
+        relay_driver_apply(&relay_drivers[i], false);
+    }
+    relay_ctrl_init();
+    cover_controller_init();
+    button_input_init();
+    gesture_fsm_init();
+    action_mapper_init();
+    relays_cnt                = 0;
+    buttons_cnt               = 0;
+    switch_clusters_cnt       = 0;
+    relay_clusters_cnt        = 0;
+    cover_switch_clusters_cnt = 0;
+    cover_clusters_cnt        = 0;
+}
+
 void feature_wiring_build_recovery(void) {
+    stop_wired_features();
     memset(endpoints, 0, sizeof(endpoints));
     memset(clusters, 0, sizeof(clusters));
     memset(&basic_cluster, 0, sizeof(basic_cluster));

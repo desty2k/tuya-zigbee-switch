@@ -36,6 +36,7 @@ static uint32_t coordinator_send_failures;
 static uint32_t announce_failures;
 static hal_zigbee_diagnostics_t diagnostics;
 static hal_zigbee_graph_usage_t graph_usage;
+static uint32_t init_failures;
 
 static stub_binding_t bindings[MAX_BINDINGS];
 static int            binding_count = 0;
@@ -64,6 +65,10 @@ bool hal_zigbee_init(hal_zigbee_endpoint *ep_list, uint8_t ep_count) {
     hal_zigbee_descriptor_error_t validation =
         hal_zigbee_validate_platform_graph(ep_list, ep_count);
 
+    if (validation == HAL_ZIGBEE_DESCRIPTOR_OK && init_failures != 0) {
+        init_failures--;
+        validation = HAL_ZIGBEE_DESCRIPTOR_REGISTRATION_CAPACITY;
+    }
     if (validation != HAL_ZIGBEE_DESCRIPTOR_OK) {
         diagnostics.descriptor_validation_failures++;
         diagnostics.last_descriptor_error = validation;
@@ -99,6 +104,10 @@ bool hal_zigbee_init(hal_zigbee_endpoint *ep_list, uint8_t ep_count) {
         }
     }
     return true;
+}
+
+void stub_zigbee_reject_next_inits(uint32_t count) {
+    init_failures = count;
 }
 
 hal_zigbee_graph_usage_t stub_zigbee_get_graph_usage(void) {

@@ -14,6 +14,7 @@ from zcl_consts import (
     ZCL_ATTR_MULTISTATE_INPUT_PRESENT_VALUE,
     ZCL_ATTR_ONOFF,
     ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_MODE,
+    ZCL_ATTR_START_UP_ONOFF,
     ZCL_ATTR_WINDOW_COVERING_MOVING,
     ZCL_CLUSTER_BASIC,
     ZCL_CLUSTER_DEVICE_CONFIG,
@@ -274,3 +275,24 @@ def test_config_write_over_platform_limits_is_rejected() -> None:
         assert not res.ok
     finally:
         proc.stop()
+
+
+def test_refused_zigbee_init_leaves_relays_off_and_inputs_inactive() -> None:
+    config = "M;Safe;SA0u;RB0;"
+    with StubProc(device_config=config) as proc:
+        device = Device(proc)
+        device.write_zigbee_attr(2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_START_UP_ONOFF, 1)
+
+    # The relay starts ON from its saved startup mode while the graph is wired.
+    with StubProc(device_config=config) as proc:
+        assert Device(proc).get_gpio("B0", refresh=True) is True
+
+    with StubProc(
+        cmd=["./build/stub/stub_device", "--fail-zigbee-init"], device_config=config
+    ) as proc:
+        device = Device(proc)
+        _assert_recovery_graph(proc)
+        assert device.get_gpio("B0", refresh=True) is False
+        device.click_button("A0")
+        device.step_time(1000)
+        assert device.get_gpio("B0", refresh=True) is False

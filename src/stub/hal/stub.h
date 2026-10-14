@@ -44,6 +44,10 @@ void stub_zigbee_clear_bindings(void);
 hal_zigbee_endpoint *stub_zigbee_get_endpoints(uint8_t *count);
 hal_zigbee_graph_usage_t stub_zigbee_get_graph_usage(void);
 
+/** Make the next `count` hal_zigbee_init calls fail the way a refused SDK
+ * registration does on Telink. */
+void stub_zigbee_reject_next_inits(uint32_t count);
+
 typedef enum {
     STUB_ZIGBEE_REPORT_CONFIG_SUCCESS,
     STUB_ZIGBEE_REPORT_CONFIG_UNSUPPORTED_ATTRIBUTE,
