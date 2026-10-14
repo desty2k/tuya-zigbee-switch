@@ -12,6 +12,7 @@ it instantiates is compiled only with that feature (src/features.mk).
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -20,12 +21,18 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 DB_FILE = ROOT / "device_db.yaml"
 SCHEMA_FILE = ROOT / "device_db.schema.json"
+FEATURES_MK = ROOT / "src/features.mk"
 
 
 def known_features():
     schema = json.loads(SCHEMA_FILE.read_text())
     board = schema["patternProperties"]["^[A-Z][A-Z0-9_]*$"]
     return board["properties"]["features"]["items"]["enum"]
+
+
+def build_features():
+    match = re.search(r"^ALL_FEATURES := (.*)$", FEATURES_MK.read_text(), re.MULTILINE)
+    return match.group(1).split() if match else []
 
 
 def token_feature(token):
@@ -126,6 +133,9 @@ def main():
 
     all_errors = []
     all_warnings = []
+    if build_features() != order:
+        all_errors.append(f"ALL_FEATURES in {FEATURES_MK.relative_to(ROOT)} "
+                          f"{build_features()} differs from the schema enum {order}")
     for name, board in sorted(db.items()):
         errors, warnings = check_board(name, board, order)
         all_errors += errors

@@ -36,8 +36,16 @@ static void update_state(device_config_status_t status,
 }
 
 static device_config_error_t parse_error(config_parse_result_t result) {
-    return result == CONFIG_PARSE_RESOURCE ? DEVICE_CONFIG_ERROR_RESOURCE :
-           DEVICE_CONFIG_ERROR_PARSE;
+    switch (result) {
+    case CONFIG_PARSE_RESOURCE:
+        return DEVICE_CONFIG_ERROR_RESOURCE;
+
+    case CONFIG_PARSE_FEATURE_MISSING:
+        return DEVICE_CONFIG_ERROR_FEATURE_MISSING;
+
+    default:
+        return DEVICE_CONFIG_ERROR_PARSE;
+    }
 }
 
 void device_config_service_init(void) {

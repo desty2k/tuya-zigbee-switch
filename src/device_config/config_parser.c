@@ -1,4 +1,5 @@
 #include "device_config/config_parser.h"
+#include "device_config/build_features.h"
 
 #include <stddef.h>
 #include <string.h>
@@ -154,6 +155,30 @@ static bool parse_cover_switch_token(const char *token,
     return true;
 }
 
+/* Whether the code a token instantiates is in this image. */
+static bool token_feature_compiled(const char *token) {
+    if (strcmp(token, "SLP") == 0) {
+        return true;
+    }
+    switch (token[0]) {
+    case 'B':
+        return token[1] != 'T' || FEATURE_BATTERY;
+
+    case 'S':
+        return FEATURE_SWITCH;
+
+    case 'R':
+        return FEATURE_RELAY;
+
+    case 'C':
+    case 'X':
+        return FEATURE_COVER;
+
+    default:
+        return true;
+    }
+}
+
 static config_parse_result_t parse_token(const char *token,
                                          device_composition_t *out,
                                          uint16_t *debounce_ms,
@@ -162,6 +187,9 @@ static config_parse_result_t parse_token(const char *token,
     hal_gpio_pin_t pin;
     uint16_t       value;
 
+    if (!token_feature_compiled(token)) {
+        return CONFIG_PARSE_FEATURE_MISSING;
+    }
     if (strcmp(token, "SLP") == 0) {
         out->simultaneous_latching_pulses = true;
     } else if (token[0] == 'D') {

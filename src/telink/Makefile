@@ -15,6 +15,8 @@ $(error NVM_MIGRATIONS_VERSION file is missing or empty)
 endif
 
 FIRMWARE_BASENAME ?= tlc_switch
+# Board features; board.mk passes the board's list (src/features.mk).
+include $(SRC_DIR)/features.mk
 DEVICE_TYPE ?= router
 DEBUG ?= 0
 CONFIG_STR ?= ja5osu5g;TS004F-Loginovo;IC4i;SC2u;BTB5;M;
@@ -92,6 +94,7 @@ DEVICE_DEFS := \
 	-DDEFAULT_CONFIG="$(CONFIG_STR)" \
 	-DIMAGE_TYPE=$(IMAGE_TYPE) \
 	-DHAL_TELINK \
+	$(addprefix -D,$(FEATURE_DEFINES)) \
 	$(TEL_CHIP) 
 
 ifeq ($(DEBUG), 1)
@@ -155,9 +158,7 @@ COMMON_SOURCES := \
 	$(SRC_DIR)/base_components/button_input.c \
 	$(SRC_DIR)/base_components/gesture_fsm.c \
 	$(SRC_DIR)/base_components/action_mapper.c \
-	$(SRC_DIR)/base_components/cover_controller.c \
 	$(SRC_DIR)/base_components/diagnostics_service.c \
-	$(SRC_DIR)/base_components/meter_service.c \
 	$(SRC_DIR)/device_config/capability_state.c \
 	$(SRC_DIR)/base_components/led.c \
 	$(SRC_DIR)/base_components/indicator_feedback.c \
@@ -165,7 +166,6 @@ COMMON_SOURCES := \
 	$(SRC_DIR)/base_components/relay_driver.c \
 	$(SRC_DIR)/base_components/relay_controller.c \
 	$(SRC_DIR)/base_components/interlock.c \
-	$(SRC_DIR)/base_components/battery.c \
 	$(SRC_DIR)/device_config/config_nv.c \
 	$(SRC_DIR)/device_config/device_config_service.c \
 	$(SRC_DIR)/device_config/device_params_nv.c \
@@ -178,13 +178,8 @@ COMMON_SOURCES := \
 	$(SRC_DIR)/zigbee/basic_cluster.c \
 	$(SRC_DIR)/zigbee/device_config_cluster.c \
 	$(SRC_DIR)/zigbee/device_diagnostics_cluster.c \
-	$(SRC_DIR)/zigbee/group_cluster.c \
-	$(SRC_DIR)/zigbee/relay_cluster.c \
-	$(SRC_DIR)/zigbee/switch_cluster.c \
-	$(SRC_DIR)/zigbee/cover_switch_cluster.c \
-	$(SRC_DIR)/zigbee/cover_cluster.c \
-	$(SRC_DIR)/zigbee/battery_cluster.c \
-	$(SRC_DIR)/zigbee/button_event_cluster.c
+	$(SRC_DIR)/zigbee/button_event_cluster.c \
+	$(addprefix $(SRC_DIR)/,$(FEATURE_SOURCES))
 
 # All application sources
 ALL_TELINK_SOURCES := $(TELINK_SOURCES) $(COMMON_SOURCES)

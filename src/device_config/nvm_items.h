@@ -5,6 +5,7 @@
 #define MAX_SWITCHES                     5
 #define MAX_COVER_SWITCHES               3
 #define MAX_COVERS                       3
+#define MAX_METERS                       2
 
 #define NV_ITEM_CURRENT_VERSION_IN_NV    1
 #define NV_ITEM_DEVICE_CONFIG            2
