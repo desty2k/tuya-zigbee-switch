@@ -63,34 +63,43 @@ Verification status labels used below:
 8. Update `docs/refactor/*/STATE.md` with evidence that can be reproduced:
    command, commit and result. Do not record results that were not rerun.
 
-## 3. Step 0 — housekeeping
+## 3. Step 0 — product context and housekeeping
 
-### H0.1 Remove development builds from the release OTA index — critical
+### Product context
+
+This branch is a separate, BSEED-focused firmware published from the
+`desty2k` fork. It is not merged back into upstream `romasku/tuya-zigbee-switch`
+`main`. The fork's own OTA index and `bin/` artifacts are its release channel,
+so committing BSEED builds and index entries is intended.
+
+Consequences for this review:
+
+- Compatibility with upstream's Zigbee interface, generated converters or NVM
+  layouts is not a requirement. The fork's own templates and generated
+  converters must match the firmware it ships.
+- "`main`" below means upstream `main`, the base the fork diverged from. It is
+  used as the reference for behaviour that was known to work on hardware, not
+  as a compatibility target.
+- `AGENTS.md` still states upstream's compatibility guarantees (Zigbee
+  interface, OTA from released firmware). Update it to describe the fork's
+  actual guarantees, so later agents do not flag intended breaks (see D2).
+
+### H0.1 Pin OTA index URLs to an immutable ref — low
 
 - **Where:** `zigbee2mqtt/ota/index_router.json` (4 entries) and
-  `zigbee2mqtt/ota/index_router-FORCE.json` (2 entries); `bin/router/SWITCH_BSEED_TS0726_{3,4}GANG/`.
-  All were committed in `2c2d2bd7`.
-- **Problem:**
-  - The entries point at
-    `github.com/desty2k/.../raw/refs/heads/refactor/input-pipeline/...`, a
-    mutable branch on a fork. `main` has no fork URLs.
-  - Their file version (285356061) is higher than the released one
-    (285356032), so every TS0726 3- and 4-gang user would be offered the dev
-    build.
-  - The `-from_tuya` entries (file version `0xFFFFFFFF`, stock image type
-    54179) would also be offered to stock Tuya devices.
-  - The commit also deletes `main`'s released `*8542fc05*` artifacts for
-    TS0726 3-gang and 4-gang.
-- **Fix:** restore `zigbee2mqtt/ota/` and `bin/` to their `main` contents:
-  `git checkout main -- zigbee2mqtt/ota bin`, then remove the untracked
-  `*538f75d3*` files. Commit this as its own commit. Never commit dev builds or
-  index entries on a feature branch again; the release process produces them.
+  `zigbee2mqtt/ota/index_router-FORCE.json` (2 entries).
+- **Problem:** the URLs use
+  `github.com/desty2k/.../raw/refs/heads/refactor/input-pipeline/...`, a
+  branch ref. The index also stores the file's hash and size. When the branch
+  later points at a different build with the same path, or the file is
+  removed, Z2M downloads a file that no longer matches the hash and rejects
+  the update.
+- **Fix:** generate URLs that use the commit SHA or a release tag.
+- **Note:** the `-from_tuya` entries (file version `0xFFFFFFFF`, stock image
+  type 54179) offer this build to any stock TS0726 device that uses this
+  index. That is the intended conversion path; keep it only for builds that
+  passed the exit criteria in section 8.
 - **Status:** verified.
-
-### H0.2 Do not merge or push this branch to the upstream PR
-
-Merging, or pushing the branch where Z2M's OTA index can see it, before every
-critical item is fixed would ship broken firmware.
 
 ## 4. Step 1 — make the stub model the real platforms
 
@@ -196,9 +205,9 @@ Add these before changing firmware behaviour. Each maps to a finding.
 | Multistate PresentValue, cover lift %, battery voltage/percentage are reportable and emit reports | C1 | reports present |
 | Write switch mode to momentary over ZCL → behaviour switches immediately and survives reboot | C2 | momentary behaviour after write and after reboot |
 | `SWITCH_BSEED_TS0726_4GANG` config registers within Telink limits; relay 4 OnOff works | C3 | registration succeeds, EP8 toggles |
-| NVM fixture from `main` (migration version 1, custom config string, detached switch, startup=previous, multi-press count 0, cover reversal) → boot this firmware | C4 | all settings preserved or mapped |
-| Basic `0xFF00` read/write and `0xFF01`/`0xFF02` behave as on `main` (if D1 = keep) | C5 | same ids, types, semantics |
-| 0xFC01 write with manufacturer code `0x125D` and with none | C6 | accepted |
+| NVM fixture with a lower migration version (e.g. upstream `main` = 1, with custom settings) → boot this firmware | C4 | boots safely, owners at defaults, network membership kept |
+| Every attribute the generated templates read, write or configure exists in the firmware descriptor with the same cluster, type, access and manufacturer code | C5 | template/firmware parity |
+| 0xFC01/0xFC02 writes with the templates' manufacturer code | C6 | accepted; wrong code rejected |
 | 50 Hz square wave (10 ms half-periods) on a toggle-mode input for 1 s | C7 | relay does not toggle; no reset gesture |
 | Press starting 5 ms before the Telink `hal_millis` wrap, released after 50 ms | C8 | short press, no hold/reset |
 | Saved relay record with interlock group 0, then config adds `K` for those relays | C9 | interlock from config applies; both relays never on |
@@ -298,107 +307,95 @@ Add these before changing firmware behaviour. Each maps to a finding.
      `src/telink/hal/zigbee_zcl.c` and fail to recovery on error.
 - **Test:** C3 row.
 
-#### C4. OTA from released firmware wipes the device config and user settings — verified
+#### C4. OTA onto a device running earlier firmware resets its settings — verified, severity medium for the fork
 
-- **Where:** `src/device_config/nvm_migrations.c:76-96`. `main` stores
-  migration version 1, so every step from 2 to 9 runs on the first boot after
-  OTA:
+- **Where:** `src/device_config/nvm_migrations.c:76-96`. A device running
+  upstream `main` firmware, or an earlier fork build, stores a lower migration
+  version, so every later step runs on the first boot after OTA:
   - `delete_relay_configs()`: relay startup mode, indicator modes, inching;
   - `delete_switch_configs()`: switch mode, relay mode (detached), relay
     index, long press, binding mode, cover-switch settings;
   - `capability_state_clear_owned()`, `cover_controller_clear_owned()`: cover
     calibration and position;
   - the `MANAGEMENT_SERVICE_VERSION` step deletes `NV_ITEM_DEVICE_CONFIG`
-    (item 2, the user's config string), `NV_ITEM_BASIC_CLUSTER_DATA` (network
-    LED) and `NV_ITEM_MULTI_PRESS_RESET_COUNT`. This happens before
-    `device_config_service_init()` (`src/app.c:61-62`,
-    `src/device_config/device_config_service.c:41-53`), the only code that
-    would have carried them over.
-  - `main`'s `NV_ITEM_COVER_CONFIG` (motor reversal) is never read.
-- **Problem:** the capability plan's compatibility policy ("changed owner
-  layouts are cleared, never translated", `capabilities/01_architecture.md:44-55`)
-  contradicts `AGENTS.md`, which guarantees OTA updates from released firmware.
-- **Scenario:**
-  - A user with a corrected pinout or bistable relays loses the custom config
-    string and boots the board default. Wrong pins on non-default hardware.
-  - Detached-mode users get relays switching again on button presses, which
-    cuts power to their smart bulbs.
-  - Users who disabled the multi-press reset (count 0) are back to 10: ten
-    quick presses factory-reset the device off the network.
-  - Startup mode "previous" or "on" is lost, so after a power cut relays stay
-    off.
-  - Reversed-wiring covers swap open and close.
+    (item 2, a custom config string), `NV_ITEM_BASIC_CLUSTER_DATA` (network
+    LED) and `NV_ITEM_MULTI_PRESS_RESET_COUNT`.
+  - Network membership, binds and groups survive.
+- **Context:** the fork does not promise settings continuity from upstream
+  firmware (product context in Step 0), so clearing is acceptable. The result
+  is the same as a fresh flash with the board's default config.
+- **What still matters on your own devices after such an OTA:**
+  - Detached mode is gone, so buttons switch the relays again. Relays feeding
+    smart bulbs need reconfiguring.
+  - Multi-press reset count returns to the default 10.
+  - Startup mode returns to the default, so relays stay off after a power cut
+    until reconfigured.
+  - A custom config string is replaced by the board default. Stock BSEED
+    boards are unaffected because their default is correct.
 - **Fix:**
-  - Migrations from released versions (1) convert, not delete:
-    - item 2 → the new device-config record;
-    - multi-press reset count and network LED → the new service record;
-    - `main` relay and switch records → the new owner records, field by
-      field;
-    - `NV_ITEM_COVER_CONFIG` → cover settings.
-  - Migrations between unreleased intermediate versions (2–8) may still clear.
-    Only version 1 exists in the field; confirm with the release tags.
+  - Document "settings are reset when updating from upstream or pre-refactor
+    builds" in `docs/changelog_fw.md`.
   - Remove the redundant `else if (oldVersion < INTERLOCK_CONFIG_VERSION)`
     branch.
-  - Remove the wording in `capabilities/01_architecture.md` that permits
-    dropping released settings (decision D2).
   - `src/silabs/config/silabs_config.h` hard-codes migration version 7 while
     `NVM_MIGRATIONS_VERSION` is 9. Make every platform take the value from the
     `NVM_MIGRATIONS_VERSION` file, as the stub Makefile and Telink already do.
-    Otherwise a build that stores 7 would rerun later steps on the next
+    Otherwise a build that stores 7 reruns later clearing steps on the next
     update.
-- **Test:** C4 row. Build an NVM fixture in the exact byte layout `main`
-  writes; take struct layouts from `git show main:src/...`.
+  - From the first fork release onward, decide whether settings must survive
+    fork-to-fork OTA (D2). If so, later layout changes need converting
+    migrations.
+- **Test:** C4 row: an NVM fixture with a lower version boots safely, with
+  every owner at defaults, and network membership kept.
 
-#### C5. Management attributes moved off Basic; integrations can no longer reach them — verified (decision D1)
+#### C5. Firmware and the fork's own converter templates disagree on management attributes — verified
 
-- **Where:** `src/zigbee/basic_cluster.c` lost `0xFF00` (device config, long
-  char string, writable), `0xFF01` (status LED, boolean, writable) and
-  `0xFF02` (multi-press reset count, uint8, writable); see
-  `git show main:src/zigbee/basic_cluster.c:84-93`. They moved to 0xFC10 under
-  manufacturer code `0x1A2B` (`src/zigbee/management_protocol.h`), and the LED
-  attribute became a three-value enum.
-- Diagnostics moved from Basic `0xFF10–0xFF23` to 0xFC11 `0x0000–0x0051`.
-- Templates still use the old ids:
-  - `helper_scripts/templates/switch_custom.js.jinja:147-290, 550-572`;
-  - `helper_scripts/templates/zha_quirk.py.jinja:69-83`;
-  - the HOMEd generator.
-  - `management_protocol.js.jinja` and `.py.jinja` are generated but unused.
-- The generated outputs were never regenerated.
-- **Scenario:** after the OTA (which also wipes the config, C4), nobody can
-  read or change the config string, LED mode or reset count from Z2M, ZHA or
-  HOMEd. Recovery needs raw manufacturer-specific frames or a reflash.
-- **Fix (default for D1: keep the released interface):**
-  - Keep `0xFF00`, `0xFF01` and `0xFF02` on Basic, with `main`'s types and
-    semantics. They are the external interface `AGENTS.md` protects.
-  - Back them with `device_config_service`; validate before commit, then
-    reboot.
-  - Keep 0xFC11 diagnostics if wanted (new and additive), or restore Basic
-    `0xFF10+`.
-  - If 0xFC10 stays, it must not be the only path. Templates must keep working
-    against both old and new firmware, which the Basic attributes already
-    guarantee.
+- **Where:** the firmware moved the device config string, status LED and
+  multi-press reset count from Basic `0xFF00`/`0xFF01`/`0xFF02` to 0xFC10
+  under manufacturer code `0x1A2B` (`src/zigbee/management_protocol.h`). The
+  LED attribute became a three-value enum. Diagnostics moved from Basic
+  `0xFF10–0xFF23` to 0xFC11 `0x0000–0x0051`.
+  - The templates still use the Basic ids:
+    - `helper_scripts/templates/switch_custom.js.jinja:147-290, 550-572`;
+    - `helper_scripts/templates/zha_quirk.py.jinja:69-83`;
+    - the HOMEd generator.
+  - `management_protocol.js.jinja` and `.py.jinja` are generated but never
+    included.
+  - The generated outputs (`zigbee2mqtt/`, `zha/`, `homed/`) were not
+    regenerated.
+- **Scenario:** a device running this firmware cannot be configured from the
+  fork's Z2M/ZHA/HOMEd converters. Config string, LED mode, reset count and
+  diagnostics are unreachable. Fixing a wrong config needs raw
+  manufacturer-specific frames from the Z2M dev console.
+- **Fix (default for D1: 0xFC10/0xFC11 is the interface):**
+  - Switch every template to 0xFC10/0xFC11 using the generated
+    `management_protocol` fragments; drop the Basic `0xFF0x`/`0xFF1x`
+    definitions.
+  - Make sure the converters send the manufacturer code the firmware requires
+    (D3).
   - Regenerate z2m, ZHA, HOMEd and docs in a separate commit.
+  - Add a check (e.g. in `make tools/check_management_protocol`) that fails
+    when a template references an attribute the firmware does not declare.
 - **Test:** C5 row.
 
-#### C6. Manufacturer code changes break existing 0xFC01 writes and 0xFC02 — reported
+#### C6. Manufacturer codes in firmware and templates disagree — reported
 
 - **Where:** `src/zigbee/cover_switch_cluster.c:471` and
   `src/zigbee/button_event_cluster.c:199` set
-  `ZIGBEE_MANAGEMENT_MANUFACTURER_CODE` (`0x1A2B`). `main` registered all
-  clusters with manufacturer code 0 (`git show main:src/telink/hal/zigbee_zcl.c:206`).
-  Telink pre-write requires an exact manufacturer match
-  (`src/telink/hal/zigbee_zcl.c:190-195`). The Z2M template sends `0x125D` for
-  0xFC01 (`switch_custom.js.jinja:512`) and nothing for 0xFC02. The ZHA
-  quirk's 0xFC02 attributes are `is_manufacturer_specific=False`.
-- **Scenario:** cover-switch settings writes return UNSUPPORTED_ATTRIBUTE
-  after the update.
+  `ZIGBEE_MANAGEMENT_MANUFACTURER_CODE` (`0x1A2B`). Telink pre-write requires
+  an exact manufacturer match (`src/telink/hal/zigbee_zcl.c:190-195`). The Z2M
+  template sends `0x125D` for 0xFC01 (`switch_custom.js.jinja:512`) and no
+  code for 0xFC02. The ZHA quirk marks 0xFC02 attributes
+  `is_manufacturer_specific=False`.
+- **Scenario:** cover-switch settings and button-event attribute writes from
+  the fork's converters return UNSUPPORTED_ATTRIBUTE.
 - **Fix:**
-  - Restore 0xFC01 to `main`'s behaviour: accept the frames today's released
-    templates send, with `0x125D` and without a code.
-  - Pick one manufacturer-code policy for 0xFC02 and make templates and
-    firmware agree.
-  - Confirm whether `0x1A2B` is a placeholder (L6).
-- **Test:** C6 row.
+  - Choose one manufacturer code for all fork-private clusters (D3), and
+    generate it into firmware and every template from
+    `helper_scripts/management_protocol.json`.
+  - Confirm `0x1A2B` is not an assigned code (L6).
+- **Test:** C6 row: writes with the templates' code are accepted, writes with
+  a wrong code are rejected.
 
 #### C7. Default debounce dropped from 50 ms to 8 ms — verified
 
@@ -787,26 +784,30 @@ Add these before changing firmware behaviour. Each maps to a finding.
 
 | # | Question | Default if no answer |
 | --- | --- | --- |
-| D1 | Keep Basic `0xFF00`/`0xFF01`/`0xFF02` as the management interface, or move to 0xFC10 with updated converters? | Keep Basic; it is the released interface `AGENTS.md` protects. 0xFC10/0xFC11 may stay only as additive extras. |
-| D2 | Replace the capability plan's "clear, never translate" compatibility policy? | Yes: migrate everything from released version 1. Unreleased intermediate versions may clear. |
-| D3 | Manufacturer code for private clusters | Keep `main`'s on-wire behaviour for 0xFC01 and 0xFC02; do not introduce `0x1A2B` without a reason. |
-| D4 | Freeze capability phases 5–9 (metering, overload, GPIO probe, pin-info, retry caches)? | Freeze. Remove the meter code (L1). Do not build the Zigbee GPIO probe: it pulses arbitrary pins as outputs on mains hardware. |
-| D5 | Split the branch? | Yes: (a) input pipeline + relay/interlock + fixes from this document; (b) cover controller; (c) management protocol, only if D1 chooses to move. |
+| D1 | Management interface: 0xFC10/0xFC11, or back on Basic `0xFF0x`? | 0xFC10/0xFC11. Templates and generated converters follow the firmware (C5). |
+| D2 | Settings continuity across OTA | None from upstream or pre-refactor builds (documented reset, C4). From the first fork release on, decide whether fork-to-fork OTA must keep settings; update `AGENTS.md` "Versioning and NVM" and its compatibility paragraph to state the fork's actual guarantees. |
+| D3 | Manufacturer code for fork-private clusters (0xFC01, 0xFC02, 0xFC10, 0xFC11) | One code for all, defined once in `helper_scripts/management_protocol.json` and generated into firmware and templates. Confirm `0x1A2B` is not assigned to another vendor before release. |
+| D4 | Freeze capability phases 5–9 (metering, overload, GPIO probe, pin-info, retry caches)? | Freeze until the outlet and cover hardware is traced. Remove the meter code (L1). Do not build the Zigbee GPIO probe: it pulses arbitrary pins as outputs on mains hardware. |
+| D5 | Split the work? | Yes, in order: (a) stub fidelity + C/H fixes for switches and relays; (b) cover controller fixes; (c) management protocol and converter regeneration. |
 
 ## 8. Exit criteria before any hardware flash
 
 1. Every C and H item is fixed or explicitly deferred by the owner. H9
-   (Silabs) may stay deferred, with no Silabs images shipped.
+   (Silabs) may stay deferred, with no Silabs images published.
 2. `make tests` is green, with the S1–S6 stub changes in place.
 3. `BOARD=SWITCH_BSEED_TS0726_4GANG make board/build` passes; image size and
-   registration count are recorded.
-4. OTA index and `bin/` are identical to `main`.
-5. An NVM fixture from `main` passes the C4 test.
+   SDK cluster registration count are recorded in `STATE.md`.
+4. Generated converters are regenerated from the current templates and pass
+   the C5 parity check.
+5. OTA index entries for the build use an immutable URL (H0.1).
 6. Then run the deferred hardware stage (`input_pipeline` stage 6) on one
    TS0726 4-gang:
-   1. flash `main`; configure detached mode, startup = previous and a custom
-      multi-press count;
-   2. OTA to this branch;
-   3. confirm the settings survive, relay reports arrive in Z2M, all four
-      relays respond, and there are no ghost presses on long wiring at 50 ms
-      debounce.
+   1. OTA from the firmware the device runs today; confirm it boots, stays
+      joined, and every relay responds (including relay 4, C3);
+   2. reconfigure via the regenerated Z2M converter: switch mode, detached
+      mode, startup mode, multi-press count; confirm each write takes effect
+      immediately and survives a power cycle (C2);
+   3. confirm relay state reports and button actions arrive in Z2M (C1);
+   4. confirm no ghost presses on long switch wiring at the 50 ms debounce,
+      and no reset or hold from short taps over at least 10 minutes, which
+      crosses the Telink clock wrap twice (C7, C8).
