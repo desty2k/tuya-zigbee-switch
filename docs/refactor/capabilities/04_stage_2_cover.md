@@ -142,8 +142,9 @@ length before reading its byte. Preserve:
 
 Zigbee2MQTT's `windowCovering` extend shows the standard ZCL value as
 0 closed / 100 open only without `coverInverted`; the template must not set
-it. Unknown position reads `0xFF`, which Zigbee2MQTT ignores. Update Telink/Silabs tables and source templates in the same
-phase; commit regenerated artifacts separately.
+it. Unknown position reads `0xFF`, which Zigbee2MQTT ignores. Update
+Telink/Silabs tables and source templates in the same phase; commit
+regenerated artifacts separately.
 
 ## Required tests
 

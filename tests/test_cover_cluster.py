@@ -12,6 +12,7 @@ from zcl_consts import (
     ZCL_ATTR_WINDOW_COVERING_OVERRUN,
     ZCL_CLUSTER_WINDOW_COVERING,
     ZCL_CMD_WINDOW_COVERING_GOTO_LIFT_PERCENTAGE,
+    ZCL_CMD_WINDOW_COVERING_UP_OPEN,
     ZCL_WINDOW_COVERING_MOVING_STOPPED,
     ZCL_WINDOW_COVERING_MOVING_OPENING,
     ZCL_WINDOW_COVERING_MOVING_CLOSING,
@@ -252,6 +253,20 @@ def test_goto_is_refused_while_position_is_unknown(cover_device: Device):
     assert not d.get_gpio("A1", refresh=True)
 
 
+def test_open_without_a_cutoff_timer_is_denied_and_leaves_the_motor_off(cover_device: Device):
+    d = cover_device
+    # Both attempts to arm the cutoff timer fail.
+    d.task_fail(2)
+
+    result = d.call_zigbee_cmd_raw(COVER_EP, ZCL_CLUSTER_WINDOW_COVERING,
+                                   ZCL_CMD_WINDOW_COVERING_UP_OPEN)
+
+    assert result["result"] == "ACTION_DENIED"
+    assert d.zcl_cover_get_moving(COVER_EP) == ZCL_WINDOW_COVERING_MOVING_STOPPED
+    assert not d.get_gpio("A0", refresh=True)
+    assert not d.get_gpio("A1", refresh=True)
+
+
 def test_power_loss_mid_move_runs_full_travel_before_position_is_known():
     """H6: the stored position is stale after power loss during motion."""
     with StubProc(device_config=COVER_CONFIG) as p:
@@ -261,10 +276,15 @@ def test_power_loss_mid_move_runs_full_travel_before_position_is_known():
         d.zcl_cover_close(COVER_EP)
         d.step_time(TRAVEL_MS + OVERRUN_MS)
         d.step_time(MINIMUM_SWITCH_TIME_MS)
-        assert d.zcl_cover_get_position(COVER_EP) == 100
-        d.zcl_cover_open(COVER_EP)
-        d.step_time(TRAVEL_MS // 2)
-        assert d.zcl_cover_get_moving(COVER_EP) == ZCL_WINDOW_COVERING_MOVING_OPENING
+        assert goto_result(d, 50) == "PROCESSED"
+        d.step_time(TRAVEL_MS)
+        d.step_time(MINIMUM_SWITCH_TIME_MS)
+        assert d.zcl_cover_get_position(COVER_EP) == 50
+        # Power is lost a quarter of the travel into the close: the stored
+        # position stays at 50 while the cover is at about 75.
+        d.zcl_cover_close(COVER_EP)
+        d.step_time(TRAVEL_MS // 4)
+        assert d.zcl_cover_get_moving(COVER_EP) == ZCL_WINDOW_COVERING_MOVING_CLOSING
 
     with StubProc() as p:
         d = Device(p)

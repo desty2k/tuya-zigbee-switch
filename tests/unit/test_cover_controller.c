@@ -246,7 +246,7 @@ TEST(cutoff_timer_arm_is_retried_and_motor_stops_without_one) {
 
     reset_controller(100);
     fake_tasks_reject_next(2);
-    (void)cover_open(0);
+    ASSERT_EQ(COVER_RESULT_BLOCKED, cover_open(0));
     ASSERT_EQ(COVER_STOPPED, current_state().motion);
     ASSERT_TRUE(!relay_ctrl_is_on(0));
     ASSERT_TRUE(!relay_ctrl_is_on(1));
@@ -255,7 +255,7 @@ TEST(cutoff_timer_arm_is_retried_and_motor_stops_without_one) {
     store_record(1000, 100, 0, COVER_POSITION_KNOWN, false);
     boot_controller(100);
     fake_tasks_reject_next(2);
-    (void)cover_open(0);
+    ASSERT_EQ(COVER_RESULT_BLOCKED, cover_open(0));
     ASSERT_EQ(COVER_STOPPED, current_state().motion);
     ASSERT_TRUE(!relay_ctrl_is_on(0));
 }

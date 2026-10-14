@@ -24,7 +24,7 @@ Please describe what you are working on, under ## Upcoming
   - With open/close travel times set, the cover tracks its position and accepts *GoToLiftPercentage*.
     `CurrentPositionLiftPercentage` follows ZCL: 0 = fully open, 100 = fully closed, 0xFF = position unknown.
   - After a power loss during motion, or before the first full move, the position is unknown: *GoToLiftPercentage* to an intermediate position is refused and OPEN/CLOSE run the full travel time plus overrun. Reaching an endpoint makes the position known again.
-  - The motor stops if its cutoff timer cannot be armed.
+  - The motor stops if its cutoff timer cannot be armed, and the command fails with `ACTION_DENIED`.
 - **Cover switch cluster** for handling user input from window covering switches.
   Supports toggle/momentary switches, stop-on-repeat, stop button, local control, and remote device binding.
   The long-press duration is saved and survives reboots and updates.

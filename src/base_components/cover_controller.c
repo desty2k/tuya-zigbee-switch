@@ -474,6 +474,12 @@ static cover_result_t cover_start(uint8_t cover_id, cover_motion_t direction,
         runtime->prepared = false;
         (void)cover_store(runtime, false);
     }
+
+    /* An applied relay starts the motor synchronously; it is stopped again
+     * when no cutoff timer could be armed. */
+    if (result == RELAY_RESULT_APPLIED && runtime->state.motion != direction)
+        return COVER_RESULT_BLOCKED;
+
     return cover_result_from_relay(result);
 }
 
