@@ -90,7 +90,7 @@ relay_ctrl_submit(req):
 | any | `ON`, `inching_ms == 0` | relay ON, timer cancelled, reason `NONE` |
 | any | `ON`, `inching_ms != 0` | handled as `PULSE(0)` |
 | any | `TOGGLE` | resolves to `ON` or `OFF` above; a relay whose ON waits for interlock dead time counts as ON, so the toggle cancels it |
-| any | `ON_TIMED(d)` | relay ON, timer restarted with `d`, reason `TIMED` |
+| any | `ON_TIMED(d)` | relay ON, timer restarted with `d` (at most `inching_ms` when inching is enabled), reason `TIMED` |
 | any | `PULSE(d)` | relay ON, timer restarted with `d` or `inching_ms`, reason `PULSE` |
 | `PULSE` / `TIMED` | timer expiry | internal `relay_ctrl_submit(OFF, source = TIMER)` |
 
@@ -171,8 +171,9 @@ Rules:
   other value is rejected with `INVALID_VALUE`) and a persisted value never
   overrides it. A relay the config leaves ungrouped may join a `K` group, or
   leave it, through the attribute; cover groups and undefined ids are
-  rejected.
-- `K<mask>` without `:ms` uses `INTERLOCK_DEFAULT_DEAD_TIME_MS` (200 ms, the
+  rejected. A relay that joins while it and a member are both on switches
+  off.
+- `K<mask>` without `:ms` uses `DEVICE_COMPOSITION_DEFAULT_DEAD_TIME_MS` (200 ms, the
   cover reversal time): long enough for a de-energised contact to open and
   an inductive load's arc or a reversing motor's back-EMF to decay.
   `K<mask>:0` switches peers off and the target on in the same request.
@@ -189,7 +190,7 @@ Rules:
 - Applies to every source: physical button, gesture, Zigbee command, binding,
   timer expiry, pulse, startup restore and cover movement.
 - Cover endpoints register their open/close relay pair as an implicit interlock
-  group with `dead_time_ms = INTERLOCK_DEFAULT_DEAD_TIME_MS` (200 ms), so
+  group with `dead_time_ms = DEVICE_COMPOSITION_DEFAULT_DEAD_TIME_MS` (200 ms), so
   the two motor directions cannot be energised together even if a future code
   path forgets the cover state machine. The cover cluster keeps its own movement
   sequencing and `moving` attribute and issues requests with
