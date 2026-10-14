@@ -84,6 +84,19 @@ static bool capture_snapshot(uint8_t *snapshot, uint8_t flags) {
     return changed;
 }
 
+/*
+ * The interrupt handler also captures, and the edge queue behind the sink has
+ * a single producer. Main-context captures therefore run with interrupts
+ * masked so the two never interleave.
+ */
+static bool capture_snapshot_from_main(uint8_t *snapshot) {
+    u32  irq_state = drv_disable_irq();
+    bool changed   = capture_snapshot(snapshot, HAL_GPIO_EDGE_DEFERRED);
+
+    drv_restore_irq(irq_state);
+    return changed;
+}
+
 static void disable_watched_irqs(void) {
     for (uint8_t i = 0; i < MAX_WATCHED_PINS; i++) {
         if (watched_pins[i].pin != HAL_INVALID_PIN) {
@@ -124,7 +137,7 @@ void hal_gpio_process_pending(void) {
     read_snapshot(snapshot);
     do {
         set_irq_polarities(snapshot);
-        changed = capture_snapshot(snapshot, HAL_GPIO_EDGE_DEFERRED);
+        changed = capture_snapshot_from_main(snapshot);
         tries++;
     } while (changed && tries < MAX_REARM_TRIES);
 
@@ -132,7 +145,7 @@ void hal_gpio_process_pending(void) {
         diagnostics.gpio_rearm_limit_hits++;
     }
     enable_watched_irqs();
-    capture_snapshot(snapshot, HAL_GPIO_EDGE_DEFERRED);
+    capture_snapshot_from_main(snapshot);
 }
 
 static void gpio_isr_callback(void) {
@@ -177,19 +190,24 @@ void hal_gpio_watch_pin(hal_gpio_pin_t gpio_pin) {
         return;
     }
 
-    slot->pin        = gpio_pin;
+    // The interrupt handler walks watched_pins; publish the slot atomically.
+    u32 irq_state = drv_disable_irq();
     slot->last_level = hal_gpio_read(gpio_pin);
+    slot->pin        = gpio_pin;
     drv_gpio_irq_set((u32)gpio_pin, slot->last_level
                      ? GPIO_FALLING_EDGE
                      : GPIO_RISING_EDGE);
     drv_gpio_irq_en((u32)gpio_pin);
+    drv_restore_irq(irq_state);
 }
 
 void hal_gpio_unwatch_pin(hal_gpio_pin_t gpio_pin) {
     for (uint8_t i = 0; i < MAX_WATCHED_PINS; i++) {
         if (watched_pins[i].pin == gpio_pin) {
+            u32 irq_state = drv_disable_irq();
             drv_gpio_irq_dis((u32)gpio_pin);
             watched_pins[i].pin = HAL_INVALID_PIN;
+            drv_restore_irq(irq_state);
             return;
         }
     }
@@ -204,7 +222,7 @@ void telink_gpio_reinit_interrupts(void) {
 
     is_isr_initialized = false;
     init_isr();
-    capture_snapshot(snapshot, HAL_GPIO_EDGE_DEFERRED);
+    capture_snapshot_from_main(snapshot);
     gpio_dispatch_pending = true;
     hal_gpio_process_pending();
 }
