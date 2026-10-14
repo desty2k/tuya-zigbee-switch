@@ -91,7 +91,7 @@ def test_local_press_reports_relay_on_off(
                                 ZCL_ATTR_ONOFF)
 
 
-def test_cover_move_reports_moving_and_position() -> None:
+def test_cover_move_reports_moving() -> None:
     proc = StubProc(device_config="M;Cover;CB0B1;").start()
     try:
         device = Device(proc)
