@@ -43,6 +43,18 @@ static void button_input_commit(uint8_t button_id, button_state_t state,
     button_dispatcher_emit(&event);
 }
 
+/*
+ * Time a raw level has been held at `at`, or 0 if `at` precedes `since`.
+ * Only used while raw_state differs from stable_state; the worker resolves
+ * that within one debounce interval, so `since` is recent and a signed
+ * difference distinguishes "earlier" from "long ago".
+ */
+static uint32_t button_input_held_ms(uint32_t at, uint32_t since) {
+    uint32_t held = at - since;
+
+    return (int32_t)held < 0 ? 0 : held;
+}
+
 static void button_input_process_edge(const hal_gpio_edge_t *edge) {
     for (uint8_t button_id = 0; button_id < button_count; button_id++) {
         button_runtime_t *runtime;
@@ -57,7 +69,7 @@ static void button_input_process_edge(const hal_gpio_edge_t *edge) {
             return;
         }
         if (runtime->raw_state != runtime->stable_state &&
-            edge->timestamp_ms - runtime->raw_since_ms >=
+            button_input_held_ms(edge->timestamp_ms, runtime->raw_since_ms) >=
             button_configs[button_id].debounce_ms) {
             button_input_commit(button_id, runtime->raw_state,
                                 runtime->raw_since_ms);
@@ -96,7 +108,7 @@ static void button_input_schedule_worker(uint32_t delay_ms) {
 
 static void button_input_worker(void *arg) {
     hal_gpio_edge_t edge;
-    uint32_t        now            = hal_millis();
+    uint32_t        now;
     uint32_t        earliest_delay = UINT32_MAX;
 
     (void)arg;
@@ -104,6 +116,8 @@ static void button_input_worker(void *arg) {
     while (gpio_edge_queue_pop(&button_edge_queue, &edge)) {
         button_input_process_edge(&edge);
     }
+    // Sampled after the drain so no processed edge is newer than `now`.
+    now = hal_millis();
     if (button_resync_pending) {
         button_resync_pending = false;
         button_input_resync(now);
@@ -116,7 +130,7 @@ static void button_input_worker(void *arg) {
         if (runtime->raw_state == runtime->stable_state) {
             continue;
         }
-        elapsed = now - runtime->raw_since_ms;
+        elapsed = button_input_held_ms(now, runtime->raw_since_ms);
         if (elapsed >= debounce_ms) {
             button_input_commit(button_id, runtime->raw_state,
                                 runtime->raw_since_ms);

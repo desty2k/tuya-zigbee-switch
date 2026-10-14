@@ -184,6 +184,32 @@ TEST(queue_overflow_resyncs_to_pin_level) {
     ASSERT_TRUE(button_input_is_down(button_id));
 }
 
+static bool inject_during_drain;
+
+static void inject_edge_on_first_event(const button_event_t *event,
+                                       void *arg) {
+    (void)event;
+    (void)arg;
+    if (inject_during_drain) {
+        inject_during_drain = false;
+        fake_gpio_inject_edge(TEST_PIN, 0, 131);
+    }
+}
+
+TEST(edge_captured_during_drain_is_still_debounced) {
+    setup_button(1, false);
+    button_dispatcher_register(inject_edge_on_first_event, NULL);
+    inject_during_drain = true;
+    fake_gpio_inject_edge(TEST_PIN, 0, 100);
+    fake_gpio_inject_edge(TEST_PIN, 1, 120);
+    poll_at(125);
+    fake_gpio_inject_edge(TEST_PIN, 1, 132);
+    poll_at(200);
+    ASSERT_EQ(2, event_count);
+    ASSERT_EQ(BUTTON_EVENT_DOWN, events[0].type);
+    ASSERT_EQ(BUTTON_EVENT_UP, events[1].type);
+}
+
 int main(void) {
     RUN_TEST(edge_capture_never_schedules_the_worker);
     RUN_TEST(bounce_on_press);
@@ -197,5 +223,6 @@ int main(void) {
     RUN_TEST(millis_wraparound);
     RUN_TEST(two_buttons_interleave_with_global_sequence);
     RUN_TEST(queue_overflow_resyncs_to_pin_level);
+    RUN_TEST(edge_captured_during_drain_is_still_debounced);
     return test_runner_failures == 0 ? 0 : 1;
 }
