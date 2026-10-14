@@ -787,7 +787,7 @@ Add these before changing firmware behaviour. Each maps to a finding.
 | D1 | Management settings live on fork-private clusters 0xFC10/0xFC11. Templates and generated converters follow the firmware (C5). Basic `0xFF0x` is not restored. |
 | D2 | No settings continuity from upstream or pre-release fork firmware (documented reset, C4). From the first fork release onward, settings must survive fork-to-fork OTA: layout changes need converting migrations. Recorded in `AGENTS.md`. |
 | D3 | One manufacturer code for every fork-private cluster (0xFC01, 0xFC02, 0xFC10, 0xFC11), defined once in `helper_scripts/management_protocol.json` and generated into firmware and templates. Confirm `0x1A2B` is not assigned to another vendor; choose another if it is. |
-| D4 | Capability phases 5–9 are frozen. The meter code is removed in the cleanup wave (L1). No Zigbee GPIO probe. |
+| D4 | Capability phases 5, 7–9 (metering driver, measurement adapters, overload, profiles) stay frozen until the outlet is characterized. The meter code stays but is compiled only for boards whose `features` include it (D6). Phase 6.3–6.5 is replaced by the reduced GPIO probe in section 10, because the outlet cannot be opened. |
 | D5 | Work proceeds in waves (section 9). |
 | D6 | Per-board features are selected at build time. `device_db.yaml` gets a `features` list per board; the build compiles only those features; the generator/CI fails when a board's `config_str`/`alt_config_str` uses a token for an unlisted feature; boards without the field derive features from their config tokens. At runtime a token for a feature not in the image boots the recovery graph with a "feature not in this build" error. `category` stays metadata and gains `cover`. |
 | D7 | Size optimisation: our own code (`src/` outside the vendor SDK, including `src/telink/`) compiles with `-Os`; the Telink SDK stays at `-O2`. SDK protocol code at `-Os` (~3 KB) is held in reserve. Debounce default is 25 ms (owner decision 2026-10-14). |
@@ -832,6 +832,7 @@ Implementing agents' own reports are not accepted as evidence.
 | 2 | D: cover | H6, H7, M6, L5 | A merged |
 | 2 | E: integrations | C5, C6, D3, template/firmware parity check, regenerated converters | A merged |
 | 1.5 | S: size and features | D6, D7; record per-board sizes; 4-gang OTA file below 200704 bytes with margin | wave 1 merged |
+| 2 | P: GPIO probe | section 10 | wave 1.5 merged |
 | 3 | cleanup | L1, L2, L3, L4, L8, L9, L10, M2, M7, M10, M13 | waves 1–2 |
 | 4 | owner | hardware exit criteria (section 8) | wave 3 |
 
@@ -874,3 +875,91 @@ SDK sources, ~40 KB own code. Largest own objects: `feature_wiring.o` 5.1 KB,
 2.0 KB, `cover_switch_cluster.o` 2.0 KB. Cover code (controller + cover cluster
 + cover-switch cluster) is ~6.7 KB. `meter_service` contributes 16 bytes
 (removed by `--gc-sections`); UART printf is disabled in release builds.
+
+## 10. Socket discovery workstream (GPIO probe)
+
+### Why
+
+The BSEED outlet `TS011F` / `_TZ3210_drzlxjne` (Z2M `TS011F_plug_1`, Telink
+OUI, router) cannot be opened. Its relay, button, LED and meter pins and its
+meter IC are unknown. Published `_TZ3210` plugs differ: some use BL0937 (pulse
+outputs CF, CF1, SEL), others BL0942 (UART). Sibling and third-party pin maps
+disagree (CF C0 / CF1 C2 / SEL C1 versus CF PC3 / CF1 PC2 / SEL PB4). Pins must
+be discovered on the device itself with a probe running in our firmware.
+
+### Constraints
+
+- Conversion from stock is one-way: recovery or return to stock needs the SWS
+  pad, which needs opening. The first converted outlet must be expendable.
+- The probe image installs over stock Tuya firmware, so its OTA file must fit
+  the 200704-byte bootloader-layout slot (H10) with margin.
+- Before conversion, record the outlet's stock identity from Z2M:
+  `genBasic` `appVersion`, `stackVersion`, `hwVersion`, `dateCode`,
+  `swBuildId`, and from the OTA "check for update" log `manufacturerCode`,
+  `imageType`, `fileVersion`. The probe board's `stock_manufacturer_id` and
+  `stock_image_type` come from these values, never from a sibling.
+- The outlet board is not isolated from mains. All probing is done over Zigbee
+  with the outlet in its housing; no load is plugged in during output pulses.
+
+### Scope
+
+1. **Probe board.** A `device_db.yaml` entry for the outlet with
+   `features: [probe]`, a unique firmware image type, and a config that claims
+   no pins. At boot every GPIO stays in its reset state (input, no output
+   enable). The image contains management, OTA and the probe only.
+2. **`gpio_probe_service`** (`src/base_components/`), independent of ZCL and
+   NVM, compiled only for boards with the `probe` feature:
+   - **pin set:** a per-MCU table of probeable pins. Pins needed by the
+     platform are excluded: TLSR8258 SWS (PA7), flash and crystal pins, and any
+     pin owned by an active feature.
+   - **snapshot:** read the level of every probeable pin without changing its
+     mode.
+   - **watch:** count edges on up to N selected pins for 1–300 s, reporting
+     count, minimum and maximum interval and last level per pin. The interrupt
+     handler only increments counters. A pin above a rate ceiling (e.g. 20 kHz)
+     stops counting and is flagged. This identifies the button (press it),
+     BL0937 CF1 (steady pulses with no load, from mains voltage), CF (rate
+     rises with a load) and a silent BL0942.
+   - **pull test:** for each selected pin, enable pull-up, read, enable
+     pull-down, read, restore no-pull input. Classify each pin as
+     *floating* (follows both pulls), *driven high*, *driven low* or *active*
+     (toggling). The classification is kept for the session.
+   - **pulse:** drive one pin to a requested level for 1–500 ms, then restore
+     no-pull input. Allowed only on pins classified *floating* in the current
+     session's pull test, one pin at a time, with an explicit arm command
+     before each pulse. The cutoff runs from a timer and is re-checked from the
+     main loop. A reset or reboot always returns pins to input, because nothing
+     is persisted. Used for relay (audible click), LEDs (visible) and SEL
+     (CF1 rate changes between voltage and current).
+   - every operation can be stopped; stop and timeout restore no-pull input.
+3. **Zigbee interface.** Probe commands and results on the Device Diagnostics
+   cluster 0xFC11 with the fork manufacturer code (D3), defined in
+   `helper_scripts/management_protocol.json` and generated into firmware and
+   templates. Pin ids are portable (`port << 8 | index`, A = 0).
+4. **Discovery helper.** A script that drives the probe through
+   Zigbee2MQTT's MQTT API and runs the procedure: snapshot → pull test →
+   watch with no load → watch while the user presses the button → watch with a
+   resistive load → pulse each floating pin with the load unplugged, asking the
+   user what they heard or saw. It prints a proposed config string and meter
+   pin map. Document the procedure in `docs/`.
+5. **Tests.** Stub models for floating, pulled and externally driven pins and a
+   pulse-train source. Native unit tests for classification, the rate ceiling,
+   pulse refusal on non-floating pins, cutoff and stop. Telink 4-gang and probe
+   board builds, with size recorded.
+
+### Out of scope for P
+
+- BL0942 UART probing (send a read request on candidate pins). Add it only if
+  the watch step shows no pulse activity.
+- Meter driver, measurement clusters and calibration (frozen Phase 5/7).
+- The output-cutoff guarantees of the original Phase 6.4 design beyond the
+  timer-plus-main-loop cutoff above.
+
+### Hardware procedure (owner)
+
+1. Read and record the stock identity values listed above.
+2. OTA the probe image onto one expendable outlet with nothing plugged in.
+3. Run the discovery helper and record the results in
+   `docs/refactor/capabilities/STATE.md`.
+4. With pins and meter IC known, write the outlet's real profile and unfreeze
+   the meter driver work.
