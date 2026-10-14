@@ -278,6 +278,16 @@ TEST(explicit_timed_on_overrides_inching) {
     ASSERT_TRUE(!relay_ctrl_is_on(0));
 }
 
+TEST(timed_on_remaining_reports_only_timed_deadlines) {
+    reset_controller(false);
+    ASSERT_EQ(0, relay_ctrl_timed_on_remaining_ms(0));
+    ASSERT_EQ(RELAY_RESULT_APPLIED, submit_timed(RELAY_REQUEST_ON_TIMED, 500));
+    fake_clock_advance_ms(200);
+    ASSERT_EQ(300, relay_ctrl_timed_on_remaining_ms(0));
+    ASSERT_EQ(RELAY_RESULT_UNCHANGED, submit_timed(RELAY_REQUEST_PULSE, 900));
+    ASSERT_EQ(0, relay_ctrl_timed_on_remaining_ms(0));
+}
+
 TEST(latching_pulse_is_retried_when_its_timer_cannot_be_armed) {
     reset_controller(true);
     fake_tasks_reject_next(1);
@@ -336,6 +346,7 @@ int main(void) {
     RUN_TEST(controller_capacity_is_bounded);
     RUN_TEST(configured_inching_applies_to_every_on_request);
     RUN_TEST(explicit_timed_on_overrides_inching);
+    RUN_TEST(timed_on_remaining_reports_only_timed_deadlines);
     RUN_TEST(latching_pulse_is_retried_when_its_timer_cannot_be_armed);
     RUN_TEST(latching_wait_is_retried_when_its_timer_cannot_be_armed);
     return test_runner_failures == 0 ? 0 : 1;

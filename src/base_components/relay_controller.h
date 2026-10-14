@@ -69,6 +69,9 @@ uint16_t relay_ctrl_get_inching_ms(uint8_t relay_id);
 void relay_ctrl_set_interlock_group(uint8_t relay_id, uint8_t group_id);
 uint8_t relay_ctrl_get_interlock_group(uint8_t relay_id);
 auto_off_reason_t relay_ctrl_auto_off_reason(uint8_t relay_id);
+
+/** Time left before an ON_TIMED deadline switches the relay off; 0 if none. */
+uint32_t relay_ctrl_timed_on_remaining_ms(uint8_t relay_id);
 void relay_ctrl_cancel_deferred_on(uint8_t relay_id);
 bool relay_ctrl_inhibit(uint16_t relay_mask, uint8_t inhibit_id);
 bool relay_ctrl_release(uint16_t relay_mask, uint8_t inhibit_id);

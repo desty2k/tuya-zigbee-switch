@@ -238,6 +238,14 @@ auto_off_reason_t relay_ctrl_auto_off_reason(uint8_t relay_id) {
            : AUTO_OFF_NONE;
 }
 
+uint32_t relay_ctrl_timed_on_remaining_ms(uint8_t relay_id) {
+    if (relay_id >= relay_ctrl_relay_count ||
+        relay_ctrl_runtimes[relay_id].auto_off_reason != AUTO_OFF_TIMED) {
+        return 0;
+    }
+    return timer_remaining_ms(&relay_ctrl_runtimes[relay_id].auto_off_timer);
+}
+
 void relay_ctrl_cancel_deferred_on(uint8_t relay_id) {
     if (relay_id < relay_ctrl_relay_count) {
         relay_ctrl_runtimes[relay_id].deferred_on = false;

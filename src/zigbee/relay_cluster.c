@@ -163,6 +163,52 @@ static hal_zigbee_cmd_result_t relay_cluster_result_to_zigbee(
     }
 }
 
+/*
+ * ZCL 3.8.2.3.6 with OffWaitTime not implemented. "Accept only when on"
+ * discards the command for an off relay. The on time never shortens a
+ * running OnWithTimedOff deadline (OnTime = max(OnTime, field)), so a zero
+ * field only keeps an existing deadline and never pulses an off relay.
+ * 0xFFFF switches on without a deadline.
+ */
+static hal_zigbee_cmd_result_t relay_cluster_on_with_timed_off(
+    zigbee_relay_cluster *cluster, const void *cmd_payload,
+    uint16_t cmd_payload_len) {
+    const uint8_t *payload = (const uint8_t *)cmd_payload;
+    uint16_t       on_time;
+    uint32_t       on_time_ms;
+    uint32_t       remaining_ms;
+
+    if (payload == NULL || cmd_payload_len < 5) {
+        return HAL_ZIGBEE_MALFORMED_COMMAND;
+    }
+    if ((payload[0] & ZCL_ONOFF_CONTROL_ACCEPT_ONLY_WHEN_ON) != 0 &&
+        !relay_ctrl_is_on(cluster->relay_id)) {
+        return HAL_ZIGBEE_CMD_PROCESSED;
+    }
+    on_time = (uint16_t)payload[1] | ((uint16_t)payload[2] << 8);
+    if (on_time == ZCL_ONOFF_ON_TIME_NO_TIMEOUT) {
+        return relay_cluster_result_to_zigbee(relay_ctrl_submit(&(relay_request_t){
+            .relay_id = cluster->relay_id,
+            .type     = RELAY_REQUEST_ON,
+            .source   = RELAY_SOURCE_ZIGBEE,
+        }));
+    }
+    on_time_ms   = (uint32_t)on_time * 100;
+    remaining_ms = relay_ctrl_timed_on_remaining_ms(cluster->relay_id);
+    if (remaining_ms > on_time_ms) {
+        on_time_ms = remaining_ms;
+    }
+    if (on_time_ms == 0) {
+        return HAL_ZIGBEE_CMD_PROCESSED;
+    }
+    return relay_cluster_result_to_zigbee(relay_ctrl_submit(&(relay_request_t){
+        .relay_id    = cluster->relay_id,
+        .type        = RELAY_REQUEST_ON_TIMED,
+        .duration_ms = on_time_ms,
+        .source      = RELAY_SOURCE_ZIGBEE,
+    }));
+}
+
 hal_zigbee_cmd_result_t relay_cluster_callback(zigbee_relay_cluster *cluster,
                                                uint8_t command_id,
                                                void *cmd_payload,
@@ -191,21 +237,9 @@ hal_zigbee_cmd_result_t relay_cluster_callback(zigbee_relay_cluster *cluster,
             .source   = RELAY_SOURCE_ZIGBEE,
         }));
 
-    case ZCL_CMD_ON_WITH_TIMED_OFF: {
-        uint8_t *payload = (uint8_t *)cmd_payload;
-
-        if (payload == NULL || cmd_payload_len < 5) {
-            return HAL_ZIGBEE_MALFORMED_COMMAND;
-        }
-        uint16_t on_time = (uint16_t)payload[1] |
-                           ((uint16_t)payload[2] << 8);
-        return relay_cluster_result_to_zigbee(relay_ctrl_submit(&(relay_request_t){
-                .relay_id    = cluster->relay_id,
-                .type        = RELAY_REQUEST_ON_TIMED,
-                .duration_ms = (uint32_t)on_time * 100,
-                .source      = RELAY_SOURCE_ZIGBEE,
-            }));
-    }
+    case ZCL_CMD_ON_WITH_TIMED_OFF:
+        return relay_cluster_on_with_timed_off(cluster, cmd_payload,
+                                               cmd_payload_len);
 
     default:
         printf("Unknown OnOff command: %d\r\n", command_id);
