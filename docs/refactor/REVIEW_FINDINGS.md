@@ -789,6 +789,8 @@ Add these before changing firmware behaviour. Each maps to a finding.
 | D3 | One manufacturer code for every fork-private cluster (0xFC01, 0xFC02, 0xFC10, 0xFC11), defined once in `helper_scripts/management_protocol.json` and generated into firmware and templates. Confirm `0x1A2B` is not assigned to another vendor; choose another if it is. |
 | D4 | Capability phases 5–9 are frozen. The meter code is removed in the cleanup wave (L1). No Zigbee GPIO probe. |
 | D5 | Work proceeds in waves (section 9). |
+| D6 | Per-board features are selected at build time. `device_db.yaml` gets a `features` list per board; the build compiles only those features; the generator/CI fails when a board's `config_str`/`alt_config_str` uses a token for an unlisted feature; boards without the field derive features from their config tokens. At runtime a token for a feature not in the image boots the recovery graph with a "feature not in this build" error. `category` stays metadata and gains `cover`. |
+| D7 | Size optimisation: our own code (`src/` outside the vendor SDK, including `src/telink/`) compiles with `-Os`; the Telink SDK stays at `-O2`. SDK protocol code at `-Os` (~3 KB) is held in reserve. Debounce default is 25 ms (owner decision 2026-10-14). |
 
 ## 8. Exit criteria before any hardware flash
 
@@ -829,6 +831,7 @@ Implementing agents' own reports are not accepted as evidence.
 | 2 | C: relays and interlock | C9, M1, M3, M4, M5, L7 | A merged |
 | 2 | D: cover | H6, H7, M6, L5 | A merged |
 | 2 | E: integrations | C5, C6, D3, template/firmware parity check, regenerated converters | A merged |
+| 1.5 | S: size and features | D6, D7; record per-board sizes; 4-gang OTA file below 200704 bytes with margin | wave 1 merged |
 | 3 | cleanup | L1, L2, L3, L4, L8, L9, L10, M2, M7, M10, M13 | waves 1–2 |
 | 4 | owner | hardware exit criteria (section 8) | wave 3 |
 
@@ -852,3 +855,22 @@ Baseline at `1f1d1ac4` (wave 0 start): `BOARD=SWITCH_BSEED_TS0726_4GANG make
 board/build` passes; 199760 text / 645 data / 39302 bss; `.bin` 200405 bytes;
 existing `hal/system.c:12` noreturn warning. The SDK patch applied with fuzz 2
 on hunks 3 and 7 and fuzz 1 on hunks 4 and 8 (confirms H1).
+
+### Size baseline (2026-10-14)
+
+Measured on `fix/wave1-a-zigbee-hal` (wave 1 complete), `SWITCH_BSEED_TS0726_4GANG`:
+
+| Variant | OTA file | Headroom vs 212992 / 200704 |
+| --- | --- | --- |
+| `-O2` everywhere (current) | 204642 | 8350 / −3938 |
+| `-Os` on `common/` objects only | 201826 | 11166 / −1122 |
+| `-Os` on `common/` + `telink/` objects | 200050 | 12942 / 654 |
+| `-Os` everywhere incl. SDK | 195442 | 17550 / 5262 |
+
+Flash attribution: ~101 KB precompiled Zigbee stack and libc (fixed), ~60 KB
+SDK sources, ~40 KB own code. Largest own objects: `feature_wiring.o` 5.1 KB,
+`telink/hal/zigbee_zcl.o` 5.1 KB, `cover_controller.o` 3.4 KB,
+`switch_cluster.o` 2.6 KB, `config_parser.o` 2.1 KB, `button_event_cluster.o`
+2.0 KB, `cover_switch_cluster.o` 2.0 KB. Cover code (controller + cover cluster
++ cover-switch cluster) is ~6.7 KB. `meter_service` contributes 16 bytes
+(removed by `--gc-sections`); UART printf is disabled in release builds.
