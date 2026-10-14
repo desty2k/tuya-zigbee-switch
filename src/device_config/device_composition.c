@@ -44,18 +44,6 @@ static uint8_t endpoint_count(const device_composition_t *composition) {
     return count == 0 ? 1 : count;
 }
 
-static uint8_t cluster_count(const device_composition_t *composition) {
-    uint8_t count = (uint8_t)(2 + (composition->battery_pin != HAL_INVALID_PIN));
-
-#ifdef END_DEVICE
-    count++;
-#endif
-    return (uint8_t)(count + composition->switch_count * 5 +
-                     composition->relay_endpoint_count * 3 +
-                     composition->cover_switch_count * 4 +
-                     composition->cover_count);
-}
-
 config_parse_result_t device_composition_validate(
     const device_composition_t *composition) {
     hal_gpio_pin_t used_pins[DEVICE_COMPOSITION_MAX_PINS];
@@ -65,8 +53,7 @@ config_parse_result_t device_composition_validate(
         return CONFIG_PARSE_LIMIT;
     }
     if (composition->endpoint_count != endpoint_count(composition) ||
-        composition->endpoint_count > DEVICE_COMPOSITION_MAX_ENDPOINTS ||
-        cluster_count(composition) > DEVICE_COMPOSITION_MAX_CLUSTERS) {
+        composition->endpoint_count > DEVICE_COMPOSITION_MAX_ENDPOINTS) {
         return CONFIG_PARSE_RESOURCE;
     }
     for (uint8_t i = 0; i < composition->button_count; i++) {
