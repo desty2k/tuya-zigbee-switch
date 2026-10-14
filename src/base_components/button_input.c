@@ -15,6 +15,7 @@ static gpio_edge_queue_t button_edge_queue;
 static hal_task_t        button_worker_task;
 static volatile bool     button_worker_scheduled;
 static volatile bool     button_work_pending;
+static volatile bool     button_resync_pending;
 
 static button_state_t button_input_level_to_state(uint8_t button_id,
                                                   uint8_t level) {
@@ -67,6 +68,24 @@ static void button_input_process_edge(const hal_gpio_edge_t *edge) {
     }
 }
 
+/*
+ * A dropped edge leaves the edge history incomplete, so the platform's view
+ * of the pin and ours may disagree. Re-read every input and feed the current
+ * level as a fresh edge; its duration is only known from now on.
+ */
+static void button_input_resync(uint32_t now) {
+    for (uint8_t button_id = 0; button_id < button_count; button_id++) {
+        hal_gpio_edge_t edge = {
+            .pin          = button_configs[button_id].pin,
+            .level        = hal_gpio_read(button_configs[button_id].pin),
+            .timestamp_ms = now,
+            .seq          =                                            0,
+        };
+
+        button_input_process_edge(&edge);
+    }
+}
+
 static void button_input_schedule_worker(uint32_t delay_ms) {
     if (button_worker_scheduled) {
         hal_tasks_unschedule(&button_worker_task);
@@ -84,6 +103,10 @@ static void button_input_worker(void *arg) {
     button_worker_scheduled = false;
     while (gpio_edge_queue_pop(&button_edge_queue, &edge)) {
         button_input_process_edge(&edge);
+    }
+    if (button_resync_pending) {
+        button_resync_pending = false;
+        button_input_resync(now);
     }
     for (uint8_t button_id = 0; button_id < button_count; button_id++) {
         button_runtime_t *runtime     = &button_runtimes[button_id];
@@ -109,7 +132,9 @@ static void button_input_worker(void *arg) {
 }
 
 static void button_input_edge_sink(const hal_gpio_edge_t *edge) {
-    gpio_edge_queue_push(&button_edge_queue, edge);
+    if (!gpio_edge_queue_push(&button_edge_queue, edge)) {
+        button_resync_pending = true;
+    }
     button_work_pending = true;
 }
 
@@ -119,6 +144,7 @@ void button_input_init(void) {
     button_events_emitted   = 0;
     button_worker_scheduled = false;
     button_work_pending     = false;
+    button_resync_pending   = false;
     gpio_edge_queue_init(&button_edge_queue);
     button_dispatcher_init();
     button_worker_task.handler = button_input_worker;

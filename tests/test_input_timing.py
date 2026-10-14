@@ -119,3 +119,19 @@ def test_telink_millis_is_continuous_across_tick_wrap() -> None:
         assert device.millis() == WRAP_AT_MS["telink"]
         device.time_set(10 * WRAP_AT_MS["telink"] + 7)
         assert device.millis() == 10 * WRAP_AT_MS["telink"] + 7
+
+
+def test_edge_queue_overflow_converges_to_released() -> None:
+    """A bouncy release overflows the 32-entry queue and drops the final edge."""
+    with StubProc(device_config="A;B;SA0u;") as proc:
+        device = Device(proc)
+        device.set_gpio("A0", 0)
+        step_fine(device, 60)
+        assert [e["type"] for e in button_events(device)] == ["DOWN"]
+
+        # From pressed, 33 toggles: 32 fit (ending pressed), the release is dropped.
+        device.pin_burst("A0", 33)
+        step_fine(device, 200)
+
+        assert device.counters()["gpio_edges_dropped"] == 1
+        assert [e["type"] for e in button_events(device)] == ["DOWN", "UP"]

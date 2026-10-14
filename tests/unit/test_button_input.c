@@ -1,5 +1,6 @@
 #include "base_components/button_dispatcher.h"
 #include "base_components/button_input.h"
+#include "base_components/gpio_edge_queue.h"
 #include "support/fake_clock.h"
 #include "support/fake_gpio.h"
 #include "support/fake_tasks.h"
@@ -167,6 +168,22 @@ TEST(two_buttons_interleave_with_global_sequence) {
     }
 }
 
+TEST(queue_overflow_resyncs_to_pin_level) {
+    uint8_t button_id = setup_button(1, false);
+
+    /* 33 edges from released: the 33rd (press) does not fit the queue. */
+    for (uint32_t i = 0; i < GPIO_EDGE_QUEUE_SIZE + 1; i++) {
+        fake_gpio_inject_edge(TEST_PIN, (uint8_t)(i % 2), 100 + i);
+    }
+    ASSERT_EQ(1, button_input_gpio_edges_dropped());
+    poll_at(140);
+    poll_at(148);
+    ASSERT_EQ(1, event_count);
+    ASSERT_EQ(BUTTON_EVENT_DOWN, events[0].type);
+    ASSERT_EQ(140, events[0].timestamp_ms);
+    ASSERT_TRUE(button_input_is_down(button_id));
+}
+
 int main(void) {
     RUN_TEST(edge_capture_never_schedules_the_worker);
     RUN_TEST(bounce_on_press);
@@ -179,5 +196,6 @@ int main(void) {
     RUN_TEST(active_high_flip_reseeds_state);
     RUN_TEST(millis_wraparound);
     RUN_TEST(two_buttons_interleave_with_global_sequence);
+    RUN_TEST(queue_overflow_resyncs_to_pin_level);
     return test_runner_failures == 0 ? 0 : 1;
 }
