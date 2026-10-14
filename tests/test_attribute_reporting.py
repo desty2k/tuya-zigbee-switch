@@ -1,8 +1,9 @@
 """State attributes the integrations configure reporting on must be reportable.
 
 Telink and Silabs report only attributes flagged HAL_ATTR_REPORT and answer
-Configure Reporting for any other attribute with UNREPORTABLE_ATTRIBUTE; the
-stub does the same.
+Configure Reporting for any other attribute with an error (Telink:
+UNSUPPORTED_ATTRIBUTE, Silabs: UNREPORTABLE_ATTRIBUTE); the stub answers as
+Telink does.
 """
 
 import pytest
@@ -77,7 +78,7 @@ def test_configuration_attributes_reject_configure_reporting(
     try:
         res = _configure_reporting(proc, ep, cluster, attr)
         assert not res.ok
-        assert "unreportable_attribute" in res.payload
+        assert "unsupported_attribute" in res.payload
     finally:
         proc.stop()
 

@@ -537,10 +537,6 @@ static int cmd_zcl_configure_reporting(int argc, char **argv) {
         io_res_err("unsupported_attribute ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
         return -1;
     }
-    if (status == STUB_ZIGBEE_REPORT_CONFIG_UNREPORTABLE_ATTRIBUTE) {
-        io_res_err("unreportable_attribute ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
-        return -1;
-    }
     io_res_ok("ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
     return 0;
 }

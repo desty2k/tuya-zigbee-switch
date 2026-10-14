@@ -176,16 +176,17 @@ void hal_zigbee_notify_attribute_changed(uint8_t endpoint, uint16_t cluster_id,
            cluster_id, attribute_id);
 }
 
+/* Telink's zcl_configureReporting() answers UNSUPPORTED_ATTRIBUTE for an
+ * attribute without the reportable access flag; the stub follows Telink.
+ * The Silabs framework answers UNREPORTABLE_ATTRIBUTE for the same record. */
 stub_zigbee_report_config_status_t
 stub_zigbee_configure_reporting(uint8_t endpoint, uint16_t cluster_id,
                                 uint16_t attribute_id) {
     hal_zigbee_attribute *attribute = hal_zigbee_find_attribute_in_cluster(
         find_unique_server_cluster(endpoint, cluster_id), attribute_id);
 
-    if (attribute == NULL) return STUB_ZIGBEE_REPORT_CONFIG_UNSUPPORTED_ATTRIBUTE;
-
-    if ((attribute->flag & HAL_ATTR_REPORT) == 0)
-        return STUB_ZIGBEE_REPORT_CONFIG_UNREPORTABLE_ATTRIBUTE;
+    if (attribute == NULL || (attribute->flag & HAL_ATTR_REPORT) == 0)
+        return STUB_ZIGBEE_REPORT_CONFIG_UNSUPPORTED_ATTRIBUTE;
 
     return STUB_ZIGBEE_REPORT_CONFIG_SUCCESS;
 }

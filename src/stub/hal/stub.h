@@ -47,9 +47,8 @@ hal_zigbee_graph_usage_t stub_zigbee_get_graph_usage(void);
 typedef enum {
     STUB_ZIGBEE_REPORT_CONFIG_SUCCESS,
     STUB_ZIGBEE_REPORT_CONFIG_UNSUPPORTED_ATTRIBUTE,
-    STUB_ZIGBEE_REPORT_CONFIG_UNREPORTABLE_ATTRIBUTE,
 } stub_zigbee_report_config_status_t;
-/** Answer a Configure Reporting record the way the platform stacks do. */
+/** Answer a Configure Reporting record the way the Telink stack does. */
 stub_zigbee_report_config_status_t
 stub_zigbee_configure_reporting(uint8_t endpoint, uint16_t cluster_id,
                                 uint16_t attribute_id);
