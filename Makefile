@@ -45,6 +45,7 @@ help:
 	@echo "  make tools/update_supported_devices - Generate supported devices documentation"
 	@echo "  make tools/freeze_ota_links        - Replace branch refs with commit hashes"
 	@echo "  make tools/unused_image_type       - Show next available firmware image type ID"
+	@echo "  make tools/check_device_features   - Check config tokens against board features"
 	@echo ""
 	@echo "Device-Specific Builds:"
 	@echo "  BOARD=DEVICE_NAME make board/build - Build specific device from device_db.yaml"

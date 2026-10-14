@@ -19,6 +19,7 @@ help:
 	@echo ""
 	@echo "  Development Utilities:"
 	@echo "    check_management_protocol - Verify generated management protocol metadata"
+	@echo "    check_device_features  - Fail if a board's config uses a feature it does not compile"
 	@echo "    unused_image_type      - Show next available firmware image type ID"
 	@echo ""
 
@@ -55,6 +56,9 @@ update_supported_devices:
 
 check_management_protocol:
 	python3 helper_scripts/generate_management_protocol.py --check
+
+check_device_features:
+	python3 helper_scripts/board_features.py check
 
 
 freeze_ota_links:
