@@ -5,8 +5,17 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define HAL_ZIGBEE_CMD_MAX_PAYLOAD    64
-#define HAL_ZIGBEE_ENDPOINT_ID_MAX    10
+#include "hal/zigbee_limits.h"
+
+#define HAL_ZIGBEE_CMD_MAX_PAYLOAD        64
+#define HAL_ZIGBEE_ENDPOINT_ID_MAX        10
+#define HAL_ZIGBEE_CLUSTER_ID_OTA         0x0019u
+
+/* ZCL string types; their encoded size comes from a length prefix. */
+#define HAL_ZIGBEE_TYPE_OCTET_STR         0x41u
+#define HAL_ZIGBEE_TYPE_CHAR_STR          0x42u
+#define HAL_ZIGBEE_TYPE_LONG_OCTET_STR    0x43u
+#define HAL_ZIGBEE_TYPE_LONG_CHAR_STR     0x44u
 
 /** Zigbee attribute access permissions. Reporting is explicitly opt-in. */
 typedef uint8_t hal_attr_flags_t;
@@ -56,9 +65,55 @@ typedef enum {
     HAL_ZIGBEE_DIR_SERVER_TO_CLIENT = 1,
 } hal_zigbee_direction_t;
 
+/**
+ * Write contract, identical on every platform, for one written attribute:
+ *
+ * 1. VALIDATE: the callback checks `candidate` and must not change any state.
+ *    A result other than HAL_ZIGBEE_CMD_PROCESSED rejects the write.
+ * 2. COMMIT: the callback applies `candidate` (copies it into the cluster
+ *    field, applies and persists it). It is the only place that applies the
+ *    value. At this point the attribute storage still holds the previous
+ *    value, so the callback must take the new value from `candidate`, never
+ *    from the storage. A result other than HAL_ZIGBEE_CMD_PROCESSED rejects
+ *    the write; the callback must then leave its state unchanged.
+ * 3. After a successful COMMIT the HAL copies `candidate` into the attribute
+ *    storage. Without a callback, the HAL copies after its own checks.
+ *
+ * `candidate` holds the ZCL encoding (little-endian). `candidate_len` is its
+ * encoded size: the type size for fixed-size types, length prefix plus data
+ * for strings. The HAL rejects candidates longer than the attribute storage.
+ *
+ * A write of several records (also Write Attributes Undivided) validates
+ * every record before it commits any.
+ */
 typedef hal_zigbee_cmd_result_t (*hal_zigbee_attr_write_callback_t)(
     uint8_t endpoint, uint16_t attribute_id, const uint8_t *candidate,
     uint16_t candidate_len, hal_zigbee_attr_write_phase_t phase);
+
+/**
+ * Encoded size of a ZCL value of `data_type_id` stored in `storage_size`
+ * bytes. Returns 0 when a string's length prefix runs past `storage_size`.
+ */
+static inline uint16_t hal_zigbee_attr_encoded_size(uint8_t data_type_id,
+                                                    const uint8_t *value,
+                                                    uint16_t storage_size) {
+    uint32_t size;
+
+    if (data_type_id == HAL_ZIGBEE_TYPE_OCTET_STR ||
+        data_type_id == HAL_ZIGBEE_TYPE_CHAR_STR) {
+        if (storage_size < 1) return 0;
+
+        size = 1u + value[0];
+    } else if (data_type_id == HAL_ZIGBEE_TYPE_LONG_OCTET_STR ||
+               data_type_id == HAL_ZIGBEE_TYPE_LONG_CHAR_STR) {
+        if (storage_size < 2) return 0;
+
+        size = 2u + ((uint32_t)value[0] | ((uint32_t)value[1] << 8));
+    } else {
+        size = storage_size;
+    }
+    return size <= storage_size ? (uint16_t)size : 0;
+}
 
 /** Immutable metadata and payload for one received ZCL command. */
 typedef struct {
@@ -111,6 +166,8 @@ typedef enum {
     HAL_ZIGBEE_DESCRIPTOR_ATTRIBUTE_CAPACITY,
     HAL_ZIGBEE_DESCRIPTOR_NULL_POINTER,
     HAL_ZIGBEE_DESCRIPTOR_UNREGISTERED_CLUSTER,
+    HAL_ZIGBEE_DESCRIPTOR_REGISTRATION_CAPACITY,
+    HAL_ZIGBEE_DESCRIPTOR_DUPLICATE_CLUSTER_ID,
 } hal_zigbee_descriptor_error_t;
 
 typedef struct {
@@ -220,12 +277,112 @@ hal_zigbee_validate_descriptor_graph(const hal_zigbee_endpoint *endpoints,
     return HAL_ZIGBEE_DESCRIPTOR_OK;
 }
 
+/** Platform resources one descriptor graph takes (see zigbee_limits.h). */
+typedef struct {
+    uint16_t endpoints;
+    uint16_t server_clusters;
+    uint16_t client_clusters;
+    uint16_t attributes;
+    uint16_t zcl_registrations;
+    bool     has_ota;
+} hal_zigbee_graph_usage_t;
+
+/** Count one cluster. The OTA client takes one ZCL table entry per device. */
+static inline void hal_zigbee_graph_usage_add_cluster(
+    hal_zigbee_graph_usage_t *usage, uint16_t cluster_id,
+    hal_zigbee_cluster_role_t role, uint16_t attribute_count) {
+    if (role == HAL_ZIGBEE_ROLE_SERVER) {
+        usage->server_clusters++;
+    } else {
+        usage->client_clusters++;
+    }
+    usage->attributes += attribute_count;
+    if (cluster_id != HAL_ZIGBEE_CLUSTER_ID_OTA) {
+        usage->zcl_registrations++;
+    } else if (!usage->has_ota) {
+        usage->has_ota = true;
+        usage->zcl_registrations++;
+    }
+}
+
+/** Resources of a graph whose storage passed the descriptor validation. */
+static inline hal_zigbee_graph_usage_t hal_zigbee_graph_usage(
+    const hal_zigbee_endpoint *endpoints, uint8_t endpoint_count) {
+    hal_zigbee_graph_usage_t usage = { 0 };
+
+    usage.endpoints = endpoint_count;
+    for (uint8_t i = 0; i < endpoint_count; i++) {
+        for (uint8_t j = 0; j < endpoints[i].cluster_count; j++) {
+            const hal_zigbee_cluster *cluster = &endpoints[i].clusters[j];
+
+            hal_zigbee_graph_usage_add_cluster(&usage, cluster->cluster_id,
+                                               cluster->role,
+                                               cluster->attribute_count);
+        }
+    }
+    return usage;
+}
+
+/** Check graph resources against the shared platform limits. */
+static inline hal_zigbee_descriptor_error_t
+hal_zigbee_check_graph_usage(const hal_zigbee_graph_usage_t *usage) {
+    if (usage->endpoints > HAL_ZIGBEE_MAX_ENDPOINTS) {
+        return HAL_ZIGBEE_DESCRIPTOR_ENDPOINT_COUNT;
+    }
+    if (usage->server_clusters > HAL_ZIGBEE_MAX_SERVER_CLUSTERS ||
+        usage->client_clusters > HAL_ZIGBEE_MAX_CLIENT_CLUSTERS ||
+        usage->server_clusters + usage->client_clusters >
+        HAL_ZIGBEE_MAX_CLUSTERS) {
+        return HAL_ZIGBEE_DESCRIPTOR_CLUSTER_CAPACITY;
+    }
+    if (usage->attributes > HAL_ZIGBEE_MAX_ATTRIBUTES) {
+        return HAL_ZIGBEE_DESCRIPTOR_ATTRIBUTE_CAPACITY;
+    }
+    if (usage->zcl_registrations > HAL_ZIGBEE_MAX_ZCL_REGISTRATIONS) {
+        return HAL_ZIGBEE_DESCRIPTOR_REGISTRATION_CAPACITY;
+    }
+    return HAL_ZIGBEE_DESCRIPTOR_OK;
+}
+
 /**
- * Initialize Zigbee stack with device endpoints and clusters
+ * Validate a graph against the shared platform limits. Every platform calls
+ * this before it registers anything, so a graph fails the same way on all of
+ * them. The Telink ZCL table keys clusters by endpoint and cluster id only,
+ * so one endpoint cannot hold a cluster id twice, in any role.
+ */
+static inline hal_zigbee_descriptor_error_t hal_zigbee_validate_platform_graph(
+    const hal_zigbee_endpoint *endpoints, uint8_t endpoint_count) {
+    hal_zigbee_graph_usage_t      usage;
+    hal_zigbee_descriptor_error_t error = hal_zigbee_validate_descriptor_graph(
+        endpoints, endpoint_count, HAL_ZIGBEE_MAX_ENDPOINTS,
+        HAL_ZIGBEE_ENDPOINT_ID_MAX, HAL_ZIGBEE_MAX_CLUSTERS,
+        HAL_ZIGBEE_MAX_ATTRIBUTES);
+
+    if (error != HAL_ZIGBEE_DESCRIPTOR_OK) return error;
+
+    for (uint8_t i = 0; i < endpoint_count; i++) {
+        for (uint8_t j = 0; j < endpoints[i].cluster_count; j++) {
+            for (uint8_t prior = 0; prior < j; prior++) {
+                if (endpoints[i].clusters[prior].cluster_id ==
+                    endpoints[i].clusters[j].cluster_id) {
+                    return HAL_ZIGBEE_DESCRIPTOR_DUPLICATE_CLUSTER_ID;
+                }
+            }
+        }
+    }
+    usage = hal_zigbee_graph_usage(endpoints, endpoint_count);
+    return hal_zigbee_check_graph_usage(&usage);
+}
+
+/**
+ * Initialize Zigbee stack with device endpoints and clusters.
+ * Registers nothing and returns false when the graph fails
+ * hal_zigbee_validate_platform_graph or the stack refuses a registration;
+ * the caller then initializes a smaller graph.
  * @param endpoints Array of endpoint definitions
  * @param endpoints_cnt Number of endpoints
  */
-void hal_zigbee_init(hal_zigbee_endpoint *endpoints, uint8_t endpoints_cnt);
+bool hal_zigbee_init(hal_zigbee_endpoint *endpoints, uint8_t endpoints_cnt);
 
 hal_zigbee_diagnostics_t hal_zigbee_get_diagnostics(void);
 

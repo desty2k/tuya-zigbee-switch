@@ -13,13 +13,17 @@
 #include "zigbee/battery_cluster.h"
 #include "zigbee/zcl_ids.h"
 
+#if ZCL_CLUSTER_NUM_MAX != HAL_ZIGBEE_MAX_ZCL_REGISTRATIONS
+#error "ZCL_CLUSTER_NUM_MAX must come from hal/zigbee_limits.h"
+#endif
+
 // Storage for Telink endpoint configuration
-static af_simple_descriptor_t endpoint_descriptors[MAX_ENDPOINTS];
-static u16 in_clusters[MAX_IN_CLUSTERS];
-static u16 out_clusters[MAX_OUT_CLUSTERS];
-static zcl_specClusterInfo_t cluster_infos[MAX_IN_CLUSTERS + MAX_OUT_CLUSTERS];
-static zclAttrInfo_t         attr_tables[MAX_ATTRS];
-static hal_zigbee_cluster *  attr_table_clusters[MAX_ATTRS];
+static af_simple_descriptor_t endpoint_descriptors[HAL_ZIGBEE_MAX_ENDPOINTS];
+static u16 in_clusters[HAL_ZIGBEE_MAX_SERVER_CLUSTERS];
+static u16 out_clusters[HAL_ZIGBEE_MAX_CLIENT_CLUSTERS];
+static zcl_specClusterInfo_t cluster_infos[HAL_ZIGBEE_MAX_CLUSTERS];
+static zclAttrInfo_t         attr_tables[HAL_ZIGBEE_MAX_ATTRIBUTES];
+static hal_zigbee_cluster *  attr_table_clusters[HAL_ZIGBEE_MAX_ATTRIBUTES];
 
 // HAL state tracking
 static hal_zigbee_endpoint *hal_endpoints = NULL;
@@ -45,7 +49,7 @@ static status_t register_private_cluster(u8 endpoint, u16 unused_manu_code,
                                          const zclAttrInfo_t attr_table[],
                                          cluster_forAppCb_t callback) {
     (void)unused_manu_code;
-    if (attr_table < attr_tables || attr_table >= attr_tables + MAX_ATTRS)
+    if (attr_table < attr_tables || attr_table >= attr_tables + HAL_ZIGBEE_MAX_ATTRIBUTES)
         return ZCL_STA_FAILURE;
 
     hal_zigbee_cluster *cluster = attr_table_clusters[attr_table - attr_tables];
@@ -57,41 +61,34 @@ static status_t register_private_cluster(u8 endpoint, u16 unused_manu_code,
     return ZCL_STA_FAILURE;
 }
 
-static bool descriptor_graph_is_valid(hal_zigbee_endpoint *endpoints,
-                                      uint8_t endpoints_cnt) {
-    size_t in_total   = 0;
-    size_t out_total  = 0;
-    size_t attr_total = 0;
+static void record_descriptor_error(hal_zigbee_descriptor_error_t error) {
+    diagnostics.descriptor_validation_failures++;
+    diagnostics.last_descriptor_error = error;
+    printf("Zigbee descriptor graph rejected: %d\r\n", error);
+}
 
-    if (hal_zigbee_validate_descriptor_graph(
-            endpoints, endpoints_cnt, MAX_ENDPOINTS, MAX_ENDPOINTS,
-            MAX_IN_CLUSTERS + MAX_OUT_CLUSTERS, MAX_ATTRS) !=
-        HAL_ZIGBEE_DESCRIPTOR_OK) {
+bool telink_zigbee_hal_zcl_graph_supported(hal_zigbee_endpoint *endpoints,
+                                           uint8_t endpoints_cnt) {
+    hal_zigbee_descriptor_error_t error =
+        hal_zigbee_validate_platform_graph(endpoints, endpoints_cnt);
+
+    if (error != HAL_ZIGBEE_DESCRIPTOR_OK) {
+        record_descriptor_error(error);
         return false;
     }
     for (uint8_t i = 0; i < endpoints_cnt; i++) {
-        hal_zigbee_endpoint *endpoint = &endpoints[i];
+        for (uint8_t j = 0; j < endpoints[i].cluster_count; j++) {
+            hal_zigbee_cluster *cluster = &endpoints[i].clusters[j];
 
-        for (uint8_t j = 0; j < endpoint->cluster_count; j++) {
-            hal_zigbee_cluster *cluster = &endpoint->clusters[j];
-
-            if ((cluster->attribute_count != 0 && cluster->attributes == NULL) ||
-                (cluster->role == HAL_ZIGBEE_ROLE_SERVER && cluster->manufacturer_code == 0 &&
-                 cluster->cluster_id != ZCL_CLUSTER_OTA &&
-                 get_register_func_by_cluster_id(cluster->cluster_id) == NULL)) {
+            if (cluster->manufacturer_code == 0 &&
+                cluster->cluster_id != ZCL_CLUSTER_OTA &&
+                get_register_func_by_cluster_id(cluster->cluster_id) == NULL) {
+                record_descriptor_error(HAL_ZIGBEE_DESCRIPTOR_UNREGISTERED_CLUSTER);
                 return false;
             }
-            if (cluster->role == HAL_ZIGBEE_ROLE_SERVER) {
-                in_total++;
-            } else {
-                out_total++;
-            }
-            attr_total += cluster->attribute_count;
         }
     }
-    return in_total <= MAX_IN_CLUSTERS && out_total <= MAX_OUT_CLUSTERS &&
-           in_total + out_total <= MAX_IN_CLUSTERS + MAX_OUT_CLUSTERS &&
-           attr_total <= MAX_ATTRS;
+    return true;
 }
 
 static cluster_registerFunc_t get_register_func_by_cluster_id(u16 cluster_id) {
@@ -225,29 +222,26 @@ static void af_rx_callback(void *arg) {
     zcl_rx_handler(arg);
 }
 
-void telink_zigbee_hal_zcl_init(hal_zigbee_endpoint *endpoints,
-                                uint8_t endpoints_cnt) {
-    hal_zigbee_descriptor_error_t descriptor_error =
-        hal_zigbee_validate_descriptor_graph(
-            endpoints, endpoints_cnt, MAX_ENDPOINTS, MAX_ENDPOINTS,
-            MAX_IN_CLUSTERS + MAX_OUT_CLUSTERS, MAX_ATTRS);
-
-    if (descriptor_error != HAL_ZIGBEE_DESCRIPTOR_OK) {
-        diagnostics.descriptor_validation_failures++;
-        diagnostics.last_descriptor_error = descriptor_error;
-        printf("Invalid Zigbee descriptor graph: %d\r\n", descriptor_error);
-        return;
+static void unregister_endpoints(hal_zigbee_endpoint *endpoints,
+                                 uint8_t endpoints_cnt) {
+    for (uint8_t i = 0; i < endpoints_cnt; i++) {
+        af_endpointUnregister(endpoints[i].endpoint);
     }
-    if (!descriptor_graph_is_valid(endpoints, endpoints_cnt)) {
-        diagnostics.descriptor_validation_failures++;
-        diagnostics.last_descriptor_error =
-            HAL_ZIGBEE_DESCRIPTOR_UNREGISTERED_CLUSTER;
-        printf("Invalid Zigbee descriptor graph\r\n");
-        return;
+    zcl_init(NULL); // empties the ZCL cluster table
+    hal_endpoints     = NULL;
+    hal_endpoints_cnt = 0;
+}
+
+bool telink_zigbee_hal_zcl_init(hal_zigbee_endpoint *endpoints,
+                                uint8_t endpoints_cnt) {
+    if (!telink_zigbee_hal_zcl_graph_supported(endpoints, endpoints_cnt)) {
+        return false;
     }
     zcl_init(NULL);
     zcl_reportingTabInit();
 
+    memset(endpoint_descriptors, 0, sizeof(endpoint_descriptors));
+    memset(attr_table_clusters, 0, sizeof(attr_table_clusters));
     hal_endpoints     = endpoints;
     hal_endpoints_cnt = endpoints_cnt;
     af_simple_descriptor_t *endpoint_desc_ptr = endpoint_descriptors;
@@ -309,13 +303,32 @@ void telink_zigbee_hal_zcl_init(hal_zigbee_endpoint *endpoints,
 
             cluster_info_ptr++;
         }
-        af_endpointRegister(endpoint->endpoint, endpoint_desc_ptr,
-                            af_rx_callback, NULL);
-        u8 cluster_count = cluster_info_ptr - endpoint_first_cluster_ptr;
-        zcl_register(endpoint->endpoint, cluster_count, endpoint_first_cluster_ptr);
+        if (!af_endpointRegister(endpoint->endpoint, endpoint_desc_ptr,
+                                 af_rx_callback, NULL)) {
+            record_descriptor_error(HAL_ZIGBEE_DESCRIPTOR_ENDPOINT_COUNT);
+            unregister_endpoints(endpoints, (uint8_t)(endpoint - endpoints));
+            return false;
+        }
+        // zcl_register() ignores every refusal except a full table, so
+        // register one by one and treat any refusal as a failed graph.
+        for (zcl_specClusterInfo_t *info = endpoint_first_cluster_ptr;
+             info < cluster_info_ptr; info++) {
+            status_t status = info->clusterRegisterFunc(
+                endpoint->endpoint, info->manuCode, info->attrNum, info->attrTbl,
+                info->clusterAppCb);
+
+            if (status != ZCL_STA_SUCCESS) {
+                printf("zcl_registerCluster ep=%d cluster=0x%04x failed: %d\r\n",
+                       endpoint->endpoint, info->clusterId, status);
+                record_descriptor_error(HAL_ZIGBEE_DESCRIPTOR_REGISTRATION_CAPACITY);
+                unregister_endpoints(endpoints, (uint8_t)(endpoint - endpoints + 1));
+                return false;
+            }
+        }
 
         endpoint_desc_ptr++;
     }
+    return true;
 }
 
 hal_zigbee_diagnostics_t hal_zigbee_get_diagnostics(void) {

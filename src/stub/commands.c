@@ -9,6 +9,9 @@
 #include "stub/hal/stub.h"
 
 #include "stub/stub_app.h"
+#include "device_config/config_parser.h"
+#include "device_config/device_config_service.h"
+#include "device_config/feature_wiring.h"
 #include "base_components/button_input.h"
 #include "base_components/gesture_fsm.h"
 #include "zigbee/zcl_cluster_defs.h"
@@ -135,6 +138,49 @@ static int cmd_diag(int argc, char **argv) {
               network_diag.steering_attempts, network_diag.announce_attempts,
               network_diag.announce_failures, network_diag.uptime_ms,
               network_diag.last_transition_ms);
+    return 0;
+}
+
+static void print_graph_usage(const char *prefix,
+                              const hal_zigbee_graph_usage_t *usage) {
+    printf("%s endpoints=%u server_clusters=%u client_clusters=%u attributes=%u "
+           "zcl_registrations=%u\n", prefix, usage->endpoints,
+           usage->server_clusters, usage->client_clusters, usage->attributes,
+           usage->zcl_registrations);
+}
+
+/* Resources of the registered graph and of the stored config's preflight,
+ * next to the shared platform limits they are checked against. */
+static int cmd_zcl_graph_usage(int argc, char **argv) {
+    hal_zigbee_graph_usage_t actual    = stub_zigbee_get_graph_usage();
+    hal_zigbee_graph_usage_t preflight = { 0 };
+    device_composition_t     composition;
+    int preflight_ok;
+
+    (void)argc;
+    (void)argv;
+    preflight_ok = config_parser_parse(device_config_service_config(),
+                                       &composition) == CONFIG_PARSE_OK;
+    if (preflight_ok) {
+        feature_wiring_graph_usage(&composition, &preflight);
+    }
+    print_graph_usage("actual", &actual);
+    print_graph_usage("preflight", &preflight);
+    io_res_ok("endpoints=%u server_clusters=%u client_clusters=%u attributes=%u "
+              "zcl_registrations=%u preflight_parsed=%d "
+              "preflight_endpoints=%u preflight_server_clusters=%u "
+              "preflight_client_clusters=%u preflight_attributes=%u "
+              "preflight_zcl_registrations=%u max_endpoints=%u "
+              "max_server_clusters=%u max_client_clusters=%u max_clusters=%u "
+              "max_attributes=%u max_zcl_registrations=%u",
+              actual.endpoints, actual.server_clusters, actual.client_clusters,
+              actual.attributes, actual.zcl_registrations, preflight_ok,
+              preflight.endpoints, preflight.server_clusters,
+              preflight.client_clusters, preflight.attributes,
+              preflight.zcl_registrations, HAL_ZIGBEE_MAX_ENDPOINTS,
+              HAL_ZIGBEE_MAX_SERVER_CLUSTERS, HAL_ZIGBEE_MAX_CLIENT_CLUSTERS,
+              HAL_ZIGBEE_MAX_CLUSTERS, HAL_ZIGBEE_MAX_ATTRIBUTES,
+              HAL_ZIGBEE_MAX_ZCL_REGISTRATIONS);
     return 0;
 }
 
@@ -663,6 +709,7 @@ static const SimpleReplCommand kCmds[] = {
     { "zcl_write_raw",       cmd_zcl_write_raw       },
     { "zcl_attr_callback",   cmd_zcl_attr_callback   },
     { "zcl_list_attrs",      cmd_zcl_list_attrs      },
+    { "zcl_graph_usage",     cmd_zcl_graph_usage     },
     { "zcl_clusters",        cmd_zcl_clusters        },
     { "zcl_cmd",             cmd_zcl_cmd             },
     { "zcl_cmd_no_activity", cmd_zcl_cmd_no_activity },

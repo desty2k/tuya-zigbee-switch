@@ -16,8 +16,7 @@ static void bytes_to_hexstr(const uint8_t *bytes, size_t len, char *out) {
     out[2 * len] = '\0';
 }
 
-#define MAX_ENDPOINTS    16
-#define MAX_BINDINGS     32
+#define MAX_BINDINGS    32
 
 typedef struct {
     uint16_t short_addr;
@@ -34,6 +33,7 @@ static uint32_t poll_rate_ms = 0;
 static uint32_t coordinator_send_failures;
 static uint32_t announce_failures;
 static hal_zigbee_diagnostics_t diagnostics;
+static hal_zigbee_graph_usage_t graph_usage;
 
 static stub_binding_t bindings[MAX_BINDINGS];
 static int            binding_count = 0;
@@ -58,21 +58,22 @@ static hal_zigbee_cluster *find_unique_server_cluster(uint8_t endpoint,
     return result;
 }
 
-void hal_zigbee_init(hal_zigbee_endpoint *ep_list, uint8_t ep_count) {
+bool hal_zigbee_init(hal_zigbee_endpoint *ep_list, uint8_t ep_count) {
     hal_zigbee_descriptor_error_t validation =
-        hal_zigbee_validate_descriptor_graph(
-            ep_list, ep_count, MAX_ENDPOINTS, HAL_ZIGBEE_ENDPOINT_ID_MAX, 48,
-            160);
+        hal_zigbee_validate_platform_graph(ep_list, ep_count);
 
     if (validation != HAL_ZIGBEE_DESCRIPTOR_OK) {
         diagnostics.descriptor_validation_failures++;
         diagnostics.last_descriptor_error = validation;
-        io_log("ZIGBEE", "Error: invalid descriptor graph (%d)", validation);
-        exit(1);
+        io_log("ZIGBEE", "Error: descriptor graph exceeds platform limits (%d)",
+               validation);
+        io_evt("zcl_init_failed error=%d", validation);
+        return false;
     }
 
     endpoints       = ep_list;
     endpoints_count = ep_count;
+    graph_usage     = hal_zigbee_graph_usage(ep_list, ep_count);
 
     io_log("ZIGBEE", "Initialized Zigbee with %d endpoints", ep_count);
 
@@ -80,27 +81,11 @@ void hal_zigbee_init(hal_zigbee_endpoint *ep_list, uint8_t ep_count) {
         io_log("ZIGBEE", "Endpoint %d: profile=0x%04x, device=0x%04x, clusters=%d",
                ep_list[i].endpoint, ep_list[i].profile_id, ep_list[i].device_id,
                ep_list[i].cluster_count);
-
-        if (ep_list[i].cluster_count > 0 && !ep_list[i].clusters) {
-            io_log(
-                "ZIGBEE",
-                "Error: Endpoint %d has cluster count %d but NULL clusters pointer",
-                ep_list[i].endpoint, ep_list[i].cluster_count);
-            exit(1);
-        }
         for (int j = 0; j < ep_list[i].cluster_count; j++) {
             io_log("ZIGBEE", "  Cluster %d: id=0x%04x, attrs=%d, role=%d", j,
                    ep_list[i].clusters[j].cluster_id,
                    ep_list[i].clusters[j].attribute_count,
                    ep_list[i].clusters[j].role == HAL_ZIGBEE_ROLE_SERVER);
-            if (ep_list[i].clusters[j].attribute_count > 0 &&
-                !ep_list[i].clusters[j].attributes) {
-                io_log("ZIGBEE",
-                       "Error: Endpoint %d Cluster %d has attribute count %d but NULL "
-                       "attributes pointer",
-                       ep_list[i].endpoint, j, ep_list[i].clusters[j].attribute_count);
-                exit(1);
-            }
             for (int k = 0; k < ep_list[i].clusters[j].attribute_count; k++) {
                 io_log("ZIGBEE",
                        "    Attr %d: id=0x%04x, type=0x%02x, size=%d, flags=%d", k,
@@ -111,6 +96,11 @@ void hal_zigbee_init(hal_zigbee_endpoint *ep_list, uint8_t ep_count) {
             }
         }
     }
+    return true;
+}
+
+hal_zigbee_graph_usage_t stub_zigbee_get_graph_usage(void) {
+    return graph_usage;
 }
 
 hal_zigbee_diagnostics_t hal_zigbee_get_diagnostics(void) {

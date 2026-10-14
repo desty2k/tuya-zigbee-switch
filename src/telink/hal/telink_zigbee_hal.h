@@ -8,11 +8,6 @@
 #include "zcl_include.h"
 #pragma pack(pop)
 
-// Shared constants
-#define MAX_ENDPOINTS         8
-#define MAX_IN_CLUSTERS       32
-#define MAX_OUT_CLUSTERS      32
-#define MAX_ATTRS             160
 #define OTA_QUERY_INTERVAL    15 * 60 // 15 minutes
 
 // Network module functions (implemented in zigbee_network.c)
@@ -20,7 +15,13 @@ void telink_zigbee_hal_network_init(void);
 void telink_zigbee_hal_bdb_init(af_simple_descriptor_t *endpoint_descriptor);
 
 // ZCL module functions (implemented in zigbee_zcl.c)
-void telink_zigbee_hal_zcl_init(hal_zigbee_endpoint *endpoints,
+/** Check a graph against the shared limits and the SDK cluster support. */
+bool telink_zigbee_hal_zcl_graph_supported(hal_zigbee_endpoint *endpoints,
+                                           uint8_t endpoints_cnt);
+
+/** Register endpoints and clusters. On a refused registration it removes
+ * what it registered and returns false. */
+bool telink_zigbee_hal_zcl_init(hal_zigbee_endpoint *endpoints,
                                 uint8_t endpoints_cnt);
 af_simple_descriptor_t *telink_zigbee_hal_zcl_get_descriptors(void);
 

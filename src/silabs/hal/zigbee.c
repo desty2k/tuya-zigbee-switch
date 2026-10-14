@@ -6,12 +6,13 @@
 #include <stddef.h>
 #include <string.h>
 
-#define MAX_CLUSTERS    48
-#define MAX_ATTRS       160
+#if ZCL_FIXED_ENDPOINT_COUNT < HAL_ZIGBEE_MAX_ENDPOINTS
+#error "ZAP configuration has fewer endpoints than hal/zigbee_limits.h allows"
+#endif
 
 sl_zigbee_af_endpoint_type_t      endpoint_type_buffer[ZCL_FIXED_ENDPOINT_COUNT];
-sl_zigbee_af_cluster_t            clusters_buffer[MAX_CLUSTERS];
-sl_zigbee_af_attribute_metadata_t attributes_buffer[MAX_ATTRS];
+sl_zigbee_af_cluster_t            clusters_buffer[HAL_ZIGBEE_MAX_CLUSTERS];
+sl_zigbee_af_attribute_metadata_t attributes_buffer[HAL_ZIGBEE_MAX_ATTRIBUTES];
 
 hal_zigbee_endpoint *hal_endpoints;
 uint8_t hal_endpoints_cnt;
@@ -124,16 +125,14 @@ bool sl_zigbee_af_pre_command_received_cb(sl_zigbee_af_cluster_command_t *cmd) {
     return false;
 }
 
-void hal_zigbee_init(hal_zigbee_endpoint *endpoints, uint8_t endpoints_cnt) {
+bool hal_zigbee_init(hal_zigbee_endpoint *endpoints, uint8_t endpoints_cnt) {
     hal_zigbee_descriptor_error_t descriptor_error =
-        hal_zigbee_validate_descriptor_graph(
-            endpoints, endpoints_cnt, ZCL_FIXED_ENDPOINT_COUNT,
-            HAL_ZIGBEE_ENDPOINT_ID_MAX, MAX_CLUSTERS, MAX_ATTRS);
+        hal_zigbee_validate_platform_graph(endpoints, endpoints_cnt);
 
     if (descriptor_error != HAL_ZIGBEE_DESCRIPTOR_OK) {
         diagnostics.descriptor_validation_failures++;
         diagnostics.last_descriptor_error = descriptor_error;
-        return;
+        return false;
     }
 
     hal_endpoints     = endpoints;
@@ -199,6 +198,7 @@ void hal_zigbee_init(hal_zigbee_endpoint *endpoints, uint8_t endpoints_cnt) {
                                              true);
         endpoint_type_ptr++;
     }
+    return true;
 }
 
 hal_zigbee_diagnostics_t hal_zigbee_get_diagnostics(void) {

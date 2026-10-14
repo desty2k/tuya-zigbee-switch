@@ -2,8 +2,13 @@ import pytest
 
 from client import StubProc
 from conftest import Device
+from management_protocol_consts import (
+    ZCL_ATTR_DEVICE_CONFIG_LAST_ERROR,
+    ZCL_ATTR_DEVICE_CONFIG_TEXT,
+)
 from zcl_consts import (
     ZCL_ATTR_BASIC_MFR_NAME,
+    ZCL_ATTR_BASIC_MODEL_ID,
     ZCL_ATTR_DEVICE_CONFIG_STATUS,
     ZCL_ATTR_COVER_SWITCH_SWITCH_TYPE,
     ZCL_ATTR_MULTISTATE_INPUT_PRESENT_VALUE,
@@ -150,5 +155,122 @@ def test_switch_and_cover_switch_endpoints_only_send_on_off_level_and_covering()
             # cover endpoint
             (4, 0x0102): "S",
         }
+    finally:
+        proc.stop()
+
+
+# device_config_status_t / device_config_error_t in src/zigbee/management_protocol.h
+DEVICE_CONFIG_STATUS_ERROR = 2
+DEVICE_CONFIG_ERROR_PARSE = 2
+DEVICE_CONFIG_ERROR_RESOURCE = 3
+
+GRAPH_FIELDS = (
+    "endpoints",
+    "server_clusters",
+    "client_clusters",
+    "attributes",
+    "zcl_registrations",
+)
+
+
+def _graph_usage(proc: StubProc) -> dict[str, int]:
+    res = proc.exec("zcl_graph_usage")
+    assert res.ok, res.payload
+    return {key: int(value) for key, value in res.payload.items()}
+
+
+def test_ts0726_4gang_registers_within_telink_limits_and_relay_4_responds() -> None:
+    proc = StubProc(device_config=TS0726_4GANG_CONFIG).start()
+    try:
+        device = Device(proc)
+        usage = _graph_usage(proc)
+        assert usage["endpoints"] == 8
+        # 35 HAL clusters plus the SDK's own OTA registration.
+        assert usage["zcl_registrations"] == 36
+        assert usage["zcl_registrations"] <= usage["max_zcl_registrations"]
+        assert usage["server_clusters"] <= usage["max_server_clusters"]
+        assert usage["attributes"] <= usage["max_attributes"]
+
+        relay_4_pin = "C3"
+        assert device.get_gpio(relay_4_pin, refresh=True) is False
+        device.zcl_relay_on(8)
+        device.step_time(10)
+        assert device.zcl_relay_get(8) == "1"
+        assert device.get_gpio(relay_4_pin, refresh=True) is True
+    finally:
+        proc.stop()
+
+
+@pytest.mark.parametrize(
+    "config",
+    [
+        TS0726_4GANG_CONFIG,
+        "M;Relays;IA4;RA0;RA1;",
+        "M;Cover;XA0A1u;CB0B1;SA2u;RB2;",
+        "M;Battery;BTA5;SA0u;",
+        "M;Empty;",
+    ],
+)
+def test_preflight_counts_exactly_the_registered_graph(config: str) -> None:
+    proc = StubProc(device_config=config).start()
+    try:
+        usage = _graph_usage(proc)
+        assert usage["preflight_parsed"] == 1
+        for field in GRAPH_FIELDS:
+            assert usage[field] == usage[f"preflight_{field}"], field
+    finally:
+        proc.stop()
+
+
+def _assert_recovery_graph(proc: StubProc) -> None:
+    device = Device(proc)
+    assert device.read_zigbee_attr(1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_MODEL_ID) == "recovery"
+    assert device.read_zigbee_attr(
+        1, ZCL_CLUSTER_DEVICE_CONFIG, ZCL_ATTR_DEVICE_CONFIG_STATUS
+    ) == str(DEVICE_CONFIG_STATUS_ERROR)
+    assert set(_registered_clusters(proc)) == {
+        (1, 0x0000),
+        (1, 0xFC10),
+        (1, 0xFC11),
+        (1, 0x0019),
+    }
+
+
+@pytest.mark.parametrize(
+    "config, error",
+    [
+        # Nine endpoints: Telink holds eight.
+        ("M;Nine;RA0;RA1;RA2;RA3;RA4;RA5;RA6;RA7;RB0;", DEVICE_CONFIG_ERROR_PARSE),
+        # Eight switch endpoints take 169 attributes: the tables hold 160.
+        ("M;Eight;SA0u;SA1u;SA2u;SA3u;SA4u;SA5u;SA6u;SA7u;", DEVICE_CONFIG_ERROR_RESOURCE),
+    ],
+)
+def test_config_over_platform_limits_falls_back_to_recovery_graph(
+    config: str, error: int
+) -> None:
+    proc = StubProc(device_config=config).start()
+    try:
+        _assert_recovery_graph(proc)
+        device = Device(proc)
+        assert device.read_zigbee_attr(
+            1, ZCL_CLUSTER_DEVICE_CONFIG, ZCL_ATTR_DEVICE_CONFIG_LAST_ERROR
+        ) == str(error)
+        usage = _graph_usage(proc)
+        assert usage["endpoints"] == 1
+        assert usage["zcl_registrations"] <= usage["max_zcl_registrations"]
+    finally:
+        proc.stop()
+
+
+def test_config_write_over_platform_limits_is_rejected() -> None:
+    proc = StubProc(device_config="M;Relay;RA0;").start()
+    try:
+        config = "M;Eight;SA0u;SA1u;SA2u;SA3u;SA4u;SA5u;SA6u;SA7u;"
+        data = len(config).to_bytes(2, "little") + config.encode()
+        res = proc.exec(
+            f"zcl_write_raw 1 0x{ZCL_CLUSTER_DEVICE_CONFIG:04X} "
+            f"0x{ZCL_ATTR_DEVICE_CONFIG_TEXT:04X} {data.hex()}"
+        )
+        assert not res.ok
     finally:
         proc.stop()

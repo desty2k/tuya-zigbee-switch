@@ -32,6 +32,7 @@ void stub_zigbee_add_binding(uint16_t short_addr, uint8_t endpoint,
                              uint16_t cluster_id);
 void stub_zigbee_clear_bindings(void);
 hal_zigbee_endpoint *stub_zigbee_get_endpoints(uint8_t *count);
+hal_zigbee_graph_usage_t stub_zigbee_get_graph_usage(void);
 hal_zigbee_cmd_result_t stub_zigbee_simulate_command(uint8_t endpoint,
                                                      uint16_t cluster_id,
                                                      uint8_t command_id,
