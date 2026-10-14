@@ -86,6 +86,11 @@ typedef enum {
  * Write Attributes handles its records one after another. Write Attributes
  * Undivided first validates every record and then writes each of them with
  * the steps above, so a rejected record leaves every attribute unchanged.
+ * Known limitation: each record of Write Undivided is validated against the
+ * current state, not against the state with the frame's earlier records
+ * applied. A check that depends on another attribute of the same frame can
+ * therefore pass in the first pass and fail at COMMIT in the second, after
+ * earlier records were written.
  */
 typedef hal_zigbee_cmd_result_t (*hal_zigbee_attr_write_callback_t)(
     uint8_t endpoint, uint16_t attribute_id, const uint8_t *candidate,
