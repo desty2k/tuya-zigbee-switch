@@ -55,4 +55,13 @@ typedef struct {
 config_parse_result_t device_composition_validate(
     const device_composition_t *composition);
 
+/**
+ * Fingerprint of everything persisted relay settings are bound to: relay
+ * pins and kind, the relay behind each relay endpoint, `K` groups with their
+ * dead times and the cover relay pairs. Tokens for buttons, LEDs, names and
+ * timings do not change it.
+ */
+uint32_t device_composition_relay_topology(
+    const device_composition_t *composition);
+
 #endif

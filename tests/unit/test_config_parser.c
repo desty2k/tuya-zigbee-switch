@@ -57,6 +57,40 @@ TEST(debounce_defaults_to_25_ms_without_d_token) {
     ASSERT_EQ(25, composition.buttons[1].debounce_ms);
 }
 
+TEST(interlock_dead_time_defaults_without_duration) {
+    device_composition_t composition;
+
+    ASSERT_EQ(CONFIG_PARSE_OK,
+              config_parser_parse("Tuya;TS0726;RA0;RA1;K3;K3:0;", &composition));
+    ASSERT_EQ(2, composition.interlock_count);
+    ASSERT_EQ(200, composition.interlocks[0].dead_time_ms);
+    ASSERT_EQ(0, composition.interlocks[1].dead_time_ms);
+}
+
+/* A config that fails to parse yields 0, which no assertion below expects. */
+static uint32_t relay_topology_of(const char *config) {
+    device_composition_t composition;
+
+    if (config_parser_parse(config, &composition) != CONFIG_PARSE_OK) {
+        test_runner_failures++;
+        return 0;
+    }
+    return device_composition_relay_topology(&composition);
+}
+
+TEST(relay_topology_tracks_only_relay_layout) {
+    uint32_t base = relay_topology_of("A;B;SA0u;RB0;RB1;");
+
+    ASSERT_EQ(base, relay_topology_of("Other;Model;SA0u;RB0;RB1;G400;LC0;"));
+    ASSERT_TRUE(base != relay_topology_of("A;B;SA0u;RB0;RB1;K3;"));
+    ASSERT_TRUE(relay_topology_of("A;B;SA0u;RB0;RB1;K3;") !=
+                relay_topology_of("A;B;SA0u;RB0;RB1;K3:0;"));
+    ASSERT_TRUE(base != relay_topology_of("A;B;SA0u;RB1;RB0;"));
+    ASSERT_TRUE(base != relay_topology_of("A;B;SA0u;RB0C0;RB1;"));
+    ASSERT_TRUE(base != relay_topology_of("A;B;SA0u;RB0;"));
+    ASSERT_TRUE(base != relay_topology_of("A;B;SA0u;RB0;RB1;CC1C2;"));
+}
+
 TEST(debounce_outside_attribute_range_is_rejected) {
     device_composition_t composition;
 
@@ -238,6 +272,8 @@ TEST(parser_failure_zeroes_the_output) {
 int main(void) {
     RUN_TEST(parses_every_legacy_token_without_mutating_input);
     RUN_TEST(debounce_defaults_to_25_ms_without_d_token);
+    RUN_TEST(interlock_dead_time_defaults_without_duration);
+    RUN_TEST(relay_topology_tracks_only_relay_layout);
     RUN_TEST(debounce_outside_attribute_range_is_rejected);
     RUN_TEST(global_debounce_and_gap_apply_regardless_of_token_position);
     RUN_TEST(preserves_endpoint_order_and_detaches_missing_relays);

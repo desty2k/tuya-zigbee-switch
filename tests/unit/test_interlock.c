@@ -187,6 +187,18 @@ TEST(blocked_resume_does_not_skip_peer_shutdown) {
     ASSERT_TRUE(relay_ctrl_is_on(1));
 }
 
+TEST(unknown_group_id_does_not_create_a_group) {
+    reset_relays();
+    add_group(50);
+    ASSERT_TRUE(!relay_ctrl_set_interlock_group(3, 5));
+    ASSERT_EQ(INTERLOCK_NO_GROUP, relay_ctrl_get_interlock_group(3));
+    ASSERT_TRUE(relay_ctrl_set_interlock_group(3, 1));
+    ASSERT_EQ(1, relay_ctrl_get_interlock_group(3));
+    submit(0, RELAY_REQUEST_ON, RELAY_SOURCE_BUTTON, 0);
+    submit(3, RELAY_REQUEST_ON, RELAY_SOURCE_BUTTON, 0);
+    ASSERT_TRUE(!relay_ctrl_is_on(0));
+}
+
 int main(void) {
     RUN_TEST(group_keeps_only_latest_relay_on);
     RUN_TEST(pulse_turns_off_peer_and_expires);
@@ -197,6 +209,7 @@ int main(void) {
     RUN_TEST(relay_outside_group_is_unaffected);
     RUN_TEST(second_toggle_during_dead_time_cancels_pending_on);
     RUN_TEST(blocked_resume_does_not_skip_peer_shutdown);
+    RUN_TEST(unknown_group_id_does_not_create_a_group);
 
     return test_runner_failures == 0 ? 0 : 1;
 }

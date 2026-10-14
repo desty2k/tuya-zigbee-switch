@@ -90,12 +90,18 @@ bool interlock_add_group(uint8_t group_id, uint16_t relay_mask,
     return true;
 }
 
-void interlock_set_relay_group(uint8_t relay_id, uint8_t group_id) {
-    interlock_group_t *group;
+bool interlock_set_relay_group(uint8_t relay_id, uint8_t group_id) {
+    interlock_group_t *group = NULL;
     interlock_group_t *previous;
 
     if (relay_id >= RELAY_CONTROLLER_MAX_RELAYS) {
-        return;
+        return false;
+    }
+    if (group_id != INTERLOCK_NO_GROUP) {
+        group = interlock_find_group(group_id);
+        if (group == NULL) {
+            return false;
+        }
     }
     previous = interlock_find_group(interlock_relay_groups[relay_id]);
     if (previous != NULL) {
@@ -103,18 +109,12 @@ void interlock_set_relay_group(uint8_t relay_id, uint8_t group_id) {
         interlock_cancel_pending(relay_id);
     }
     interlock_relay_groups[relay_id] = INTERLOCK_NO_GROUP;
-    if (group_id == INTERLOCK_NO_GROUP) {
-        return;
-    }
-    group = interlock_find_group(group_id);
     if (group == NULL) {
-        if (!interlock_add_group(group_id, (uint16_t)1 << relay_id, 0)) {
-            return;
-        }
-        group = interlock_find_group(group_id);
+        return true;
     }
     group->relay_mask |= (uint16_t)1 << relay_id;
     interlock_relay_groups[relay_id] = group_id;
+    return true;
 }
 
 bool interlock_prepare(uint8_t relay_id) {

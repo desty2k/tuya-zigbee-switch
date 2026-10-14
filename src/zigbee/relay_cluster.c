@@ -3,6 +3,7 @@
 #include "zcl_cluster_defs.h"
 #include "zcl_ids.h"
 #include "zcl_types.h"
+#include "base_components/interlock.h"
 #include "device_config/capability_state.h"
 #include "hal/nvm.h"
 #include "hal/printf_selector.h"
@@ -38,6 +39,14 @@ void sync_indicator_led(zigbee_relay_cluster *cluster);
 
 zigbee_relay_cluster *relay_cluster_by_endpoint[HAL_ZIGBEE_ENDPOINT_ID_MAX + 1];
 
+static bool relay_cluster_interlock_group_allowed(
+    const zigbee_relay_cluster *cluster, uint8_t group_id) {
+    if (cluster->config_interlock_group != INTERLOCK_NO_GROUP) {
+        return group_id == cluster->config_interlock_group;
+    }
+    return group_id <= cluster->config_interlock_count;
+}
+
 static zigbee_relay_cluster *relay_cluster_find(uint8_t endpoint) {
     if (endpoint > HAL_ZIGBEE_ENDPOINT_ID_MAX) {
         return NULL;
@@ -56,6 +65,11 @@ static hal_zigbee_cmd_result_t relay_cluster_attr_write(
     for (uint8_t i = 0; i < sizeof(cluster->attr_infos) / sizeof(cluster->attr_infos[0]); i++) {
         if (cluster->attr_infos[i].attribute_id != attribute_id) continue;
         if (candidate_len != cluster->attr_infos[i].size) return HAL_ZIGBEE_INVALID_VALUE;
+
+        if (attribute_id == ZCL_ATTR_ONOFF_INTERLOCK_GROUP &&
+            !relay_cluster_interlock_group_allowed(cluster, candidate[0])) {
+            return HAL_ZIGBEE_INVALID_VALUE;
+        }
 
         if (phase == HAL_ZIGBEE_ATTR_COMMIT) {
             memcpy(cluster->attr_infos[i].value, candidate, candidate_len);
@@ -82,13 +96,18 @@ void relay_cluster_add_to_endpoint(zigbee_relay_cluster *cluster,
     }
 
     relay_cluster_by_endpoint[endpoint->endpoint] = cluster;
-    cluster->endpoint        = endpoint->endpoint;
-    cluster->interlock_group =
+    cluster->endpoint = endpoint->endpoint;
+    cluster->config_interlock_group =
         relay_ctrl_get_interlock_group(cluster->relay_id);
+    cluster->interlock_group = cluster->config_interlock_group;
     relay_cluster_load_attrs_from_nv(cluster);
+    if (!relay_cluster_interlock_group_allowed(cluster,
+                                               cluster->interlock_group)) {
+        cluster->interlock_group = cluster->config_interlock_group;
+    }
     relay_ctrl_set_inching_ms(cluster->relay_id, cluster->inching_ms);
-    relay_ctrl_set_interlock_group(cluster->relay_id,
-                                   cluster->interlock_group);
+    (void)relay_ctrl_set_interlock_group(cluster->relay_id,
+                                         cluster->interlock_group);
 
     cluster->on_off = relay_ctrl_is_on(cluster->relay_id);
     if (!relay_ctrl_subscribe(cluster->relay_id, relay_cluster_on_relay_change,

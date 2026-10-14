@@ -219,11 +219,13 @@ uint16_t relay_ctrl_get_inching_ms(uint8_t relay_id) {
            : 0;
 }
 
-void relay_ctrl_set_interlock_group(uint8_t relay_id, uint8_t group_id) {
-    if (relay_id < relay_ctrl_relay_count) {
-        relay_ctrl_runtimes[relay_id].config->interlock_group = group_id;
-        interlock_set_relay_group(relay_id, group_id);
+bool relay_ctrl_set_interlock_group(uint8_t relay_id, uint8_t group_id) {
+    if (relay_id >= relay_ctrl_relay_count ||
+        !interlock_set_relay_group(relay_id, group_id)) {
+        return false;
     }
+    relay_ctrl_runtimes[relay_id].config->interlock_group = group_id;
+    return true;
 }
 
 uint8_t relay_ctrl_get_interlock_group(uint8_t relay_id) {

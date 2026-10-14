@@ -26,6 +26,9 @@
 // Adding room for future items, so starting from 32
 #define NV_ITEM_DEVICE_TYPE    32
 
+#define MAX_RELAY_STATES       10
+#define MAX_SWITCH_STATES      10
+
 #define NV_ITEM_RELAY_STATE(relay_idx)                   (40 + (relay_idx))
 #define NV_ITEM_INDICATOR_STATE(indicator_idx)           (50 + (indicator_idx))
 #define NV_ITEM_ACTION_SWITCH_STATE(switch_idx)          (60 + (switch_idx))
@@ -33,6 +36,10 @@
 #define NV_ITEM_COVER_STATE(cover_idx)                   (80 + (cover_idx))
 #define NV_ITEM_METER_STATE(meter_idx)                   (90 + (meter_idx))
 #define NV_ITEM_DEVICE_CONFIG_SERVICE      100
+
+/* uint32_t device_composition_relay_topology() of the config the relay
+ * records were written under. */
+#define NV_ITEM_RELAY_TOPOLOGY             101
 
 #define NV_ITEM_MULTI_PRESS_RESET_COUNT    33
 #define NV_ITEM_POLL_CONTROL_CONFIG        34
