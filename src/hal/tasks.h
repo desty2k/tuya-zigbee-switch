@@ -1,6 +1,7 @@
 #ifndef _HAL_TASKS_H_
 #define _HAL_TASKS_H_
 
+#include <stdbool.h>
 #include <stdint.h>
 
 /** Function called when a scheduled task executes */
@@ -47,11 +48,13 @@ typedef struct {
 void hal_tasks_init(hal_task_t *task);
 
 /**
- * Schedule a task to execute after a delay
+ * Schedule a task to execute after a delay, replacing any pending schedule
  * @param task Task to schedule
  * @param delay_ms Delay in milliseconds before execution
+ * @return false if the platform could not arm the task (Telink's shared event
+ *         timer pool is full); the task is then not scheduled
  */
-void hal_tasks_schedule(hal_task_t *task, uint32_t delay_ms);
+bool hal_tasks_schedule(hal_task_t *task, uint32_t delay_ms);
 
 /**
  * Cancel a previously scheduled task

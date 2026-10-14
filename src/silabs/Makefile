@@ -8,7 +8,10 @@ GCC_BIN            ?= arm-none-eabi-gcc
 # Version and board configuration
 VERSION_STR ?= 0.0.0
 FILE_VERSION ?= 0
-NVM_MIGRATIONS_VERSION ?= $(shell cat ../../NVM_MIGRATIONS_VERSION 2>/dev/null || echo "1")
+NVM_MIGRATIONS_VERSION ?= $(shell cat ../../NVM_MIGRATIONS_VERSION)
+ifeq ($(NVM_MIGRATIONS_VERSION),)
+$(error NVM_MIGRATIONS_VERSION file is missing or empty)
+endif
 DEBUG ?= 0
 MCU ?= EFR32MG21A020F768IM32
 
@@ -136,10 +139,14 @@ gen:
 		--toolchain=gcc \
 		--output-type=vscode,makefile \
 		--configuration $(EXTRA_CONFIGURATION)
+	@grep -Eq '^#define[[:space:]]+NVM_MIGRATIONS_VERSION[[:space:]]+$(NVM_MIGRATIONS_VERSION)$$' \
+		"$(ZIGBEE_BUILD_DIR)/config/silabs_config.h" || \
+		{ echo "Generated silabs_config.h does not use NVM_MIGRATIONS_VERSION $(NVM_MIGRATIONS_VERSION)"; exit 1; }
 
 # Build targets
 build:
-	cd $(ZIGBEE_BUILD_DIR) && make -f $(ZIGBEE_PROJECT_NAME).Makefile -j32 release
+	@test -n "$(TOOLCHAIN_BIN)" || { echo "$(GCC_BIN) not found in PATH"; exit 1; }
+	cd $(ZIGBEE_BUILD_DIR) && make -f $(ZIGBEE_PROJECT_NAME).Makefile -j32 release ARM_GCC_DIR="$(TOOLCHAIN_DIR)"
 	@if ! cmp -s $(ZIGBEE_BUILD_DIR)/build/release/$(ZIGBEE_PROJECT_NAME).s37 $(BIN_FILE); then \
 		mkdir -p $(dir $(BIN_FILE)); \
 		cp $(ZIGBEE_BUILD_DIR)/build/release/$(ZIGBEE_PROJECT_NAME).s37 $(BIN_FILE); \
@@ -196,7 +203,8 @@ bootloader_gen:
 		--output-type=vscode,makefile
 
 bootloader_build: bootloader_gen
-	cd $(BOOTLOADER_BUILD_DIR) && make -f $(BOOTLOADER_PROJECT_NAME).Makefile -j32 release
+	@test -n "$(TOOLCHAIN_BIN)" || { echo "$(GCC_BIN) not found in PATH"; exit 1; }
+	cd $(BOOTLOADER_BUILD_DIR) && make -f $(BOOTLOADER_PROJECT_NAME).Makefile -j32 release ARM_GCC_DIR="$(TOOLCHAIN_DIR)"
 
 bootloader_install:
 	@echo "Flashing bootloader..."

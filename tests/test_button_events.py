@@ -94,7 +94,7 @@ def test_timing_attributes_update_input_pipeline(device, button_pin):
     ) == "350"
     assert device.read_zigbee_attr(
         1, ZCL_CLUSTER_BUTTON_EVENT, ZCL_ATTR_BUTTON_EVENT_DEBOUNCE_MS
-    ) == "8"
+    ) == "50"
     device.write_zigbee_attr(
         1, ZCL_CLUSTER_BUTTON_EVENT, ZCL_ATTR_BUTTON_EVENT_MULTI_CLICK_GAP, 150
     )

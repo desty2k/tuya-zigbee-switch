@@ -36,6 +36,9 @@ Please describe what you are working on, under ## Upcoming
 
 ### Changes
 
+- **Settings reset when updating from upstream or pre-release fork firmware.**
+  The first boot after the OTA update clears switch and relay settings (switch mode, detached mode, long press, startup mode, indicator modes, inching), cover calibration and position, a custom config string, the network LED setting and the multi-press reset count.
+  The device then runs with its board's default config, like a fresh flash. Network membership, binds and groups are kept.
 - Add `D<N>` config option to customize button debounce delay in milliseconds
 - **Bi-stable (latching) relays** have been reworked
   - They now use proper pulses instead of continuously driving the coil

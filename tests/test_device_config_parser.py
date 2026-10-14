@@ -1,7 +1,7 @@
 import pytest
 
 from client import StubProc
-from conftest import Device, wait_for
+from conftest import DEBOUNCE_MS, Device, wait_for
 from zcl_consts import (
     ZCL_ATTR_BASIC_MFR_NAME,
     ZCL_ATTR_COVER_SWITCH_SWITCH_TYPE,
@@ -138,7 +138,7 @@ def test_input_polarity_derives_from_pull(config: str, pressed_level: int):
         p.on_event.append(events.append)
         d = Device(p)
         d.set_gpio("A0", pressed_level)
-        d.step_time(8)
+        d.step_time(DEBOUNCE_MS)
         wait_for(
             lambda: any(
                 event.kind == "btn_event" and event.payload.get("type") == "DOWN"

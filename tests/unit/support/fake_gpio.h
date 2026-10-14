@@ -8,5 +8,7 @@ void fake_gpio_reset(void);
 void fake_gpio_set_input(hal_gpio_pin_t pin, uint8_t level);
 void fake_gpio_inject_edge(hal_gpio_pin_t pin, uint8_t level,
                            uint32_t timestamp_ms);
+void fake_gpio_inject_edge_flags(hal_gpio_pin_t pin, uint8_t level,
+                                 uint32_t timestamp_ms, uint8_t flags);
 
 #endif

@@ -134,6 +134,12 @@ void stub_app_print_help(void) {
     puts("  step_time <ms>                        - Advance time by ms");
     puts("  time_advance <ms>                     - Advance without tasks");
     puts("  tasks_poll                            - Dispatch due tasks");
+    puts("  time_model native|telink              - Select hal_millis wrap model");
+    puts("  time_set <virtual_ms>                 - Jump frozen time forward");
+    puts("  pin_burst <pin> <count>               - Toggle input count times");
+    puts("  pin_late <pin> <0|1> <lag_ms>         - Edge stamped lag_ms late");
+    puts("  task_fail <count>                     - Reject task schedules");
+    puts("  input_diag                            - Input scheduling counters");
     puts("  q, quit                               - Exit");
 }
 

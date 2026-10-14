@@ -22,4 +22,7 @@ void timer_cancel(app_timer_t *timer);
 bool timer_is_active(const app_timer_t *timer);
 uint32_t timer_remaining_ms(const app_timer_t *timer);
 
+/** Timer starts the platform could not arm; such a timer stays inactive. */
+uint32_t timer_schedule_failures(void);
+
 #endif

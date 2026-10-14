@@ -9,7 +9,10 @@ SRC_DIR := $(PROJECT_ROOT)/src
 # Version and board configuration
 VERSION_STR ?= "0.0.0"
 FILE_VERSION ?= 0
-NVM_MIGRATIONS_VERSION ?= $(shell cat ../../NVM_MIGRATIONS_VERSION 2>/dev/null || echo "1")
+NVM_MIGRATIONS_VERSION ?= $(shell cat ../../NVM_MIGRATIONS_VERSION)
+ifeq ($(NVM_MIGRATIONS_VERSION),)
+$(error NVM_MIGRATIONS_VERSION file is missing or empty)
+endif
 
 FIRMWARE_BASENAME ?= tlc_switch
 DEVICE_TYPE ?= router
@@ -212,6 +215,20 @@ BIN_FILE := $(BIN_DIR)/$(FIRMWARE_BASENAME).bin
 OTA_FILE := $(BIN_DIR)/$(FIRMWARE_BASENAME).ota
 SIZEDUMMY := $(BUILD_DIR)/sizedummy
 
+# OTA slot limits for 512 KB flash, from telink_tools/sdk/proj/drivers/drv_nv.h
+# (FLASH_OTA_IMAGE_MAX_SIZE). The receiving firmware compares the imageSize of
+# the offered OTA file (headers, padding and CRC included,
+# zigbee/ota/ota.c) with this limit, so the check runs on every packaged
+# .zigbee file (normal, forced and -from_tuya), not on the .bin.
+# - Without bootloader (BOOT_LOADER_MODE 0, this firmware): NV_BASE_ADDRESS
+#   0x34000 - app address 0 = 212992 bytes. This firmware rejects a larger
+#   file, so it fails the build.
+# - With bootloader: (0x6A000 - 0x8000) / 2 = 0x31000 = 200704 bytes. Whether
+#   stock Tuya firmware uses this layout is not established; if it does, it
+#   rejects a larger -from_tuya file. Exceeding it only warns.
+OTA_SLOT_MAX_BYTES := 212992
+TUYA_OTA_SLOT_MAX_BYTES := 200704
+
 # Default target
 all: $(BIN_FILE) $(LST_FILE)
 	@echo "Build complete: $(BIN_FILE)"
@@ -232,6 +249,7 @@ $(BIN_FILE): $(ELF_FILE)
 	@mkdir -p $(dir $@)
 	@$(OBJCOPY) -O binary $< $@
 	@$(SIZE) $<
+	@echo "Binary size: $$(wc -c < $@ | tr -d ' ') bytes"
 
 # Compile Telink-specific C files
 $(BUILD_DIR)/telink/%.o: %.c
@@ -269,7 +287,17 @@ ota: $(BIN_FILE)
 	      --manufacturer-id $(OTA_MANUFACTURER_ID) \
 	      --image-type $(OTA_IMAGE_TYPE) \
 	      $(OTA_VERSION_ARG) \
-	      $(BIN_FILE) $(OTA_FILE); \
+	      $(BIN_FILE) $(OTA_FILE) || exit 1; \
+	    size=$$(wc -c < $(OTA_FILE) | tr -d ' '); \
+	    echo "OTA file size: $$size bytes; OTA slot $(OTA_SLOT_MAX_BYTES) (headroom $$(($(OTA_SLOT_MAX_BYTES) - size))), bootloader-layout slot $(TUYA_OTA_SLOT_MAX_BYTES) (headroom $$(($(TUYA_OTA_SLOT_MAX_BYTES) - size)))"; \
+	    if [ $$size -gt $(OTA_SLOT_MAX_BYTES) ]; then \
+	        echo "ERROR: $(OTA_FILE) exceeds the $(OTA_SLOT_MAX_BYTES)-byte OTA slot"; \
+	        rm -f $(OTA_FILE); \
+	        exit 1; \
+	    fi; \
+	    if [ $$size -gt $(TUYA_OTA_SLOT_MAX_BYTES) ]; then \
+	        echo "WARNING: $(OTA_FILE) exceeds the $(TUYA_OTA_SLOT_MAX_BYTES)-byte bootloader-layout slot; it may not install over stock Tuya firmware"; \
+	    fi; \
 	    echo ''; \
 	fi
 
