@@ -115,6 +115,7 @@ UNIT_CAPABILITY_STATE_TEST := $(UNIT_BUILD_DIR)/test_capability_state
 UNIT_COVER_TEST := $(UNIT_BUILD_DIR)/test_cover_controller
 UNIT_COUNTER_TEST := $(UNIT_BUILD_DIR)/test_gpio_counter
 UNIT_METER_TEST := $(UNIT_BUILD_DIR)/test_meter_service
+UNIT_PROBE_TEST := $(UNIT_BUILD_DIR)/test_gpio_probe_service
 UNIT_PARSER_SWITCH_ONLY_TEST := $(UNIT_BUILD_DIR)/test_config_parser_switch_only
 UNIT_PARSER_COVER_BATTERY_TEST := $(UNIT_BUILD_DIR)/test_config_parser_cover_battery
 UNIT_PARSER_FEATURE_SOURCES := tests/unit/test_config_parser_features.c \
@@ -231,6 +232,13 @@ $(UNIT_METER_TEST): tests/unit/test_meter_service.c \
 		tests/unit/support/fake_tasks.c | $(UNIT_BUILD_DIR)
 	$(CC) $(UNIT_CFLAGS) $^ -o $@
 
+$(UNIT_PROBE_TEST): tests/unit/test_gpio_probe_service.c \
+		src/base_components/gpio_probe_service.c \
+		src/stub/hal/gpio_probe.c \
+		tests/unit/support/fake_clock.c \
+		tests/unit/support/fake_tasks.c | $(UNIT_BUILD_DIR)
+	$(CC) $(UNIT_CFLAGS) $^ -o $@
+
 $(UNIT_PARSER_SWITCH_ONLY_TEST): $(UNIT_PARSER_FEATURE_SOURCES) | $(UNIT_BUILD_DIR)
 	$(CC) $(UNIT_BASE_CFLAGS) $(call unit_feature_defines,relay switch) $^ -o $@
 
@@ -241,7 +249,7 @@ unit_tests: $(UNIT_QUEUE_TEST) $(UNIT_TIMER_TEST) $(UNIT_BUTTON_TEST) \
 		$(UNIT_DEBOUNCE_FUZZ) $(UNIT_GESTURE_TEST) $(UNIT_RELAY_TEST) \
 		$(UNIT_INTERLOCK_TEST) $(UNIT_BUTTON_EVENT_TEST) $(UNIT_DESCRIPTOR_TEST) \
 		$(UNIT_TELINK_ZIGBEE_INIT_TEST) $(UNIT_CONFIG_PARSER_TEST) $(UNIT_ACTION_MAPPER_TEST) $(UNIT_CAPABILITY_STATE_TEST) $(UNIT_COVER_TEST) $(UNIT_COUNTER_TEST) $(UNIT_METER_TEST) \
-		$(UNIT_PARSER_SWITCH_ONLY_TEST) $(UNIT_PARSER_COVER_BATTERY_TEST)
+		$(UNIT_PROBE_TEST) $(UNIT_PARSER_SWITCH_ONLY_TEST) $(UNIT_PARSER_COVER_BATTERY_TEST)
 	./$(UNIT_QUEUE_TEST)
 	./$(UNIT_TIMER_TEST)
 	./$(UNIT_BUTTON_TEST)
@@ -258,6 +266,7 @@ unit_tests: $(UNIT_QUEUE_TEST) $(UNIT_TIMER_TEST) $(UNIT_BUTTON_TEST) \
 	./$(UNIT_COVER_TEST)
 	./$(UNIT_COUNTER_TEST)
 	./$(UNIT_METER_TEST)
+	./$(UNIT_PROBE_TEST)
 	./$(UNIT_PARSER_SWITCH_ONLY_TEST)
 	./$(UNIT_PARSER_COVER_BATTERY_TEST)
 
