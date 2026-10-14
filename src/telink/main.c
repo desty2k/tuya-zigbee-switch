@@ -76,6 +76,7 @@ int real_main(startup_state_e state) {
 
     while (1) {
         drv_wd_clear();
+        telink_millis_poll();
         ev_main();
         drv_wd_clear();
         tl_zbTaskProcedure();

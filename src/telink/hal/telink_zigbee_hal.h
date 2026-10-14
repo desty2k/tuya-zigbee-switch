@@ -29,3 +29,6 @@ void telink_gpio_hal_setup_wake_ups();
 void telink_gpio_reinit_after_deep_retention();
 void telink_gpio_to_pull_for_deep_retention();
 void telink_gpio_reinit_interrupts();
+
+/** Keep hal_millis() extended across clock_time() wraps; call every loop. */
+void telink_millis_poll(void);

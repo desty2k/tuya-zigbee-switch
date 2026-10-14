@@ -1,4 +1,5 @@
 #include "base_components/timer_service.h"
+#include "hal/tick_clock.h"
 #include "support/fake_clock.h"
 #include "support/fake_tasks.h"
 #include "support/runner.h"
@@ -126,7 +127,32 @@ TEST(expiry_runs_at_exact_deadline) {
     ASSERT_TRUE(!timer_is_active(&timer));
 }
 
+TEST(tick_clock_is_exact_and_continuous_across_tick_wraps) {
+    hal_tick_clock_t clock = { 0, 0 };
+    uint64_t         ticks = 0;
+
+    /* 16 MHz tick sampled every 59999.9375 ms for over 40 tick wraps. */
+    for (uint32_t i = 1; i <= 200; i++) {
+        uint32_t ms;
+
+        ticks += 959999000u;
+        ms     = hal_tick_clock_update(&clock, (uint32_t)ticks, 16000);
+        ASSERT_EQ((uint32_t)(ticks / 16000), ms);
+    }
+}
+
+TEST(tick_clock_milliseconds_wrap_at_2_pow_32) {
+    hal_tick_clock_t clock = { 0, UINT32_MAX - 2 };
+
+    ASSERT_EQ(UINT32_MAX - 2, hal_tick_clock_update(&clock, 15999, 16000));
+    ASSERT_EQ(UINT32_MAX, hal_tick_clock_update(&clock, 3 * 16000 - 1, 16000));
+    ASSERT_EQ(2, hal_tick_clock_update(&clock, 5 * 16000, 16000));
+    ASSERT_EQ(6, hal_tick_clock_update(&clock, 9 * 16000, 16000));
+}
+
 int main(void) {
+    RUN_TEST(tick_clock_is_exact_and_continuous_across_tick_wraps);
+    RUN_TEST(tick_clock_milliseconds_wrap_at_2_pow_32);
     RUN_TEST(start_keeps_active_deadline);
     RUN_TEST(restart_replaces_deadline);
     RUN_TEST(cancel_prevents_callback);

@@ -12,6 +12,14 @@ ONBOARD_HOLD_MS = 2000
 WRAP_AT_MS = {"telink": 268_436, "native": 2**32}
 
 
+def step_fine(device: Device, ms: int, chunk: int = 10) -> None:
+    """step_time runs due tasks only at the end of a step; keep steps short so
+    timers fire in deadline order."""
+    while ms > 0:
+        device.step_time(min(chunk, ms))
+        ms -= chunk
+
+
 def gestures(device: Device) -> list[dict[str, str]]:
     return [event.payload for event in device._events if event.kind == "gesture"]
 
@@ -67,3 +75,47 @@ def test_mains_frequency_pickup_does_not_toggle_relay() -> None:
         assert device.get_gpio("B1", refresh=True) == relay_before
         assert not [g for g in gestures(device) if g["type"] == "N_CLICK"]
         assert device.status()["joined"] == str(HAL_ZIGBEE_NETWORK_JOINED)
+
+
+@pytest.mark.parametrize("model", ["telink", "native"])
+def test_short_press_across_millis_wrap_is_a_click(model: str) -> None:
+    with StubProc(device_config="A;B;BA0u;") as proc:
+        device = Device(proc)
+        device.time_model(model)
+        device.time_set(WRAP_AT_MS[model] - 5)
+        device.clear_events()
+        device.set_gpio("A0", 0)
+        step_fine(device, 50)
+        device.set_gpio("A0", 1)
+        step_fine(device, ONBOARD_HOLD_MS + 500)
+
+        assert [e["type"] for e in button_events(device)] == ["DOWN", "UP"]
+        assert not [g for g in gestures(device) if g["type"].startswith("HOLD")]
+        assert device.status()["joined"] == str(HAL_ZIGBEE_NETWORK_JOINED)
+
+
+@pytest.mark.parametrize("model", ["telink", "native"])
+def test_hold_across_millis_wrap_fires_after_hold_time(model: str) -> None:
+    with StubProc(device_config="A;B;BA0u;") as proc:
+        device = Device(proc)
+        device.time_model(model)
+        device.time_set(WRAP_AT_MS[model] - 5)
+        device.clear_events()
+        device.set_gpio("A0", 0)
+        step_fine(device, ONBOARD_HOLD_MS - 100)
+        assert not [g for g in gestures(device) if g["type"] == "HOLD_START"]
+
+        step_fine(device, 200)
+        assert [g for g in gestures(device) if g["type"] == "HOLD_START"]
+
+
+def test_telink_millis_is_continuous_across_tick_wrap() -> None:
+    with StubProc(device_config="A;B;") as proc:
+        device = Device(proc)
+        device.time_model("telink")
+        device.time_set(WRAP_AT_MS["telink"] - 1)
+        assert device.millis() == WRAP_AT_MS["telink"] - 1
+        device.step_time(1)
+        assert device.millis() == WRAP_AT_MS["telink"]
+        device.time_set(10 * WRAP_AT_MS["telink"] + 7)
+        assert device.millis() == 10 * WRAP_AT_MS["telink"] + 7
