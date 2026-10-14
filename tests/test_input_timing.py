@@ -44,3 +44,26 @@ def test_pin_burst_and_pin_late_drive_the_input() -> None:
         device.pin_late("A0", 1, 20)
         assert device.counters()["gpio_edges_captured"] == 4
         assert device.millis() == 20
+
+
+def test_mains_frequency_pickup_does_not_toggle_relay() -> None:
+    """50 Hz pickup (10 ms half-periods) on a toggle-mode input for 1 s."""
+    with StubProc(device_config="A;B;SA0u;RB1;") as proc:
+        device = Device(proc)
+        relay_before = device.get_gpio("B1", refresh=True)
+        device.clear_events()
+        level = 1
+        for _ in range(100):
+            level ^= 1
+            device.set_gpio("A0", level)
+            device.step_time(10)
+        device.set_gpio("A0", 1)
+        device.step_time(1000)
+
+        relay_writes = [
+            e for e in device._events if e.kind == "gpio" and e.payload["pin"] == "17"
+        ]
+        assert relay_writes == []
+        assert device.get_gpio("B1", refresh=True) == relay_before
+        assert not [g for g in gestures(device) if g["type"] == "N_CLICK"]
+        assert device.status()["joined"] == str(HAL_ZIGBEE_NETWORK_JOINED)

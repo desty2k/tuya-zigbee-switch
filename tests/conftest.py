@@ -34,7 +34,7 @@ from tests.zcl_consts import (
     ZCL_CMD_WINDOW_COVERING_UP_OPEN,
 )
 
-DEBOUNCE_MS = 8
+DEBOUNCE_MS = 50
 MINIMUM_SWITCH_TIME_MS = 200
 
 

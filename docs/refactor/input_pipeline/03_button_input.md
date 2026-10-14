@@ -46,7 +46,7 @@ typedef struct {
 
 | Parameter | Default | Range | Source |
 | --- | --- | --- | --- |
-| `debounce_ms` | 8 | 1..200 | global `D<N>` config token, per-button ZCL attribute |
+| `debounce_ms` | 50 | 1..200 | global `D<N>` config token, per-button ZCL attribute |
 | queue size | 32 edges | — | `GPIO_EDGE_QUEUE_SIZE` |
 
 ## Debounce algorithm
