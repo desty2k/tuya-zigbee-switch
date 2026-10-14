@@ -169,10 +169,28 @@ TEST(failed_schedule_leaves_timer_inactive_and_counts) {
     ASSERT_EQ(1, callback_count);
 }
 
+TEST(tick_clock_holds_across_a_backward_tick_step) {
+    hal_tick_clock_t clock = { 0, 0 };
+
+    ASSERT_EQ(100, hal_tick_clock_update(&clock, 100 * 16000, 16000));
+    /* The tick restarts 5 ms behind the last reading. */
+    ASSERT_EQ(100, hal_tick_clock_update(&clock, 95 * 16000, 16000));
+    ASSERT_EQ(110, hal_tick_clock_update(&clock, 105 * 16000, 16000));
+}
+
+TEST(tick_clock_counts_forward_gaps_up_to_seven_eighths_of_a_wrap) {
+    hal_tick_clock_t clock = { 0, 0 };
+    uint32_t         gap   = 0xFFFFFFFFu - HAL_TICK_CLOCK_BACKSTEP_MAX;
+
+    ASSERT_EQ(gap / 16000, hal_tick_clock_update(&clock, gap, 16000));
+}
+
 int main(void) {
     RUN_TEST(failed_schedule_leaves_timer_inactive_and_counts);
     RUN_TEST(tick_clock_is_exact_and_continuous_across_tick_wraps);
     RUN_TEST(tick_clock_milliseconds_wrap_at_2_pow_32);
+    RUN_TEST(tick_clock_holds_across_a_backward_tick_step);
+    RUN_TEST(tick_clock_counts_forward_gaps_up_to_seven_eighths_of_a_wrap);
     RUN_TEST(start_keeps_active_deadline);
     RUN_TEST(restart_replaces_deadline);
     RUN_TEST(cancel_prevents_callback);
