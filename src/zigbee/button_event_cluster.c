@@ -1,8 +1,11 @@
 #include "button_event_cluster.h"
+#include "management_protocol.h"
 
 #include "base_components/button_dispatcher.h"
 #include "cluster_common.h"
-#include "consts.h"
+#include "zcl_cluster_defs.h"
+#include "zcl_ids.h"
+#include "zcl_types.h"
 #include "hal/timer.h"
 #include "hal/tasks.h"
 #include <stddef.h>
@@ -58,6 +61,10 @@ static zigbee_button_event_cluster *button_event_cluster_find_by_endpoint(
     }
     return NULL;
 }
+
+static hal_zigbee_cmd_result_t button_event_cluster_attr_write(
+    uint8_t endpoint, uint16_t attribute_id, const uint8_t *candidate,
+    uint16_t candidate_len, hal_zigbee_attr_write_phase_t phase);
 
 static zigbee_button_event_cluster *button_event_cluster_find_by_button(
     uint8_t button_id) {
@@ -173,25 +180,27 @@ void button_event_cluster_add_to_endpoint(
     }
 
     SETUP_ATTR_FOR_TABLE(cluster->attr_infos, 0, ZCL_ATTR_BUTTON_EVENT_STATE,
-                         ZCL_DATA_TYPE_ENUM8, ATTR_READONLY,
+                         ZCL_DATA_TYPE_ENUM8, HAL_ATTR_READ,
                          cluster->button_state);
     SETUP_ATTR_FOR_TABLE(cluster->attr_infos, 1,
                          ZCL_ATTR_BUTTON_EVENT_LAST_EVENT_SEQ,
-                         ZCL_DATA_TYPE_UINT16, ATTR_READONLY,
+                         ZCL_DATA_TYPE_UINT16, HAL_ATTR_READ,
                          cluster->last_event_seq);
     SETUP_ATTR_FOR_TABLE(cluster->attr_infos, 2,
                          ZCL_ATTR_BUTTON_EVENT_MULTI_CLICK_GAP,
-                         ZCL_DATA_TYPE_UINT16, ATTR_WRITABLE,
+                         ZCL_DATA_TYPE_UINT16, (HAL_ATTR_READ | HAL_ATTR_WRITE),
                          cluster->multi_click_gap_ms);
     SETUP_ATTR_FOR_TABLE(cluster->attr_infos, 3,
                          ZCL_ATTR_BUTTON_EVENT_DEBOUNCE_MS,
-                         ZCL_DATA_TYPE_UINT16, ATTR_WRITABLE,
+                         ZCL_DATA_TYPE_UINT16, (HAL_ATTR_READ | HAL_ATTR_WRITE),
                          cluster->debounce_ms);
     hal_zigbee_cluster endpoint_cluster = {
-        .cluster_id      = ZCL_CLUSTER_BUTTON_EVENT,
-        .is_server       =                        1,
-        .attribute_count =                        4,
-        .attributes      = cluster->attr_infos,
+        .cluster_id        = ZCL_CLUSTER_BUTTON_EVENT,
+        .manufacturer_code = ZIGBEE_MANAGEMENT_MANUFACTURER_CODE,
+        .role                = HAL_ZIGBEE_ROLE_SERVER,
+        .attribute_count     =                                   4,
+        .attributes          = cluster->attr_infos,
+        .attr_write_callback = button_event_cluster_attr_write,
     };
 
     hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity,
@@ -274,37 +283,45 @@ void button_event_cluster_on_gesture_event(const gesture_event_t *event,
                               type == ZB_BUTTON_HOLD_END ? event->duration_ms : 0);
 }
 
-void button_event_cluster_on_write_attr(uint8_t endpoint,
-                                        uint16_t attribute_id) {
+static hal_zigbee_cmd_result_t button_event_cluster_attr_write(
+    uint8_t endpoint, uint16_t attribute_id, const uint8_t *candidate,
+    uint16_t candidate_len, hal_zigbee_attr_write_phase_t phase) {
     zigbee_button_event_cluster *cluster =
         button_event_cluster_find_by_endpoint(endpoint);
 
-    if (cluster == NULL) {
-        return;
+    if (cluster == NULL || candidate == NULL) {
+        return HAL_ZIGBEE_CMD_SKIPPED;
     }
     if (attribute_id == ZCL_ATTR_BUTTON_EVENT_MULTI_CLICK_GAP) {
-        if (cluster->multi_click_gap_ms < 100 ||
-            cluster->multi_click_gap_ms > 2000) {
-            cluster->multi_click_gap_ms = 350;
-        }
+        uint16_t gap = (uint16_t)candidate[0] | ((uint16_t)candidate[1] << 8);
+        if (candidate_len != sizeof(gap) || gap < 100 || gap > 2000)
+            return HAL_ZIGBEE_INVALID_VALUE;
+
+        if (phase != HAL_ZIGBEE_ATTR_COMMIT) return HAL_ZIGBEE_CMD_PROCESSED;
+
         for (uint8_t i = 0; i < cluster->button_count; i++) {
             gesture_fsm_set_multi_click_gap_ms(cluster->button_ids[i],
                                                cluster->multi_click_gap_ms);
         }
     } else if (attribute_id == ZCL_ATTR_BUTTON_EVENT_DEBOUNCE_MS) {
-        if (cluster->debounce_ms < 1 || cluster->debounce_ms > 200) {
-            cluster->debounce_ms = BUTTON_DEBOUNCE_DEFAULT_MS;
-        }
+        uint16_t debounce =
+            (uint16_t)candidate[0] | ((uint16_t)candidate[1] << 8);
+        if (candidate_len != sizeof(debounce) || debounce < 1 || debounce > 200)
+            return HAL_ZIGBEE_INVALID_VALUE;
+
+        if (phase != HAL_ZIGBEE_ATTR_COMMIT) return HAL_ZIGBEE_CMD_PROCESSED;
+
         for (uint8_t i = 0; i < cluster->button_count; i++) {
             button_input_set_debounce_ms(cluster->button_ids[i],
                                          cluster->debounce_ms);
         }
     } else {
-        return;
+        return HAL_ZIGBEE_CMD_SKIPPED;
     }
     if (cluster->config_changed != NULL) {
         cluster->config_changed(cluster->config_changed_arg);
     }
+    return HAL_ZIGBEE_CMD_PROCESSED;
 }
 
 void button_event_cluster_on_network_status_change(
@@ -356,7 +373,8 @@ void button_event_cluster_drain(void) {
         if (cluster != NULL) {
             cluster->last_event_seq = entry->payload.seq;
             hal_zigbee_notify_attribute_changed(
-                cluster->endpoint, ZCL_CLUSTER_BUTTON_EVENT,
+                cluster->endpoint,
+                ZCL_CLUSTER_BUTTON_EVENT,
                 ZCL_ATTR_BUTTON_EVENT_LAST_EVENT_SEQ);
         }
         button_event_cluster_pop();

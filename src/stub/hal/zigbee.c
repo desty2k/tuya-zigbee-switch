@@ -29,8 +29,7 @@ static hal_zigbee_endpoint *endpoints             = NULL;
 static uint8_t endpoints_count                    = 0;
 static hal_zigbee_network_status_t network_status =
     HAL_ZIGBEE_NETWORK_NOT_JOINED;
-static hal_attribute_change_callback_t attr_change_callback  = NULL;
-static hal_zcl_activity_callback_t     zcl_activity_callback = NULL;
+static hal_zcl_activity_callback_t zcl_activity_callback = NULL;
 static uint32_t poll_rate_ms = 0;
 static uint32_t coordinator_send_failures;
 static uint32_t announce_failures;
@@ -39,11 +38,31 @@ static hal_zigbee_diagnostics_t diagnostics;
 static stub_binding_t bindings[MAX_BINDINGS];
 static int            binding_count = 0;
 
+static hal_zigbee_cluster *find_unique_server_cluster(uint8_t endpoint,
+                                                      uint16_t cluster_id) {
+    hal_zigbee_cluster *result = NULL;
+
+    for (uint8_t i = 0; i < endpoints_count; i++) {
+        if (endpoints[i].endpoint != endpoint) continue;
+        for (uint8_t j = 0; j < endpoints[i].cluster_count; j++) {
+            hal_zigbee_cluster *candidate = &endpoints[i].clusters[j];
+
+            if (candidate->cluster_id == cluster_id &&
+                candidate->role == HAL_ZIGBEE_ROLE_SERVER) {
+                if (result != NULL) return NULL;
+
+                result = candidate;
+            }
+        }
+    }
+    return result;
+}
+
 void hal_zigbee_init(hal_zigbee_endpoint *ep_list, uint8_t ep_count) {
     hal_zigbee_descriptor_error_t validation =
         hal_zigbee_validate_descriptor_graph(
             ep_list, ep_count, MAX_ENDPOINTS, HAL_ZIGBEE_ENDPOINT_ID_MAX, 48,
-            128);
+            160);
 
     if (validation != HAL_ZIGBEE_DESCRIPTOR_OK) {
         diagnostics.descriptor_validation_failures++;
@@ -70,10 +89,10 @@ void hal_zigbee_init(hal_zigbee_endpoint *ep_list, uint8_t ep_count) {
             exit(1);
         }
         for (int j = 0; j < ep_list[i].cluster_count; j++) {
-            io_log("ZIGBEE", "  Cluster %d: id=0x%04x, attrs=%d, is_server=%d", j,
+            io_log("ZIGBEE", "  Cluster %d: id=0x%04x, attrs=%d, role=%d", j,
                    ep_list[i].clusters[j].cluster_id,
                    ep_list[i].clusters[j].attribute_count,
-                   ep_list[i].clusters[j].is_server);
+                   ep_list[i].clusters[j].role == HAL_ZIGBEE_ROLE_SERVER);
             if (ep_list[i].clusters[j].attribute_count > 0 &&
                 !ep_list[i].clusters[j].attributes) {
                 io_log("ZIGBEE",
@@ -130,12 +149,6 @@ void hal_zigbee_start_network_steering() {
     if (network_status_change_callback != NULL) {
         network_status_change_callback(hal_zigbee_get_network_status());
     }
-}
-
-void hal_zigbee_register_on_attribute_change_callback(
-    hal_attribute_change_callback_t callback) {
-    attr_change_callback = callback;
-    io_log("ZIGBEE", "Registered attribute change callback");
 }
 
 void hal_zigbee_register_on_zcl_activity_callback(
@@ -230,7 +243,12 @@ hal_zigbee_status_t
 hal_zigbee_send_report_attr(uint8_t endpoint, uint16_t cluster_id,
                             uint16_t attr_id, uint8_t zcl_type_id,
                             const void *value, uint8_t value_len) {
-    if (!value)
+    hal_zigbee_cluster *  cluster   = find_unique_server_cluster(endpoint, cluster_id);
+    hal_zigbee_attribute *attribute = hal_zigbee_find_attribute_in_cluster(
+        cluster, attr_id);
+
+    if (!value || attribute == NULL || (attribute->flag & HAL_ATTR_REPORT) == 0 ||
+        attribute->data_type_id != zcl_type_id || attribute->size != value_len)
         return HAL_ZIGBEE_ERR_BAD_ARG;
 
     if (network_status != HAL_ZIGBEE_NETWORK_JOINED) {
@@ -321,17 +339,25 @@ stub_zigbee_simulate_command_internal(uint8_t endpoint, uint16_t cluster_id,
         zcl_activity_callback();
     }
 
-    // Find the endpoint and cluster
-    for (int i = 0; i < endpoints_count; i++) {
-        if (endpoints[i].endpoint == endpoint) {
-            for (int j = 0; j < endpoints[i].cluster_count; j++) {
-                hal_zigbee_cluster *cluster = &endpoints[i].clusters[j];
-                if (cluster->cluster_id == cluster_id && cluster->cmd_callback) {
-                    return cluster->cmd_callback(endpoint, cluster_id, command_id,
-                                                 payload, payload_len);
-                }
-            }
-        }
+    hal_zigbee_cluster *cluster = hal_zigbee_find_cluster(
+        endpoints, endpoints_count, endpoint, cluster_id);
+    if (cluster != NULL && cluster->role == HAL_ZIGBEE_ROLE_SERVER &&
+        cluster->cmd_callback != NULL) {
+        const hal_zigbee_incoming_command_t command = {
+            .source_endpoint       =                               1,
+            .destination_endpoint  = endpoint,
+            .source_address        =                               0,
+            .cluster_id            = cluster_id,
+            .command_id            = command_id,
+            .cluster_specific      =                               1,
+            .manufacturer_specific = cluster->manufacturer_code != 0,
+            .manufacturer_code     = cluster->manufacturer_code,
+            .direction             = HAL_ZIGBEE_DIR_CLIENT_TO_SERVER,
+            .payload     = payload,
+            .payload_len = payload_len,
+        };
+
+        return cluster->cmd_callback(&command);
     }
 
     return HAL_ZIGBEE_CMD_SKIPPED;
@@ -359,13 +385,40 @@ stub_zigbee_simulate_command_without_activity(uint8_t endpoint,
                                                  payload_len, false);
 }
 
-void stub_simulate_zigbee_attribute_write(uint8_t endpoint, uint16_t cluster_id,
-                                          uint16_t attribute_id) {
+hal_zigbee_cmd_result_t stub_simulate_zigbee_attribute_write(
+    uint8_t endpoint, uint16_t cluster_id, uint16_t attribute_id,
+    const uint8_t *candidate, uint16_t candidate_len) {
+    hal_zigbee_cmd_result_t result = HAL_ZIGBEE_CMD_PROCESSED;
+
     if (zcl_activity_callback != NULL) {
         zcl_activity_callback();
     }
 
-    if (attr_change_callback) {
-        attr_change_callback(endpoint, cluster_id, attribute_id);
+    hal_zigbee_cluster *cluster = hal_zigbee_find_cluster(
+        endpoints, endpoints_count, endpoint, cluster_id);
+    hal_zigbee_attribute *attribute = hal_zigbee_find_attribute(
+        endpoints, endpoints_count, endpoint, cluster_id, attribute_id);
+    if (cluster == NULL || cluster->role != HAL_ZIGBEE_ROLE_SERVER ||
+        attribute == NULL || candidate == NULL ||
+        candidate_len != attribute->size || (attribute->flag & HAL_ATTR_WRITE) == 0) {
+        return HAL_ZIGBEE_CMD_SKIPPED;
     }
+    uint8_t previous[attribute->size];
+    memcpy(previous, attribute->value, attribute->size);
+    if (cluster->attr_write_callback != NULL) {
+        result = cluster->attr_write_callback(
+            endpoint, attribute_id, candidate, candidate_len,
+            HAL_ZIGBEE_ATTR_VALIDATE);
+        if (result == HAL_ZIGBEE_CMD_PROCESSED) {
+            memcpy(attribute->value, candidate, candidate_len);
+            result = cluster->attr_write_callback(
+                endpoint, attribute_id, candidate, candidate_len,
+                HAL_ZIGBEE_ATTR_COMMIT);
+        }
+    } else {
+        memcpy(attribute->value, candidate, candidate_len);
+    }
+    if (result != HAL_ZIGBEE_CMD_PROCESSED)
+        memcpy(attribute->value, previous, attribute->size);
+    return result;
 }

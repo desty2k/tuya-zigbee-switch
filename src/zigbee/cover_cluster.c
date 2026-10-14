@@ -1,305 +1,198 @@
 #include "cover_cluster.h"
-#include "base_components/relay_controller.h"
+
+#include "base_components/cover_controller.h"
 #include "cluster_common.h"
-#include "consts.h"
-#include "device_config/nvm_items.h"
-#include "hal/nvm.h"
-#include "hal/printf_selector.h"
-#include "hal/timer.h"
-#include "hal/zigbee.h"
-
-// ============================================================================
-// Configuration & Constants
-// ============================================================================
-
-// Minimum time between relay state changes - protects relay contacts from
-// arc damage during locked rotor current (startup), and prevents mechanical
-// shock to motor/gears when reversing direction.
-#define RELAY_MIN_SWITCH_TIME_MS    200
+#include "zcl_cluster_defs.h"
+#include "zcl_ids.h"
+#include "zcl_types.h"
 
 static zigbee_cover_cluster *cover_cluster_by_endpoint[HAL_ZIGBEE_ENDPOINT_ID_MAX + 1];
+static uint8_t window_covering_type;
 
 static zigbee_cover_cluster *cover_cluster_find(uint8_t endpoint) {
-    if (endpoint > HAL_ZIGBEE_ENDPOINT_ID_MAX) {
-        return NULL;
-    }
-    return cover_cluster_by_endpoint[endpoint];
+    return endpoint <= HAL_ZIGBEE_ENDPOINT_ID_MAX ? cover_cluster_by_endpoint[endpoint] : NULL;
 }
 
-static zigbee_cover_cluster_config nv_config_buffer;
+static uint8_t cover_motion_to_zigbee(cover_motion_t motion) {
+    return motion == COVER_OPENING ? ZCL_ATTR_WINDOW_COVERING_MOVING_OPENING :
+           motion == COVER_CLOSING ? ZCL_ATTR_WINDOW_COVERING_MOVING_CLOSING :
+           ZCL_ATTR_WINDOW_COVERING_MOVING_STOPPED;
+}
 
-// Window covering type attribute - required by ZCL spec but not actively used.
-// Value 0 = Rollershade (liftable cover, not tiltable).
-static uint8_t window_covering_type = 0;
-
-// Current lift position percentage - required by ZCL spec for liftable covers.
-// Hardcoded to 50 until position calculation/control is implemented.
-static uint8_t cover_position = 50;
-
-// ============================================================================
-// Movement Control
-// ============================================================================
-
-/**
- * Immediately submits the relay requests for a movement state.
- *
- * This function does not apply cover timing checks. It is called only by
- * cover_request_movement() after those constraints are satisfied.
- */
-void cover_apply_movement(zigbee_cover_cluster *cluster, uint8_t moving) {
-    uint8_t open_relay_id = cluster->motor_reversal
-                            ? cluster->close_relay_id
-                            : cluster->open_relay_id;
-    uint8_t close_relay_id = cluster->motor_reversal
-                             ? cluster->open_relay_id
-                             : cluster->close_relay_id;
-    relay_request_t open_request = {
-        .relay_id = open_relay_id,
-        .type     = RELAY_REQUEST_OFF,
-        .source   = RELAY_SOURCE_COVER,
-    };
-    relay_request_t close_request = {
-        .relay_id = close_relay_id,
-        .type     = RELAY_REQUEST_OFF,
-        .source   = RELAY_SOURCE_COVER,
-    };
-
-    cluster->last_switch_time = hal_millis();
-    if (moving == ZCL_ATTR_WINDOW_COVERING_MOVING_OPENING) {
-        open_request.type = RELAY_REQUEST_ON;
-        cluster->moving   = ZCL_ATTR_WINDOW_COVERING_MOVING_OPENING;
-    }else if (moving == ZCL_ATTR_WINDOW_COVERING_MOVING_CLOSING) {
-        close_request.type = RELAY_REQUEST_ON;
-        cluster->moving    = ZCL_ATTR_WINDOW_COVERING_MOVING_CLOSING;
-    }else {
-        cluster->moving = ZCL_ATTR_WINDOW_COVERING_MOVING_STOPPED;
-    }
-
-    relay_ctrl_submit(&open_request);
-    relay_ctrl_submit(&close_request);
-
+static void cover_cluster_notify(zigbee_cover_cluster *cluster, uint16_t attribute_id) {
     hal_zigbee_notify_attribute_changed(cluster->endpoint,
-                                        ZCL_CLUSTER_WINDOW_COVERING,
-                                        ZCL_ATTR_WINDOW_COVERING_MOVING);
+                                        ZCL_CLUSTER_WINDOW_COVERING, attribute_id);
 }
 
-void cover_schedule_movement(zigbee_cover_cluster *cluster, uint8_t moving, uint32_t delay) {
-    cluster->pending_movement     = moving;
-    cluster->has_pending_movement = 1;
-    timer_restart(&cluster->movement_timer, delay);
+static void cover_cluster_sync(zigbee_cover_cluster *cluster, bool notify) {
+    cover_state_t state;
+    uint8_t       moving;
+    uint8_t       position;
+
+    if (!cover_controller_state(cluster->controller_id, &state)) return;
+
+    moving   = cover_motion_to_zigbee(state.motion);
+    position = cover_controller_lift_percentage(cluster->controller_id);
+    if (cluster->moving != moving) {
+        cluster->moving = moving;
+        if (notify) cover_cluster_notify(cluster, ZCL_ATTR_WINDOW_COVERING_MOVING);
+    }
+    if (cluster->position != position) {
+        cluster->position = position;
+        if (notify)
+            cover_cluster_notify(cluster,
+                                 ZCL_ATTR_WINDOW_COVERING_CURRENT_POSITION_LIFT_PERCENTAGE);
+    }
+    if (cluster->motor_reversal != state.motor_reversal) {
+        cluster->motor_reversal = state.motor_reversal;
+        if (notify) cover_cluster_notify(cluster, ZCL_ATTR_WINDOW_COVERING_MOTOR_REVERSAL);
+    }
+    if (cluster->open_time_ms != state.open_time_ms) {
+        cluster->open_time_ms = state.open_time_ms;
+        if (notify) cover_cluster_notify(cluster, ZCL_ATTR_WINDOW_COVERING_OPEN_TIME);
+    }
+    if (cluster->close_time_ms != state.close_time_ms) {
+        cluster->close_time_ms = state.close_time_ms;
+        if (notify) cover_cluster_notify(cluster, ZCL_ATTR_WINDOW_COVERING_CLOSE_TIME);
+    }
+    if (cluster->closed_deadzone_bp != state.closed_deadzone_bp) {
+        cluster->closed_deadzone_bp = state.closed_deadzone_bp;
+        if (notify)
+            cover_cluster_notify(cluster, ZCL_ATTR_WINDOW_COVERING_CLOSED_DEADZONE);
+    }
+    if (cluster->open_deadzone_bp != state.open_deadzone_bp) {
+        cluster->open_deadzone_bp = state.open_deadzone_bp;
+        if (notify) cover_cluster_notify(cluster, ZCL_ATTR_WINDOW_COVERING_OPEN_DEADZONE);
+    }
+    if (cluster->overrun_ms != state.overrun_ms) {
+        cluster->overrun_ms = state.overrun_ms;
+        if (notify) cover_cluster_notify(cluster, ZCL_ATTR_WINDOW_COVERING_OVERRUN);
+    }
 }
 
-/**
- * Requests a movement state change with motor protection timing enforcement.
- *
- * This is the safe, high-level function for all movement requests. It enforces
- * minimum time between relay state changes to protect the motor and relay contacts.
- *
- * If timing constraints aren't met, the movement is scheduled for delayed execution.
- */
-void cover_request_movement(zigbee_cover_cluster *cluster, uint8_t moving) {
-    // Ignore duplicate requests and cancel any pending delayed operation. This is especially
-    // important for some cover switches with stop buttons. Their stop button closes both contacts,
-    // so pressing it while moving might initially appear as a repeated/reversal command before the
-    // stop command arrives. Canceling pending operations ensures we handle this sequence correctly.
-    if (moving == cluster->moving) {
-        if (cluster->has_pending_movement) {
-            timer_cancel(&cluster->movement_timer);
+static void cover_cluster_on_state_changed(void *context, uint8_t cover_id,
+                                           const cover_state_t *state) {
+    zigbee_cover_cluster *cluster = (zigbee_cover_cluster *)context;
+
+    (void)cover_id;
+    (void)state;
+    cover_cluster_sync(cluster, true);
+}
+
+static hal_zigbee_cmd_result_t cover_cluster_attr_write(
+    uint8_t endpoint, uint16_t attribute_id, const uint8_t *candidate,
+    uint16_t candidate_len, hal_zigbee_attr_write_phase_t phase) {
+    zigbee_cover_cluster *cluster = cover_cluster_find(endpoint);
+
+    if (cluster == NULL || candidate == NULL) return HAL_ZIGBEE_CMD_SKIPPED;
+
+    for (uint8_t i = 0; i < sizeof(cluster->attr_infos) / sizeof(cluster->attr_infos[0]); i++) {
+        if (cluster->attr_infos[i].attribute_id != attribute_id) continue;
+        if (candidate_len != cluster->attr_infos[i].size) return HAL_ZIGBEE_INVALID_VALUE;
+
+        if (phase != HAL_ZIGBEE_ATTR_COMMIT) return HAL_ZIGBEE_CMD_PROCESSED;
+
+        if (attribute_id == ZCL_ATTR_WINDOW_COVERING_MOTOR_REVERSAL) {
+            (void)cover_controller_set_motor_reversal(cluster->controller_id,
+                                                      cluster->motor_reversal != 0);
+        } else if (attribute_id == ZCL_ATTR_WINDOW_COVERING_OPEN_TIME) {
+            (void)cover_controller_set_open_time(cluster->controller_id, cluster->open_time_ms);
+        } else if (attribute_id == ZCL_ATTR_WINDOW_COVERING_CLOSE_TIME) {
+            (void)cover_controller_set_close_time(cluster->controller_id, cluster->close_time_ms);
+        } else if (attribute_id == ZCL_ATTR_WINDOW_COVERING_CLOSED_DEADZONE) {
+            (void)cover_controller_set_closed_deadzone(cluster->controller_id,
+                                                       cluster->closed_deadzone_bp);
+        } else if (attribute_id == ZCL_ATTR_WINDOW_COVERING_OPEN_DEADZONE) {
+            (void)cover_controller_set_open_deadzone(cluster->controller_id,
+                                                     cluster->open_deadzone_bp);
+        } else if (attribute_id == ZCL_ATTR_WINDOW_COVERING_OVERRUN) {
+            (void)cover_controller_set_overrun(cluster->controller_id, cluster->overrun_ms);
         }
-
-        return;
+        cover_cluster_sync(cluster, false);
+        return HAL_ZIGBEE_CMD_PROCESSED;
     }
+    return HAL_ZIGBEE_CMD_SKIPPED;
+}
 
-    // Enforce motor protection delay. Minimum time must elapse between relay state changes.
-    uint32_t elapsed = hal_millis() - cluster->last_switch_time;
-    if (elapsed < RELAY_MIN_SWITCH_TIME_MS) {
-        cover_schedule_movement(cluster, moving, RELAY_MIN_SWITCH_TIME_MS - elapsed);
-        return;
+static hal_zigbee_cmd_result_t cover_cluster_callback(zigbee_cover_cluster *cluster,
+                                                      uint8_t command_id,
+                                                      void *payload,
+                                                      uint16_t payload_len) {
+    cover_result_t result;
+
+    if (command_id == ZCL_CMD_WINDOW_COVERING_UP_OPEN) {
+        result = cover_open(cluster->controller_id);
+    } else if (command_id == ZCL_CMD_WINDOW_COVERING_DOWN_CLOSE) {
+        result = cover_close(cluster->controller_id);
+    } else if (command_id == ZCL_CMD_WINDOW_COVERING_STOP) {
+        result = cover_stop(cluster->controller_id);
+    } else if (command_id == ZCL_CMD_WINDOW_COVERING_GOTO_LIFT_PERCENTAGE) {
+        uint8_t percentage;
+
+        if (payload_len != sizeof(percentage) || payload == NULL)
+            return HAL_ZIGBEE_MALFORMED_COMMAND;
+
+        percentage = *(uint8_t *)payload;
+        if (percentage > 100) return HAL_ZIGBEE_INVALID_VALUE;
+
+        result = cover_goto(cluster->controller_id,
+                            (uint16_t)(100 - percentage) * 100);
+        if (result == COVER_RESULT_BLOCKED) return HAL_ZIGBEE_ACTION_DENIED;
+    } else {
+        return HAL_ZIGBEE_CMD_SKIPPED;
     }
-
-    // Direct transitions to/from STOP can be applied immediately. Direction reversals require
-    // stopping first to avoid damage to the motor and the relays.
-    if (moving == ZCL_ATTR_WINDOW_COVERING_MOVING_STOPPED ||
-        cluster->moving == ZCL_ATTR_WINDOW_COVERING_MOVING_STOPPED) {
-        cover_apply_movement(cluster, moving);
-    }else {
-        cover_apply_movement(cluster, ZCL_ATTR_WINDOW_COVERING_MOVING_STOPPED);
-        cover_schedule_movement(cluster, moving, RELAY_MIN_SWITCH_TIME_MS);
-    }
+    return result == COVER_RESULT_INVALID ? HAL_ZIGBEE_CMD_SKIPPED :
+           HAL_ZIGBEE_CMD_PROCESSED;
 }
 
-void cover_open(zigbee_cover_cluster *cluster) {
-    cover_request_movement(cluster, ZCL_ATTR_WINDOW_COVERING_MOVING_OPENING);
-}
+static hal_zigbee_cmd_result_t cover_cluster_callback_trampoline(
+    const hal_zigbee_incoming_command_t *command) {
+    if (command == NULL) return HAL_ZIGBEE_CMD_SKIPPED;
 
-void cover_close(zigbee_cover_cluster *cluster) {
-    cover_request_movement(cluster, ZCL_ATTR_WINDOW_COVERING_MOVING_CLOSING);
-}
-
-void cover_stop(zigbee_cover_cluster *cluster) {
-    cover_request_movement(cluster, ZCL_ATTR_WINDOW_COVERING_MOVING_STOPPED);
-}
-
-void cover_cluster_action(void *context, uint8_t cover_id, uint16_t command) {
-    extern zigbee_cover_cluster cover_clusters[];
-    extern uint8_t        cover_clusters_cnt;
-    zigbee_cover_cluster *cluster;
-
-    (void)context;
-    if (cover_id >= cover_clusters_cnt) {
-        return;
-    }
-    cluster = &cover_clusters[cover_id];
-    if (command == ZCL_CMD_WINDOW_COVERING_UP_OPEN) {
-        cover_open(cluster);
-    } else if (command == ZCL_CMD_WINDOW_COVERING_DOWN_CLOSE) {
-        cover_close(cluster);
-    } else if (command == ZCL_CMD_WINDOW_COVERING_STOP) {
-        cover_stop(cluster);
-    }
-}
-
-void cover_delay_handler(void *arg) {
-    zigbee_cover_cluster *cluster = (zigbee_cover_cluster *)arg;
-
-    cover_request_movement(cluster, cluster->pending_movement);
-}
-
-// ============================================================================
-// NVM Persistence
-// ============================================================================
-
-void cover_cluster_store_attrs_to_nv(zigbee_cover_cluster *cluster) {
-    nv_config_buffer.motor_reversal = cluster->motor_reversal;
-
-    hal_nvm_write(NV_ITEM_COVER_CONFIG(cluster->cover_idx),
-                  sizeof(zigbee_cover_cluster_config),
-                  (uint8_t *)&nv_config_buffer);
-}
-
-void cover_cluster_load_attrs_from_nv(zigbee_cover_cluster *cluster) {
-    hal_nvm_status_t st = hal_nvm_read(NV_ITEM_COVER_CONFIG(cluster->cover_idx),
-                                       sizeof(zigbee_cover_cluster_config),
-                                       (uint8_t *)&nv_config_buffer);
-
-    if (st != HAL_NVM_SUCCESS) {
-        return;
-    }
-
-    cluster->motor_reversal = nv_config_buffer.motor_reversal;
-}
-
-// ============================================================================
-// Attribute & Command Handlers
-// ============================================================================
-
-void cover_cluster_on_write_attr(zigbee_cover_cluster *cluster, uint16_t attribute_id) {
-    if (attribute_id == ZCL_ATTR_WINDOW_COVERING_MOTOR_REVERSAL) {
-        cover_request_movement(cluster, ZCL_ATTR_WINDOW_COVERING_MOVING_STOPPED);
-    }
-
-    cover_cluster_store_attrs_to_nv(cluster);
-}
-
-void cover_cluster_callback_attr_write_trampoline(uint8_t endpoint, uint16_t attribute_id) {
-    zigbee_cover_cluster *cluster = cover_cluster_find(endpoint);
-
-    if (cluster != NULL) {
-        cover_cluster_on_write_attr(cluster, attribute_id);
-    }
-}
-
-hal_zigbee_cmd_result_t cover_cluster_callback(zigbee_cover_cluster *cluster,
-                                               uint8_t command_id,
-                                               void *cmd_payload,
-                                               uint16_t cmd_payload_len) {
-    switch (command_id) {
-    case ZCL_CMD_WINDOW_COVERING_UP_OPEN:
-        cover_open(cluster);
-        break;
-    case ZCL_CMD_WINDOW_COVERING_DOWN_CLOSE:
-        cover_close(cluster);
-        break;
-    case ZCL_CMD_WINDOW_COVERING_STOP:
-        cover_stop(cluster);
-        break;
-    default:
-        printf("Unknown cover command: %d\r\n", command_id);
-        return(HAL_ZIGBEE_CMD_SKIPPED);
-    }
-
-    return(HAL_ZIGBEE_CMD_PROCESSED);
-}
-
-hal_zigbee_cmd_result_t cover_cluster_callback_trampoline(uint8_t endpoint,
-                                                          uint16_t cluster_id,
-                                                          uint8_t command_id,
-                                                          void *cmd_payload,
-                                                          uint16_t cmd_payload_len) {
-    zigbee_cover_cluster *cluster = cover_cluster_find(endpoint);
+    zigbee_cover_cluster *cluster = cover_cluster_find(command->destination_endpoint);
 
     return cluster == NULL ? HAL_ZIGBEE_CMD_SKIPPED :
-           cover_cluster_callback(cluster, command_id, cmd_payload,
-                                  cmd_payload_len);
+           cover_cluster_callback(cluster, command->command_id,
+                                  (void *)command->payload, command->payload_len);
 }
 
-// ============================================================================
-// Initialization
-// ============================================================================
-
-void cover_cluster_init(zigbee_cover_cluster *cluster) {
-    // Attributes
-    cluster->moving         = ZCL_ATTR_WINDOW_COVERING_MOVING_STOPPED;
-    cluster->motor_reversal = 0;
-
-    // State
-    cluster->last_switch_time     = 0;
-    cluster->pending_movement     = 0;
-    cluster->has_pending_movement = 0;
-
-    timer_init(&cluster->movement_timer, cover_delay_handler, cluster);
-}
-
-void cover_cluster_add_to_endpoint(zigbee_cover_cluster *cluster, hal_zigbee_endpoint *endpoint) {
-    if (!hal_zigbee_endpoint_reserve_clusters(endpoint,
-                                              endpoint->cluster_capacity, 1)) {
-        return;
-    }
+void cover_cluster_add_to_endpoint(zigbee_cover_cluster *cluster,
+                                   hal_zigbee_endpoint *endpoint) {
+    if (!hal_zigbee_endpoint_reserve_clusters(endpoint, endpoint->cluster_capacity, 1) ||
+        !cover_controller_subscribe(cluster->controller_id,
+                                    cover_cluster_on_state_changed, cluster)) return;
 
     cover_cluster_by_endpoint[endpoint->endpoint] = cluster;
     cluster->endpoint = endpoint->endpoint;
-    cover_cluster_init(cluster);
-    cover_cluster_load_attrs_from_nv(cluster);
+    cluster->position = 0xff;
+    cover_cluster_sync(cluster, false);
 
-    SETUP_ATTR(0,
-               ZCL_ATTR_WINDOW_COVERING_TYPE,
-               ZCL_DATA_TYPE_ENUM8,
-               ATTR_READONLY,
+    SETUP_ATTR(0, ZCL_ATTR_WINDOW_COVERING_TYPE, ZCL_DATA_TYPE_ENUM8, HAL_ATTR_READ,
                window_covering_type);
-    SETUP_ATTR(1,
-               ZCL_ATTR_WINDOW_COVERING_CURRENT_POSITION_LIFT_PERCENTAGE,
-               ZCL_DATA_TYPE_UINT8,
-               ATTR_READONLY,
-               cover_position);
-    SETUP_ATTR(2,
-               ZCL_ATTR_WINDOW_COVERING_MOVING,
-               ZCL_DATA_TYPE_ENUM8,
-               ATTR_READONLY,
+    SETUP_ATTR(1, ZCL_ATTR_WINDOW_COVERING_CURRENT_POSITION_LIFT_PERCENTAGE,
+               ZCL_DATA_TYPE_UINT8, HAL_ATTR_READ, cluster->position);
+    SETUP_ATTR(2, ZCL_ATTR_WINDOW_COVERING_MOVING, ZCL_DATA_TYPE_ENUM8, HAL_ATTR_READ,
                cluster->moving);
-    SETUP_ATTR(3,
-               ZCL_ATTR_WINDOW_COVERING_MOTOR_REVERSAL,
-               ZCL_DATA_TYPE_BOOLEAN,
-               ATTR_WRITABLE,
-               cluster->motor_reversal);
+    SETUP_ATTR(3, ZCL_ATTR_WINDOW_COVERING_MOTOR_REVERSAL, ZCL_DATA_TYPE_BOOLEAN,
+               (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->motor_reversal);
+    SETUP_ATTR(4, ZCL_ATTR_WINDOW_COVERING_OPEN_TIME, ZCL_DATA_TYPE_UINT32,
+               (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->open_time_ms);
+    SETUP_ATTR(5, ZCL_ATTR_WINDOW_COVERING_CLOSE_TIME, ZCL_DATA_TYPE_UINT32,
+               (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->close_time_ms);
+    SETUP_ATTR(6, ZCL_ATTR_WINDOW_COVERING_CLOSED_DEADZONE, ZCL_DATA_TYPE_UINT16,
+               (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->closed_deadzone_bp);
+    SETUP_ATTR(7, ZCL_ATTR_WINDOW_COVERING_OPEN_DEADZONE, ZCL_DATA_TYPE_UINT16,
+               (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->open_deadzone_bp);
+    SETUP_ATTR(8, ZCL_ATTR_WINDOW_COVERING_OVERRUN, ZCL_DATA_TYPE_UINT16,
+               (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->overrun_ms);
 
     hal_zigbee_cluster endpoint_cluster = {
-        .cluster_id      = ZCL_CLUSTER_WINDOW_COVERING,
-        .is_server       =                                 1,
-        .attribute_count =                                 4,
-        .attributes      = cluster->attr_infos,
-        .cmd_callback    = cover_cluster_callback_trampoline,
+        .cluster_id          = ZCL_CLUSTER_WINDOW_COVERING,
+        .role                = HAL_ZIGBEE_ROLE_SERVER,
+        .attribute_count     =                                 9,.attributes= cluster->attr_infos,
+        .cmd_callback        = cover_cluster_callback_trampoline,
+        .attr_write_callback = cover_cluster_attr_write,
     };
 
-    hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity,
-                                    &endpoint_cluster);
+    hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity, &endpoint_cluster);
 }

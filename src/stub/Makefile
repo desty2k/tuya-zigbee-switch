@@ -36,6 +36,7 @@ SOURCES := \
 	$(SRC_DIR)/zigbee/poll_control_cluster.c \
 	$(SRC_DIR)/stub/main.c \
 	$(SRC_DIR)/stub/hal/gpio.c \
+	$(SRC_DIR)/stub/hal/gpio_counter.c \
 	$(SRC_DIR)/stub/hal/system.c \
 	$(SRC_DIR)/stub/hal/timer.c \
 	$(SRC_DIR)/stub/hal/tasks.c \
@@ -58,22 +59,27 @@ SOURCES := \
 	$(SRC_DIR)/base_components/button_input.c \
 	$(SRC_DIR)/base_components/gesture_fsm.c \
 	$(SRC_DIR)/base_components/action_mapper.c \
+	$(SRC_DIR)/base_components/cover_controller.c \
+	$(SRC_DIR)/base_components/diagnostics_service.c \
+	$(SRC_DIR)/base_components/meter_service.c \
 	$(SRC_DIR)/device_config/capability_state.c \
 	$(SRC_DIR)/base_components/battery.c \
 	$(SRC_DIR)/base_components/network_indicator.c \
 	$(SRC_DIR)/device_config/config_parser.c \
 	$(SRC_DIR)/device_config/device_composition.c \
 	$(SRC_DIR)/device_config/config_nv.c \
+	$(SRC_DIR)/device_config/device_config_service.c \
 	$(SRC_DIR)/device_config/device_params_nv.c \
 	$(SRC_DIR)/device_config/reset.c \
 	$(SRC_DIR)/device_config/system_action.c \
 	$(SRC_DIR)/device_config/feature_wiring.c \
 	$(SRC_DIR)/device_config/nvm_migrations.c \
 	$(SRC_DIR)/zigbee/basic_cluster.c \
+	$(SRC_DIR)/zigbee/device_config_cluster.c \
+	$(SRC_DIR)/zigbee/device_diagnostics_cluster.c \
 	$(SRC_DIR)/zigbee/relay_cluster.c \
 	$(SRC_DIR)/zigbee/switch_cluster.c \
 	$(SRC_DIR)/zigbee/group_cluster.c \
-	$(SRC_DIR)/zigbee/general_commands.c \
 	$(SRC_DIR)/zigbee/cover_switch_cluster.c \
 	$(SRC_DIR)/zigbee/cover_cluster.c \
 	$(SRC_DIR)/zigbee/battery_cluster.c \
@@ -85,7 +91,7 @@ INCLUDES := \
 
 CFLAGS := -Wall -Wno-unused-parameter -Wno-unused-variable -g -O0 \
     -DHAL_STUB -DSTACK_BUILD=1001 -D_DEFAULT_SOURCE -DVERSION_STR="0.0.0" \
-	-DNVM_MIGRATIONS_VERSION=5 \
+	-DNVM_MIGRATIONS_VERSION=9 \
 	-std=c99
 
 LDFLAGS := -lpthread

@@ -1,7 +1,9 @@
 #include "battery_cluster.h"
 
 #include "cluster_common.h"
-#include "consts.h"
+#include "zcl_cluster_defs.h"
+#include "zcl_ids.h"
+#include "zcl_types.h"
 #include "device_config/feature_wiring.h"
 #include "base_components/battery.h"
 #include "hal/printf_selector.h"
@@ -29,16 +31,16 @@ void battery_cluster_add_to_endpoint(zigbee_battery_cluster *cluster,
     cluster->percentage_remaining = 200; // 100% in ZCL (0.5% steps)
 
     SETUP_ATTR(0, ZCL_ATTR_POWER_CFG_BATTERY_VOLTAGE, ZCL_DATA_TYPE_UINT8,
-               ATTR_READONLY, cluster->voltage_100mv);
+               HAL_ATTR_READ, cluster->voltage_100mv);
     SETUP_ATTR(1, ZCL_ATTR_POWER_CFG_BATTERY_PERCENTAGE, ZCL_DATA_TYPE_UINT8,
-               ATTR_READONLY, cluster->percentage_remaining);
+               HAL_ATTR_READ, cluster->percentage_remaining);
     SETUP_ATTR(2, ZCL_ATTR_GLOBAL_CLUSTER_REVISION, ZCL_DATA_TYPE_UINT16,
-               ATTR_READONLY, battery_cluster_revision);
+               HAL_ATTR_READ, battery_cluster_revision);
 
     hal_zigbee_cluster endpoint_cluster = {
         .cluster_id      = ZCL_CLUSTER_POWER_CFG,
-        .is_server       =                     1,
-        .attribute_count =                     3,
+        .role            = HAL_ZIGBEE_ROLE_SERVER,
+        .attribute_count =                      3,
         .attributes      = cluster->attr_infos,
     };
 

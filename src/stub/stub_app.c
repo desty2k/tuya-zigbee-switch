@@ -21,8 +21,7 @@
 #include "stub/hal/stub.h"
 #include "stub/machine_io.h"
 #include "zigbee/basic_cluster.h"
-#include "zigbee/consts.h"
-#include "zigbee/general_commands.h"
+#include "zigbee/zcl_types.h"
 #include "zigbee/relay_cluster.h"
 #include "zigbee/switch_cluster.h"
 
@@ -127,6 +126,7 @@ void stub_app_print_help(void) {
     puts("  zcl_read <ep> <cluster> <attr>        - Read attribute (ep dec, IDs "
          "hex)");
     puts("  zcl_write <ep> <cluster> <attr> <v>   - Write attribute (v dec/hex)");
+    puts("  zcl_write_raw <ep> <cluster> <attr> <hex> - Write raw attribute bytes");
     puts("  zcl_attr_callback <ep> <cluster> <attr> - Inject an attribute callback");
     puts("  zcl_cmd <ep> <cluster> <cmd> [bytes]  - Simulate ZCL command (hex "
          "bytes)");
@@ -252,7 +252,7 @@ int stub_app_string_to_attribute_value(hal_zigbee_attribute *attr,
     if (!attr || !attr->value || !str)
         return -1;
 
-    if (attr->flag == ATTR_READONLY) {
+    if (attr->flag == HAL_ATTR_READ) {
         io_log("ZIGBEE", "Warning: Writing to read-only attribute\n");
     }
 
@@ -284,7 +284,8 @@ int stub_app_string_to_attribute_value(hal_zigbee_attribute *attr,
 
         break;
     }
-    case ZCL_DATA_TYPE_UINT32: {
+    case ZCL_DATA_TYPE_UINT32:
+    case ZCL_DATA_TYPE_BITMAP32: {
         unsigned long v = 0;
         if (sscanf(str, "%lu", &v) != 1)
             return -2;
@@ -378,7 +379,7 @@ void stub_app_list_attrs(void) {
         for (int j = 0; j < endpoints[i].cluster_count; j++) {
             hal_zigbee_cluster *cluster = &endpoints[i].clusters[j];
             printf("  Cluster 0x%04x (%s):\n", cluster->cluster_id,
-                   cluster->is_server ? "server" : "client");
+                   cluster->role == HAL_ZIGBEE_ROLE_SERVER ? "server" : "client");
 
             for (int k = 0; k < cluster->attribute_count; k++) {
                 hal_zigbee_attribute *attr = &cluster->attributes[k];

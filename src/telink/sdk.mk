@@ -52,7 +52,6 @@ ZIGBEE_SOURCES := \
 	$(SDK_PATH)/zigbee/mac/mac_phy.c \
 	$(SDK_PATH)/zigbee/mac/mac_pib.c \
 	$(SDK_PATH)/zigbee/zdo/zdp.c \
-	$(SDK_PATH)/zigbee/zcl/zcl.c \
 	$(SDK_PATH)/zigbee/zcl/zcl_nv.c \
 	$(SDK_PATH)/zigbee/zcl/zcl_reporting.c \
 	$(SDK_PATH)/zigbee/zcl/hvac/zcl_thermostat.c \
@@ -145,9 +144,16 @@ ZIGBEE_OBJS := $(ZIGBEE_SOURCES:$(SDK_PATH)/%.c=$(BUILD_DIR)/sdk/%.o)
 SDK_OBJS := $(ALL_SDK_SOURCES:$(SDK_PATH)/%.c=$(BUILD_DIR)/sdk/%.o)
 SDK_OBJS := $(SDK_OBJS:$(SDK_PATH)/%.S=$(BUILD_DIR)/sdk/%.o)
 
+PATCHED_ZCL_SOURCE := $(BUILD_DIR)/sdk-src/zigbee/zcl/zcl.c
+PATCHED_ZCL_OBJ := $(BUILD_DIR)/sdk/zigbee/zcl/zcl.o
+PATCHED_ZCL_PATCH := $(PROJECT_ROOT)/src/telink/patch_sdk/zcl_pre_write.patch
+
+SDK_OBJS += $(PATCHED_ZCL_OBJ)
+
 # SDK dependency files (only for C files, not assembly)
 SDK_C_SOURCES := $(filter %.c,$(ALL_SDK_SOURCES))
 SDK_DEPS := $(SDK_C_SOURCES:$(SDK_PATH)/%.c=$(BUILD_DIR)/sdk/%.d)
+SDK_DEPS += $(BUILD_DIR)/sdk/zigbee/zcl/zcl.d
 
 # Build all SDK objects
 sdk-build: $(SDK_OBJS)
@@ -169,6 +175,16 @@ $(SDK_OBJS): GCC_FLAGS += -fpack-struct
 # Compile SDK C files
 $(BUILD_DIR)/sdk/%.o: $(SDK_PATH)/%.c
 	@echo "Compiling SDK $<"
+	@mkdir -p $(dir $@)
+	@$(CC) $(GCC_FLAGS) $(DEVICE_DEFS) $(INCLUDE_PATHS) -c -o $@ $<
+
+$(PATCHED_ZCL_SOURCE): $(SDK_PATH)/zigbee/zcl/zcl.c $(PATCHED_ZCL_PATCH)
+	@mkdir -p $(dir $@)
+	@tr -d '\r' < $< > $@
+	@patch --batch --forward -p1 -d $(BUILD_DIR)/sdk-src < $(PATCHED_ZCL_PATCH)
+
+$(PATCHED_ZCL_OBJ): $(PATCHED_ZCL_SOURCE)
+	@echo "Compiling patched SDK $<"
 	@mkdir -p $(dir $@)
 	@$(CC) $(GCC_FLAGS) $(DEVICE_DEFS) $(INCLUDE_PATHS) -c -o $@ $<
 

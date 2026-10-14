@@ -9,6 +9,7 @@
 #define DEVICE_COMPOSITION_MAX_BUTTONS           11
 #define DEVICE_COMPOSITION_MAX_INDICATORS        5
 #define DEVICE_COMPOSITION_MAX_COVERS            3
+#define DEVICE_COMPOSITION_MAX_METERS            2
 #define DEVICE_COMPOSITION_MAX_SWITCHES          10
 #define DEVICE_COMPOSITION_MAX_COVER_SWITCHES    3
 #define DEVICE_COMPOSITION_MAX_INTERLOCKS        10
@@ -28,6 +29,8 @@ typedef struct { hal_gpio_pin_t on_pin; hal_gpio_pin_t off_pin;
 typedef struct { hal_gpio_pin_t pin; bool on_high; bool dedicated; }   device_indicator_config_t;
 typedef struct { uint16_t relay_mask; uint16_t dead_time_ms; }         device_interlock_config_t;
 typedef struct { uint8_t open_relay_id; uint8_t close_relay_id; }      device_cover_config_t;
+typedef struct { hal_gpio_pin_t counter_pins[2]; uint8_t counter_count; }
+device_meter_config_t;
 typedef struct { uint8_t button_id; uint8_t relay_id; }                device_switch_config_t;
 typedef struct { uint8_t open_button_id; uint8_t close_button_id; }    device_cover_switch_config_t;
 typedef struct {
@@ -37,13 +40,15 @@ typedef struct {
     device_indicator_config_t    indicators[DEVICE_COMPOSITION_MAX_INDICATORS];
     device_interlock_config_t    interlocks[DEVICE_COMPOSITION_MAX_INTERLOCKS];
     device_cover_config_t        covers[DEVICE_COMPOSITION_MAX_COVERS];
+    device_meter_config_t        meters[DEVICE_COMPOSITION_MAX_METERS];
     device_switch_config_t       switches[DEVICE_COMPOSITION_MAX_SWITCHES];
     device_cover_switch_config_t cover_switches[DEVICE_COMPOSITION_MAX_COVER_SWITCHES];
     uint8_t                      relay_endpoint_ids[DEVICE_COMPOSITION_MAX_RELAYS];
     hal_gpio_pin_t               battery_pin;
     uint8_t                      relay_count, relay_endpoint_count, button_count, indicator_count,
                                  interlock_count;
-    uint8_t                      cover_count, switch_count, cover_switch_count, endpoint_count;
+    uint8_t                      cover_count, meter_count, switch_count, cover_switch_count,
+                                 endpoint_count;
     bool                         simultaneous_latching_pulses, momentary_switches;
 } device_composition_t;
 

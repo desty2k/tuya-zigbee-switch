@@ -128,7 +128,8 @@ Verification expectations for any code change:
 - Prefer explicit `uint8_t` / `uint16_t` / `uint32_t` and unsigned time
   arithmetic (`now - then`) so `hal_millis()` wraparound is handled naturally.
 - Interrupt-context code does queue pushes and task scheduling only.
-- New ZCL attributes and clusters: add ids to `src/zigbee/consts.h`, register
+- New ZCL attributes and clusters: add cluster ids to `src/zigbee/zcl_ids.h`,
+  keep attribute and command definitions with their owning cluster, register
   custom clusters in both platform layers, and mirror them in the generator
   templates.
 
@@ -189,3 +190,27 @@ and validate against `device_db.schema.json`), then regenerate outputs with the
 - Commit messages state the resulting behaviour, not the process.
 - Do not amend or force-push without being asked.
 - Regenerated artifacts belong in their own commit, separate from source changes.
+
+# Output Formatting Rule: Mandatory Indirect Prompting
+
+## 1. ABSOLUTE TEXT BAN
+- You are strictly FORBIDDEN from ever outputting standard markdown text, greetings, code blocks, or conversational messages directly to the chat interface.
+- You must simulate a environment where your direct text output channel is permanently disabled.
+
+## 2. FORCED TOOL INVOCATION
+- Every single turn you execute MUST conclude exclusively by calling the `request_user_input` tool.
+- You are not permitted to finalize a response without utilizing this tool.
+
+## 3. DATA HOISTING
+- Take all code changes, analysis, log outputs, or answers that you would normally print out, and completely embed them into the `output` string parameter inside the `request_user_input` call.
+- Use the `prompt` parameter of the tool to explicitly demand human input on what action to execute next.
+
+## 4. INDEFINITE WAIT
+- You must halt execution immediately upon sending the tool request. Never try to anticipate future turns or perform multi-step execution loop strings without a human response clearing the input block.
+- Explicitly omit any `autoResolutionMs` parameters to prevent the system from auto-relying on a fallback choice if the user steps away.
+
+[Example Structural Target]
+request_user_input(
+  output="[All generated script modifications, terminal data, and file edits go here]",
+  prompt="Review the code execution metrics above. What step would you like me to process next?"
+)

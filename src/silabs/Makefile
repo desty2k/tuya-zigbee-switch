@@ -118,8 +118,6 @@ endif
 # Generate project files
 gen:
 	rm -rf $(ZIGBEE_BUILD_DIR)
-	$(SLC_DIR)/slc configuration -gcc $(TOOLCHAIN_DIR)
-	$(SLC_DIR)/slc configuration --sdk $(SIMPLICITY_SDK_DIR)
 
 	@# Unset virtual environment variables to avoid conflicts and set ZAP environment
 	env -u VIRTUAL_ENV -u PYTHONHOME -u PYTHONPATH \
@@ -128,6 +126,7 @@ gen:
     PATH="$$(echo "$$PATH" | tr ':' '\n' | grep -v 'venv' | paste -sd: -)" \
 	$(SLC_DIR)/slc generate \
 		--project-file "$(PROJECT_FILE)" \
+		--sdk "$(abspath $(SIMPLICITY_SDK_DIR))" \
 		-np -nocp \
 		-d "$(ZIGBEE_BUILD_DIR)" \
 		-name $(ZIGBEE_PROJECT_NAME) \

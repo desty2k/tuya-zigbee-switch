@@ -67,10 +67,50 @@ TEST(graph_validation_rejects_invalid_storage_before_copy) {
               hal_zigbee_validate_descriptor_graph(&endpoint, 1, 1, 1, 1, 0));
 }
 
+TEST(exact_lookup_keeps_role_and_manufacturer_isolated) {
+    uint8_t standard_value = 1;
+    uint8_t private_value = 2;
+    hal_zigbee_attribute standard_attr = { .attribute_id = 3, .value = &standard_value };
+    hal_zigbee_attribute private_attr = { .attribute_id = 3, .value = &private_value };
+    hal_zigbee_cluster clusters[] = {
+        { .cluster_id = 6, .role = HAL_ZIGBEE_ROLE_SERVER, .attributes = &standard_attr,
+          .attribute_count = 1 },
+        { .cluster_id = 6, .manufacturer_code = 0x1A2B,
+          .role = HAL_ZIGBEE_ROLE_SERVER, .attributes = &private_attr,
+          .attribute_count = 1 },
+        { .cluster_id = 6, .role = HAL_ZIGBEE_ROLE_CLIENT },
+    };
+    hal_zigbee_endpoint endpoint = {
+        .endpoint = 1, .cluster_count = 3, .cluster_capacity = 3, .clusters = clusters,
+    };
+
+    ASSERT_TRUE(hal_zigbee_find_attribute_exact(
+        &endpoint, 1, 1, 6, HAL_ZIGBEE_ROLE_SERVER, 0, 3) == &standard_attr);
+    ASSERT_TRUE(hal_zigbee_find_attribute_exact(
+        &endpoint, 1, 1, 6, HAL_ZIGBEE_ROLE_SERVER, 0x1A2B, 3) == &private_attr);
+    ASSERT_TRUE(hal_zigbee_find_attribute_exact(
+        &endpoint, 1, 1, 6, HAL_ZIGBEE_ROLE_CLIENT, 0, 3) == NULL);
+}
+
+TEST(graph_validation_rejects_duplicate_exact_cluster_tuple) {
+    hal_zigbee_cluster clusters[] = {
+        { .cluster_id = 6, .role = HAL_ZIGBEE_ROLE_SERVER },
+        { .cluster_id = 6, .role = HAL_ZIGBEE_ROLE_SERVER },
+    };
+    hal_zigbee_endpoint endpoint = {
+        .endpoint = 1, .cluster_count = 2, .cluster_capacity = 2, .clusters = clusters,
+    };
+
+    ASSERT_EQ(HAL_ZIGBEE_DESCRIPTOR_UNREGISTERED_CLUSTER,
+              hal_zigbee_validate_descriptor_graph(&endpoint, 1, 1, 1, 2, 0));
+}
+
 int main(void) {
     RUN_TEST(exact_capacity_appends_all_clusters);
     RUN_TEST(excess_reservation_preserves_destination);
     RUN_TEST(null_storage_is_rejected);
     RUN_TEST(graph_validation_rejects_invalid_storage_before_copy);
+    RUN_TEST(exact_lookup_keeps_role_and_manufacturer_isolated);
+    RUN_TEST(graph_validation_rejects_duplicate_exact_cluster_tuple);
     return test_runner_failures != 0;
 }

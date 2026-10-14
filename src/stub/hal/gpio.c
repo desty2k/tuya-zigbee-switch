@@ -1,6 +1,7 @@
 #include "hal/gpio.h"
 #include "hal/timer.h"
 #include "stub/machine_io.h"
+#include "stub/hal/gpio_counter.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -150,6 +151,10 @@ void stub_gpio_simulate_input(hal_gpio_pin_t gpio_pin, uint8_t value) {
 
     uint8_t old_value = gpio_pins[gpio_pin].value;
     gpio_pins[gpio_pin].value = value;
+
+    if (old_value != value) {
+        stub_gpio_counter_capture_edge(gpio_pin, old_value, value, hal_millis());
+    }
 
     if (old_value != value && gpio_pins[gpio_pin].watched) {
         diagnostics.gpio_irq_count++;

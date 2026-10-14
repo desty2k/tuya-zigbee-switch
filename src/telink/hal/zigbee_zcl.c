@@ -1,8 +1,6 @@
 #pragma pack(push, 1)
 #include "tl_common.h"
 #include "zb_api.h"
-#include "zcl_cover_switch_config.h"
-#include "zcl_button_event.h"
 #include "zcl_include.h"
 #include "zcl_multistate_input.h"
 #include "zcl_onoff_configuration.h"
@@ -13,7 +11,7 @@
 #include "hal/zigbee.h"
 #include "telink_zigbee_hal.h"
 #include "zigbee/battery_cluster.h"
-#include "zigbee/consts.h"
+#include "zigbee/zcl_ids.h"
 
 // Storage for Telink endpoint configuration
 static af_simple_descriptor_t endpoint_descriptors[MAX_ENDPOINTS];
@@ -21,14 +19,43 @@ static u16 in_clusters[MAX_IN_CLUSTERS];
 static u16 out_clusters[MAX_OUT_CLUSTERS];
 static zcl_specClusterInfo_t cluster_infos[MAX_IN_CLUSTERS + MAX_OUT_CLUSTERS];
 static zclAttrInfo_t         attr_tables[MAX_ATTRS];
+static hal_zigbee_cluster *  attr_table_clusters[MAX_ATTRS];
 
 // HAL state tracking
 static hal_zigbee_endpoint *hal_endpoints = NULL;
 static uint8_t hal_endpoints_cnt          = 0;
-static hal_attribute_change_callback_t attribute_change_callback = NULL;
-static hal_zcl_activity_callback_t     zcl_activity_callback     = NULL;
-static hal_zigbee_diagnostics_t        diagnostics;
+static hal_zcl_activity_callback_t zcl_activity_callback = NULL;
+static hal_zigbee_diagnostics_t    diagnostics;
 static cluster_registerFunc_t get_register_func_by_cluster_id(u16 cluster_id);
+
+static status_t attr_write_result_to_status(hal_zigbee_cmd_result_t result) {
+    if (result == HAL_ZIGBEE_CMD_PROCESSED) return ZCL_STA_SUCCESS;
+
+    if (result == HAL_ZIGBEE_INVALID_VALUE) return ZCL_STA_INVALID_VALUE;
+
+    if (result == HAL_ZIGBEE_MALFORMED_COMMAND) return ZCL_STA_MALFORMED_COMMAND;
+
+    if (result == HAL_ZIGBEE_ACTION_DENIED) return ZCL_STA_ACTION_DENIED;
+
+    return ZCL_STA_UNSUPPORTED_ATTRIBUTE;
+}
+
+static status_t register_private_cluster(u8 endpoint, u16 unused_manu_code,
+                                         u8 attr_num,
+                                         const zclAttrInfo_t attr_table[],
+                                         cluster_forAppCb_t callback) {
+    (void)unused_manu_code;
+    if (attr_table < attr_tables || attr_table >= attr_tables + MAX_ATTRS)
+        return ZCL_STA_FAILURE;
+
+    hal_zigbee_cluster *cluster = attr_table_clusters[attr_table - attr_tables];
+    if (cluster != NULL && cluster->manufacturer_code != 0) {
+        return zcl_registerCluster(endpoint, cluster->cluster_id,
+                                   cluster->manufacturer_code, attr_num,
+                                   attr_table, NULL, callback);
+    }
+    return ZCL_STA_FAILURE;
+}
 
 static bool descriptor_graph_is_valid(hal_zigbee_endpoint *endpoints,
                                       uint8_t endpoints_cnt) {
@@ -49,11 +76,12 @@ static bool descriptor_graph_is_valid(hal_zigbee_endpoint *endpoints,
             hal_zigbee_cluster *cluster = &endpoint->clusters[j];
 
             if ((cluster->attribute_count != 0 && cluster->attributes == NULL) ||
-                (cluster->is_server && cluster->cluster_id != ZCL_CLUSTER_OTA &&
+                (cluster->role == HAL_ZIGBEE_ROLE_SERVER && cluster->manufacturer_code == 0 &&
+                 cluster->cluster_id != ZCL_CLUSTER_OTA &&
                  get_register_func_by_cluster_id(cluster->cluster_id) == NULL)) {
                 return false;
             }
-            if (cluster->is_server) {
+            if (cluster->role == HAL_ZIGBEE_ROLE_SERVER) {
                 in_total++;
             } else {
                 out_total++;
@@ -95,26 +123,39 @@ static cluster_registerFunc_t get_register_func_by_cluster_id(u16 cluster_id) {
     if (cluster_id == ZCL_CLUSTER_CLOSURES_WINDOW_COVERING) {
         return zcl_windowCovering_register;
     }
-    if (cluster_id == 0xFC01) { // Cover Switch Config
-        return zcl_cover_switch_config_register;
-    }
-    if (cluster_id == ZCL_CLUSTER_BUTTON_EVENT) {
-        return zcl_button_event_register;
-    }
     if (cluster_id == ZCL_CLUSTER_GEN_POLL_CONTROL) {
         return zcl_pollCtrl_register;
     }
     return NULL;
 }
 
-static status_t cmd_callback(u8 endpoint, u16 clusterId, u8 cmdId,
-                             void *cmdPayload, u16 cmdPayloadLen) {
-    hal_zigbee_cluster *cluster = hal_zigbee_find_cluster(
-        hal_endpoints, hal_endpoints_cnt, endpoint, clusterId);
+static status_t cmd_callback(zclIncomingAddrInfo_t *addr_info, u8 cmd_id,
+                             void *cmd_payload) {
+    zclIncoming_t *message = (zclIncoming_t *)((char *)addr_info -
+                                               offsetof(zclIncoming_t, addrInfo));
+    hal_zigbee_incoming_command_t command = {
+        .source_endpoint       = addr_info->srcEp,
+        .destination_endpoint  = addr_info->dstEp,
+        .source_address        = addr_info->srcAddr,
+        .cluster_id            = message->msg->indInfo.cluster_id,
+        .command_id            = cmd_id,
+        .cluster_specific      =                                 1,
+        .manufacturer_specific = message->hdr.frmCtrl.bf.manufSpec,
+        .manufacturer_code     = message->hdr.manufCode,
+        .direction             = message->hdr.frmCtrl.bf.dir ?
+                                 HAL_ZIGBEE_DIR_SERVER_TO_CLIENT :
+                                 HAL_ZIGBEE_DIR_CLIENT_TO_SERVER,
+        .payload     = message->pData,
+        .payload_len = message->dataLen,
+    };
+    hal_zigbee_cluster *          cluster = hal_zigbee_find_cluster_exact(
+        hal_endpoints, hal_endpoints_cnt, command.destination_endpoint,
+        command.cluster_id, HAL_ZIGBEE_ROLE_SERVER, command.manufacturer_code);
 
-    if (cluster && cluster->cmd_callback) {
-        hal_zigbee_cmd_result_t status = cluster->cmd_callback(
-            endpoint, clusterId, cmdId, cmdPayload, cmdPayloadLen);
+    if (cluster && cluster->cmd_callback &&
+        command.direction == HAL_ZIGBEE_DIR_CLIENT_TO_SERVER &&
+        command.manufacturer_specific == (cluster->manufacturer_code != 0)) {
+        hal_zigbee_cmd_result_t status = cluster->cmd_callback(&command);
         if (status == HAL_ZIGBEE_CMD_PROCESSED) {
             return ZCL_STA_SUCCESS;
         } else if (status == HAL_ZIGBEE_INVALID_VALUE) {
@@ -130,73 +171,51 @@ static status_t cmd_callback(u8 endpoint, u16 clusterId, u8 cmdId,
     return(ZCL_STA_SUCCESS);
 }
 
-static zclIncoming_t *cmd_incoming_from_addr_info(zclIncomingAddrInfo_t *pAddrInfo) {
-    // Telink passes &zclIncoming_t.addrInfo into clusterAppCb, so recover the
-    // enclosing message to access the raw payload bytes and length.
-    return (zclIncoming_t *)((char *)pAddrInfo - offsetof(zclIncoming_t, addrInfo));
-}
+status_t hal_zigbee_telink_pre_write(zclIncoming_t *message, u8 endpoint,
+                                     u16 cluster_id, zclWriteRec_t *record,
+                                     bool enable) {
+    hal_zigbee_cluster *  cluster;
+    hal_zigbee_attribute *attribute;
+    uint16_t candidate_len;
 
-static status_t cmd_callback_on_off(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId,
-                                    void *cmdPayload) {
-    zclIncoming_t *pInMsg = cmd_incoming_from_addr_info(pAddrInfo);
-
-    return cmd_callback(pAddrInfo->dstEp, ZCL_CLUSTER_GEN_ON_OFF, cmdId,
-                        pInMsg->pData, pInMsg->dataLen);
-}
-
-static status_t cmd_callback_window_covering(zclIncomingAddrInfo_t *pAddrInfo,
-                                             u8 cmdId, void *cmdPayload) {
-    zclIncoming_t *pInMsg = cmd_incoming_from_addr_info(pAddrInfo);
-
-    return cmd_callback(pAddrInfo->dstEp, ZCL_CLUSTER_CLOSURES_WINDOW_COVERING,
-                        cmdId, pInMsg->pData, pInMsg->dataLen);
-}
-
-static status_t cmd_callback_level_control(zclIncomingAddrInfo_t *pAddrInfo,
-                                           u8 cmdId, void *cmdPayload) {
-    zclIncoming_t *pInMsg = cmd_incoming_from_addr_info(pAddrInfo);
-
-    return cmd_callback(pAddrInfo->dstEp, ZCL_CLUSTER_GEN_LEVEL_CONTROL, cmdId,
-                        pInMsg->pData, pInMsg->dataLen);
-}
-
-static status_t cmd_callback_poll_control(zclIncomingAddrInfo_t *pAddrInfo,
-                                          u8 cmdId, void *cmdPayload) {
-    zclIncoming_t *pInMsg = cmd_incoming_from_addr_info(pAddrInfo);
-
-    return cmd_callback(pAddrInfo->dstEp, ZCL_CLUSTER_GEN_POLL_CONTROL, cmdId,
-                        pInMsg->pData, pInMsg->dataLen);
-}
-
-static cluster_forAppCb_t get_cmd_callback_by_cluster_id(u16 cluster_id) {
-    if (cluster_id == ZCL_CLUSTER_GEN_LEVEL_CONTROL) { // Level Control cluster
-        return cmd_callback_level_control;
+    if (message == NULL || record == NULL ||
+        message->hdr.cmd == ZCL_CMD_WRITE_UNDIVIDED) {
+        return ZCL_STA_UNSUPPORTED_ATTRIBUTE;
     }
-    if (cluster_id == ZCL_CLUSTER_GEN_ON_OFF) { // On/Off cluster
-        return cmd_callback_on_off;
+    if (endpoint != message->msg->indInfo.dst_ep ||
+        cluster_id != message->msg->indInfo.cluster_id ||
+        message->hdr.frmCtrl.bf.dir != ZCL_FRAME_CLIENT_SERVER_DIR) {
+        return ZCL_STA_UNSUPPORTED_ATTRIBUTE;
     }
-    if (cluster_id == ZCL_CLUSTER_CLOSURES_WINDOW_COVERING) {
-        return cmd_callback_window_covering;
+    cluster = hal_zigbee_find_cluster_exact(
+        hal_endpoints, hal_endpoints_cnt, endpoint, cluster_id,
+        HAL_ZIGBEE_ROLE_SERVER, message->hdr.manufCode);
+    if (cluster == NULL || message->hdr.frmCtrl.bf.manufSpec !=
+        (cluster->manufacturer_code != 0)) {
+        return ZCL_STA_UNSUPPORTED_ATTRIBUTE;
     }
-    if (cluster_id == ZCL_CLUSTER_GEN_POLL_CONTROL) {
-        return cmd_callback_poll_control;
+    attribute = hal_zigbee_find_attribute_in_cluster(cluster, record->attrID);
+    if (attribute == NULL || (attribute->flag & HAL_ATTR_WRITE) == 0) {
+        return ZCL_STA_UNSUPPORTED_ATTRIBUTE;
     }
-    return NULL;
-}
+    if (record->dataType != attribute->data_type_id) return ZCL_STA_INVALID_DATA_TYPE;
 
-static void zcl_incoming_message_callback(zclIncoming_t *pInHdlrMsg) {
-    if (pInHdlrMsg->hdr.cmd == ZCL_CMD_WRITE ||
-        pInHdlrMsg->hdr.cmd == ZCL_CMD_WRITE_NO_RSP) {
-        if (attribute_change_callback == NULL) {
-            return;
-        }
-        zclWriteCmd_t *writeCmd = (zclWriteCmd_t *)pInHdlrMsg->attrCmd;
-        for (u8 i = 0; i < writeCmd->numAttr; i++) {
-            attribute_change_callback(pInHdlrMsg->msg->indInfo.dst_ep,
-                                      pInHdlrMsg->msg->indInfo.cluster_id,
-                                      writeCmd->attrList[i].attrID);
-        }
-    }
+    candidate_len = zcl_getAttrSize(record->dataType, record->attrData);
+    if (candidate_len == 0) return ZCL_STA_INVALID_VALUE;
+
+    if (cluster->attr_write_callback == NULL) return ZCL_STA_SUCCESS;
+
+    hal_zigbee_cmd_result_t result = cluster->attr_write_callback(
+        endpoint, attribute->attribute_id, record->attrData, candidate_len,
+        HAL_ZIGBEE_ATTR_VALIDATE);
+    if (result != HAL_ZIGBEE_CMD_PROCESSED) return attr_write_result_to_status(result);
+
+    if (!enable) return ZCL_STA_SUCCESS;
+
+    return attr_write_result_to_status(cluster->attr_write_callback(
+                                           endpoint, attribute->attribute_id, record->attrData,
+                                           candidate_len,
+                                           HAL_ZIGBEE_ATTR_COMMIT));
 }
 
 static void af_rx_callback(void *arg) {
@@ -226,7 +245,7 @@ void telink_zigbee_hal_zcl_init(hal_zigbee_endpoint *endpoints,
         printf("Invalid Zigbee descriptor graph\r\n");
         return;
     }
-    zcl_init(zcl_incoming_message_callback);
+    zcl_init(NULL);
     zcl_reportingTabInit();
 
     hal_endpoints     = endpoints;
@@ -249,7 +268,7 @@ void telink_zigbee_hal_zcl_init(hal_zigbee_endpoint *endpoints,
         zcl_specClusterInfo_t *endpoint_first_cluster_ptr = cluster_info_ptr;
         for (hal_zigbee_cluster *cluster = endpoint->clusters;
              cluster < endpoint->clusters + endpoint->cluster_count; cluster++) {
-            if (cluster->is_server) {
+            if (cluster->role == HAL_ZIGBEE_ROLE_SERVER) {
                 *in_cluster_ptr = cluster->cluster_id;
                 in_cluster_ptr++;
                 endpoint_desc_ptr->app_in_cluster_count++;
@@ -262,22 +281,27 @@ void telink_zigbee_hal_zcl_init(hal_zigbee_endpoint *endpoints,
                 continue;
             }
             cluster_info_ptr->clusterId           = cluster->cluster_id;
-            cluster_info_ptr->manuCode            = 0;
+            cluster_info_ptr->manuCode            = cluster->manufacturer_code;
             cluster_info_ptr->attrTbl             = attr_table_ptr;
             cluster_info_ptr->attrNum             = 0;
-            cluster_info_ptr->clusterRegisterFunc =
-                get_register_func_by_cluster_id(cluster->cluster_id);
-            cluster_info_ptr->clusterAppCb =
-                get_cmd_callback_by_cluster_id(cluster->cluster_id);
+            cluster_info_ptr->clusterRegisterFunc = cluster->manufacturer_code != 0 ?
+                                                    register_private_cluster :
+                                                    get_register_func_by_cluster_id(
+                cluster->cluster_id);
+            cluster_info_ptr->clusterAppCb = cluster->cmd_callback != NULL ?
+                                             cmd_callback : NULL;
             for (hal_zigbee_attribute *attr = cluster->attributes;
                  attr < cluster->attributes + cluster->attribute_count; attr++) {
+                attr_table_clusters[attr_table_ptr - attr_tables] = cluster;
                 attr_table_ptr->id     = attr->attribute_id;
                 attr_table_ptr->type   = attr->data_type_id;
-                attr_table_ptr->access =
-                    ACCESS_CONTROL_READ | ACCESS_CONTROL_REPORTABLE;
-                if (attr->flag == ATTR_WRITABLE) {
+                attr_table_ptr->access = 0;
+                if (attr->flag & HAL_ATTR_READ)
+                    attr_table_ptr->access |= ACCESS_CONTROL_READ;
+                if (attr->flag & HAL_ATTR_WRITE)
                     attr_table_ptr->access |= ACCESS_CONTROL_WRITE;
-                }
+                if (attr->flag & HAL_ATTR_REPORT)
+                    attr_table_ptr->access |= ACCESS_CONTROL_REPORTABLE;
                 attr_table_ptr->data = attr->value;
                 attr_table_ptr++;
                 cluster_info_ptr->attrNum++;
@@ -300,6 +324,27 @@ hal_zigbee_diagnostics_t hal_zigbee_get_diagnostics(void) {
 
 void hal_zigbee_notify_attribute_changed(uint8_t endpoint, uint16_t cluster_id,
                                          uint16_t attribute_id) {
+    hal_zigbee_cluster *  cluster = NULL;
+    hal_zigbee_attribute *attr    = NULL;
+
+    for (uint8_t i = 0; i < hal_endpoints_cnt; i++) {
+        if (hal_endpoints[i].endpoint != endpoint) continue;
+        for (uint8_t j = 0; j < hal_endpoints[i].cluster_count; j++) {
+            hal_zigbee_cluster *candidate = &hal_endpoints[i].clusters[j];
+
+            if (candidate->cluster_id == cluster_id &&
+                candidate->role == HAL_ZIGBEE_ROLE_SERVER) {
+                if (cluster != NULL) return;
+
+                cluster = candidate;
+                attr    = hal_zigbee_find_attribute_in_cluster(cluster, attribute_id);
+            }
+        }
+    }
+
+    if (cluster == NULL || attr == NULL || (attr->flag & HAL_ATTR_REPORT) == 0)
+        return;
+
     report_handler(); // Trigger reporting if needed
 }
 
@@ -350,10 +395,27 @@ hal_zigbee_status_t
 hal_zigbee_send_report_attr(uint8_t endpoint, uint16_t cluster_id,
                             uint16_t attr_id, uint8_t zcl_type_id,
                             const void *value, uint8_t value_len) {
-    epInfo_t dstEpInfo;
+    epInfo_t              dstEpInfo;
+    hal_zigbee_cluster *  cluster   = NULL;
+    hal_zigbee_attribute *attribute = NULL;
 
-    (void)value_len;
-    if (value == NULL) {
+    for (uint8_t i = 0; i < hal_endpoints_cnt; i++) {
+        if (hal_endpoints[i].endpoint != endpoint) continue;
+        for (uint8_t j = 0; j < hal_endpoints[i].cluster_count; j++) {
+            hal_zigbee_cluster *candidate = &hal_endpoints[i].clusters[j];
+
+            if (candidate->cluster_id == cluster_id &&
+                candidate->role == HAL_ZIGBEE_ROLE_SERVER) {
+                if (cluster != NULL) return HAL_ZIGBEE_ERR_BAD_ARG;
+
+                cluster = candidate;
+            }
+        }
+    }
+    attribute = hal_zigbee_find_attribute_in_cluster(cluster, attr_id);
+    if (value == NULL || attribute == NULL ||
+        (attribute->flag & HAL_ATTR_REPORT) == 0 ||
+        attribute->data_type_id != zcl_type_id || attribute->size != value_len) {
         return HAL_ZIGBEE_ERR_BAD_ARG;
     }
     if (!zb_isDeviceJoinedNwk()) {
@@ -365,11 +427,6 @@ hal_zigbee_send_report_attr(uint8_t endpoint, uint16_t cluster_id,
     zcl_sendReportCmd(endpoint, &dstEpInfo, TRUE, ZCL_FRAME_SERVER_CLIENT_DIR,
                       cluster_id, attr_id, zcl_type_id, (u8 *)value);
     return HAL_ZIGBEE_OK;
-}
-
-void hal_zigbee_register_on_attribute_change_callback(
-    hal_attribute_change_callback_t callback) {
-    attribute_change_callback = callback;
 }
 
 void hal_zigbee_register_on_zcl_activity_callback(hal_zcl_activity_callback_t callback) {

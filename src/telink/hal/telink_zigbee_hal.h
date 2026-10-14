@@ -12,7 +12,7 @@
 #define MAX_ENDPOINTS         8
 #define MAX_IN_CLUSTERS       32
 #define MAX_OUT_CLUSTERS      32
-#define MAX_ATTRS             128
+#define MAX_ATTRS             160
 #define OTA_QUERY_INTERVAL    15 * 60 // 15 minutes
 
 // Network module functions (implemented in zigbee_network.c)

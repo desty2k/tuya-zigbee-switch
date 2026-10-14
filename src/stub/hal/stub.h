@@ -21,6 +21,7 @@ uint32_t stub_tasks_active_count(void);
 // NVM stub functions
 void stub_nvm_enable_debug(int enable);
 void stub_nvm_set_data_dir(const char *dir);
+void stub_nvm_reject_next_writes(uint32_t count);
 
 // Zigbee stub functions
 void stub_zigbee_enable_debug(int enable);
@@ -42,8 +43,9 @@ stub_zigbee_simulate_command_without_activity(uint8_t endpoint,
                                               uint8_t command_id,
                                               void *payload,
                                               uint16_t payload_len);
-void stub_simulate_zigbee_attribute_write(uint8_t endpoint, uint16_t cluster_id,
-                                          uint16_t attribute_id);
+hal_zigbee_cmd_result_t stub_simulate_zigbee_attribute_write(
+    uint8_t endpoint, uint16_t cluster_id, uint16_t attribute_id,
+    const uint8_t *candidate, uint16_t candidate_len);
 
 // ADC stub functions
 void stub_set_adc_voltage_mv(uint16_t voltage_mv);

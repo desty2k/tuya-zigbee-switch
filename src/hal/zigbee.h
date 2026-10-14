@@ -8,11 +8,12 @@
 #define HAL_ZIGBEE_CMD_MAX_PAYLOAD    64
 #define HAL_ZIGBEE_ENDPOINT_ID_MAX    10
 
-/** Zigbee attribute access permissions */
-typedef enum {
-    ATTR_READONLY,
-    ATTR_WRITABLE,
-} hal_attr_flags_t;
+/** Zigbee attribute access permissions. Reporting is explicitly opt-in. */
+typedef uint8_t hal_attr_flags_t;
+#define HAL_ATTR_READ      (1u << 0)
+#define HAL_ATTR_WRITE     (1u << 1)
+#define HAL_ATTR_REPORT    (1u << 2)
+
 
 /** Command handler result (processed or delegate to default handler) */
 typedef enum {
@@ -39,18 +40,54 @@ typedef struct {
     uint8_t *        value;
 } hal_zigbee_attribute;
 
-/** Function called when cluster receives a command */
+typedef enum {
+    HAL_ZIGBEE_ROLE_SERVER,
+    HAL_ZIGBEE_ROLE_CLIENT,
+} hal_zigbee_cluster_role_t;
+
+typedef enum {
+    HAL_ZIGBEE_ATTR_VALIDATE,
+    HAL_ZIGBEE_ATTR_COMMIT,
+} hal_zigbee_attr_write_phase_t;
+
+/** Zigbee command direction (client sends commands, server responds) */
+typedef enum {
+    HAL_ZIGBEE_DIR_CLIENT_TO_SERVER = 0,
+    HAL_ZIGBEE_DIR_SERVER_TO_CLIENT = 1,
+} hal_zigbee_direction_t;
+
+typedef hal_zigbee_cmd_result_t (*hal_zigbee_attr_write_callback_t)(
+    uint8_t endpoint, uint16_t attribute_id, const uint8_t *candidate,
+    uint16_t candidate_len, hal_zigbee_attr_write_phase_t phase);
+
+/** Immutable metadata and payload for one received ZCL command. */
+typedef struct {
+    uint8_t                source_endpoint;
+    uint8_t                destination_endpoint;
+    uint16_t               source_address;
+    uint16_t               cluster_id;
+    uint8_t                command_id;
+    uint8_t                cluster_specific;
+    uint8_t                manufacturer_specific;
+    uint16_t               manufacturer_code;
+    hal_zigbee_direction_t direction;
+    const uint8_t *        payload;
+    uint16_t               payload_len;
+} hal_zigbee_incoming_command_t;
+
+/** Function called when a declared cluster receives a command. */
 typedef hal_zigbee_cmd_result_t (*hal_zigbee_cmd_callback_t)(
-    uint8_t endpoint, uint16_t cluster_id, uint8_t command_id,
-    void *cmd_payload, uint16_t cmd_payload_len);
+    const hal_zigbee_incoming_command_t *command);
 
 /** Zigbee cluster (group of related attributes and commands) */
 typedef struct {
-    uint16_t                  cluster_id;
-    uint8_t                   is_server;
-    uint8_t                   attribute_count;
-    hal_zigbee_attribute *    attributes;
-    hal_zigbee_cmd_callback_t cmd_callback;
+    uint16_t                         cluster_id;
+    uint16_t                         manufacturer_code;
+    hal_zigbee_cluster_role_t        role;
+    uint8_t                          attribute_count;
+    hal_zigbee_attribute *           attributes;
+    hal_zigbee_cmd_callback_t        cmd_callback;
+    hal_zigbee_attr_write_callback_t attr_write_callback;
 } hal_zigbee_cluster;
 
 /** Zigbee endpoint (logical device with multiple clusters) */
@@ -150,6 +187,30 @@ hal_zigbee_validate_descriptor_graph(const hal_zigbee_endpoint *endpoints,
             if (cluster->attribute_count != 0 && cluster->attributes == NULL) {
                 return HAL_ZIGBEE_DESCRIPTOR_NULL_POINTER;
             }
+            if ((cluster->role != HAL_ZIGBEE_ROLE_SERVER &&
+                 cluster->role != HAL_ZIGBEE_ROLE_CLIENT) ||
+                (cluster->manufacturer_code != 0 &&
+                 cluster->manufacturer_code == 0xFFFFu)) {
+                return HAL_ZIGBEE_DESCRIPTOR_UNREGISTERED_CLUSTER;
+            }
+            for (uint8_t prior = 0; prior < j; prior++) {
+                const hal_zigbee_cluster *other = &endpoint->clusters[prior];
+
+                if (other->cluster_id == cluster->cluster_id &&
+                    other->role == cluster->role &&
+                    other->manufacturer_code == cluster->manufacturer_code) {
+                    return HAL_ZIGBEE_DESCRIPTOR_UNREGISTERED_CLUSTER;
+                }
+            }
+            for (uint8_t k = 0; k < cluster->attribute_count; k++) {
+                const hal_zigbee_attribute *attribute = &cluster->attributes[k];
+                if ((attribute->flag & ~(HAL_ATTR_READ | HAL_ATTR_WRITE |
+                                         HAL_ATTR_REPORT)) != 0 ||
+                    (attribute->flag & HAL_ATTR_REPORT &&
+                     !(attribute->flag & HAL_ATTR_READ))) {
+                    return HAL_ZIGBEE_DESCRIPTOR_UNREGISTERED_CLUSTER;
+                }
+            }
             attribute_count += cluster->attribute_count;
             if (attribute_count > attribute_capacity) {
                 return HAL_ZIGBEE_DESCRIPTOR_ATTRIBUTE_CAPACITY;
@@ -206,24 +267,6 @@ void hal_zigbee_set_image_type(uint16_t image_type);
  */
 void hal_zigbee_notify_attribute_changed(uint8_t endpoint, uint16_t cluster_id,
                                          uint16_t attribute_id);
-
-/** Function called when attribute is written via Zigbee */
-typedef void (*hal_attribute_change_callback_t)(uint8_t endpoint,
-                                                uint16_t cluster_id,
-                                                uint16_t attribute_id);
-
-/**
- * Register callback for attribute changes from network
- * @param callback Function to call when attributes are written
- */
-void hal_zigbee_register_on_attribute_change_callback(
-    hal_attribute_change_callback_t callback);
-
-/** Zigbee command direction (client sends commands, server responds) */
-typedef enum {
-    HAL_ZIGBEE_DIR_CLIENT_TO_SERVER = 0,
-    HAL_ZIGBEE_DIR_SERVER_TO_CLIENT = 1,
-} hal_zigbee_direction_t;
 
 typedef struct {
     uint8_t                endpoint;            // source endpoint
@@ -323,6 +366,54 @@ hal_zigbee_find_cluster(hal_zigbee_endpoint *endpoints, uint8_t endpoints_count,
     return NULL;
 }
 
+static inline hal_zigbee_cluster *hal_zigbee_find_cluster_exact(
+    hal_zigbee_endpoint *endpoints, uint8_t endpoints_count, uint8_t endpoint,
+    uint16_t cluster_id, hal_zigbee_cluster_role_t role,
+    uint16_t manufacturer_code) {
+    if (endpoints == NULL) {
+        return NULL;
+    }
+
+    for (uint8_t i = 0; i < endpoints_count; i++) {
+        if (endpoints[i].endpoint != endpoint) {
+            continue;
+        }
+        for (uint8_t j = 0; j < endpoints[i].cluster_count; j++) {
+            hal_zigbee_cluster *cluster = &endpoints[i].clusters[j];
+
+            if (cluster->cluster_id == cluster_id && cluster->role == role &&
+                cluster->manufacturer_code == manufacturer_code) {
+                return cluster;
+            }
+        }
+    }
+    return NULL;
+}
+
+static inline hal_zigbee_attribute *hal_zigbee_find_attribute_in_cluster(
+    hal_zigbee_cluster *cluster, uint16_t attribute_id) {
+    if (cluster == NULL) {
+        return NULL;
+    }
+
+    for (uint8_t i = 0; i < cluster->attribute_count; i++) {
+        if (cluster->attributes[i].attribute_id == attribute_id) {
+            return &cluster->attributes[i];
+        }
+    }
+    return NULL;
+}
+
+static inline hal_zigbee_attribute *hal_zigbee_find_attribute_exact(
+    hal_zigbee_endpoint *endpoints, uint8_t endpoints_count, uint8_t endpoint,
+    uint16_t cluster_id, hal_zigbee_cluster_role_t role,
+    uint16_t manufacturer_code, uint16_t attribute_id) {
+    return hal_zigbee_find_attribute_in_cluster(
+        hal_zigbee_find_cluster_exact(endpoints, endpoints_count, endpoint,
+                                      cluster_id, role, manufacturer_code),
+        attribute_id);
+}
+
 /** Find attribute definition within a specific cluster */
 static inline hal_zigbee_attribute *
 hal_zigbee_find_attribute(hal_zigbee_endpoint *endpoints,
@@ -335,12 +426,7 @@ hal_zigbee_find_attribute(hal_zigbee_endpoint *endpoints,
         return NULL;
     }
 
-    for (int i = 0; i < cluster->attribute_count; i++) {
-        if (cluster->attributes[i].attribute_id == attribute_id) {
-            return &cluster->attributes[i];
-        }
-    }
-    return NULL;
+    return hal_zigbee_find_attribute_in_cluster(cluster, attribute_id);
 }
 
 #endif

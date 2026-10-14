@@ -18,7 +18,6 @@ bool capability_state_load_switch(uint8_t id, action_switch_record_t *record);
 bool capability_state_store_switch(uint8_t id, const action_switch_record_t *record);
 bool capability_state_load_cover_switch(uint8_t id, action_cover_switch_record_t *record);
 bool capability_state_store_cover_switch(uint8_t id, const action_cover_switch_record_t *record);
-bool capability_state_migrate_released(void);
 void capability_state_clear_owned(void);
 
 #endif

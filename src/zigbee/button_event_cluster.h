@@ -63,8 +63,6 @@ void button_event_cluster_on_button_event(const button_event_t *event,
                                           void *arg);
 void button_event_cluster_on_gesture_event(const gesture_event_t *event,
                                            void *arg);
-void button_event_cluster_on_write_attr(uint8_t endpoint,
-                                        uint16_t attribute_id);
 void button_event_cluster_on_network_status_change(
     hal_zigbee_network_status_t status);
 void button_event_cluster_drain(void);

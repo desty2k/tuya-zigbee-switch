@@ -11,6 +11,7 @@ typedef struct {
 } device_config_str_t;
 
 extern device_config_str_t device_config_str;
+extern const char          default_config_data[];
 
 void device_config_write_to_nv();
 void device_config_remove_from_nv();

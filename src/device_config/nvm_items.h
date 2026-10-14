@@ -29,6 +29,9 @@
 #define NV_ITEM_INDICATOR_STATE(indicator_idx)           (50 + (indicator_idx))
 #define NV_ITEM_ACTION_SWITCH_STATE(switch_idx)          (60 + (switch_idx))
 #define NV_ITEM_ACTION_COVER_SWITCH_STATE(switch_idx)    (70 + (switch_idx))
+#define NV_ITEM_COVER_STATE(cover_idx)                   (80 + (cover_idx))
+#define NV_ITEM_METER_STATE(meter_idx)                   (90 + (meter_idx))
+#define NV_ITEM_DEVICE_CONFIG_SERVICE      100
 
 #define NV_ITEM_MULTI_PRESS_RESET_COUNT    33
 #define NV_ITEM_POLL_CONTROL_CONFIG        34

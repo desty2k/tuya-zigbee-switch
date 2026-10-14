@@ -3,7 +3,7 @@
 #include "support/fake_tasks.h"
 #include "support/runner.h"
 #include "zigbee/button_event_cluster.h"
-#include "zigbee/consts.h"
+#include "zigbee/zcl_cluster_defs.h"
 #include <string.h>
 
 #define SENT_MAX    32

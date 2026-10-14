@@ -532,12 +532,14 @@ def test_momentary_mode_relay_index_invalid_values(
     relay_button_pair: RelayButtonPair,
     invalid_relay_index: int,
 ):
-    momentary_device.write_zigbee_attr(
-        relay_button_pair.switch_endpoint,
-        ZCL_CLUSTER_ON_OFF_SWITCH_CONFIG,
-        ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_RELAY_INDEX,
-        invalid_relay_index,
+    result = momentary_device.p.exec(
+        "zcl_write "
+        f"{relay_button_pair.switch_endpoint} "
+        f"0x{ZCL_CLUSTER_ON_OFF_SWITCH_CONFIG:04X} "
+        f"0x{ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_RELAY_INDEX:04X} "
+        f"{invalid_relay_index}"
     )
+    assert not result.ok
 
     momentary_device.click_button(relay_button_pair.button_pin)
 

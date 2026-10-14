@@ -12,6 +12,7 @@ source:
 - {path: ../../silabs/main.c}
 - {path: ../../silabs/hal/zigbee.c}
 - {path: ../../silabs/hal/gpio.c}
+- {path: ../../silabs/hal/gpio_counter.c}
 - {path: ../../silabs/hal/nvm.c}
 - {path: ../../silabs/hal/tasks.c}
 - {path: ../../silabs/hal/timer.c}
@@ -22,6 +23,7 @@ source:
 - {path: ../../hal/adc.h}
 - {path: ../../hal/zigbee.h}
 - {path: ../../hal/gpio.h}
+- {path: ../../hal/gpio_counter.h}
 - {path: ../../hal/nvm.h}
 - {path: ../../hal/tasks.h}
 - {path: ../../hal/timer.h}
@@ -35,6 +37,12 @@ source:
 - {path: ../../base_components/button_input.c}
 - {path: ../../base_components/gesture_fsm.c}
 - {path: ../../base_components/action_mapper.c}
+- {path: ../../base_components/cover_controller.c}
+- {path: ../../base_components/diagnostics_service.c}
+- {path: ../../base_components/meter_service.c}
+- {path: ../../base_components/cover_controller.h}
+- {path: ../../base_components/energy_meter.h}
+- {path: ../../base_components/meter_service.h}
 - {path: ../../device_config/capability_state.c}
 - {path: ../../device_config/capability_state.h}
 - {path: ../../base_components/timer_service.h}
@@ -55,6 +63,8 @@ source:
 - {path: ../../base_components/relay_controller.h}
 - {path: ../../base_components/interlock.h}
 - {path: ../../device_config/config_nv.c}
+- {path: ../../device_config/device_config_service.c}
+- {path: ../../device_config/device_config_service.h}
 - {path: ../../device_config/config_nv.h}
 - {path: ../../device_config/config_parser.c}
 - {path: ../../device_config/device_composition.c}
@@ -66,10 +76,11 @@ source:
 - {path: ../../device_config/reset.h}
 - {path: ../../device_config/nvm_migrations.c}
 - {path: ../../zigbee/basic_cluster.c}
+- {path: ../../zigbee/device_config_cluster.c}
+- {path: ../../zigbee/device_diagnostics_cluster.c}
 - {path: ../../zigbee/button_event_cluster.c}
 - {path: ../../zigbee/button_event_cluster.h}
 - {path: ../../zigbee/battery_cluster.c}
-- {path: ../../zigbee/general_commands.c}
 - {path: ../../zigbee/group_cluster.c}
 - {path: ../../zigbee/relay_cluster.c}
 - {path: ../../zigbee/switch_cluster.c}
@@ -77,15 +88,19 @@ source:
 - {path: ../../zigbee/cover_cluster.c}
 - {path: ../../zigbee/battery_cluster.h}
 - {path: ../../zigbee/basic_cluster.h}
+- {path: ../../zigbee/device_config_cluster.h}
+- {path: ../../zigbee/device_diagnostics_cluster.h}
+- {path: ../../zigbee/management_protocol.h}
 - {path: ../../zigbee/cluster_common.h}
-- {path: ../../zigbee/consts.h}
+- {path: ../../zigbee/zcl_ids.h}
+- {path: ../../zigbee/zcl_types.h}
+- {path: ../../zigbee/zcl_cluster_defs.h}
 - {path: ../../zigbee/build_date.h}
 - {path: ../../zigbee/relay_cluster.h}
 - {path: ../../zigbee/switch_cluster.h}
 - {path: ../../zigbee/cover_switch_cluster.h}
 - {path: ../../zigbee/cover_cluster.h}
 - {path: ../../zigbee/zigbee_commands.h}
-- {path: ../../zigbee/general_commands.h}
 - {path: ../../zigbee/group_cluster.h}
 include:
 - {path: ../../.}

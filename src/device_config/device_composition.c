@@ -1,5 +1,7 @@
 #include "device_config/device_composition.h"
 
+#include "hal/gpio_counter.h"
+
 #include <stddef.h>
 
 static bool count_is_within_bounds(const device_composition_t *composition) {
@@ -9,12 +11,20 @@ static bool count_is_within_bounds(const device_composition_t *composition) {
            composition->indicator_count <= DEVICE_COMPOSITION_MAX_INDICATORS &&
            composition->interlock_count <= DEVICE_COMPOSITION_MAX_INTERLOCKS &&
            composition->cover_count <= DEVICE_COMPOSITION_MAX_COVERS &&
+           composition->meter_count <= DEVICE_COMPOSITION_MAX_METERS &&
            composition->switch_count <= DEVICE_COMPOSITION_MAX_SWITCHES &&
            composition->cover_switch_count <= DEVICE_COMPOSITION_MAX_COVER_SWITCHES;
 }
 
+enum {
+    DEVICE_COMPOSITION_MAX_PINS =
+        DEVICE_COMPOSITION_MAX_BUTTONS + DEVICE_COMPOSITION_MAX_RELAYS * 2 +
+        DEVICE_COMPOSITION_MAX_INDICATORS + 1 +
+        DEVICE_COMPOSITION_MAX_METERS * 2,
+};
+
 static bool pin_is_reused(hal_gpio_pin_t pin, uint8_t *used_count,
-                          hal_gpio_pin_t used_pins[37]) {
+                          hal_gpio_pin_t used_pins[DEVICE_COMPOSITION_MAX_PINS]) {
     for (uint8_t i = 0; i < *used_count; i++) {
         if (used_pins[i] == pin) {
             return true;
@@ -48,7 +58,7 @@ static uint8_t cluster_count(const device_composition_t *composition) {
 
 config_parse_result_t device_composition_validate(
     const device_composition_t *composition) {
-    hal_gpio_pin_t used_pins[37];
+    hal_gpio_pin_t used_pins[DEVICE_COMPOSITION_MAX_PINS];
     uint8_t        used_count = 0;
 
     if (composition == NULL || !count_is_within_bounds(composition)) {
@@ -126,6 +136,28 @@ config_parse_result_t device_composition_validate(
                 cover->close_relay_id == other->open_relay_id ||
                 cover->close_relay_id == other->close_relay_id) {
                 return CONFIG_PARSE_REFERENCE;
+            }
+        }
+    }
+    {
+        uint8_t counter_slot = 0;
+
+        for (uint8_t i = 0; i < composition->meter_count; i++) {
+            const device_meter_config_t *meter = &composition->meters[i];
+
+            if (meter->counter_count == 0 || meter->counter_count > 2) {
+                return CONFIG_PARSE_REFERENCE;
+            }
+            for (uint8_t j = 0; j < meter->counter_count; j++) {
+                if (counter_slot >= hal_gpio_counter_capacity() ||
+                    meter->counter_pins[j] == HAL_INVALID_PIN ||
+                    !hal_gpio_counter_can_route(counter_slot, meter->counter_pins[j])) {
+                    return CONFIG_PARSE_RESOURCE;
+                }
+                if (pin_is_reused(meter->counter_pins[j], &used_count, used_pins)) {
+                    return CONFIG_PARSE_PIN_CONFLICT;
+                }
+                counter_slot++;
             }
         }
     }

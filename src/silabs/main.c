@@ -23,8 +23,7 @@
 #include "hal/timer.h"
 #include "hal/zigbee.h"
 #include "zigbee/basic_cluster.h"
-#include "zigbee/consts.h"
-#include "zigbee/general_commands.h"
+#include "zigbee/zcl_ids.h"
 #include "zigbee/relay_cluster.h"
 #include "zigbee/switch_cluster.h"
 

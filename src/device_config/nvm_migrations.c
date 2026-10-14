@@ -2,6 +2,8 @@
 #include "hal/printf_selector.h"
 #include "nvm_items.h"
 #include "capability_state.h"
+#include "base_components/cover_controller.h"
+#include "base_components/meter_service.h"
 
 #ifdef HAL_SILABS
 #include "silabs_config.h"
@@ -12,6 +14,9 @@
 #define INTERLOCK_CONFIG_VERSION        3
 #define BUTTON_EVENT_CONFIG_VERSION     4
 #define CAPABILITY_OWNERSHIP_VERSION    5
+#define COVER_POSITION_VERSION          7
+#define METER_SERVICE_VERSION           8
+#define MANAGEMENT_SERVICE_VERSION      9
 
 static void delete_switch_configs(void) {
     for (uint8_t switch_idx = 0; switch_idx < MAX_SWITCHES; switch_idx++) {
@@ -78,9 +83,16 @@ void handle_version_changes() {
     if (oldVersion < BUTTON_EVENT_CONFIG_VERSION) {
         delete_switch_configs();
     }
-    if (oldVersion < CAPABILITY_OWNERSHIP_VERSION &&
-        !capability_state_migrate_released()) {
+    if (oldVersion < CAPABILITY_OWNERSHIP_VERSION) {
         capability_state_clear_owned();
+    }
+    if (oldVersion < COVER_POSITION_VERSION) cover_controller_clear_owned();
+    if (oldVersion < METER_SERVICE_VERSION) meter_service_clear_owned();
+    if (oldVersion < MANAGEMENT_SERVICE_VERSION) {
+        hal_nvm_delete(NV_ITEM_DEVICE_CONFIG);
+        hal_nvm_delete(NV_ITEM_BASIC_CLUSTER_DATA);
+        hal_nvm_delete(NV_ITEM_MULTI_PRESS_RESET_COUNT);
+        hal_nvm_delete(NV_ITEM_DEVICE_CONFIG_SERVICE);
     }
     write_version_to_nv(currentVersion);
 }

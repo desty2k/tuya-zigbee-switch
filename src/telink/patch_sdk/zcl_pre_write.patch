@@ -1,0 +1,87 @@
+--- a/zigbee/zcl/zcl.c
++++ b/zigbee/zcl/zcl.c
+@@ -57,6 +57,7 @@
+ zcl_ctrl_t zcl_vars;
+ u8 zcl_seqNum;//ZCL seqNum
+ 
++static zclIncoming_t *zcl_incoming_write;
+ const u16 zcl_attr_global_clusterRevision = ZCL_ATTR_GLOBAL_CLUSTER_REVISION_DEFAULT;
+ 
+ /**********************************************************************
+@@ -540,8 +541,18 @@
+  *
+  * @return  ZCL Status
+  */
++_CODE_ZCL_ status_t hal_zigbee_telink_pre_write(zclIncoming_t *pInHdlrMsg,
++                                                 u8 endpoint, u16 clusterId,
++                                                 zclWriteRec_t *pWriteRec,
++                                                 bool enable);
++
+ _CODE_ZCL_ status_t zcl_attrWrite(u8 endpoint, u16 clusterId, zclWriteRec_t *pWriteRec, bool enable)
+ {
++    if (zcl_incoming_write) {
++        status_t status = hal_zigbee_telink_pre_write(
++            zcl_incoming_write, endpoint, clusterId, pWriteRec, enable);
++        if (status != ZCL_STA_SUCCESS) return status;
++    }
+     zclAttrInfo_t *pAttrEntry = zcl_findAttribute(endpoint, clusterId, pWriteRec->attrID);
+     if (!pAttrEntry) {
+         /* Not found */
+@@ -1320,6 +1331,7 @@
+     u8 succWriteAttrCnt = 0;
+     u8 failWriteAttrCnt = 0;
+     bool rspSend = FALSE;
++    zcl_incoming_write = pCmd;
+ 
+    /* Parse In Write Command */
+    zclWriteCmd_t *pWriteCmd = zcl_parseInWriteCmd(pCmd);
+@@ -1332,5 +1344,6 @@
+     /* Parse In Write Command */
+     zclWriteCmd_t *pWriteCmd = zcl_parseInWriteCmd(pCmd);
+     if (pWriteCmd == NULL) {
++        zcl_incoming_write = NULL;
+         return ZCL_STA_INSUFFICIENT_SPACE;
+     } else {
+@@ -1342,4 +1355,5 @@
+         pWriteRspCmd = (zclWriteRspCmd_t *)ev_buf_allocate(len);
+         if (!pWriteRspCmd) {
++            zcl_incoming_write = NULL;
+             return ZCL_STA_INSUFFICIENT_SPACE;
+         }
+@@ -1387,6 +1399,7 @@
+     } else {
+         status = ZCL_STA_CMD_HAS_RESP;
+     }
++    zcl_incoming_write = NULL;
+ 
+     return status;
+ }
+@@ -1400,6 +1413,7 @@
+     u8 endpoint = pCmd->msg->indInfo.dst_ep;
+     zclWriteRec_t *pWriteRec = NULL;
+     bool needWrite = TRUE;
++    zcl_incoming_write = pCmd;
+ 
+    /* Parse In Write Command */
+    zclWriteCmd_t *pWriteCmd = zcl_parseInWriteCmd(pCmd);
+@@ -1412,5 +1425,6 @@
+     /* Parse In Write Command */
+     zclWriteCmd_t *pWriteCmd = zcl_parseInWriteCmd(pCmd);
+     if (pWriteCmd == NULL) {
++        zcl_incoming_write = NULL;
+         return ZCL_STA_INSUFFICIENT_SPACE;
+     } else {
+@@ -1422,4 +1436,5 @@
+     zclWriteRspCmd_t *pWriteRspCmd = (zclWriteRspCmd_t *)ev_buf_allocate(len);
+     if (!pWriteRspCmd) {
++        zcl_incoming_write = NULL;
+         return ZCL_STA_INSUFFICIENT_SPACE;
+     }
+@@ -1459,6 +1473,7 @@
+ 
+     ev_buf_free((void *)pWriteRspCmd);
+ 
++    zcl_incoming_write = NULL;
+     return status;
+ }
+ #endif

@@ -4,12 +4,14 @@ from client import StubProc
 from conftest import Device
 from zcl_consts import (
     ZCL_ATTR_BASIC_MFR_NAME,
+    ZCL_ATTR_DEVICE_CONFIG_STATUS,
     ZCL_ATTR_COVER_SWITCH_SWITCH_TYPE,
     ZCL_ATTR_MULTISTATE_INPUT_PRESENT_VALUE,
     ZCL_ATTR_ONOFF,
     ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_MODE,
     ZCL_ATTR_WINDOW_COVERING_MOVING,
     ZCL_CLUSTER_BASIC,
+    ZCL_CLUSTER_DEVICE_CONFIG,
     ZCL_CLUSTER_COVER_SWITCH_CONFIG,
     ZCL_CLUSTER_MULTISTATE_INPUT_BASIC,
     ZCL_CLUSTER_ON_OFF,
@@ -93,7 +95,7 @@ def test_ts0726_4gang_graph_snapshot_preserves_endpoint_order() -> None:
     assert source == TS0726_4GANG_CONFIG
 
 
-def test_invalid_composition_has_no_gpio_or_task_side_effects() -> None:
+def test_invalid_composition_enters_management_only_recovery() -> None:
     proc = StubProc(device_config="M;Invalid;SA;").start()
     try:
         device = Device(proc)
@@ -101,6 +103,11 @@ def test_invalid_composition_has_no_gpio_or_task_side_effects() -> None:
         assert counters["gpio_init_count"] == 0
         assert counters["gpio_write_count"] == 0
         assert counters["tasks_active"] == 0
-        assert not proc.exec("zcl_read 1 0x0000 0x0004").ok
+        assert proc.exec("zcl_read 1 0x0000 0x0004").ok
+        assert (
+            device.read_zigbee_attr(1, ZCL_CLUSTER_DEVICE_CONFIG,
+                                    ZCL_ATTR_DEVICE_CONFIG_STATUS)
+            == "2"
+        )
     finally:
         proc.stop()

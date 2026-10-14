@@ -1,7 +1,8 @@
 #ifndef _ZIGBEE_COMMANDS_H_
 #define _ZIGBEE_COMMANDS_H_
 
-#include "consts.h"
+#include "zcl_cluster_defs.h"
+#include "zcl_ids.h"
 #include "hal/zigbee.h"
 #include <stddef.h>
 

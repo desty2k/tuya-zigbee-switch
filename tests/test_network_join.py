@@ -3,13 +3,14 @@ import pytest
 from tests.client import StubProc
 from tests.conftest import Device
 from tests.zcl_consts import (
-    ZCL_ATTR_BASIC_ANNOUNCE_ATTEMPTS,
-    ZCL_ATTR_BASIC_ANNOUNCE_FAILURES,
-    ZCL_ATTR_BASIC_MULTI_PRESS_RESET_COUNT,
-    ZCL_ATTR_BASIC_NETWORK_JOINS,
-    ZCL_ATTR_BASIC_NETWORK_LOSSES,
-    ZCL_ATTR_BASIC_NETWORK_TRANSITIONS,
-    ZCL_CLUSTER_BASIC,
+    ZCL_ATTR_DEVICE_CONFIG_MULTI_PRESS_RESET,
+    ZCL_ATTR_DIAGNOSTICS_ANNOUNCES,
+    ZCL_ATTR_DIAGNOSTICS_ANNOUNCE_FAILURES,
+    ZCL_ATTR_DIAGNOSTICS_NETWORK_JOINS,
+    ZCL_ATTR_DIAGNOSTICS_NETWORK_LOSSES,
+    ZCL_ATTR_DIAGNOSTICS_NETWORK_TRANSITIONS,
+    ZCL_CLUSTER_DEVICE_CONFIG,
+    ZCL_CLUSTER_DEVICE_DIAGNOSTICS,
 )
 
 HAL_ZIGBEE_NETWORK_NOT_JOINED = 0
@@ -115,8 +116,8 @@ def test_leaves_on_multipress_configurable() -> None:
         # Set multi-press count to reset to 5 via Basic cluster
         device.write_zigbee_attr(
             1,
-            ZCL_CLUSTER_BASIC,
-            ZCL_ATTR_BASIC_MULTI_PRESS_RESET_COUNT,
+            ZCL_CLUSTER_DEVICE_CONFIG,
+            ZCL_ATTR_DEVICE_CONFIG_MULTI_PRESS_RESET,
             5,
         )
 
@@ -140,8 +141,8 @@ def test_multipress_reset_disabled_when_zero() -> None:
         # Disable multi-press reset by setting to 0 via Basic cluster
         device.write_zigbee_attr(
             1,
-            ZCL_CLUSTER_BASIC,
-            ZCL_ATTR_BASIC_MULTI_PRESS_RESET_COUNT,
+            ZCL_CLUSTER_DEVICE_CONFIG,
+            ZCL_ATTR_DEVICE_CONFIG_MULTI_PRESS_RESET,
             0,
         )
 
@@ -189,13 +190,13 @@ def test_network_monitor_deduplicates_transitions_and_exposes_diagnostics() -> N
         assert counters["network_joins"] == 1
         assert counters["last_network_transition_ms"] == 0
         assert int(device.read_zigbee_attr(
-            1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_NETWORK_TRANSITIONS
+            1, ZCL_CLUSTER_DEVICE_DIAGNOSTICS, ZCL_ATTR_DIAGNOSTICS_NETWORK_TRANSITIONS
         )) == 2
         assert int(device.read_zigbee_attr(
-            1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_NETWORK_LOSSES
+            1, ZCL_CLUSTER_DEVICE_DIAGNOSTICS, ZCL_ATTR_DIAGNOSTICS_NETWORK_LOSSES
         )) == 1
         assert int(device.read_zigbee_attr(
-            1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_NETWORK_JOINS
+            1, ZCL_CLUSTER_DEVICE_DIAGNOSTICS, ZCL_ATTR_DIAGNOSTICS_NETWORK_JOINS
         )) == 1
 
 
@@ -216,8 +217,8 @@ def test_failed_announce_retries_after_bounded_delay() -> None:
         device.step_time(0)
         device.wait_for_announce()
         assert int(device.read_zigbee_attr(
-            1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_ANNOUNCE_ATTEMPTS
+            1, ZCL_CLUSTER_DEVICE_DIAGNOSTICS, ZCL_ATTR_DIAGNOSTICS_ANNOUNCES
         )) == 2
         assert int(device.read_zigbee_attr(
-            1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_ANNOUNCE_FAILURES
+            1, ZCL_CLUSTER_DEVICE_DIAGNOSTICS, ZCL_ATTR_DIAGNOSTICS_ANNOUNCE_FAILURES
         )) == 1

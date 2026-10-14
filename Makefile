@@ -107,6 +107,9 @@ UNIT_TELINK_ZIGBEE_INIT_TEST := $(UNIT_BUILD_DIR)/test_telink_zigbee_init
 UNIT_CONFIG_PARSER_TEST := $(UNIT_BUILD_DIR)/test_config_parser
 UNIT_ACTION_MAPPER_TEST := $(UNIT_BUILD_DIR)/test_action_mapper
 UNIT_CAPABILITY_STATE_TEST := $(UNIT_BUILD_DIR)/test_capability_state
+UNIT_COVER_TEST := $(UNIT_BUILD_DIR)/test_cover_controller
+UNIT_COUNTER_TEST := $(UNIT_BUILD_DIR)/test_gpio_counter
+UNIT_METER_TEST := $(UNIT_BUILD_DIR)/test_meter_service
 TELINK_INIT_TEST_CFLAGS := $(UNIT_CFLAGS) -Itests/unit/telink_sdk_stub -Isrc/telink -Isrc/telink/hal
 
 $(UNIT_BUILD_DIR):
@@ -173,7 +176,8 @@ $(UNIT_TELINK_ZIGBEE_INIT_TEST): tests/unit/test_telink_zigbee_init.c \
 
 $(UNIT_CONFIG_PARSER_TEST): tests/unit/test_config_parser.c \
 		src/device_config/config_parser.c \
-		src/device_config/device_composition.c | $(UNIT_BUILD_DIR)
+		src/device_config/device_composition.c \
+		tests/unit/support/fake_gpio_counter.c | $(UNIT_BUILD_DIR)
 	$(CC) $(UNIT_CFLAGS) $^ -o $@
 
 $(UNIT_ACTION_MAPPER_TEST): tests/unit/test_action_mapper.c \
@@ -191,10 +195,35 @@ $(UNIT_CAPABILITY_STATE_TEST): tests/unit/test_capability_state.c \
 		src/device_config/capability_state.c | $(UNIT_BUILD_DIR)
 	$(CC) $(UNIT_CFLAGS) $^ -o $@
 
+$(UNIT_COVER_TEST): tests/unit/test_cover_controller.c \
+		src/base_components/cover_controller.c \
+		src/base_components/relay_controller.c \
+		src/base_components/relay_driver.c \
+		src/base_components/interlock.c \
+		src/base_components/timer_service.c \
+		tests/unit/support/fake_clock.c \
+		tests/unit/support/fake_tasks.c \
+		tests/unit/support/fake_relay_hw.c | $(UNIT_BUILD_DIR)
+	$(CC) $(UNIT_CFLAGS) $^ -o $@
+
+$(UNIT_COUNTER_TEST): tests/unit/test_gpio_counter.c \
+		src/stub/hal/gpio_counter.c \
+		tests/unit/support/fake_clock.c \
+		tests/unit/support/fake_gpio.c | $(UNIT_BUILD_DIR)
+	$(CC) $(UNIT_CFLAGS) $^ -o $@
+
+$(UNIT_METER_TEST): tests/unit/test_meter_service.c \
+		src/base_components/meter_service.c \
+		src/base_components/meter_fake_driver.c \
+		src/base_components/timer_service.c \
+		tests/unit/support/fake_clock.c \
+		tests/unit/support/fake_tasks.c | $(UNIT_BUILD_DIR)
+	$(CC) $(UNIT_CFLAGS) $^ -o $@
+
 unit_tests: $(UNIT_QUEUE_TEST) $(UNIT_TIMER_TEST) $(UNIT_BUTTON_TEST) \
 		$(UNIT_DEBOUNCE_FUZZ) $(UNIT_GESTURE_TEST) $(UNIT_RELAY_TEST) \
 		$(UNIT_INTERLOCK_TEST) $(UNIT_BUTTON_EVENT_TEST) $(UNIT_DESCRIPTOR_TEST) \
-		$(UNIT_TELINK_ZIGBEE_INIT_TEST) $(UNIT_CONFIG_PARSER_TEST) $(UNIT_ACTION_MAPPER_TEST) $(UNIT_CAPABILITY_STATE_TEST)
+		$(UNIT_TELINK_ZIGBEE_INIT_TEST) $(UNIT_CONFIG_PARSER_TEST) $(UNIT_ACTION_MAPPER_TEST) $(UNIT_CAPABILITY_STATE_TEST) $(UNIT_COVER_TEST) $(UNIT_COUNTER_TEST) $(UNIT_METER_TEST)
 	./$(UNIT_QUEUE_TEST)
 	./$(UNIT_TIMER_TEST)
 	./$(UNIT_BUTTON_TEST)
@@ -208,6 +237,9 @@ unit_tests: $(UNIT_QUEUE_TEST) $(UNIT_TIMER_TEST) $(UNIT_BUTTON_TEST) \
 	./$(UNIT_CONFIG_PARSER_TEST)
 	./$(UNIT_ACTION_MAPPER_TEST)
 	./$(UNIT_CAPABILITY_STATE_TEST)
+	./$(UNIT_COVER_TEST)
+	./$(UNIT_COUNTER_TEST)
+	./$(UNIT_METER_TEST)
 
 # Format all C/H files using uncrustify
 format:

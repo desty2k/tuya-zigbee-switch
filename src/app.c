@@ -1,10 +1,13 @@
 #include "app.h"
 #include "device_config/feature_wiring.h"
+#include "device_config/device_config_service.h"
 #include "device_config/config_nv.h"
 #include "device_config/device_type.h"
 #include "device_config/nvm_items.h"
 #include "device_config/reset.h"
 #include "base_components/button_input.h"
+#include "base_components/diagnostics_service.h"
+#include "base_components/gesture_fsm.h"
 #include "hal/gpio.h"
 #include "hal/nvm.h"
 #include "hal/printf_selector.h"
@@ -12,8 +15,8 @@
 #include "hal/timer.h"
 #include "hal/zigbee.h"
 #include "zigbee/battery_cluster.h"
-#include "zigbee/basic_cluster.h"
-#include "zigbee/general_commands.h"
+#include "zigbee/button_event_cluster.h"
+#include "zigbee/device_diagnostics_cluster.h"
 #ifdef END_DEVICE
 #include "zigbee/poll_control_cluster.h"
 #endif
@@ -48,20 +51,49 @@ void process_device_type_change() {
     }
 }
 
-void app_init(void) {
-    handle_version_changes();
-    parse_config(); // Does most of the setup, including all callbacks
-                    // registration
-    init_global_attr_write_callback();
-
-    process_device_type_change();
-}
-
-static bool     boot_announce_sent = false;
+static bool     boot_announce_sent;
 static uint32_t boot_announce_retry_ms;
 static bool     network_status_initialized;
 static hal_zigbee_network_status_t last_network_status;
 static app_network_diagnostics_t   network_diagnostics;
+
+void app_init(void) {
+    handle_version_changes();
+    device_config_service_init();
+    diagnostics_service_init();
+    parse_config(); // Does most of the setup, including all callbacks
+                    // registration
+
+    process_device_type_change();
+}
+
+static void app_diagnostics_provider(diagnostics_snapshot_t *snapshot,
+                                     void *context) {
+    hal_gpio_diagnostics_t   gpio   = hal_gpio_get_diagnostics();
+    hal_zigbee_diagnostics_t zigbee = hal_zigbee_get_diagnostics();
+
+    (void)context;
+    snapshot->uptime_ms                      = network_diagnostics.uptime_ms;
+    snapshot->gpio_edges_captured            = gpio.gpio_edges_captured;
+    snapshot->gpio_edges_dropped             = button_input_gpio_edges_dropped();
+    snapshot->gpio_rearm_limit_hits          = gpio.gpio_rearm_limit_hits;
+    snapshot->button_events_emitted          = button_input_events_emitted();
+    snapshot->gestures_emitted               = gesture_fsm_events_emitted();
+    snapshot->zb_submitted                   = button_event_cluster_submitted();
+    snapshot->zb_dropped                     = button_event_cluster_dropped();
+    snapshot->zb_expired                     = button_event_cluster_expired();
+    snapshot->zb_send_failed                 = button_event_cluster_send_failed();
+    snapshot->zb_high_water                  = button_event_cluster_high_water();
+    snapshot->network_transitions            = network_diagnostics.network_transitions;
+    snapshot->network_losses                 = network_diagnostics.network_losses;
+    snapshot->network_joins                  = network_diagnostics.network_joins;
+    snapshot->announce_attempts              = network_diagnostics.announce_attempts;
+    snapshot->announce_failures              = network_diagnostics.announce_failures;
+    snapshot->steering_attempts              = network_diagnostics.steering_attempts;
+    snapshot->descriptor_validation_failures =
+        zigbee.descriptor_validation_failures;
+    snapshot->last_descriptor_error = zigbee.last_descriptor_error;
+}
 
 static void app_track_network_status(hal_zigbee_network_status_t status) {
     if (!network_status_initialized) {
@@ -91,7 +123,9 @@ void app_task() {
     button_input_process_pending();
     app_track_network_status(network_status);
     network_diagnostics.uptime_ms = hal_millis();
-    basic_cluster_update_diagnostics();
+    diagnostics_service_set_provider(app_diagnostics_provider, NULL);
+    diagnostics_service_refresh();
+    device_diagnostics_cluster_refresh();
 #ifdef END_DEVICE
     poll_control_cluster_update();
 #endif

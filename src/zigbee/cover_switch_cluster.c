@@ -1,15 +1,18 @@
 #include "cover_switch_cluster.h"
+#include "management_protocol.h"
 #include "base_components/action_mapper.h"
 #include "base_components/button_dispatcher.h"
 #include "basic_cluster.h"
 #include "cluster_common.h"
-#include "consts.h"
+#include "zcl_cluster_defs.h"
+#include "zcl_ids.h"
+#include "zcl_types.h"
 #include "device_config/capability_state.h"
 #include "hal/nvm.h"
 #include "hal/printf_selector.h"
 #include "hal/system.h"
 #include "hal/zigbee.h"
-#include "cover_cluster.h"
+#include "base_components/cover_controller.h"
 #include "zigbee_commands.h"
 
 // ============================================================================
@@ -23,8 +26,6 @@
 #define MULTISTATE_LONG_OPEN     4
 #define MULTISTATE_LONG_CLOSE    5
 
-extern zigbee_cover_cluster cover_clusters[];
-extern uint8_t cover_clusters_cnt;
 extern zigbee_cover_switch_cluster cover_switch_clusters[];
 extern uint8_t cover_switch_clusters_cnt;
 
@@ -191,7 +192,13 @@ void cover_switch_trigger_local_cmd(zigbee_cover_switch_cluster *cluster, uint8_
     if (cluster->cover_index == 0) {
         return;
     }
-    action_mapper_cover_action(cluster->cover_index - 1, cmd);
+    if (cmd == ZCL_CMD_WINDOW_COVERING_UP_OPEN) {
+        action_mapper_cover_action(cluster->cover_index - 1, COVER_ACTION_OPEN);
+    } else if (cmd == ZCL_CMD_WINDOW_COVERING_DOWN_CLOSE) {
+        action_mapper_cover_action(cluster->cover_index - 1, COVER_ACTION_CLOSE);
+    } else if (cmd == ZCL_CMD_WINDOW_COVERING_STOP) {
+        action_mapper_cover_action(cluster->cover_index - 1, COVER_ACTION_STOP);
+    }
 }
 
 void cover_switch_trigger_binding_cmd(zigbee_cover_switch_cluster *cluster, uint8_t cmd) {
@@ -221,10 +228,11 @@ void cover_switch_cluster_update_present_value(zigbee_cover_switch_cluster *clus
     // When modes differ (or no local cover): track binded state separately via last-triggered command
     uint8_t local_cmd  = 0xFF;
     uint8_t binded_cmd = 0xFF;
-    if (cluster->cover_index != 0 && cluster->cover_index <= cover_clusters_cnt) {
-        zigbee_cover_cluster *output = &cover_clusters[cluster->cover_index - 1];
+    if (cluster->cover_index != 0 &&
+        cluster->cover_index <= cover_controller_count()) {
         local_cmd = cover_switch_cluster_get_cmd(cluster, present_value, cluster->local_mode,
-                                                 output->moving);
+                                                 cover_controller_motion(
+                                                     cluster->cover_index - 1));
         if (cluster->local_mode == cluster->binded_mode) {
             binded_cmd = local_cmd;
         }
@@ -389,13 +397,24 @@ void cover_switch_cluster_on_write_attr(zigbee_cover_switch_cluster *cluster,
     }
 }
 
-void cover_switch_cluster_callback_attr_write_trampoline(uint8_t endpoint,
-                                                         uint16_t attribute_id) {
+static hal_zigbee_cmd_result_t cover_switch_cluster_attr_write(
+    uint8_t endpoint, uint16_t attribute_id, const uint8_t *candidate,
+    uint16_t candidate_len, hal_zigbee_attr_write_phase_t phase) {
     zigbee_cover_switch_cluster *cluster = cover_switch_cluster_find(endpoint);
 
-    if (cluster != NULL) {
-        cover_switch_cluster_on_write_attr(cluster, attribute_id);
+    if (cluster == NULL || candidate == NULL) return HAL_ZIGBEE_CMD_SKIPPED;
+
+    for (uint8_t i = 0;
+         i < sizeof(cluster->config_attr_infos) / sizeof(cluster->config_attr_infos[0]); i++) {
+        if (cluster->config_attr_infos[i].attribute_id != attribute_id) continue;
+        if (candidate_len != cluster->config_attr_infos[i].size) return HAL_ZIGBEE_INVALID_VALUE;
+
+        if (phase == HAL_ZIGBEE_ATTR_COMMIT) {
+            cover_switch_cluster_on_write_attr(cluster, attribute_id);
+        }
+        return HAL_ZIGBEE_CMD_PROCESSED;
     }
+    return HAL_ZIGBEE_CMD_SKIPPED;
 }
 
 // ============================================================================
@@ -430,50 +449,53 @@ void cover_switch_cluster_add_to_endpoint(zigbee_cover_switch_cluster *cluster,
     // Configuration attributes on CoverSwitchConfig SERVER cluster (manufacturer-specific)
     SETUP_ATTR_FOR_TABLE(cluster->config_attr_infos, 0,
                          ZCL_ATTR_COVER_SWITCH_CONFIG_SWITCH_TYPE, ZCL_DATA_TYPE_ENUM8,
-                         ATTR_WRITABLE, cluster->switch_type);
+                         (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->switch_type);
     SETUP_ATTR_FOR_TABLE(cluster->config_attr_infos, 1,
                          ZCL_ATTR_COVER_SWITCH_CONFIG_COVER_INDEX, ZCL_DATA_TYPE_UINT8,
-                         ATTR_WRITABLE, cluster->cover_index);
+                         (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->cover_index);
     SETUP_ATTR_FOR_TABLE(cluster->config_attr_infos, 2,
                          ZCL_ATTR_COVER_SWITCH_CONFIG_REVERSAL, ZCL_DATA_TYPE_BOOLEAN,
-                         ATTR_WRITABLE, cluster->reversal);
+                         (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->reversal);
     SETUP_ATTR_FOR_TABLE(cluster->config_attr_infos, 3,
                          ZCL_ATTR_COVER_SWITCH_CONFIG_LOCAL_MODE, ZCL_DATA_TYPE_ENUM8,
-                         ATTR_WRITABLE, cluster->local_mode);
+                         (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->local_mode);
     SETUP_ATTR_FOR_TABLE(cluster->config_attr_infos, 4,
                          ZCL_ATTR_COVER_SWITCH_CONFIG_BINDED_MODE, ZCL_DATA_TYPE_ENUM8,
-                         ATTR_WRITABLE, cluster->binded_mode);
+                         (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->binded_mode);
     SETUP_ATTR_FOR_TABLE(cluster->config_attr_infos, 5,
                          ZCL_ATTR_COVER_SWITCH_CONFIG_LONG_PRESS_DUR, ZCL_DATA_TYPE_UINT16,
-                         ATTR_WRITABLE, cluster->hold_duration_ms);
+                         (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->hold_duration_ms);
 
     hal_zigbee_cluster config_cluster = {
-        .cluster_id      = ZCL_CLUSTER_COVER_SWITCH_CONFIG,
-        .is_server       =                               1,
-        .attribute_count =                               6,
-        .attributes      = cluster->config_attr_infos,
+        .cluster_id        = ZCL_CLUSTER_COVER_SWITCH_CONFIG,
+        .manufacturer_code = ZIGBEE_MANAGEMENT_MANUFACTURER_CODE,
+        .role                = HAL_ZIGBEE_ROLE_SERVER,
+        .attribute_count     =                                   6,
+        .attributes          = cluster->config_attr_infos,
+        .attr_write_callback = cover_switch_cluster_attr_write,
     };
     hal_zigbee_cluster covering_cluster = {
         .cluster_id = ZCL_CLUSTER_WINDOW_COVERING,
+        .role       = HAL_ZIGBEE_ROLE_SERVER,
     };
 
     // MultiStateInput for button press action reporting
     SETUP_ATTR_FOR_TABLE(cluster->multistate_attr_infos, 0,
                          ZCL_ATTR_MULTISTATE_INPUT_NUMBER_OF_STATES, ZCL_DATA_TYPE_UINT16,
-                         ATTR_READONLY, multistate_num_of_states);
+                         HAL_ATTR_READ, multistate_num_of_states);
     SETUP_ATTR_FOR_TABLE(cluster->multistate_attr_infos, 1,
                          ZCL_ATTR_MULTISTATE_INPUT_OUT_OF_SERVICE, ZCL_DATA_TYPE_BOOLEAN,
-                         ATTR_READONLY, multistate_out_of_service);
+                         HAL_ATTR_READ, multistate_out_of_service);
     SETUP_ATTR_FOR_TABLE(cluster->multistate_attr_infos, 2,
                          ZCL_ATTR_MULTISTATE_INPUT_PRESENT_VALUE, ZCL_DATA_TYPE_UINT16,
-                         ATTR_READONLY, cluster->present_value);
+                         HAL_ATTR_READ, cluster->present_value);
     SETUP_ATTR_FOR_TABLE(cluster->multistate_attr_infos, 3,
                          ZCL_ATTR_MULTISTATE_INPUT_STATUS_FLAGS, ZCL_DATA_TYPE_BITMAP8,
-                         ATTR_READONLY, multistate_flags);
+                         HAL_ATTR_READ, multistate_flags);
 
     hal_zigbee_cluster multistate_cluster = {
         .cluster_id      = ZCL_CLUSTER_MULTISTATE_INPUT_BASIC,
-        .is_server       =                                  1,
+        .role            = HAL_ZIGBEE_ROLE_SERVER,
         .attribute_count =                                  4,
         .attributes      = cluster->multistate_attr_infos,
     };

@@ -1,6 +1,34 @@
 <?xml version="1.0"?>
 <configurator>
-  <clusterExtension code="0x0000">
-    <attribute side="server" code="0xff00" define="DEVICE_CONFIG" type="CHAR_STRING" length="255" writable="false" default="" optional="true">device config</attribute>
+  <clusterExtension code="0xfc10" manufacturerCode="0x1a2b">
+    <attribute side="server" code="0x0000" define="SCHEMA_VERSION" type="INT16U" writable="false" default="1">schema version</attribute>
+    <attribute side="server" code="0x0001" define="REVISION" type="INT32U" writable="false" default="0">revision</attribute>
+    <attribute side="server" code="0x0002" define="TEXT" type="LONG_CHAR_STRING" length="128" writable="true" default="">text</attribute>
+    <attribute side="server" code="0x0003" define="STATUS" type="ENUM8" writable="false" default="0">status</attribute>
+    <attribute side="server" code="0x0004" define="LAST_ERROR" type="ENUM8" writable="false" default="0">last error</attribute>
+    <attribute side="server" code="0x0010" define="STATUS_LED_MODE" type="ENUM8" writable="true" default="0">status led mode</attribute>
+    <attribute side="server" code="0x0011" define="MULTI_PRESS_RESET" type="INT8U" writable="true" default="10">multi press reset</attribute>
+  </clusterExtension>
+  <clusterExtension code="0xfc11" manufacturerCode="0x1a2b">
+    <attribute side="server" code="0x0000" define="UPTIME_MS" type="INT32U" writable="false" default="0">uptime ms</attribute>
+    <attribute side="server" code="0x0001" define="CAPABILITIES" type="BITMAP32" writable="false" default="1">capabilities</attribute>
+    <attribute side="server" code="0x0010" define="GPIO_EDGES" type="INT32U" writable="false" default="0">gpio edges</attribute>
+    <attribute side="server" code="0x0011" define="GPIO_DROPPED" type="INT32U" writable="false" default="0">gpio dropped</attribute>
+    <attribute side="server" code="0x0012" define="GPIO_REARM_HITS" type="INT32U" writable="false" default="0">gpio rearm hits</attribute>
+    <attribute side="server" code="0x0020" define="BUTTON_EVENTS" type="INT32U" writable="false" default="0">button events</attribute>
+    <attribute side="server" code="0x0021" define="GESTURES" type="INT32U" writable="false" default="0">gestures</attribute>
+    <attribute side="server" code="0x0030" define="ZB_SUBMITTED" type="INT32U" writable="false" default="0">zb submitted</attribute>
+    <attribute side="server" code="0x0031" define="ZB_DROPPED" type="INT32U" writable="false" default="0">zb dropped</attribute>
+    <attribute side="server" code="0x0032" define="ZB_EXPIRED" type="INT32U" writable="false" default="0">zb expired</attribute>
+    <attribute side="server" code="0x0033" define="ZB_SEND_FAILED" type="INT32U" writable="false" default="0">zb send failed</attribute>
+    <attribute side="server" code="0x0034" define="ZB_HIGH_WATER" type="INT32U" writable="false" default="0">zb high water</attribute>
+    <attribute side="server" code="0x0040" define="NETWORK_TRANSITIONS" type="INT32U" writable="false" default="0">network transitions</attribute>
+    <attribute side="server" code="0x0041" define="NETWORK_LOSSES" type="INT32U" writable="false" default="0">network losses</attribute>
+    <attribute side="server" code="0x0042" define="NETWORK_JOINS" type="INT32U" writable="false" default="0">network joins</attribute>
+    <attribute side="server" code="0x0043" define="ANNOUNCES" type="INT32U" writable="false" default="0">announces</attribute>
+    <attribute side="server" code="0x0044" define="ANNOUNCE_FAILURES" type="INT32U" writable="false" default="0">announce failures</attribute>
+    <attribute side="server" code="0x0045" define="STEERING" type="INT32U" writable="false" default="0">steering</attribute>
+    <attribute side="server" code="0x0050" define="DESCRIPTOR_FAILURES" type="INT32U" writable="false" default="0">descriptor failures</attribute>
+    <attribute side="server" code="0x0051" define="LAST_DESCRIPTOR_ERROR" type="ENUM8" writable="false" default="0">last descriptor error</attribute>
   </clusterExtension>
 </configurator>

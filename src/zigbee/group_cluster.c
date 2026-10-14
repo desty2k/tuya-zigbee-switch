@@ -1,6 +1,8 @@
 #include "group_cluster.h"
 #include "cluster_common.h"
-#include "consts.h"
+#include "zcl_cluster_defs.h"
+#include "zcl_ids.h"
+#include "zcl_types.h"
 #include "hal/zigbee.h"
 #include <stdint.h>
 
@@ -14,12 +16,12 @@ void group_cluster_add_to_endpoint(zigbee_group_cluster *cluster,
     }
 
     SETUP_ATTR(0, ZCL_ATTR_GROUP_NAME_SUPPORT, ZCL_DATA_TYPE_BITMAP8,
-               ATTR_READONLY, groupNameSupport);
+               HAL_ATTR_READ, groupNameSupport);
 
     hal_zigbee_cluster endpoint_cluster = {
         .cluster_id      = ZCL_CLUSTER_GROUPS,
-        .is_server       =                   1,
-        .attribute_count =                   1,
+        .role            = HAL_ZIGBEE_ROLE_SERVER,
+        .attribute_count =                      1,
         .attributes      = cluster->attr_infos,
     };
 

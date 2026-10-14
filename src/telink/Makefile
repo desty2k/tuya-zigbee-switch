@@ -129,6 +129,7 @@ TELINK_SOURCES := \
 	hal/timer.c \
 	hal/tasks.c \
 	hal/gpio.c \
+	hal/gpio_counter.c \
 	hal/gpio_interrupts.c \
 	hal/nvm.c \
 	hal/zigbee.c \
@@ -139,8 +140,6 @@ TELINK_SOURCES := \
 	libc_polyfills/atoi.c \
 	custom_zcl/zcl_multistate_input.c \
 	custom_zcl/zcl_onoff_configuration.c \
-	custom_zcl/zcl_cover_switch_config.c \
-	custom_zcl/zcl_button_event.c \
 	patch_sdk/drv_nv.c
 
 # Common source files (shared with Silicon Labs build)
@@ -153,6 +152,9 @@ COMMON_SOURCES := \
 	$(SRC_DIR)/base_components/button_input.c \
 	$(SRC_DIR)/base_components/gesture_fsm.c \
 	$(SRC_DIR)/base_components/action_mapper.c \
+	$(SRC_DIR)/base_components/cover_controller.c \
+	$(SRC_DIR)/base_components/diagnostics_service.c \
+	$(SRC_DIR)/base_components/meter_service.c \
 	$(SRC_DIR)/device_config/capability_state.c \
 	$(SRC_DIR)/base_components/led.c \
 	$(SRC_DIR)/base_components/indicator_feedback.c \
@@ -162,6 +164,7 @@ COMMON_SOURCES := \
 	$(SRC_DIR)/base_components/interlock.c \
 	$(SRC_DIR)/base_components/battery.c \
 	$(SRC_DIR)/device_config/config_nv.c \
+	$(SRC_DIR)/device_config/device_config_service.c \
 	$(SRC_DIR)/device_config/device_params_nv.c \
 	$(SRC_DIR)/device_config/reset.c \
 	$(SRC_DIR)/device_config/system_action.c \
@@ -170,7 +173,8 @@ COMMON_SOURCES := \
 	$(SRC_DIR)/device_config/device_composition.c \
 	$(SRC_DIR)/device_config/nvm_migrations.c \
 	$(SRC_DIR)/zigbee/basic_cluster.c \
-	$(SRC_DIR)/zigbee/general_commands.c \
+	$(SRC_DIR)/zigbee/device_config_cluster.c \
+	$(SRC_DIR)/zigbee/device_diagnostics_cluster.c \
 	$(SRC_DIR)/zigbee/group_cluster.c \
 	$(SRC_DIR)/zigbee/relay_cluster.c \
 	$(SRC_DIR)/zigbee/switch_cluster.c \

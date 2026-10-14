@@ -3,7 +3,9 @@
 #include "poll_control_cluster.h"
 
 #include "cluster_common.h"
-#include "consts.h"
+#include "zcl_cluster_defs.h"
+#include "zcl_ids.h"
+#include "zcl_types.h"
 #include "device_config/nvm_items.h"
 #include "hal/nvm.h"
 #include "hal/printf_selector.h"
@@ -213,18 +215,19 @@ static hal_zigbee_cmd_result_t poll_control_cmd_callback(
 }
 
 static hal_zigbee_cmd_result_t poll_control_cmd_trampoline(
-    uint8_t endpoint, uint16_t cluster_id, uint8_t command_id,
-    void *cmd_payload, uint16_t cmd_payload_len) {
-    if (poll_ctrl_instance == NULL)
+    const hal_zigbee_incoming_command_t *command) {
+    if (poll_ctrl_instance == NULL || command == NULL ||
+        command->destination_endpoint != poll_ctrl_instance->endpoint)
         return HAL_ZIGBEE_CMD_SKIPPED;
 
-    return poll_control_cmd_callback(poll_ctrl_instance, command_id,
-                                     cmd_payload, cmd_payload_len);
+    return poll_control_cmd_callback(poll_ctrl_instance, command->command_id,
+                                     (void *)command->payload,
+                                     command->payload_len);
 }
 
 // Attribute write handler
 
-void poll_control_cluster_callback_attr_write(uint16_t attribute_id) {
+static void poll_control_cluster_on_write_attr(uint16_t attribute_id) {
     if (poll_ctrl_instance == NULL)
         return;
 
@@ -250,6 +253,34 @@ void poll_control_cluster_callback_attr_write(uint16_t attribute_id) {
                cluster->fast_poll_timeout);
         poll_control_store_to_nv(cluster);
     }
+}
+
+static hal_zigbee_cmd_result_t poll_control_cluster_attr_write(
+    uint8_t endpoint, uint16_t attribute_id, const uint8_t *candidate,
+    uint16_t candidate_len, hal_zigbee_attr_write_phase_t phase) {
+    zigbee_poll_control_cluster *cluster = poll_ctrl_instance;
+
+    if (cluster == NULL || endpoint != cluster->endpoint || candidate == NULL)
+        return HAL_ZIGBEE_CMD_SKIPPED;
+
+    if (attribute_id == ZCL_ATTR_POLL_CTRL_CHECK_IN_INTERVAL) {
+        uint32_t interval;
+
+        if (candidate_len != sizeof(interval)) return HAL_ZIGBEE_INVALID_VALUE;
+
+        interval = (uint32_t)candidate[0] | ((uint32_t)candidate[1] << 8) |
+                   ((uint32_t)candidate[2] << 16) | ((uint32_t)candidate[3] << 24);
+        if (interval != 0 && interval < cluster->long_poll_interval)
+            return HAL_ZIGBEE_INVALID_VALUE;
+    } else if (attribute_id == ZCL_ATTR_POLL_CTRL_FAST_POLL_TIMEOUT) {
+        if (candidate_len != sizeof(cluster->fast_poll_timeout))
+            return HAL_ZIGBEE_INVALID_VALUE;
+    } else {
+        return HAL_ZIGBEE_CMD_SKIPPED;
+    }
+    if (phase == HAL_ZIGBEE_ATTR_COMMIT)
+        poll_control_cluster_on_write_attr(attribute_id);
+    return HAL_ZIGBEE_CMD_PROCESSED;
 }
 
 // Public API
@@ -285,23 +316,24 @@ void poll_control_cluster_add_to_endpoint(zigbee_poll_control_cluster *cluster,
 
     // Setup attributes
     SETUP_ATTR(0, ZCL_ATTR_POLL_CTRL_CHECK_IN_INTERVAL, ZCL_DATA_TYPE_UINT32,
-               ATTR_WRITABLE, cluster->check_in_interval);
+               (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->check_in_interval);
     SETUP_ATTR(1, ZCL_ATTR_POLL_CTRL_LONG_POLL_INTERVAL, ZCL_DATA_TYPE_UINT32,
-               ATTR_READONLY, cluster->long_poll_interval);
+               HAL_ATTR_READ, cluster->long_poll_interval);
     SETUP_ATTR(2, ZCL_ATTR_POLL_CTRL_SHORT_POLL_INTERVAL,
-               ZCL_DATA_TYPE_UINT16, ATTR_READONLY,
+               ZCL_DATA_TYPE_UINT16, HAL_ATTR_READ,
                cluster->short_poll_interval);
     SETUP_ATTR(3, ZCL_ATTR_POLL_CTRL_FAST_POLL_TIMEOUT, ZCL_DATA_TYPE_UINT16,
-               ATTR_WRITABLE, cluster->fast_poll_timeout);
+               (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->fast_poll_timeout);
     SETUP_ATTR(4, ZCL_ATTR_GLOBAL_CLUSTER_REVISION, ZCL_DATA_TYPE_UINT16,
-               ATTR_READONLY, cluster->cluster_revision);
+               HAL_ATTR_READ, cluster->cluster_revision);
 
     hal_zigbee_cluster endpoint_cluster = {
-        .cluster_id      = ZCL_CLUSTER_POLL_CONTROL,
-        .is_server       =                           1,
-        .attribute_count =                           5,
-        .attributes      = cluster->attr_infos,
-        .cmd_callback    = poll_control_cmd_trampoline,
+        .cluster_id          = ZCL_CLUSTER_POLL_CONTROL,
+        .role                = HAL_ZIGBEE_ROLE_SERVER,
+        .attribute_count     =                               5,
+        .attributes          = cluster->attr_infos,
+        .cmd_callback        = poll_control_cmd_trampoline,
+        .attr_write_callback = poll_control_cluster_attr_write,
     };
 
     hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity,

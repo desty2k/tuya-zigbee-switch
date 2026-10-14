@@ -35,29 +35,13 @@ bool capability_state_store_cover_switch(uint8_t id, const action_cover_switch_r
 }
 
 void capability_state_clear_owned(void) {
-    for (uint8_t i = 0; i < MAX_RELAYS; i++) hal_nvm_delete(NV_ITEM_RELAY_STATE(i));
-    for (uint8_t i = 0;
-         i < MAX_SWITCHES; i++) hal_nvm_delete(NV_ITEM_ACTION_SWITCH_STATE(i)); for (uint8_t i = 0;
-                                                                                     i <
-                                                                                     MAX_COVER_SWITCHES;
-                                                                                     i++)
+    for (uint8_t i = 0; i < MAX_RELAYS; i++) {
+        hal_nvm_delete(NV_ITEM_RELAY_STATE(i));
+    }
+    for (uint8_t i = 0; i < MAX_SWITCHES; i++) {
+        hal_nvm_delete(NV_ITEM_ACTION_SWITCH_STATE(i));
+    }
+    for (uint8_t i = 0; i < MAX_COVER_SWITCHES; i++) {
         hal_nvm_delete(NV_ITEM_ACTION_COVER_SWITCH_STATE(i));
-}
-
-bool capability_state_migrate_released(void) {
-    relay_state_record_t relay; action_switch_record_t sw; action_cover_switch_record_t cover;
-
-    for (uint8_t i = 0; i < MAX_RELAYS;
-         i++) if (load(NV_ITEM_RELAY_CLUSTER_DATA(i), sizeof(relay),
-                       &relay) && !capability_state_store_relay(i, &relay)) return false;
-
-    for (uint8_t i = 0; i < MAX_SWITCHES;
-         i++) if (load(NV_ITEM_SWITCH_CLUSTER_DATA(i), sizeof(sw),
-                       &sw) && !capability_state_store_switch(i, &sw)) return false;
-
-    for (uint8_t i = 0; i < MAX_COVER_SWITCHES;
-         i++) if (load(NV_ITEM_COVER_SWITCH_CONFIG(i), sizeof(cover),
-                       &cover) && !capability_state_store_cover_switch(i, &cover)) return false;
-
-    return true;
+    }
 }

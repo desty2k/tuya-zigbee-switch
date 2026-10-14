@@ -11,7 +11,7 @@
 #include "stub/stub_app.h"
 #include "base_components/button_input.h"
 #include "base_components/gesture_fsm.h"
-#include "zigbee/consts.h"
+#include "zigbee/zcl_cluster_defs.h"
 #include "zigbee/button_event_cluster.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,6 +36,34 @@ static int parse_u16_hex(const char *s, uint16_t *out) {
         return -1;
 
     *out = (uint16_t)v;
+    return 0;
+}
+
+static int hex_digit_value(char digit) {
+    if (digit >= '0' && digit <= '9') return digit - '0';
+
+    if (digit >= 'a' && digit <= 'f') return digit - 'a' + 10;
+
+    if (digit >= 'A' && digit <= 'F') return digit - 'A' + 10;
+
+    return -1;
+}
+
+static int parse_hex_bytes(const char *text, uint8_t *bytes,
+                           size_t capacity, uint16_t *length) {
+    size_t text_length = strlen(text);
+
+    if ((text_length & 1) != 0 || text_length / 2 > capacity) return -1;
+
+    for (size_t i = 0; i < text_length / 2; i++) {
+        int high = hex_digit_value(text[i * 2]);
+        int low  = hex_digit_value(text[i * 2 + 1]);
+
+        if (high < 0 || low < 0) return -1;
+
+        bytes[i] = (uint8_t)((high << 4) | low);
+    }
+    *length = (uint16_t)(text_length / 2);
     return 0;
 }
 
@@ -189,6 +217,24 @@ static int cmd_announce_fail(int argc, char **argv) {
     return 0;
 }
 
+static int cmd_nvm_fail(int argc, char **argv) {
+    char *        e;
+    unsigned long count;
+
+    if (argc != 2) {
+        io_res_err("usage");
+        return -1;
+    }
+    count = strtoul(argv[1], &e, 10);
+    if (*argv[1] == '\0' || *e || count > UINT32_MAX) {
+        io_res_err("bad_value");
+        return -1;
+    }
+    stub_nvm_reject_next_writes((uint32_t)count);
+    io_res_ok("count=%lu", count);
+    return 0;
+}
+
 static int cmd_pin(int argc, char **argv) {
     if (argc != 3) {
         fprintf(stderr, "Usage: p <pin> <0|1>\n");
@@ -275,17 +321,62 @@ static int cmd_zcl_write(int argc, char **argv) {
         io_res_err("attr_not_found ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
         return -1;
     }
+    if ((attr->flag & HAL_ATTR_WRITE) == 0) {
+        io_res_err("read_only ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
+        return -1;
+    }
 
-    int ret = stub_app_string_to_attribute_value(attr, argv[4]);
+    uint8_t candidate[256];
+    hal_zigbee_attribute candidate_attr = *attr;
+
+    if (attr->size > sizeof(candidate)) {
+        io_res_err("value_too_large ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
+        return -1;
+    }
+    memcpy(candidate, attr->value, attr->size);
+    candidate_attr.value = candidate;
+    int ret = stub_app_string_to_attribute_value(&candidate_attr, argv[4]);
     if (ret != 0) {
         fprintf(stderr, "Failed to parse value for attribute (code %d)\n", ret);
         io_res_err("bad_value ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
         return -1;
     }
 
-    stub_simulate_zigbee_attribute_write(ep, cl, at);
+    if (stub_simulate_zigbee_attribute_write(ep, cl, at, candidate, attr->size) !=
+        HAL_ZIGBEE_CMD_PROCESSED) {
+        io_res_err("rejected ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
+        return -1;
+    }
     io_res_ok("ep=%d cluster=0x%04X attr=0x%04X value=%s", ep, cl, at, argv[4]);
 
+    return 0;
+}
+
+static int cmd_zcl_write_raw(int argc, char **argv) {
+    uint8_t  ep;
+    uint16_t cl;
+    uint16_t at;
+    uint16_t candidate_len;
+    uint8_t  candidate[256];
+    hal_zigbee_attribute *attr;
+
+    if (argc != 5 || parse_u8_dec(argv[1], &ep) ||
+        parse_u16_hex(argv[2], &cl) || parse_u16_hex(argv[3], &at) ||
+        parse_hex_bytes(argv[4], candidate, sizeof(candidate), &candidate_len)) {
+        io_res_err("bad_args");
+        return -1;
+    }
+    attr = stub_app_find_attr(ep, cl, at);
+    if (attr == NULL) {
+        io_res_err("attr_not_found ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
+        return -1;
+    }
+    if (stub_simulate_zigbee_attribute_write(ep, cl, at, candidate, candidate_len) !=
+        HAL_ZIGBEE_CMD_PROCESSED) {
+        io_res_err("rejected ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
+        return -1;
+    }
+    io_res_ok("ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
     return 0;
 }
 
@@ -299,7 +390,10 @@ static int cmd_zcl_attr_callback(int argc, char **argv) {
         io_res_err("usage");
         return -1;
     }
-    stub_simulate_zigbee_attribute_write(ep, cl, at);
+    hal_zigbee_attribute *attr = stub_app_find_attr(ep, cl, at);
+    if (attr != NULL)
+        (void)stub_simulate_zigbee_attribute_write(ep, cl, at, attr->value,
+                                                   attr->size);
     io_res_ok("ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
     return 0;
 }
@@ -532,11 +626,13 @@ static const SimpleReplCommand kCmds[] = {
     { "net",                 cmd_net                 },
     { "tx_fail",             cmd_tx_fail             },
     { "announce_fail",       cmd_announce_fail       },
+    { "nvm_fail",            cmd_nvm_fail            },
     { "set_pin",             cmd_pin                 },
     { "pin_edge",            cmd_pin_edge            },
     { "read_pin",            cmd_read_pin            },
     { "zcl_read",            cmd_zcl_read            },
     { "zcl_write",           cmd_zcl_write           },
+    { "zcl_write_raw",       cmd_zcl_write_raw       },
     { "zcl_attr_callback",   cmd_zcl_attr_callback   },
     { "zcl_list_attrs",      cmd_zcl_list_attrs      },
     { "zcl_cmd",             cmd_zcl_cmd             },

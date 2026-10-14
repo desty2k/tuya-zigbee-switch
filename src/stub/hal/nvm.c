@@ -11,6 +11,8 @@
 #define MAX_NVM_ITEMS    256
 #define NVM_DATA_DIR     "./stub_nvm_data"
 
+static uint32_t rejected_writes;
+
 static void ensure_nvm_dir(void) {
     struct stat st = { 0 };
 
@@ -32,6 +34,11 @@ static char *get_item_filename(uint8_t item_id) {
 }
 
 hal_nvm_status_t hal_nvm_write(uint8_t item_id, uint16_t size, uint8_t *data) {
+    if (rejected_writes != 0) {
+        rejected_writes--;
+        io_log("NVM", "Rejecting write to item %02x", item_id);
+        return HAL_NVM_ERROR;
+    }
     if (!data) {
         io_log("NVM",
                "Error: NULL data pointer passed to hal_nvm_write for item %02x",
@@ -64,6 +71,10 @@ hal_nvm_status_t hal_nvm_write(uint8_t item_id, uint16_t size, uint8_t *data) {
 
     io_log("NVM", "Wrote %d bytes to item %02x", size, item_id);
     return HAL_NVM_SUCCESS;
+}
+
+void stub_nvm_reject_next_writes(uint32_t count) {
+    rejected_writes = count;
 }
 
 hal_nvm_status_t hal_nvm_read(uint8_t item_id, uint16_t size, uint8_t *data) {

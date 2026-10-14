@@ -182,6 +182,33 @@ TEST(interlock_deferral_notifies_only_on_applied_activation) {
     ASSERT_EQ(RELAY_SOURCE_INTERLOCK, state_logs[1].source);
 }
 
+TEST(off_cancels_a_deferred_relay_that_was_previously_initialized_off) {
+    relay_driver_t peer_driver = {
+        .on_pin = 12, .off_pin = HAL_INVALID_PIN, .on_high = 1, .is_latching = 0,
+    };
+    relay_config_t peer_config = { 0 };
+
+    reset_controller(false);
+    ASSERT_EQ(1, relay_ctrl_add(&peer_driver, &peer_config));
+    ASSERT_TRUE(interlock_add_group(1, 0x03, 50));
+    relay_ctrl_set_interlock_group(0, 1);
+    relay_ctrl_set_interlock_group(1, 1);
+    ASSERT_EQ(RELAY_RESULT_APPLIED, submit(RELAY_REQUEST_OFF, RELAY_SOURCE_COVER));
+    ASSERT_EQ(RELAY_RESULT_APPLIED, relay_ctrl_submit(&(relay_request_t){
+        .relay_id = 1, .type = RELAY_REQUEST_OFF, .source = RELAY_SOURCE_COVER,
+    }));
+    ASSERT_EQ(RELAY_RESULT_APPLIED, submit(RELAY_REQUEST_ON, RELAY_SOURCE_COVER));
+    ASSERT_EQ(RELAY_RESULT_DEFERRED, relay_ctrl_submit(&(relay_request_t){
+        .relay_id = 1, .type = RELAY_REQUEST_ON, .source = RELAY_SOURCE_COVER,
+    }));
+    ASSERT_EQ(RELAY_RESULT_UNCHANGED, relay_ctrl_submit(&(relay_request_t){
+        .relay_id = 1, .type = RELAY_REQUEST_OFF, .source = RELAY_SOURCE_COVER,
+    }));
+    fake_clock_advance_ms(50);
+    fake_tasks_poll();
+    ASSERT_TRUE(!relay_ctrl_is_on(1));
+}
+
 TEST(source_owned_inhibitors_block_on_like_requests_and_preserve_off) {
     reset_controller(false);
     ASSERT_TRUE(relay_ctrl_inhibit(0x01, 1));
@@ -220,6 +247,7 @@ int main(void) {
     RUN_TEST(timed_requests_expire_across_millis_wraparound);
     RUN_TEST(observer_capacity_order_and_actual_transitions);
     RUN_TEST(interlock_deferral_notifies_only_on_applied_activation);
+    RUN_TEST(off_cancels_a_deferred_relay_that_was_previously_initialized_off);
     RUN_TEST(source_owned_inhibitors_block_on_like_requests_and_preserve_off);
     RUN_TEST(controller_capacity_is_bounded);
     return test_runner_failures == 0 ? 0 : 1;

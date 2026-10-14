@@ -46,7 +46,6 @@ typedef struct {
 void cover_switch_cluster_add_to_endpoint(zigbee_cover_switch_cluster *cluster,
                                           hal_zigbee_endpoint *endpoint);
 
-void cover_switch_cluster_callback_attr_write_trampoline(uint8_t endpoint, uint16_t attribute_id);
 void cover_switch_cluster_register_input(void);
 void cover_switch_cluster_register_gestures(void);
 

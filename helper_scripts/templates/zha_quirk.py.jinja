@@ -20,6 +20,7 @@ from zigpy.zcl.clusters.general import OnOffConfiguration, SwitchType, Multistat
 from zigpy.zcl.clusters.closures import WindowCovering
 from zigpy.zcl.foundation import ZCLAttributeDef, ZCLCommandDef
 import zigpy.types as t
+{% include "management_protocol.py.jinja" %}
 
 class RelayMode(t.enum8):
     Detached = 0x00

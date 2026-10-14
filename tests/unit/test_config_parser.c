@@ -1,4 +1,5 @@
 #include "device_config/config_parser.h"
+#include "support/fake_gpio_counter.h"
 #include "support/runner.h"
 
 #include <string.h>
@@ -177,6 +178,27 @@ TEST(rejects_conflicting_pins_and_invalid_references) {
     ASSERT_EQ(CONFIG_PARSE_REFERENCE, device_composition_validate(&composition));
 }
 
+TEST(rejects_unavailable_or_conflicting_meter_counter_routes) {
+    device_composition_t composition = valid_composition();
+
+    composition.endpoint_count = 1;
+    composition.meter_count = 1;
+    composition.meters[0] = (device_meter_config_t){
+        .counter_pins = { 8, 9 },
+        .counter_count = 2,
+    };
+    fake_gpio_counter_reset();
+    ASSERT_EQ(CONFIG_PARSE_OK, device_composition_validate(&composition));
+    fake_gpio_counter_set_route(1, false);
+    ASSERT_EQ(CONFIG_PARSE_RESOURCE, device_composition_validate(&composition));
+    fake_gpio_counter_set_route(1, true);
+    composition.meters[0].counter_pins[1] = 8;
+    ASSERT_EQ(CONFIG_PARSE_PIN_CONFLICT, device_composition_validate(&composition));
+    composition.meters[0].counter_pins[1] = 9;
+    fake_gpio_counter_set_capacity(1);
+    ASSERT_EQ(CONFIG_PARSE_RESOURCE, device_composition_validate(&composition));
+}
+
 TEST(parser_failure_zeroes_the_output) {
     device_composition_t composition;
     uint8_t *bytes = (uint8_t *)&composition;
@@ -197,6 +219,7 @@ int main(void) {
     RUN_TEST(rejects_each_bounded_array_overflow);
     RUN_TEST(rejects_endpoint_and_cluster_capacity_overflow);
     RUN_TEST(rejects_conflicting_pins_and_invalid_references);
+    RUN_TEST(rejects_unavailable_or_conflicting_meter_counter_routes);
     RUN_TEST(parser_failure_zeroes_the_output);
 
     return test_runner_failures == 0 ? 0 : 1;

@@ -15,6 +15,7 @@ const exposes = require("zigbee-herdsman-converters/lib/exposes");
 const ea = exposes.access;
 const e = exposes.presets;
 const Zcl = require('zigbee-herdsman').Zcl;
+{% include "management_protocol.js.jinja" %}
 {% if z2m_v1 %}
 const ota = require("zigbee-herdsman-converters/lib/ota");
 {% endif%}

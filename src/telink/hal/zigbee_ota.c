@@ -9,6 +9,7 @@
 #include "hal/zigbee_ota.h"
 #include "telink_zigbee_hal.h"
 #include "version_cfg.h"
+#include <string.h>
 
 // Forward declarations
 
@@ -30,8 +31,9 @@ void hal_ota_cluster_setup(hal_zigbee_cluster *cluster) {
     if (cluster == NULL) {
         return;
     }
+    memset(cluster, 0, sizeof(*cluster));
     cluster->cluster_id = ZCL_CLUSTER_OTA;
-    cluster->is_server  = 0;
+    cluster->role       = HAL_ZIGBEE_ROLE_CLIENT;
     // Attrs are managed by SDK internally
 }
 

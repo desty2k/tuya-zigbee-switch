@@ -147,6 +147,10 @@ relay_result_t relay_ctrl_submit(const relay_request_t *request) {
 
     timer_cancel(&runtime->auto_off_timer);
     runtime->auto_off_reason = auto_off_reason;
+    if (!target_on) {
+        runtime->deferred_on = false;
+        interlock_cancel_pending(request->relay_id);
+    }
     if (runtime->state_applied && runtime->is_on == target_on) {
         if (auto_off_reason != AUTO_OFF_NONE) {
             timer_restart(&runtime->auto_off_timer, auto_off_ms);
@@ -154,10 +158,7 @@ relay_result_t relay_ctrl_submit(const relay_request_t *request) {
         return RELAY_RESULT_UNCHANGED;
     }
 
-    if (!target_on) {
-        runtime->deferred_on = false;
-        interlock_cancel_pending(request->relay_id);
-    } else if (!interlock_prepare(request->relay_id)) {
+    if (target_on && !interlock_prepare(request->relay_id)) {
         runtime->deferred_auto_off_reason = auto_off_reason;
         runtime->deferred_auto_off_ms     = auto_off_ms;
         runtime->deferred_on = true;

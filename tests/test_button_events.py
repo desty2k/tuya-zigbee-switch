@@ -3,14 +3,14 @@ import struct
 from conftest import wait_for
 
 from tests.zcl_consts import (
-    ZCL_ATTR_BASIC_BUTTON_EVENTS_EMITTED,
-    ZCL_ATTR_BASIC_GESTURES_EMITTED,
-    ZCL_ATTR_BASIC_GPIO_EDGES_CAPTURED,
+    ZCL_ATTR_DIAGNOSTICS_BUTTON_EVENTS,
+    ZCL_ATTR_DIAGNOSTICS_GESTURES,
+    ZCL_ATTR_DIAGNOSTICS_GPIO_EDGES,
     ZCL_ATTR_BUTTON_EVENT_DEBOUNCE_MS,
     ZCL_ATTR_BUTTON_EVENT_LAST_EVENT_SEQ,
     ZCL_ATTR_BUTTON_EVENT_MULTI_CLICK_GAP,
     ZCL_ATTR_BUTTON_EVENT_STATE,
-    ZCL_CLUSTER_BASIC,
+    ZCL_CLUSTER_DEVICE_DIAGNOSTICS,
     ZCL_CLUSTER_BUTTON_EVENT,
     ZCL_CMD_BUTTON_EVENT,
 )
@@ -139,16 +139,16 @@ def test_basic_diagnostics_match_pipeline_counters(device, button_pin):
 
     assert int(
         device.read_zigbee_attr(
-            1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_GPIO_EDGES_CAPTURED
+            1, ZCL_CLUSTER_DEVICE_DIAGNOSTICS, ZCL_ATTR_DIAGNOSTICS_GPIO_EDGES
         )
     ) == counters["gpio_edges_captured"]
     assert int(
         device.read_zigbee_attr(
-            1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_BUTTON_EVENTS_EMITTED
+            1, ZCL_CLUSTER_DEVICE_DIAGNOSTICS, ZCL_ATTR_DIAGNOSTICS_BUTTON_EVENTS
         )
     ) == counters["button_events_emitted"]
     assert int(
         device.read_zigbee_attr(
-            1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_GESTURES_EMITTED
+            1, ZCL_CLUSTER_DEVICE_DIAGNOSTICS, ZCL_ATTR_DIAGNOSTICS_GESTURES
         )
     ) == counters["gestures_emitted"]

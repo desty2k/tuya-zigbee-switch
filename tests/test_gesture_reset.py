@@ -1,8 +1,8 @@
 from client import StubProc
 from conftest import Device, wait_for
 from tests.zcl_consts import (
-    ZCL_ATTR_BASIC_MULTI_PRESS_RESET_COUNT,
-    ZCL_CLUSTER_BASIC,
+    ZCL_ATTR_DEVICE_CONFIG_MULTI_PRESS_RESET,
+    ZCL_CLUSTER_DEVICE_CONFIG,
 )
 
 HAL_ZIGBEE_NETWORK_JOINED = 1
@@ -36,7 +36,7 @@ def test_zero_reset_count_disables_gesture_reset() -> None:
     with StubProc(device_config="A;B;SA0u;RB1;") as proc:
         device = Device(proc)
         device.write_zigbee_attr(
-            1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_MULTI_PRESS_RESET_COUNT, 0
+            1, ZCL_CLUSTER_DEVICE_CONFIG, ZCL_ATTR_DEVICE_CONFIG_MULTI_PRESS_RESET, 0
         )
         device.click_n("A0", 10)
 

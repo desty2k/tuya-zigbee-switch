@@ -25,6 +25,9 @@ extern uint8_t             allow_simultaneous_latching_pulses;
 extern battery_t           battery;
 
 void parse_config(void);
+void feature_wiring_build_recovery(void);
+feature_wiring_result_t feature_wiring_preflight(
+    const device_composition_t *composition);
 feature_wiring_result_t feature_wiring_build(
     const device_composition_t *composition);
 void feature_wiring_start(void);
