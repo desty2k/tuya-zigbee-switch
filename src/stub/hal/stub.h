@@ -81,6 +81,17 @@ hal_zigbee_cmd_result_t stub_simulate_zigbee_attribute_write_undivided(
     const uint16_t *attribute_ids, const uint8_t *const *candidates,
     const uint16_t *candidate_lens);
 
+/** A received ZCL foundation command payload, handled the way the patched
+ * Telink zcl_foundationCmdHandler() handles it: the frame check of
+ * zigbee/zcl_frame_check.h runs before any record is parsed. Writes, Write
+ * Undivided, Configure Reporting and Read Reporting Configuration are
+ * simulated; other commands answer HAL_ZIGBEE_CMD_SKIPPED. */
+hal_zigbee_cmd_result_t stub_zigbee_foundation_frame(uint8_t endpoint,
+                                                     uint16_t cluster_id,
+                                                     uint8_t command_id,
+                                                     const uint8_t *payload,
+                                                     uint16_t payload_len);
+
 // ADC stub functions
 void stub_set_adc_voltage_mv(uint16_t voltage_mv);
 void stub_set_battery_voltage_mv(uint16_t voltage_mv);

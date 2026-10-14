@@ -541,6 +541,45 @@ static int cmd_zcl_configure_reporting(int argc, char **argv) {
     return 0;
 }
 
+static const char *cmd_result_name(hal_zigbee_cmd_result_t result) {
+    switch (result) {
+    case HAL_ZIGBEE_CMD_PROCESSED:    return "PROCESSED";
+
+    case HAL_ZIGBEE_INVALID_VALUE:    return "INVALID_VALUE";
+
+    case HAL_ZIGBEE_MALFORMED_COMMAND: return "MALFORMED_COMMAND";
+
+    case HAL_ZIGBEE_ACTION_DENIED:    return "ACTION_DENIED";
+
+    case HAL_ZIGBEE_CMD_SKIPPED:      return "SKIPPED";
+
+    default:                          return "UNKNOWN";
+    }
+}
+
+/* zcl_foundation <ep> <cluster:hex> <cmd:hex> [payload hex] */
+static int cmd_zcl_foundation(int argc, char **argv) {
+    uint8_t  ep;
+    uint16_t cl;
+    uint16_t command_id;
+    uint8_t  payload[256];
+    uint16_t payload_len = 0;
+    hal_zigbee_cmd_result_t result;
+
+    if ((argc != 4 && argc != 5) || parse_u8_dec(argv[1], &ep) ||
+        parse_u16_hex(argv[2], &cl) || parse_u16_hex(argv[3], &command_id) ||
+        command_id > UINT8_MAX ||
+        (argc == 5 && parse_hex_bytes(argv[4], payload, sizeof(payload), &payload_len))) {
+        io_res_err("usage");
+        return -1;
+    }
+    result = stub_zigbee_foundation_frame(ep, cl, (uint8_t)command_id,
+                                          payload_len > 0 ? payload : NULL, payload_len);
+    io_res_ok("ep=%u cluster=0x%04X cmd=0x%02X result=%s payload_len=%u", ep, cl,
+              command_id, cmd_result_name(result), payload_len);
+    return 0;
+}
+
 static int cmd_read_pin(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr, "Usage: read_pin <pin>\n");
@@ -604,27 +643,7 @@ static int cmd_zcl_cmd_impl(int argc, char **argv, bool trigger_activity) {
             payload_len);
     }
 
-    const char *result_str;
-    switch (result) {
-    case HAL_ZIGBEE_CMD_PROCESSED:
-        result_str = "PROCESSED";
-        break;
-    case HAL_ZIGBEE_INVALID_VALUE:
-        result_str = "INVALID_VALUE";
-        break;
-    case HAL_ZIGBEE_MALFORMED_COMMAND:
-        result_str = "MALFORMED_COMMAND";
-        break;
-    case HAL_ZIGBEE_ACTION_DENIED:
-        result_str = "ACTION_DENIED";
-        break;
-    case HAL_ZIGBEE_CMD_SKIPPED:
-        result_str = "SKIPPED";
-        break;
-    default:
-        result_str = "UNKNOWN";
-        break;
-    }
+    const char *result_str = cmd_result_name(result);
 
     printf("ZCL command result: %s (ep=%d, cluster=0x%04X, cmd=0x%02X, "
            "payload_len=%d)\n",
@@ -891,6 +910,7 @@ static const SimpleReplCommand kCmds[] = {
     { "zcl_graph_usage",         cmd_zcl_graph_usage         },
     { "zcl_clusters",            cmd_zcl_clusters            },
     { "zcl_configure_reporting", cmd_zcl_configure_reporting },
+    { "zcl_foundation",          cmd_zcl_foundation          },
     { "zcl_cmd",                 cmd_zcl_cmd                 },
     { "zcl_cmd_no_activity",     cmd_zcl_cmd_no_activity     },
     { "freeze_time",             cmd_freeze_time             },
