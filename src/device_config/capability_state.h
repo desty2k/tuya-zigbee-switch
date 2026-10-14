@@ -24,6 +24,13 @@ bool capability_state_load_cover_switch(uint8_t id, action_cover_switch_record_t
 bool capability_state_store_cover_switch(uint8_t id, const action_cover_switch_record_t *record);
 void capability_state_clear_owned(void);
 
+/**
+ * Deletes every relay record when the relay topology differs from the one
+ * the records were written under, then stores the new topology. Without a
+ * stored topology the existing records are kept and the topology recorded.
+ */
+void capability_state_sync_relay_topology(uint32_t topology);
+
 /** Rewrites cover switch records stored without the long-press duration,
  * keeping their settings and adding COVER_SWITCH_DEFAULT_HOLD_MS. */
 void capability_state_add_cover_switch_hold(void);

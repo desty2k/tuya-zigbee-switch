@@ -21,9 +21,17 @@ typedef struct {
 } interlock_group_t;
 
 void interlock_init(void);
-bool interlock_add_group(uint8_t group_id, uint16_t relay_mask,
-                         uint16_t dead_time_ms);
-void interlock_set_relay_group(uint8_t relay_id, uint8_t group_id);
+
+/** Creates an empty group; relays join through interlock_set_relay_group.
+ * Fails for INTERLOCK_NO_GROUP, an existing id or a full group table. */
+bool interlock_add_group(uint8_t group_id, uint16_t dead_time_ms);
+
+/** Moves a relay to an existing group, or out of any group with
+ * INTERLOCK_NO_GROUP. Fails, changing nothing, for an unknown group id. */
+bool interlock_set_relay_group(uint8_t relay_id, uint8_t group_id);
+
+/** Group of a relay, INTERLOCK_NO_GROUP when it has none. */
+uint8_t interlock_relay_group(uint8_t relay_id);
 bool interlock_prepare(uint8_t relay_id);
 void interlock_cancel_pending(uint8_t relay_id);
 void interlock_note_off(uint8_t relay_id);

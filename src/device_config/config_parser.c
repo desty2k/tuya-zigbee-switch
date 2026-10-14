@@ -210,7 +210,7 @@ static config_parse_result_t parse_token(const char *token,
         }
     } else if (token[0] == 'K') {
         uint16_t mask;
-        uint16_t dead_time_ms = 0;
+        uint16_t dead_time_ms = DEVICE_COMPOSITION_DEFAULT_DEAD_TIME_MS;
 
         if (!parse_hex_mask(token + 1, &mask, &end) ||
             (*end != '\0' && (*end != ':' || !parse_uint16(end + 1, &dead_time_ms)))) {

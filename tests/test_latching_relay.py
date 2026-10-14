@@ -218,3 +218,23 @@ def test_off_pin_is_a0() -> None:
 
     finally:
         p.stop()
+
+
+def test_coil_pulse_is_retried_when_its_timer_cannot_be_armed(
+    latching_device: Device, pins_config: list[LatchingRelayTestConfig]
+) -> None:
+    cfg = pins_config[0]
+    latching_device.task_fail(1)
+    latching_device.call_zigbee_cmd(cfg.ep, ZCL_CLUSTER_ON_OFF, 0x01)
+    duration = 0
+    seen_high = False
+    for _ in range(400):
+        latching_device.step_time(1)
+        if latching_device.get_gpio(cfg.on_pin, refresh=True):
+            seen_high = True
+            duration += 1
+        elif seen_high:
+            break
+    assert seen_high
+    assert latching_device.get_gpio(cfg.on_pin, refresh=True) is False
+    assert 50 <= duration <= 200

@@ -17,9 +17,17 @@ typedef struct {
     app_timer_t    latch_timer;
     uint8_t        latch_waiting;
     bool           pending_on;
+    bool           retry_pending;
 } relay_driver_t;
 
 void relay_driver_init(relay_driver_t *driver);
 void relay_driver_apply(relay_driver_t *driver, bool on);
+
+/**
+ * Restarts a latching pulse whose timer could not be armed. A coil is only
+ * energised once its end-of-pulse timer is armed, so a failed arm delays the
+ * pulse but never leaves a coil powered.
+ */
+void relay_driver_retry(relay_driver_t *driver);
 
 #endif

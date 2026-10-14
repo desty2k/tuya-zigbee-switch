@@ -63,9 +63,9 @@ static void boot_controller(uint32_t safety_ms) {
         relay_configs[i] = (relay_config_t){ 0 };
         ASSERT_EQ(i, relay_ctrl_add(&drivers[i], &relay_configs[i]));
     }
-    ASSERT_TRUE(interlock_add_group(1, 0x03, 50));
-    relay_ctrl_set_interlock_group(0, 1);
-    relay_ctrl_set_interlock_group(1, 1);
+    ASSERT_TRUE(interlock_add_group(1, 50));
+    ASSERT_TRUE(interlock_set_relay_group(0, 1));
+    ASSERT_TRUE(interlock_set_relay_group(1, 1));
     cover_controller_init();
     ASSERT_EQ(0, cover_controller_add(&(cover_controller_config_t){
         .open_relay_id = 0, .close_relay_id = 1, .manual_max_run_ms = safety_ms,

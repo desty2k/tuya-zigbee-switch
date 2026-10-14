@@ -50,10 +50,12 @@ New tokens:
 | Token | Meaning | Default |
 | --- | --- | --- |
 | `G<N>` | global multi-click gap in ms for all gesture-enabled buttons | 350 |
-| `K<mask>[:<dead_ms>]` | interlock group; `mask` is hex over logical relay ids (`K07` = relays 0,1,2); repeatable | none |
+| `K<mask>[:<dead_ms>]` | interlock group; `mask` is hex over logical relay ids (`K07` = relays 0,1,2); repeatable; `dead_ms` defaults to 200 | none |
 
 Cover endpoints implicitly create an interlock group over their relay pair with
-`dead_time_ms = 200`; no token is needed.
+`dead_time_ms = 200`; no token is needed. Group membership from the config
+string cannot be overridden over Zigbee (see
+[07_relay_controller.md](./07_relay_controller.md#interlock)).
 
 ## ZCL configuration attributes
 
@@ -87,6 +89,14 @@ listed in [08_zigbee_events.md](./08_zigbee_events.md).
 | Relay on/off state when `StartUpOnOff` is `TOGGLE` or `PREVIOUS` | Zigbee button event queue, event `seq` |
 | Cover switch endpoint config | diagnostic counters |
 | `MultiPressResetCount` | button state (re-read from GPIO at boot) |
+
+Relay endpoint records belong to the relay topology they were written under
+(relay pins and kind, the relay behind each endpoint, `K` groups and cover
+relay pairs; `device_composition_relay_topology()`). At boot the topology is
+compared with the one stored in `NV_ITEM_RELAY_TOPOLOGY`; when it differs every
+relay record is deleted, so a startup mode or inching duration chosen for one
+load never applies to another. A missing topology record keeps the existing
+records.
 
 ## NVM migration
 

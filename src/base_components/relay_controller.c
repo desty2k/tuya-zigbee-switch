@@ -59,20 +59,11 @@ uint8_t relay_ctrl_add(relay_driver_t *driver, relay_config_t *config) {
         return UINT8_MAX;
     }
 
-    relay_ctrl_runtimes[relay_id].is_on                    = false;
-    relay_ctrl_runtimes[relay_id].state_applied            = false;
-    relay_ctrl_runtimes[relay_id].relay_id                 = relay_id;
-    relay_ctrl_runtimes[relay_id].inhibit_mask             = 0;
-    relay_ctrl_runtimes[relay_id].auto_off_reason          = AUTO_OFF_NONE;
-    relay_ctrl_runtimes[relay_id].deferred_auto_off_reason = AUTO_OFF_NONE;
-    relay_ctrl_runtimes[relay_id].deferred_auto_off_ms     = 0;
-    relay_ctrl_runtimes[relay_id].deferred_on              = false;
-    relay_ctrl_runtimes[relay_id].config                   = config;
-    relay_ctrl_runtimes[relay_id].driver                   = driver;
-    for (uint8_t i = 0; i < RELAY_CONTROLLER_MAX_OBSERVERS; i++) {
-        relay_ctrl_runtimes[relay_id].observers[i].callback = NULL;
-        relay_ctrl_runtimes[relay_id].observers[i].context  = NULL;
-    }
+    relay_ctrl_runtimes[relay_id] = (relay_runtime_t){
+        .relay_id = relay_id,
+        .config   = config,
+        .driver   = driver,
+    };
     timer_init(&relay_ctrl_runtimes[relay_id].auto_off_timer,
                relay_ctrl_auto_off, &relay_ctrl_runtimes[relay_id]);
     relay_driver_init(driver);
@@ -102,23 +93,38 @@ bool relay_ctrl_subscribe(uint8_t relay_id, relay_state_cb_t callback,
     return false;
 }
 
+/*
+ * A configured inching duration turns every plain ON into a pulse, whatever
+ * the source, so an impulse load (a garage door opener) is never left
+ * energised. ON_TIMED keeps its own deadline but never runs past the
+ * inching duration.
+ */
 relay_result_t relay_ctrl_submit(const relay_request_t *request) {
-    relay_runtime_t * runtime;
-    bool              target_on;
-    uint32_t          auto_off_ms     = 0;
-    auto_off_reason_t auto_off_reason = AUTO_OFF_NONE;
+    relay_runtime_t *    runtime;
+    bool                 target_on;
+    uint32_t             auto_off_ms     = 0;
+    auto_off_reason_t    auto_off_reason = AUTO_OFF_NONE;
+    relay_request_type_t type;
 
     if (request == NULL || request->relay_id >= relay_ctrl_relay_count) {
         return RELAY_RESULT_INVALID;
     }
     runtime = &relay_ctrl_runtimes[request->relay_id];
-    if (request->type == RELAY_REQUEST_TOGGLE) {
-        target_on = !runtime->is_on;
-    } else if (request->type == RELAY_REQUEST_ON) {
+    type    = request->type;
+    if (type == RELAY_REQUEST_TOGGLE) {
+        /* A relay waiting out interlock dead time counts as on, so a second
+         * toggle cancels the pending switch-on. */
+        type = runtime->is_on || runtime->deferred_on ? RELAY_REQUEST_OFF
+                                                      : RELAY_REQUEST_ON;
+    }
+    if (type == RELAY_REQUEST_ON && runtime->config->inching_ms != 0) {
+        type = RELAY_REQUEST_PULSE;
+    }
+    if (type == RELAY_REQUEST_ON) {
         target_on = true;
-    } else if (request->type == RELAY_REQUEST_OFF) {
+    } else if (type == RELAY_REQUEST_OFF) {
         target_on = false;
-    } else if (request->type == RELAY_REQUEST_PULSE) {
+    } else if (type == RELAY_REQUEST_PULSE) {
         auto_off_ms = request->duration_ms != 0 ? request->duration_ms
                                                 : runtime->config->inching_ms;
         if (auto_off_ms == 0) {
@@ -126,15 +132,22 @@ relay_result_t relay_ctrl_submit(const relay_request_t *request) {
         }
         target_on       = true;
         auto_off_reason = AUTO_OFF_PULSE;
-    } else if (request->type == RELAY_REQUEST_ON_TIMED) {
+    } else if (type == RELAY_REQUEST_ON_TIMED) {
         target_on       = true;
         auto_off_ms     = request->duration_ms;
         auto_off_reason = AUTO_OFF_TIMED;
+        if (runtime->config->inching_ms != 0 &&
+            auto_off_ms > runtime->config->inching_ms) {
+            auto_off_ms = runtime->config->inching_ms;
+        }
     } else {
         return RELAY_RESULT_INVALID;
     }
 
     if (target_on && runtime->inhibit_mask != 0) {
+        if (request->source == RELAY_SOURCE_INTERLOCK) {
+            runtime->deferred_on = false;
+        }
         return RELAY_RESULT_BLOCKED;
     }
     if (request->source == RELAY_SOURCE_INTERLOCK && runtime->deferred_on) {
@@ -181,6 +194,12 @@ relay_result_t relay_ctrl_submit(const relay_request_t *request) {
     return RELAY_RESULT_APPLIED;
 }
 
+void relay_ctrl_process_pending(void) {
+    for (uint8_t i = 0; i < relay_ctrl_relay_count; i++) {
+        relay_driver_retry(relay_ctrl_runtimes[i].driver);
+    }
+}
+
 bool relay_ctrl_is_on(uint8_t relay_id) {
     return relay_id < relay_ctrl_relay_count &&
            relay_ctrl_runtimes[relay_id].is_on;
@@ -202,23 +221,18 @@ uint16_t relay_ctrl_get_inching_ms(uint8_t relay_id) {
            : 0;
 }
 
-void relay_ctrl_set_interlock_group(uint8_t relay_id, uint8_t group_id) {
-    if (relay_id < relay_ctrl_relay_count) {
-        relay_ctrl_runtimes[relay_id].config->interlock_group = group_id;
-        interlock_set_relay_group(relay_id, group_id);
-    }
-}
-
-uint8_t relay_ctrl_get_interlock_group(uint8_t relay_id) {
-    return relay_id < relay_ctrl_relay_count
-           ? relay_ctrl_runtimes[relay_id].config->interlock_group
-           : INTERLOCK_NO_GROUP;
-}
-
 auto_off_reason_t relay_ctrl_auto_off_reason(uint8_t relay_id) {
     return relay_id < relay_ctrl_relay_count
            ? relay_ctrl_runtimes[relay_id].auto_off_reason
            : AUTO_OFF_NONE;
+}
+
+uint32_t relay_ctrl_timed_on_remaining_ms(uint8_t relay_id) {
+    if (relay_id >= relay_ctrl_relay_count ||
+        relay_ctrl_runtimes[relay_id].auto_off_reason != AUTO_OFF_TIMED) {
+        return 0;
+    }
+    return timer_remaining_ms(&relay_ctrl_runtimes[relay_id].auto_off_timer);
 }
 
 void relay_ctrl_cancel_deferred_on(uint8_t relay_id) {

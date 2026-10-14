@@ -2,6 +2,7 @@
 #include "capability_state.h"
 #include "config_nv.h"
 #include "device_config/build_features.h"
+#include "device_config/capability_state.h"
 #include "device_config/config_parser.h"
 #include "device_config/device_config_service.h"
 #include "device_config/system_action.h"
@@ -32,6 +33,10 @@
 #include "zigbee/relay_cluster.h"
 #include "zigbee/switch_cluster.h"
 #include <string.h>
+
+#if DEVICE_COMPOSITION_MAX_RELAYS > RELAY_CONTROLLER_MAX_RELAYS
+#error "a parsed relay layout must fit the relay controller"
+#endif
 
 void parse_config(void) {
     device_composition_t  c;
@@ -186,6 +191,7 @@ static indicator_feedback_t *shared_indicator(const device_composition_t *c, uin
 #if FEATURE_RELAY
 static void wire_relay_clusters(const device_composition_t *c) {
     memset(relay_clusters, 0, sizeof(relay_clusters));
+    relay_cluster_config_interlock_count = c->interlock_count;
     for (uint8_t i = 0; i < relay_clusters_cnt; i++) {
         relay_clusters[i].relay_idx     = i;
         relay_clusters[i].relay_id      = c->relay_endpoint_ids[i];
@@ -223,6 +229,24 @@ static void wire_switch_clusters(const device_composition_t *c) {
 
 #endif
 
+/* `K` groups take ids 1..interlocks_cnt in config order. */
+static feature_wiring_result_t wire_interlocks(void) {
+    for (uint8_t i = 0; i < interlocks_cnt; i++) {
+        uint8_t g = i + 1;
+
+        if (!interlock_add_group(g, interlocks[i].dead_time_ms)) {
+            return FEATURE_WIRING_INVALID;
+        }
+        for (uint8_t r = 0; r < relays_cnt; r++) {
+            if ((interlocks[i].relay_mask & ((uint16_t)1 << r)) != 0 &&
+                !interlock_set_relay_group(r, g)) {
+                return FEATURE_WIRING_INVALID;
+            }
+        }
+    }
+    return FEATURE_WIRING_OK;
+}
+
 #if FEATURE_COVER
 
 /* Cover relays form one interlock group per cover, numbered after the
@@ -243,18 +267,18 @@ static feature_wiring_result_t wire_covers(const device_composition_t *c) {
         cover_switch_clusters[i].debounce_ms        = open_button->debounce_ms;
     }
     for (uint8_t i = 0; i < cover_clusters_cnt; i++) {
-        uint8_t  g    = interlocks_cnt + i + 1;
-        uint16_t mask = ((uint16_t)1 << c->covers[i].open_relay_id) |
-                        ((uint16_t)1 << c->covers[i].close_relay_id);
+        uint8_t g = interlocks_cnt + i + 1;
 
         cover_controller_configs[i] = (cover_controller_config_t){
             .open_relay_id     = c->covers[i].open_relay_id,
             .close_relay_id    = c->covers[i].close_relay_id,
             .manual_max_run_ms = COVER_DEFAULT_MANUAL_MAX_RUN_MS,
         };
-        interlock_add_group(g, mask, 200);
-        relay_ctrl_set_interlock_group(c->covers[i].open_relay_id, g);
-        relay_ctrl_set_interlock_group(c->covers[i].close_relay_id, g);
+        if (!interlock_add_group(g, DEVICE_COMPOSITION_DEFAULT_DEAD_TIME_MS) ||
+            !interlock_set_relay_group(c->covers[i].open_relay_id, g) ||
+            !interlock_set_relay_group(c->covers[i].close_relay_id, g)) {
+            return FEATURE_WIRING_INVALID;
+        }
     }
     for (uint8_t i = 0; i < cover_clusters_cnt; i++) {
         cover_clusters[i].controller_id = cover_controller_add(&cover_controller_configs[i]);
@@ -341,13 +365,8 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
 #if FEATURE_SWITCH
     wire_switch_clusters(c);
 #endif
-    for (uint8_t i = 0; i < interlocks_cnt; i++) {
-        uint8_t g = i + 1;
-        interlock_add_group(g, interlocks[i].relay_mask, interlocks[i].dead_time_ms);
-        for (uint8_t r = 0;
-             r < relays_cnt;
-             r++) if (interlocks[i].relay_mask & ((uint16_t)1 <<
-                                                  r)) relay_ctrl_set_interlock_group(r, g);
+    if (wire_interlocks() != FEATURE_WIRING_OK) {
+        return FEATURE_WIRING_INVALID;
     }
 #if FEATURE_COVER
     if (wire_covers(c) != FEATURE_WIRING_OK) {
@@ -384,6 +403,7 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
     }
 #endif
 #if FEATURE_RELAY
+    capability_state_sync_relay_topology(device_composition_relay_topology(c));
     for (uint8_t i = 0; i < relay_clusters_cnt; i++) {
         uint8_t e = switch_clusters_cnt + i;
         relay_cluster_add_to_endpoint(&relay_clusters[i], &endpoints[e]);

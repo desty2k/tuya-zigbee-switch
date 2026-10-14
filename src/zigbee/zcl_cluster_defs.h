@@ -38,6 +38,8 @@
 #define ZCL_ONOFF_INDICATOR_MODE_SAME                                  0x00u
 #define ZCL_ONOFF_INDICATOR_MODE_OPPOSITE                              0x01u
 #define ZCL_ONOFF_INDICATOR_MODE_MANUAL                                0x02u
+#define ZCL_ONOFF_CONTROL_ACCEPT_ONLY_WHEN_ON                          0x01u
+#define ZCL_ONOFF_ON_TIME_NO_TIMEOUT                                   0xFFFFu
 #define ZCL_CMD_ONOFF_OFF                                              0x00u
 #define ZCL_CMD_ONOFF_ON                                               0x01u
 #define ZCL_CMD_ONOFF_TOGGLE                                           0x02u

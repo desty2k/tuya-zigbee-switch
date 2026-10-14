@@ -34,11 +34,27 @@ bool capability_state_store_cover_switch(uint8_t id, const action_cover_switch_r
     return r != 0 && store(NV_ITEM_ACTION_COVER_SWITCH_STATE(id), sizeof(*r), r);
 }
 
-void capability_state_clear_owned(void) {
-    for (uint8_t i = 0; i < MAX_RELAYS; i++) {
+static void clear_relay_states(void) {
+    for (uint8_t i = 0; i < MAX_RELAY_STATES; i++) {
         hal_nvm_delete(NV_ITEM_RELAY_STATE(i));
     }
-    for (uint8_t i = 0; i < MAX_SWITCHES; i++) {
+}
+
+void capability_state_sync_relay_topology(uint32_t topology) {
+    uint32_t stored;
+
+    if (load(NV_ITEM_RELAY_TOPOLOGY, sizeof(stored), &stored)) {
+        if (stored == topology) {
+            return;
+        }
+        clear_relay_states();
+    }
+    (void)store(NV_ITEM_RELAY_TOPOLOGY, sizeof(topology), &topology);
+}
+
+void capability_state_clear_owned(void) {
+    clear_relay_states();
+    for (uint8_t i = 0; i < MAX_SWITCH_STATES; i++) {
         hal_nvm_delete(NV_ITEM_ACTION_SWITCH_STATE(i));
     }
     for (uint8_t i = 0; i < MAX_COVER_SWITCHES; i++) {

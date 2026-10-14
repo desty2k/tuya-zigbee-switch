@@ -7,8 +7,6 @@ extern uint8_t allow_simultaneous_latching_pulses;
 
 static relay_driver_t *relay_driver_active_latch;
 
-static void relay_driver_start_latch(relay_driver_t *driver);
-
 static void relay_driver_end_latch(relay_driver_t *driver) {
     hal_gpio_write(driver->on_pin, !driver->on_high);
     hal_gpio_write(driver->off_pin, !driver->on_high);
@@ -23,14 +21,18 @@ static void relay_driver_start_latch(relay_driver_t *driver) {
 
     if (relay_driver_active_latch == NULL ||
         allow_simultaneous_latching_pulses) {
+        driver->latch_waiting = 0;
+        if (!timer_restart(&driver->latch_timer, RELAY_LATCH_PULSE_MS)) {
+            driver->retry_pending = true;
+            return;
+        }
         hal_gpio_write(pin, driver->on_high);
         relay_driver_active_latch = driver;
-        driver->latch_waiting     = 0;
-        timer_restart(&driver->latch_timer, RELAY_LATCH_PULSE_MS);
     } else {
         printf("relay_driver_start_latch: another pulse is active\r\n");
         driver->latch_waiting = 1;
-        timer_restart(&driver->latch_timer, RELAY_LATCH_WAIT_MS);
+        driver->retry_pending = !timer_restart(&driver->latch_timer,
+                                               RELAY_LATCH_WAIT_MS);
     }
 }
 
@@ -45,6 +47,7 @@ static void relay_driver_latch_handler(void *arg) {
 }
 
 void relay_driver_init(relay_driver_t *driver) {
+    driver->retry_pending = false;
     driver->latch_waiting = 0;
     driver->pending_on    = false;
     timer_init(&driver->latch_timer, relay_driver_latch_handler, driver);
@@ -62,6 +65,14 @@ void relay_driver_apply(relay_driver_t *driver, bool on) {
 
     relay_driver_end_latch(driver);
     timer_cancel(&driver->latch_timer);
-    driver->pending_on = on;
+    driver->retry_pending = false;
+    driver->pending_on    = on;
     relay_driver_start_latch(driver);
+}
+
+void relay_driver_retry(relay_driver_t *driver) {
+    if (driver->retry_pending) {
+        driver->retry_pending = false;
+        relay_driver_start_latch(driver);
+    }
 }

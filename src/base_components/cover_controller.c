@@ -234,9 +234,7 @@ static cover_position_confidence_t cover_stop_confidence(const cover_runtime_t *
 
 /* A second attempt covers a transiently full task pool. */
 static bool cover_arm(app_timer_t *timer, uint32_t delay_ms) {
-    timer_restart(timer, delay_ms);
-    if (!timer_is_active(timer)) timer_restart(timer, delay_ms);
-    return timer_is_active(timer);
+    return timer_restart(timer, delay_ms) || timer_restart(timer, delay_ms);
 }
 
 /* Arms the timer that stops the motor; false when none could be armed. */
