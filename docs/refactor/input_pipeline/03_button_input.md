@@ -46,7 +46,7 @@ typedef struct {
 
 | Parameter | Default | Range | Source |
 | --- | --- | --- | --- |
-| `debounce_ms` | 8 | 1..200 | global `D<N>` config token, per-button ZCL attribute |
+| `debounce_ms` | 50 | 1..200 | global `D<N>` config token, per-button ZCL attribute |
 | queue size | 32 edges | — | `GPIO_EDGE_QUEUE_SIZE` |
 
 ## Debounce algorithm
@@ -60,14 +60,24 @@ process_edge(e):                       # edges consumed in order
     new_state = (e.level == active_high) ? DOWN : UP
     if new_state == raw_state:
         return                          # duplicate level, ignore
-    if raw_state != stable_state and (e.timestamp - raw_since_ms) >= debounce_ms:
-        commit(raw_state, raw_since_ms)
+    if raw_state != stable_state and not e.deferred
+            and held(e.timestamp, raw_since_ms) >= debounce_ms:
+        commit(raw_state, raw_since_ms)  # a deferred edge proves nothing
     raw_state    = new_state
     raw_since_ms = e.timestamp
 
-tick(now):                              # after the queue is drained
+worker:
+    drain the queue through process_edge
+    now = hal_millis()                  # sampled after the drain
+    if an edge was dropped:
+        process_edge({each input's current level, now, deferred})
+    tick(now)
+
+held(at, since) = at - since, or 0 if at precedes since
+
+tick(now):
     if raw_state != stable_state:
-        if (now - raw_since_ms) >= debounce_ms:
+        if held(now, raw_since_ms) >= debounce_ms:
             commit(raw_state, raw_since_ms)
         else:
             arm worker at raw_since_ms + debounce_ms

@@ -42,7 +42,7 @@ Existing tokens keep their meaning:
 | `BT<pin>` | battery measurement pin |
 | `M` | all switch endpoints default to momentary |
 | `SLP` | allow simultaneous latching coil pulses |
-| `D<N>` | global debounce in ms, applies to all buttons |
+| `D<N>` | global debounce in ms (1–200), applies to all buttons |
 | `i<N>` | OTA image type |
 
 New tokens:

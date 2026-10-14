@@ -32,6 +32,11 @@ void fake_gpio_set_input(hal_gpio_pin_t pin, uint8_t level) {
 
 void fake_gpio_inject_edge(hal_gpio_pin_t pin, uint8_t level,
                            uint32_t timestamp_ms) {
+    fake_gpio_inject_edge_flags(pin, level, timestamp_ms, 0);
+}
+
+void fake_gpio_inject_edge_flags(hal_gpio_pin_t pin, uint8_t level,
+                                 uint32_t timestamp_ms, uint8_t flags) {
     if (pin >= FAKE_GPIO_PIN_MAX || !fake_gpio_pins[pin].watched ||
         fake_gpio_pins[pin].level == (level != 0)) {
         return;
@@ -45,6 +50,7 @@ void fake_gpio_inject_edge(hal_gpio_pin_t pin, uint8_t level,
         hal_gpio_edge_t edge = {
             .pin          = pin,
             .level        = level != 0,
+            .flags        = flags,
             .timestamp_ms = timestamp_ms,
             .seq          = fake_gpio_seq++,
         };

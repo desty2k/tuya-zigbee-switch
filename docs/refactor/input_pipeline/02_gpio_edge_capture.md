@@ -6,6 +6,7 @@
 typedef struct {
     hal_gpio_pin_t pin;
     uint8_t        level;        // 0 or 1, level after the transition
+    uint8_t        flags;        // HAL_GPIO_EDGE_DEFERRED
     uint32_t       timestamp_ms; // hal_millis() at capture
     uint32_t       seq;          // monotonic, incremented per emitted edge
 } hal_gpio_edge_t;
@@ -36,22 +37,26 @@ knows nothing about buttons, debounce, presses or relays.
 3. **Masked interrupts are allowed, lost transitions are not.** When a platform
    must temporarily disable or re-arm interrupts, it uses the capture procedure
    below.
-4. **Timestamps come from capture time**, not from consumption time.
+4. **Timestamps come from capture time**, not from consumption time. A change
+   observed while capture was blind (watched interrupts masked, or asleep) is
+   stamped when it is observed and carries `HAL_GPIO_EDGE_DEFERRED`: the new
+   level is known from that time on, but the previous level may have ended at
+   any point since its own edge.
 5. **Sink is IRQ-safe.** Implementations may call the sink from an ISR. The sink
    only pushes to the edge ring and schedules the worker task.
 
 ### Capture procedure for single-edge-polarity platforms
 
 ```text
-capture():
+capture(flags):
     now = hal_millis()
     snapshot = read all watched pins
     for each watched pin with snapshot[pin] != last_level[pin]:
         last_level[pin] = snapshot[pin]
-        emit edge {pin, snapshot[pin], now, seq++}
+        emit edge {pin, snapshot[pin], flags, now, seq++}
 
 on IRQ:
-    capture()
+    capture(0)
     disable watched IRQs
     schedule dispatch task (0..3 ms)
 
@@ -60,11 +65,11 @@ dispatch task:
     do:
         prev = snapshot of watched pins
         set IRQ polarity per current level for every watched pin
-        capture()                       # emits edges seen while re-arming
+        capture(DEFERRED)               # emits edges seen while re-arming
         tries++
     while snapshot changed and tries < MAX_REARM_TRIES
     enable watched IRQs
-    capture()                           # catches changes during enable
+    capture(DEFERRED)                   # catches changes during enable
 ```
 
 `MAX_REARM_TRIES = 50`. Reaching the limit increments
@@ -74,13 +79,13 @@ dispatch task:
 
 | Platform | Interrupt model | Notes |
 | --- | --- | --- |
-| Telink TLSR825x | One shared IRQ, single configurable polarity per pin | Uses the full capture procedure above; `drv_gpio_read_all` provides the snapshot; ISR-side `capture()` timestamps the first transition of a burst accurately |
+| Telink TLSR825x | One shared IRQ, single configurable polarity per pin | Uses the full capture procedure above; `drv_gpio_read_all` provides the snapshot; ISR-side `capture()` timestamps the first transition of a burst accurately, later transitions until the dispatch task runs are deferred |
 | Silabs EFR32 | Per-pin EXTI, rising+falling | ISR reads the pin, timestamps and calls `capture()` for that pin only; no re-arm loop needed |
-| Stub (host) | Test injection | `stub_gpio_simulate_input()` and `stub_gpio_inject_edges()` call `capture()` with the current virtual clock |
+| Stub (host) | Test injection | `set_pin`, `pin_edge` and `pin_burst` capture at the current virtual time; `pin_late` models a Telink main-loop stall and emits a deferred edge |
 
 Deep-retention wake (Telink end devices): after wake, GPIO SFRs are replayed and
-`capture()` runs once. Level changes that happened while sleeping surface as a
-single edge timestamped at wake time. Transitions that both began and ended
+`capture(DEFERRED)` runs once. Level changes that happened while sleeping
+surface as a single deferred edge timestamped at wake time. Transitions that both began and ended
 during sleep are not recoverable and are not simulated.
 
 ## Edge queue
@@ -106,7 +111,10 @@ Rules:
 - Single producer (ISR or HAL task), single consumer (worker task).
 - Entries are immutable once pushed. A newer edge never overwrites a pending one.
 - On overflow the push fails, the edge is discarded and `dropped` is incremented.
-  The queue is not resized and older entries are not evicted.
+  The queue is not resized and older entries are not evicted. The consumer
+  then resynchronises: after draining, it reads every watched input and feeds
+  the current level as a deferred edge, so a dropped final edge cannot leave a
+  button stuck.
 - Order is preserved regardless of consumer latency: the sequence
   `DOWN@10, UP@30, DOWN@50, UP@70` is delivered intact to a consumer that first
   runs at `t=100`.

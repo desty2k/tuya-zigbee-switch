@@ -23,7 +23,7 @@ void hal_tasks_init(hal_task_t *task) {
     task->platform_struct.ev_timer_handle = NULL;
 }
 
-void hal_tasks_schedule(hal_task_t *task, uint32_t delay_ms) {
+bool hal_tasks_schedule(hal_task_t *task, uint32_t delay_ms) {
     // Cancel any existing scheduled task
     if (task->platform_struct.ev_timer_handle != NULL) {
         ev_timer_taskCancel(&task->platform_struct.ev_timer_handle);
@@ -35,6 +35,7 @@ void hal_tasks_schedule(hal_task_t *task, uint32_t delay_ms) {
                           task,                 // Pass the hal_task_t as argument
                           delay_ms              // Delay in milliseconds
                           );
+    return task->platform_struct.ev_timer_handle != NULL;
 }
 
 void hal_tasks_unschedule(hal_task_t *task) {

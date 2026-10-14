@@ -11,6 +11,7 @@
 #include "stub/stub_app.h"
 #include "base_components/button_input.h"
 #include "base_components/gesture_fsm.h"
+#include "base_components/timer_service.h"
 #include "zigbee/zcl_cluster_defs.h"
 #include "zigbee/button_event_cluster.h"
 #include <stdio.h>
@@ -613,6 +614,114 @@ static int cmd_set_battery_voltage(int argc, char **argv) {
     return 0;
 }
 
+/* Input pipeline and timing fidelity commands. */
+
+static int parse_ulong_arg(const char *text, unsigned long long max,
+                           unsigned long long *out) {
+    char *end = NULL;
+    unsigned long long value;
+
+    if (*text == '\0' || *text == '-') {
+        return -1;
+    }
+    value = strtoull(text, &end, 0);
+    if (*end != '\0' || value > max) {
+        return -1;
+    }
+    *out = value;
+    return 0;
+}
+
+static int cmd_time_model(int argc, char **argv) {
+    if (argc != 2) {
+        io_res_err("usage");
+        return -1;
+    }
+    if (strcmp(argv[1], "native") == 0) {
+        stub_millis_set_model(STUB_TIME_MODEL_NATIVE);
+    } else if (strcmp(argv[1], "telink") == 0) {
+        stub_millis_set_model(STUB_TIME_MODEL_TELINK);
+    } else {
+        io_res_err("bad_model=%s", argv[1]);
+        return -1;
+    }
+    io_res_ok("model=%s millis=%u", argv[1], hal_millis());
+    return 0;
+}
+
+static int cmd_time_set(int argc, char **argv) {
+    unsigned long long virtual_ms;
+
+    if (argc != 2 || parse_ulong_arg(argv[1], UINT64_MAX / 16000u,
+                                     &virtual_ms) != 0) {
+        io_res_err("usage");
+        return -1;
+    }
+    if (stub_millis_set((uint64_t)virtual_ms) != 0) {
+        io_res_err("not_frozen_or_backwards");
+        return -1;
+    }
+    io_res_ok("virtual_ms=%llu millis=%u", virtual_ms, hal_millis());
+    return 0;
+}
+
+static int cmd_pin_burst(int argc, char **argv) {
+    unsigned long long pin;
+    unsigned long long count;
+
+    if (argc != 3 || parse_ulong_arg(argv[1], 255, &pin) != 0 ||
+        parse_ulong_arg(argv[2], 1000, &count) != 0) {
+        io_res_err("usage");
+        return -1;
+    }
+    stub_gpio_burst((hal_gpio_pin_t)pin, (uint32_t)count);
+    io_res_ok("pin=%llu count=%llu", pin, count);
+    return 0;
+}
+
+static int cmd_pin_late(int argc, char **argv) {
+    unsigned long long pin;
+    unsigned long long value;
+    unsigned long long lag_ms;
+
+    if (argc != 4 || parse_ulong_arg(argv[1], 255, &pin) != 0 ||
+        parse_ulong_arg(argv[2], 1, &value) != 0 ||
+        parse_ulong_arg(argv[3], 60000, &lag_ms) != 0) {
+        io_res_err("usage");
+        return -1;
+    }
+    if (stub_millis_set(stub_millis_virtual()) != 0) {
+        io_res_err("not_frozen");
+        return -1;
+    }
+    stub_gpio_simulate_late_input((hal_gpio_pin_t)pin, (uint8_t)value,
+                                  (uint32_t)lag_ms);
+    io_res_ok("pin=%llu value=%llu t=%u", pin, value, hal_millis());
+    return 0;
+}
+
+static int cmd_task_fail(int argc, char **argv) {
+    unsigned long long count;
+
+    if (argc != 2 || parse_ulong_arg(argv[1], UINT32_MAX, &count) != 0) {
+        io_res_err("usage");
+        return -1;
+    }
+    stub_tasks_reject_next((uint32_t)count);
+    io_res_ok("count=%llu", count);
+    return 0;
+}
+
+static int cmd_input_diag(int argc, char **argv) {
+    (void)argc;
+    (void)argv;
+    io_res_ok("button_schedule_failures=%u timer_schedule_failures=%u "
+              "gpio_edges_dropped=%u",
+              button_input_schedule_failures(), timer_schedule_failures(),
+              button_input_gpio_edges_dropped());
+    return 0;
+}
+
 /* Command table */
 static const SimpleReplCommand kCmds[] = {
     { "machine",             cmd_machine             },
@@ -639,6 +748,12 @@ static const SimpleReplCommand kCmds[] = {
     { "time_advance",        cmd_time_advance        },
     { "tasks_poll",          cmd_tasks_poll          },
     { "set_battery_voltage", cmd_set_battery_voltage },
+    { "time_model",          cmd_time_model          },
+    { "time_set",            cmd_time_set            },
+    { "pin_burst",           cmd_pin_burst           },
+    { "pin_late",            cmd_pin_late            },
+    { "task_fail",           cmd_task_fail           },
+    { "input_diag",          cmd_input_diag          },
     { "q",                   cmd_quit                },
     { "quit",                cmd_quit                },
 };

@@ -5,7 +5,7 @@ from typing import Iterator
 import pytest
 
 from tests.client import StubProc
-from tests.conftest import Device
+from tests.conftest import DEBOUNCE_MS, Device
 from tests.zcl_consts import (
     ZCL_ATTR_ONOFF,
     ZCL_ATTR_ONOFF_INDICATOR_MODE,
@@ -126,12 +126,20 @@ def test_network_disconnected_blink_has_priority(indicator_device: Device) -> No
     assert indicator_device.get_gpio("A1", refresh=True)
 
     indicator_device.click_n("A0", 2)
-    indicator_device.step_time(349)
-    assert indicator_device.get_gpio("A1", refresh=True)
+    # The network blink runs 500 ms on / 500 ms off from set_network(0); the
+    # double-click confirmation is due one click gap after the last release.
+    now_ms = 2 * 2 * (DEBOUNCE_MS + 2) + 100
+    confirm_at = now_ms + 350
+    assert 510 < confirm_at < 990
+    transitions = []
+    lit = indicator_device.get_gpio("A1", refresh=True)
+    while now_ms < 1100:
+        indicator_device.step_time(10)
+        now_ms += 10
+        if indicator_device.get_gpio("A1", refresh=True) != lit:
+            lit = not lit
+            transitions.append((now_ms, lit))
 
-    indicator_device.step_time(1)
-    assert indicator_device.get_gpio("A1", refresh=True)
-    indicator_device.step_time(10)
-    assert not indicator_device.get_gpio("A1", refresh=True)
-    indicator_device.step_time(500)
-    assert indicator_device.get_gpio("A1", refresh=True)
+    assert [state for _, state in transitions] == [False, True]
+    assert 500 <= transitions[0][0] <= 520
+    assert transitions[1][0] - transitions[0][0] == 500

@@ -38,8 +38,10 @@ feature wiring, config/runtime split, phased migration.
    `N_CLICK(1)` latency too high for remotes. 350 ms is the compromise, and it is
    configurable per endpoint.
 
-5. **Debounce default is 8 ms** (plan suggested 5–10 ms). Final value is
-   confirmed by the hardware regression pass in stage 6, not by unit tests alone.
+5. **Debounce default is 50 ms.** Mains-frequency pickup on long switch wiring
+   has 8.3–10 ms half-periods, so any default below that commits ghost presses.
+   A shorter default needs the hardware regression pass in stage 6; devices can
+   lower it with a `D<N>` token.
 
 6. **A hold flushes the pending click sequence.** `click, click, hold` emits
    `N_CLICK(2)` before `HOLD_START` instead of discarding the clicks, so mixed
@@ -110,8 +112,7 @@ feature wiring, config/runtime split, phased migration.
 18. **The stage 6 hardware regression gate is deferred.** No safe bench-accessible
     Telink or Silabs test hardware is available. Stage 7 may proceed through its
     native and stub software gates, but the hardware matrix remains mandatory
-    before this refactor is released or merged. The 8 ms debounce default remains
-    provisional until that matrix runs.
+    before this refactor is released or merged.
 
 19. **Relay runtime tracks whether state reached the driver.** Logical state
     starts OFF, but a latching relay's physical contact state is unknown at boot.

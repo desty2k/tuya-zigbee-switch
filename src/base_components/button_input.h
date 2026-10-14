@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 #define BUTTON_INPUT_MAX              16
-#define BUTTON_DEBOUNCE_DEFAULT_MS    8
+#define BUTTON_DEBOUNCE_DEFAULT_MS    50
 
 typedef enum {
     BUTTON_STATE_UP   = 0,
@@ -54,5 +54,8 @@ bool button_input_boot_press(uint8_t button_id);
 uint8_t button_input_count(void);
 uint32_t button_input_gpio_edges_dropped(void);
 uint32_t button_input_events_emitted(void);
+
+/** Worker schedules the platform rejected; each is retried from the main loop. */
+uint32_t button_input_schedule_failures(void);
 
 #endif

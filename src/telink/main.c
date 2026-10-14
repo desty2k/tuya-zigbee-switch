@@ -76,6 +76,7 @@ int real_main(startup_state_e state) {
 
     while (1) {
         drv_wd_clear();
+        telink_millis_poll();
         ev_main();
         drv_wd_clear();
         tl_zbTaskProcedure();
@@ -92,6 +93,7 @@ int real_main(startup_state_e state) {
             // as it messes with GPIO output state, and relays cannot be
             // driven via PULL-ups, it may cause issues.
             if (battery.pin != HAL_INVALID_PIN) {
+                telink_millis_prepare_sleep();
                 telink_gpio_to_pull_for_deep_retention();
                 drv_pm_lowPowerEnter();
                 // If we didn't actually enter deep retention, restore GPIO
