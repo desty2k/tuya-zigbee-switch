@@ -10,7 +10,10 @@ from tests.management_protocol_consts import (
     ZCL_CLUSTER_DEVICE_CONFIG,
 )
 from tests.zcl_consts import (
+    ZCL_ATTR_COVER_SWITCH_BINDED_MODE,
+    ZCL_ATTR_COVER_SWITCH_COVER_INDEX,
     ZCL_ATTR_COVER_SWITCH_LOCAL_MODE,
+    ZCL_ATTR_COVER_SWITCH_LONG_PRESS_DURATION,
     ZCL_ATTR_COVER_SWITCH_REVERSAL,
     ZCL_ATTR_COVER_SWITCH_SWITCH_TYPE,
     ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_BINDING_MODE,
@@ -32,6 +35,10 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 NVM_DIR = Path("./stub_nvm_data")
 NV_ITEM_CURRENT_VERSION_IN_NV = 0x01
 NV_ITEM_DEVICE_TYPE = 0x20
+NV_ITEM_ACTION_COVER_SWITCH_STATE_0 = 70
+# Migration version whose step adds the long-press duration to the cover
+# switch record.
+COVER_SWITCH_HOLD_VERSION = 10
 
 # Endpoints: 1 switch, 2 relay with indicator, 3 cover switch, 4 cover.
 CONFIG = "A;B;SA0u;RB0;IC0;XA2A3u;CB1B2;"
@@ -60,6 +67,8 @@ OWNED_SETTINGS = [
      ZCL_ATTR_COVER_SWITCH_LOCAL_MODE, 0),
     (COVER_SWITCH_EP, ZCL_CLUSTER_COVER_SWITCH_CONFIG,
      ZCL_ATTR_COVER_SWITCH_REVERSAL, 1),
+    (COVER_SWITCH_EP, ZCL_CLUSTER_COVER_SWITCH_CONFIG,
+     ZCL_ATTR_COVER_SWITCH_LONG_PRESS_DURATION, 1500),
     (COVER_EP, ZCL_CLUSTER_WINDOW_COVERING, ZCL_ATTR_WINDOW_COVERING_MOTOR_REVERSAL, 1),
     (COVER_EP, ZCL_CLUSTER_WINDOW_COVERING, ZCL_ATTR_WINDOW_COVERING_OPEN_TIME, 20000),
 ]
@@ -151,3 +160,30 @@ def test_boot_from_older_migration_version_resets_settings_and_stays_joined() ->
         assert read_settings(device) == defaults
         assert multi_press_reset(device) == "10"
     assert stored_version() == migrations_version()
+
+
+def test_cover_switch_record_gains_default_long_press_and_keeps_settings() -> None:
+    with StubProc(device_config=CONFIG):
+        pass
+    # Cover switch record before the long-press field: cover_index, reversal,
+    # local_mode, binded_mode, switch_type, padding, multi_click_gap_ms,
+    # debounce_ms.
+    nvm_item(NV_ITEM_ACTION_COVER_SWITCH_STATE_0).write_bytes(
+        struct.pack("<BBBBBxHH", 1, 1, 0, 2, 0, 300, 40))
+    nvm_item(NV_ITEM_CURRENT_VERSION_IN_NV).write_bytes(
+        struct.pack("<H", COVER_SWITCH_HOLD_VERSION - 1))
+
+    with StubProc() as process:
+        device = Device(process)
+
+        def read(attr: int) -> str:
+            return device.read_zigbee_attr(COVER_SWITCH_EP, ZCL_CLUSTER_COVER_SWITCH_CONFIG, attr)
+
+        assert read(ZCL_ATTR_COVER_SWITCH_COVER_INDEX) == "1"
+        assert read(ZCL_ATTR_COVER_SWITCH_REVERSAL) == "1"
+        assert read(ZCL_ATTR_COVER_SWITCH_LOCAL_MODE) == "0"
+        assert read(ZCL_ATTR_COVER_SWITCH_BINDED_MODE) == "2"
+        assert read(ZCL_ATTR_COVER_SWITCH_SWITCH_TYPE) == "0"
+        assert read(ZCL_ATTR_COVER_SWITCH_LONG_PRESS_DURATION) == "800"
+    assert stored_version() == migrations_version()
+    assert len(nvm_item(NV_ITEM_ACTION_COVER_SWITCH_STATE_0).read_bytes()) == 12
