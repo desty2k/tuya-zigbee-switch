@@ -139,7 +139,8 @@ gen:
 
 # Build targets
 build:
-	cd $(ZIGBEE_BUILD_DIR) && make -f $(ZIGBEE_PROJECT_NAME).Makefile -j32 release
+	@test -n "$(TOOLCHAIN_BIN)" || { echo "$(GCC_BIN) not found in PATH"; exit 1; }
+	cd $(ZIGBEE_BUILD_DIR) && make -f $(ZIGBEE_PROJECT_NAME).Makefile -j32 release ARM_GCC_DIR="$(TOOLCHAIN_DIR)"
 	@if ! cmp -s $(ZIGBEE_BUILD_DIR)/build/release/$(ZIGBEE_PROJECT_NAME).s37 $(BIN_FILE); then \
 		mkdir -p $(dir $(BIN_FILE)); \
 		cp $(ZIGBEE_BUILD_DIR)/build/release/$(ZIGBEE_PROJECT_NAME).s37 $(BIN_FILE); \
@@ -196,7 +197,8 @@ bootloader_gen:
 		--output-type=vscode,makefile
 
 bootloader_build: bootloader_gen
-	cd $(BOOTLOADER_BUILD_DIR) && make -f $(BOOTLOADER_PROJECT_NAME).Makefile -j32 release
+	@test -n "$(TOOLCHAIN_BIN)" || { echo "$(GCC_BIN) not found in PATH"; exit 1; }
+	cd $(BOOTLOADER_BUILD_DIR) && make -f $(BOOTLOADER_PROJECT_NAME).Makefile -j32 release ARM_GCC_DIR="$(TOOLCHAIN_DIR)"
 
 bootloader_install:
 	@echo "Flashing bootloader..."
