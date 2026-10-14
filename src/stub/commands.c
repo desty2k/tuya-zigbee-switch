@@ -268,6 +268,37 @@ static int cmd_zcl_list_attrs(int argc, char **argv) {
     return 0;
 }
 
+/* Registered descriptor as `ep:cluster:role:manufacturer` entries, where role
+ * is S (server, receives commands) or C (client, sends commands). */
+static int cmd_zcl_clusters(int argc, char **argv) {
+    uint8_t count;
+    hal_zigbee_endpoint *eps = stub_zigbee_get_endpoints(&count);
+    char   out[1024];
+    size_t used = 0;
+
+    (void)argc;
+    (void)argv;
+    out[0] = '\0';
+    for (uint8_t i = 0; i < count; i++) {
+        for (uint8_t j = 0; j < eps[i].cluster_count; j++) {
+            const hal_zigbee_cluster *cluster = &eps[i].clusters[j];
+            int written = snprintf(out + used, sizeof(out) - used,
+                                   "%s%u:0x%04X:%c:0x%04X", used ? "," : "",
+                                   eps[i].endpoint, cluster->cluster_id,
+                                   cluster->role == HAL_ZIGBEE_ROLE_SERVER ? 'S' : 'C',
+                                   cluster->manufacturer_code);
+
+            if (written < 0 || (size_t)written >= sizeof(out) - used) {
+                io_res_err("too_many_clusters");
+                return -1;
+            }
+            used += (size_t)written;
+        }
+    }
+    io_res_ok("clusters=%s", out);
+    return 0;
+}
+
 static int cmd_zcl_read(int argc, char **argv) {
     if (argc != 4) {
         fprintf(stderr, "Usage: zcl_read <ep:dec> <cluster:hex> <attr:hex>\n");
@@ -632,6 +663,7 @@ static const SimpleReplCommand kCmds[] = {
     { "zcl_write_raw",       cmd_zcl_write_raw       },
     { "zcl_attr_callback",   cmd_zcl_attr_callback   },
     { "zcl_list_attrs",      cmd_zcl_list_attrs      },
+    { "zcl_clusters",        cmd_zcl_clusters        },
     { "zcl_cmd",             cmd_zcl_cmd             },
     { "zcl_cmd_no_activity", cmd_zcl_cmd_no_activity },
     { "freeze_time",         cmd_freeze_time         },

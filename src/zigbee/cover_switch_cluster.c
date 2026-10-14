@@ -474,9 +474,10 @@ void cover_switch_cluster_add_to_endpoint(zigbee_cover_switch_cluster *cluster,
         .attributes          = cluster->config_attr_infos,
         .attr_write_callback = cover_switch_cluster_attr_write,
     };
+    /* The cover switch sends WindowCovering commands to its bindings. */
     hal_zigbee_cluster covering_cluster = {
         .cluster_id = ZCL_CLUSTER_WINDOW_COVERING,
-        .role       = HAL_ZIGBEE_ROLE_SERVER,
+        .role       = HAL_ZIGBEE_ROLE_CLIENT,
     };
 
     // MultiStateInput for button press action reporting

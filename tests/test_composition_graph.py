@@ -111,3 +111,44 @@ def test_invalid_composition_enters_management_only_recovery() -> None:
         )
     finally:
         proc.stop()
+
+
+def _registered_clusters(proc: StubProc) -> dict[tuple[int, int], str]:
+    res = proc.exec("zcl_clusters")
+    assert res.ok, res.payload
+    clusters = {}
+    for entry in res.payload["clusters"].split(","):
+        endpoint, cluster, role, _manufacturer = entry.split(":")
+        clusters[(int(endpoint), int(cluster, 16))] = role
+    return clusters
+
+
+def test_switch_and_cover_switch_endpoints_only_send_on_off_level_and_covering() -> None:
+    """Clusters an endpoint only sends from are clients, as on `main`."""
+    proc = StubProc(device_config="M;Mixed;SA2u;RB2;XA0A1u;CB0B1;").start()
+    try:
+        assert _registered_clusters(proc) == {
+            (1, 0x0000): "S",
+            (1, 0xFC10): "S",
+            (1, 0xFC11): "S",
+            (1, 0x0019): "C",
+            # switch endpoint
+            (1, 0x0007): "S",
+            (1, 0x0006): "C",
+            (1, 0x0012): "S",
+            (1, 0xFC02): "S",
+            (1, 0x0008): "C",
+            # relay endpoint
+            (2, 0x0006): "S",
+            (2, 0x0008): "S",
+            (2, 0x0004): "S",
+            # cover switch endpoint
+            (3, 0xFC01): "S",
+            (3, 0x0102): "C",
+            (3, 0x0012): "S",
+            (3, 0xFC02): "S",
+            # cover endpoint
+            (4, 0x0102): "S",
+        }
+    finally:
+        proc.stop()

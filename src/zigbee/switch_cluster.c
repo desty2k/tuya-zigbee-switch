@@ -209,9 +209,10 @@ void switch_cluster_add_to_endpoint(zigbee_switch_cluster *cluster,
         .attributes          = cluster->attr_infos,
         .attr_write_callback = switch_cluster_attr_write,
     };
+    /* The switch sends OnOff and Level commands to its bindings. */
     hal_zigbee_cluster on_off_cluster = {
         .cluster_id = ZCL_CLUSTER_ON_OFF,
-        .role       = HAL_ZIGBEE_ROLE_SERVER,
+        .role       = HAL_ZIGBEE_ROLE_CLIENT,
     };
 
     SETUP_ATTR_FOR_TABLE(cluster->multistate_attr_infos, 0,
@@ -238,7 +239,7 @@ void switch_cluster_add_to_endpoint(zigbee_switch_cluster *cluster,
     };
     hal_zigbee_cluster level_cluster = {
         .cluster_id = ZCL_CLUSTER_LEVEL_CONTROL,
-        .role       = HAL_ZIGBEE_ROLE_SERVER,
+        .role       = HAL_ZIGBEE_ROLE_CLIENT,
     };
 
     hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity,
