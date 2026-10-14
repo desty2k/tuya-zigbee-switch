@@ -31,9 +31,9 @@ void battery_cluster_add_to_endpoint(zigbee_battery_cluster *cluster,
     cluster->percentage_remaining = 200; // 100% in ZCL (0.5% steps)
 
     SETUP_ATTR(0, ZCL_ATTR_POWER_CFG_BATTERY_VOLTAGE, ZCL_DATA_TYPE_UINT8,
-               HAL_ATTR_READ, cluster->voltage_100mv);
+               (HAL_ATTR_READ | HAL_ATTR_REPORT), cluster->voltage_100mv);
     SETUP_ATTR(1, ZCL_ATTR_POWER_CFG_BATTERY_PERCENTAGE, ZCL_DATA_TYPE_UINT8,
-               HAL_ATTR_READ, cluster->percentage_remaining);
+               (HAL_ATTR_READ | HAL_ATTR_REPORT), cluster->percentage_remaining);
     SETUP_ATTR(2, ZCL_ATTR_GLOBAL_CLUSTER_REVISION, ZCL_DATA_TYPE_UINT16,
                HAL_ATTR_READ, battery_cluster_revision);
 

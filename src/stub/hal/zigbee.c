@@ -1,4 +1,5 @@
 #include "hal/zigbee.h"
+#include "stub/hal/stub.h"
 #include "stub/machine_io.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -156,17 +157,36 @@ uint32_t hal_zigbee_get_poll_rate_ms(void) {
     return poll_rate_ms;
 }
 
+/* Telink and Silabs report only attributes flagged HAL_ATTR_REPORT, so the
+ * zcl_attr_change event (a report the stack would send) follows that rule. */
 void hal_zigbee_notify_attribute_changed(uint8_t endpoint, uint16_t cluster_id,
                                          uint16_t attribute_id) {
+    hal_zigbee_attribute *attribute = hal_zigbee_find_attribute_in_cluster(
+        find_unique_server_cluster(endpoint, cluster_id), attribute_id);
+
+    if (attribute == NULL || (attribute->flag & HAL_ATTR_REPORT) == 0) {
+        io_log("ZIGBEE", "Not reportable: ep=%d, cluster=0x%04x, attr=0x%04x",
+               endpoint, cluster_id, attribute_id);
+        return;
+    }
     io_log("ZIGBEE", "Attribute changed: ep=%d, cluster=0x%04x, attr=0x%04x",
            endpoint, cluster_id, attribute_id);
-    // In stub, do NOT call attr_change_callback here.
-    // That callback models "attribute written via Zigbee" (incoming write).
-    // Calling it from notify_attribute_changed() causes recursion when the
-    // application updates attributes in response to a write.
-    // Instead, emit an event so Python tests can observe the change.
     io_evt("zcl_attr_change ep=%u cluster=0x%04X attr=0x%04X", endpoint,
            cluster_id, attribute_id);
+}
+
+stub_zigbee_report_config_status_t
+stub_zigbee_configure_reporting(uint8_t endpoint, uint16_t cluster_id,
+                                uint16_t attribute_id) {
+    hal_zigbee_attribute *attribute = hal_zigbee_find_attribute_in_cluster(
+        find_unique_server_cluster(endpoint, cluster_id), attribute_id);
+
+    if (attribute == NULL) return STUB_ZIGBEE_REPORT_CONFIG_UNSUPPORTED_ATTRIBUTE;
+
+    if ((attribute->flag & HAL_ATTR_REPORT) == 0)
+        return STUB_ZIGBEE_REPORT_CONFIG_UNREPORTABLE_ATTRIBUTE;
+
+    return STUB_ZIGBEE_REPORT_CONFIG_SUCCESS;
 }
 
 hal_zigbee_status_t hal_zigbee_send_cmd_to_bindings(const hal_zigbee_cmd *cmd) {

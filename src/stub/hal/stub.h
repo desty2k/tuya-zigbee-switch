@@ -33,6 +33,16 @@ void stub_zigbee_add_binding(uint16_t short_addr, uint8_t endpoint,
 void stub_zigbee_clear_bindings(void);
 hal_zigbee_endpoint *stub_zigbee_get_endpoints(uint8_t *count);
 hal_zigbee_graph_usage_t stub_zigbee_get_graph_usage(void);
+
+typedef enum {
+    STUB_ZIGBEE_REPORT_CONFIG_SUCCESS,
+    STUB_ZIGBEE_REPORT_CONFIG_UNSUPPORTED_ATTRIBUTE,
+    STUB_ZIGBEE_REPORT_CONFIG_UNREPORTABLE_ATTRIBUTE,
+} stub_zigbee_report_config_status_t;
+/** Answer a Configure Reporting record the way the platform stacks do. */
+stub_zigbee_report_config_status_t
+stub_zigbee_configure_reporting(uint8_t endpoint, uint16_t cluster_id,
+                                uint16_t attribute_id);
 hal_zigbee_cmd_result_t stub_zigbee_simulate_command(uint8_t endpoint,
                                                      uint16_t cluster_id,
                                                      uint8_t command_id,

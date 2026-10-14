@@ -472,6 +472,30 @@ static int cmd_zcl_attr_callback(int argc, char **argv) {
     return 0;
 }
 
+static int cmd_zcl_configure_reporting(int argc, char **argv) {
+    uint8_t  ep;
+    uint16_t cl;
+    uint16_t at;
+    stub_zigbee_report_config_status_t status;
+
+    if (argc != 4 || parse_u8_dec(argv[1], &ep) ||
+        parse_u16_hex(argv[2], &cl) || parse_u16_hex(argv[3], &at)) {
+        io_res_err("usage");
+        return -1;
+    }
+    status = stub_zigbee_configure_reporting(ep, cl, at);
+    if (status == STUB_ZIGBEE_REPORT_CONFIG_UNSUPPORTED_ATTRIBUTE) {
+        io_res_err("unsupported_attribute ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
+        return -1;
+    }
+    if (status == STUB_ZIGBEE_REPORT_CONFIG_UNREPORTABLE_ATTRIBUTE) {
+        io_res_err("unreportable_attribute ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
+        return -1;
+    }
+    io_res_ok("ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
+    return 0;
+}
+
 static int cmd_read_pin(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr, "Usage: read_pin <pin>\n");
@@ -692,34 +716,35 @@ static int cmd_set_battery_voltage(int argc, char **argv) {
 
 /* Command table */
 static const SimpleReplCommand kCmds[] = {
-    { "machine",             cmd_machine             },
-    { "help",                cmd_help                },
-    { "s",                   cmd_status              },
-    { "status",              cmd_status              },
-    { "diag",                cmd_diag                },
-    { "net",                 cmd_net                 },
-    { "tx_fail",             cmd_tx_fail             },
-    { "announce_fail",       cmd_announce_fail       },
-    { "nvm_fail",            cmd_nvm_fail            },
-    { "set_pin",             cmd_pin                 },
-    { "pin_edge",            cmd_pin_edge            },
-    { "read_pin",            cmd_read_pin            },
-    { "zcl_read",            cmd_zcl_read            },
-    { "zcl_write",           cmd_zcl_write           },
-    { "zcl_write_raw",       cmd_zcl_write_raw       },
-    { "zcl_attr_callback",   cmd_zcl_attr_callback   },
-    { "zcl_list_attrs",      cmd_zcl_list_attrs      },
-    { "zcl_graph_usage",     cmd_zcl_graph_usage     },
-    { "zcl_clusters",        cmd_zcl_clusters        },
-    { "zcl_cmd",             cmd_zcl_cmd             },
-    { "zcl_cmd_no_activity", cmd_zcl_cmd_no_activity },
-    { "freeze_time",         cmd_freeze_time         },
-    { "step_time",           cmd_step_time           },
-    { "time_advance",        cmd_time_advance        },
-    { "tasks_poll",          cmd_tasks_poll          },
-    { "set_battery_voltage", cmd_set_battery_voltage },
-    { "q",                   cmd_quit                },
-    { "quit",                cmd_quit                },
+    { "machine",                 cmd_machine                 },
+    { "help",                    cmd_help                    },
+    { "s",                       cmd_status                  },
+    { "status",                  cmd_status                  },
+    { "diag",                    cmd_diag                    },
+    { "net",                     cmd_net                     },
+    { "tx_fail",                 cmd_tx_fail                 },
+    { "announce_fail",           cmd_announce_fail           },
+    { "nvm_fail",                cmd_nvm_fail                },
+    { "set_pin",                 cmd_pin                     },
+    { "pin_edge",                cmd_pin_edge                },
+    { "read_pin",                cmd_read_pin                },
+    { "zcl_read",                cmd_zcl_read                },
+    { "zcl_write",               cmd_zcl_write               },
+    { "zcl_write_raw",           cmd_zcl_write_raw           },
+    { "zcl_attr_callback",       cmd_zcl_attr_callback       },
+    { "zcl_list_attrs",          cmd_zcl_list_attrs          },
+    { "zcl_graph_usage",         cmd_zcl_graph_usage         },
+    { "zcl_clusters",            cmd_zcl_clusters            },
+    { "zcl_configure_reporting", cmd_zcl_configure_reporting },
+    { "zcl_cmd",                 cmd_zcl_cmd                 },
+    { "zcl_cmd_no_activity",     cmd_zcl_cmd_no_activity     },
+    { "freeze_time",             cmd_freeze_time             },
+    { "step_time",               cmd_step_time               },
+    { "time_advance",            cmd_time_advance            },
+    { "tasks_poll",              cmd_tasks_poll              },
+    { "set_battery_voltage",     cmd_set_battery_voltage     },
+    { "q",                       cmd_quit                    },
+    { "quit",                    cmd_quit                    },
 };
 
 const SimpleReplCommand *commands_table(void) {

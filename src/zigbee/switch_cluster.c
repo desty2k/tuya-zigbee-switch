@@ -187,7 +187,8 @@ void switch_cluster_add_to_endpoint(zigbee_switch_cluster *cluster,
     SETUP_ATTR(0, ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_TYPE, ZCL_DATA_TYPE_ENUM8,
                HAL_ATTR_READ, cluster->mode);
     SETUP_ATTR(1, ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_ACTIONS,
-               ZCL_DATA_TYPE_ENUM8, (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->action);
+               ZCL_DATA_TYPE_ENUM8, (HAL_ATTR_READ | HAL_ATTR_WRITE | HAL_ATTR_REPORT),
+               cluster->action);
     SETUP_ATTR(2, ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_MODE, ZCL_DATA_TYPE_ENUM8,
                (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->mode);
     SETUP_ATTR(3, ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_RELAY_MODE,
@@ -225,7 +226,7 @@ void switch_cluster_add_to_endpoint(zigbee_switch_cluster *cluster,
                          multistate_out_of_service);
     SETUP_ATTR_FOR_TABLE(cluster->multistate_attr_infos, 2,
                          ZCL_ATTR_MULTISTATE_INPUT_PRESENT_VALUE,
-                         ZCL_DATA_TYPE_UINT16, HAL_ATTR_READ,
+                         ZCL_DATA_TYPE_UINT16, (HAL_ATTR_READ | HAL_ATTR_REPORT),
                          cluster->multistate_state);
     SETUP_ATTR_FOR_TABLE(cluster->multistate_attr_infos, 3,
                          ZCL_ATTR_MULTISTATE_INPUT_STATUS_FLAGS,
