@@ -992,3 +992,61 @@ from `tests/client.py` `_stderr_forward`; Silabs `-Wformat` warnings for
 `uint32_t`; cover-switch long-press duration is not persisted
 (`cover_switch_cluster.c:389`); end-device `_end_bss_` exceeds the 0x848000
 retention limit (pre-existing).
+| 2026-10-14 | 1.5 S | `961d28ee` | D6 per-board `features` (schema, `make tools/check_device_features` in CI, `FEATURE_*` defines, parser rejects missing-feature tokens → recovery LastError 8 `FEATURE_MISSING`), D7 `-Os` on own Telink objects; review PASS WITH NITS, nits fixed by integrator (`820d12fb`); `make tests` 343 passed, unit tests pass, 0 warnings; 4-gang OTA 192114 (8590 under 200704), GIRIER TS130F cover 199266 (1438), MHCOZY end device 161618 | merged |
+
+## 12. Next steps (current as of `961d28ee`)
+
+Wave 0, 1 and 1.5 are merged into `refactor/input-pipeline`. Nothing has been
+flashed. The OTA index still lists the old `538f75d3` TS0726 build; the owner
+does not install it.
+
+### Process rules (learned during waves 0–1.5)
+
+- Create each worktree by hand from the integration branch
+  (`git worktree add .claude/worktrees/<name> -b <branch> refactor/input-pipeline`)
+  and point the agent at that path. The Agent tool's `isolation: worktree`
+  bases worktrees on upstream `main` (`4ca68fa2`), not on this branch.
+- One implementing agent per slice with a short self-contained brief; an
+  independent reviewer per branch before merge; the integrator mutation-checks
+  security-relevant fixes before merging.
+- For review follow-ups, launch a fresh agent with only the remaining items,
+  pointed at the existing worktree; do not resume an agent whose context is
+  already large.
+- Telink and Silabs builds run on `sk8` (section 9). Silabs tools live in
+  `~/Projects/tz-wave1-f/silabs_tools`, environment `~/Projects/tz-wave1-f-env.sh`.
+
+### Wave 2 — parallel, each from the current integration commit
+
+| Agent | Scope | Notes |
+| --- | --- | --- |
+| C: relays and interlock | C9, M1, M3, M4, M5, L7; retry for `timer_service` arm failures used by the latching-relay pulse (`relay_driver.c`) | config-string interlock must win over persisted values; inching in `relay_controller` for every ON source |
+| D: cover | H6, H7 (firmware side), M6 remainder, L5; persist cover-switch long-press duration (`cover_switch_cluster.c:389`); retry for the cover safety timer arm (`cover_controller.c`) | builds with the `cover` feature only; keep GIRIER TS130F under 200704 bytes (1438 bytes headroom now) |
+| P: GPIO probe | section 10 | add `probe` to `src/features.mk` and the schema enum; outlet probe board entry with a new unique image type, stock manufacturer 4417 / image type 54179, filtered to `_TZ3210_drzlxjne`; index generator refuses stock-image-type entries without a `manufacturerName` filter; discovery helper script and doc |
+
+### Wave 2b — after C, D and P merge
+
+| Agent | Scope |
+| --- | --- |
+| E: integrations | C5, C6, D3 (confirm `0x1A2B` is not assigned to another vendor, else pick a code); Z2M/ZHA/HOMEd templates use 0xFC10/0xFC11 from `management_protocol.json`; H7 template side (`coverInverted`); probe commands in templates; template/firmware parity check; regenerate converters and docs in a separate commit |
+
+### Wave 3 — cleanup
+
+L2, L3 (`i<image_type>` token ignored), L4 (`feature_wiring.c` readability),
+L8, L9, L10, M2, M7, M10, M13, and the section 11 follow-ups: stub `step_time`
+ordering, intermittent pytest `_stderr_forward` warning, Silabs `-Wformat`
+warnings, end-device `_end_bss_` beyond the 0x848000 retention limit, the
+`ZCL_REPORTING_TABLE_NUM` decision (needs an `NV_ITEM_ZCL_REPORT` migration to
+grow). L1 is resolved by D6 (meter code compiles only with the `meter`
+feature).
+
+### Release and hardware
+
+1. Generate the OTA index entries for the fixed build with immutable URLs
+   (H0.1, commit SHA or tag) and replace the `538f75d3` entries. Tell the owner
+   before publishing.
+2. Owner hardware pass (section 8): the custom-firmware 4-gang first, then one
+   spare stock BSEED switch over the stock slot; record results in
+   `docs/refactor/*/STATE.md`.
+3. Outlet: OTA the probe image to one expendable outlet with no load, run the
+   discovery helper, record pins and meter IC, then write the outlet profile and
+   unfreeze the meter driver (Phase 5/7).
