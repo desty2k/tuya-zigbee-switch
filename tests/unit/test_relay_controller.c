@@ -240,6 +240,44 @@ TEST(controller_capacity_is_bounded) {
                                         &configs[RELAY_CONTROLLER_MAX_RELAYS]));
 }
 
+TEST(configured_inching_applies_to_every_on_request) {
+    static const relay_request_type_t on_types[] = {
+        RELAY_REQUEST_ON, RELAY_REQUEST_TOGGLE,
+    };
+    static const relay_request_source_t sources[] = {
+        RELAY_SOURCE_BUTTON, RELAY_SOURCE_GESTURE, RELAY_SOURCE_ZIGBEE,
+        RELAY_SOURCE_STARTUP,
+    };
+
+    for (uint8_t t = 0; t < sizeof(on_types) / sizeof(on_types[0]); t++) {
+        for (uint8_t s = 0; s < sizeof(sources) / sizeof(sources[0]); s++) {
+            reset_controller(false);
+            config.inching_ms = 100;
+            ASSERT_EQ(RELAY_RESULT_APPLIED, submit(on_types[t], sources[s]));
+            ASSERT_EQ(AUTO_OFF_PULSE, relay_ctrl_auto_off_reason(0));
+            fake_clock_advance_ms(99);
+            fake_tasks_poll();
+            ASSERT_TRUE(relay_ctrl_is_on(0));
+            fake_clock_advance_ms(1);
+            fake_tasks_poll();
+            ASSERT_TRUE(!relay_ctrl_is_on(0));
+        }
+    }
+}
+
+TEST(explicit_timed_on_overrides_inching) {
+    reset_controller(false);
+    config.inching_ms = 100;
+    ASSERT_EQ(RELAY_RESULT_APPLIED, submit_timed(RELAY_REQUEST_ON_TIMED, 500));
+    ASSERT_EQ(AUTO_OFF_TIMED, relay_ctrl_auto_off_reason(0));
+    fake_clock_advance_ms(499);
+    fake_tasks_poll();
+    ASSERT_TRUE(relay_ctrl_is_on(0));
+    fake_clock_advance_ms(1);
+    fake_tasks_poll();
+    ASSERT_TRUE(!relay_ctrl_is_on(0));
+}
+
 TEST(latching_pulse_is_retried_when_its_timer_cannot_be_armed) {
     reset_controller(true);
     fake_tasks_reject_next(1);
@@ -296,6 +334,8 @@ int main(void) {
     RUN_TEST(off_cancels_a_deferred_relay_that_was_previously_initialized_off);
     RUN_TEST(source_owned_inhibitors_block_on_like_requests_and_preserve_off);
     RUN_TEST(controller_capacity_is_bounded);
+    RUN_TEST(configured_inching_applies_to_every_on_request);
+    RUN_TEST(explicit_timed_on_overrides_inching);
     RUN_TEST(latching_pulse_is_retried_when_its_timer_cannot_be_armed);
     RUN_TEST(latching_wait_is_retried_when_its_timer_cannot_be_armed);
     return test_runner_failures == 0 ? 0 : 1;

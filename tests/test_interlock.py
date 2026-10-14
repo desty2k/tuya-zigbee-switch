@@ -132,3 +132,15 @@ def test_deferred_inching_starts_duration_after_dead_time() -> None:
         assert device.zcl_relay_get(2) == "1"
         device.step_time(1)
         assert device.zcl_relay_get(2) == "0"
+
+
+def test_second_toggle_during_dead_time_cancels_pending_on() -> None:
+    with StubProc(device_config="X;Y;RA0;RA1;K03:50;") as proc:
+        device = Device(proc)
+        device.zcl_relay_on(1)
+        device.call_zigbee_cmd(2, ZCL_CLUSTER_ON_OFF, ZCL_CMD_ONOFF_TOGGLE)
+        device.step_time(20)
+        device.call_zigbee_cmd(2, ZCL_CLUSTER_ON_OFF, ZCL_CMD_ONOFF_TOGGLE)
+        device.step_time(50)
+        assert device.zcl_relay_get(1) == "0"
+        assert device.zcl_relay_get(2) == "0"

@@ -150,6 +150,43 @@ TEST(relay_outside_group_is_unaffected) {
     ASSERT_TRUE(!relay_ctrl_is_on(3));
 }
 
+TEST(second_toggle_during_dead_time_cancels_pending_on) {
+    reset_relays();
+    add_group(50);
+    submit(0, RELAY_REQUEST_ON, RELAY_SOURCE_BUTTON, 0);
+    ASSERT_EQ(RELAY_RESULT_DEFERRED, relay_ctrl_submit(&(relay_request_t){
+        .relay_id = 1, .type = RELAY_REQUEST_TOGGLE, .source = RELAY_SOURCE_GESTURE,
+    }));
+    fake_clock_advance_ms(20);
+    fake_tasks_poll();
+    submit(1, RELAY_REQUEST_TOGGLE, RELAY_SOURCE_GESTURE, 0);
+    fake_clock_advance_ms(50);
+    fake_tasks_poll();
+    ASSERT_TRUE(!relay_ctrl_is_on(0));
+    ASSERT_TRUE(!relay_ctrl_is_on(1));
+}
+
+TEST(blocked_resume_does_not_skip_peer_shutdown) {
+    reset_relays();
+    add_group(50);
+    submit(0, RELAY_REQUEST_ON, RELAY_SOURCE_BUTTON, 0);
+    submit(1, RELAY_REQUEST_ON, RELAY_SOURCE_ZIGBEE, 0);
+    ASSERT_TRUE(relay_ctrl_inhibit(0x02, 0));
+    fake_clock_advance_ms(50);
+    fake_tasks_poll();
+    ASSERT_TRUE(!relay_ctrl_is_on(1));
+    ASSERT_TRUE(relay_ctrl_release(0x02, 0));
+
+    submit(0, RELAY_REQUEST_ON, RELAY_SOURCE_BUTTON, 0);
+    ASSERT_TRUE(relay_ctrl_is_on(0));
+    submit(1, RELAY_REQUEST_ON, RELAY_SOURCE_ZIGBEE, 0);
+    ASSERT_TRUE(!(relay_ctrl_is_on(0) && relay_ctrl_is_on(1)));
+    fake_clock_advance_ms(50);
+    fake_tasks_poll();
+    ASSERT_TRUE(!relay_ctrl_is_on(0));
+    ASSERT_TRUE(relay_ctrl_is_on(1));
+}
+
 int main(void) {
     RUN_TEST(group_keeps_only_latest_relay_on);
     RUN_TEST(pulse_turns_off_peer_and_expires);
@@ -158,6 +195,8 @@ int main(void) {
     RUN_TEST(conflicting_request_replaces_pending_target);
     RUN_TEST(off_clears_pending_target);
     RUN_TEST(relay_outside_group_is_unaffected);
+    RUN_TEST(second_toggle_during_dead_time_cancels_pending_on);
+    RUN_TEST(blocked_resume_does_not_skip_peer_shutdown);
 
     return test_runner_failures == 0 ? 0 : 1;
 }

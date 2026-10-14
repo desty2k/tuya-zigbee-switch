@@ -172,9 +172,8 @@ hal_zigbee_cmd_result_t relay_cluster_callback(zigbee_relay_cluster *cluster,
     case ZCL_CMD_ON_WITH_RECALL_GLOBAL_SCENE:
         return relay_cluster_result_to_zigbee(relay_ctrl_submit(&(relay_request_t){
             .relay_id = cluster->relay_id,
-            .type     = cluster->inching_ms == 0 ? RELAY_REQUEST_ON
-                                                 : RELAY_REQUEST_PULSE,
-            .source = RELAY_SOURCE_ZIGBEE,
+            .type     = RELAY_REQUEST_ON,
+            .source   = RELAY_SOURCE_ZIGBEE,
         }));
 
     case ZCL_CMD_ONOFF_OFF:

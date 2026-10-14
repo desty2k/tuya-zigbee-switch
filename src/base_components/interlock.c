@@ -25,12 +25,18 @@ static void interlock_dead_time_elapsed(void *arg) {
     if (relay_id == INTERLOCK_NO_PENDING) {
         return;
     }
+
+    /* resume_relay lets interlock_prepare() admit this one switch-on without
+     * restarting the dead time. It is cleared whatever the submit outcome:
+     * a blocked or unchanged request must not leave a later, unrelated ON
+     * skipping the peer shutdown. */
     group->resume_relay = relay_id;
-    relay_ctrl_submit(&(relay_request_t){
+    (void)relay_ctrl_submit(&(relay_request_t){
         .relay_id = relay_id,
         .type     = RELAY_REQUEST_ON,
         .source   = RELAY_SOURCE_INTERLOCK,
     });
+    group->resume_relay = INTERLOCK_NO_PENDING;
 }
 
 void interlock_init(void) {

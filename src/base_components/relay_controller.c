@@ -102,23 +102,37 @@ bool relay_ctrl_subscribe(uint8_t relay_id, relay_state_cb_t callback,
     return false;
 }
 
+/*
+ * A configured inching duration turns every plain ON into a pulse, whatever
+ * the source, so an impulse load (a garage door opener) is never left
+ * energised. Only ON_TIMED, which carries its own deadline, bypasses it.
+ */
 relay_result_t relay_ctrl_submit(const relay_request_t *request) {
-    relay_runtime_t * runtime;
-    bool              target_on;
-    uint32_t          auto_off_ms     = 0;
-    auto_off_reason_t auto_off_reason = AUTO_OFF_NONE;
+    relay_runtime_t *    runtime;
+    bool                 target_on;
+    uint32_t             auto_off_ms     = 0;
+    auto_off_reason_t    auto_off_reason = AUTO_OFF_NONE;
+    relay_request_type_t type;
 
     if (request == NULL || request->relay_id >= relay_ctrl_relay_count) {
         return RELAY_RESULT_INVALID;
     }
     runtime = &relay_ctrl_runtimes[request->relay_id];
-    if (request->type == RELAY_REQUEST_TOGGLE) {
-        target_on = !runtime->is_on;
-    } else if (request->type == RELAY_REQUEST_ON) {
+    type    = request->type;
+    if (type == RELAY_REQUEST_TOGGLE) {
+        /* A relay waiting out interlock dead time counts as on, so a second
+         * toggle cancels the pending switch-on. */
+        type = runtime->is_on || runtime->deferred_on ? RELAY_REQUEST_OFF
+                                                      : RELAY_REQUEST_ON;
+    }
+    if (type == RELAY_REQUEST_ON && runtime->config->inching_ms != 0) {
+        type = RELAY_REQUEST_PULSE;
+    }
+    if (type == RELAY_REQUEST_ON) {
         target_on = true;
-    } else if (request->type == RELAY_REQUEST_OFF) {
+    } else if (type == RELAY_REQUEST_OFF) {
         target_on = false;
-    } else if (request->type == RELAY_REQUEST_PULSE) {
+    } else if (type == RELAY_REQUEST_PULSE) {
         auto_off_ms = request->duration_ms != 0 ? request->duration_ms
                                                 : runtime->config->inching_ms;
         if (auto_off_ms == 0) {
@@ -126,7 +140,7 @@ relay_result_t relay_ctrl_submit(const relay_request_t *request) {
         }
         target_on       = true;
         auto_off_reason = AUTO_OFF_PULSE;
-    } else if (request->type == RELAY_REQUEST_ON_TIMED) {
+    } else if (type == RELAY_REQUEST_ON_TIMED) {
         target_on       = true;
         auto_off_ms     = request->duration_ms;
         auto_off_reason = AUTO_OFF_TIMED;
@@ -135,6 +149,9 @@ relay_result_t relay_ctrl_submit(const relay_request_t *request) {
     }
 
     if (target_on && runtime->inhibit_mask != 0) {
+        if (request->source == RELAY_SOURCE_INTERLOCK) {
+            runtime->deferred_on = false;
+        }
         return RELAY_RESULT_BLOCKED;
     }
     if (request->source == RELAY_SOURCE_INTERLOCK && runtime->deferred_on) {
