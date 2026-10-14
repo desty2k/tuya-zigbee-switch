@@ -283,6 +283,30 @@ TEST(timed_on_never_outlasts_inching) {
     ASSERT_TRUE(!relay_ctrl_is_on(0));
 }
 
+TEST(blocked_interlock_resume_drops_the_deferred_on) {
+    relay_driver_t peer_driver = {
+        .on_pin = 12, .off_pin = HAL_INVALID_PIN, .on_high = 1, .is_latching = 0,
+    };
+    relay_config_t peer_config = { 0 };
+    relay_request_t toggle_peer = {
+        .relay_id = 1, .type = RELAY_REQUEST_TOGGLE, .source = RELAY_SOURCE_BUTTON,
+    };
+
+    reset_controller(false);
+    ASSERT_EQ(1, relay_ctrl_add(&peer_driver, &peer_config));
+    ASSERT_TRUE(interlock_add_group(1, 0x03, 50));
+    ASSERT_EQ(RELAY_RESULT_APPLIED, submit(RELAY_REQUEST_ON, RELAY_SOURCE_BUTTON));
+    ASSERT_EQ(RELAY_RESULT_DEFERRED, relay_ctrl_submit(&toggle_peer));
+    ASSERT_TRUE(relay_ctrl_inhibit(0x02, 1));
+    fake_clock_advance_ms(50);
+    fake_tasks_poll();
+    ASSERT_TRUE(!relay_ctrl_is_on(1));
+    ASSERT_TRUE(relay_ctrl_release(0x02, 1));
+    /* A stale deferred ON would make this toggle an OFF. */
+    ASSERT_EQ(RELAY_RESULT_APPLIED, relay_ctrl_submit(&toggle_peer));
+    ASSERT_TRUE(relay_ctrl_is_on(1));
+}
+
 TEST(joining_a_group_with_an_energised_peer_switches_off) {
     relay_driver_t peer_driver = {
         .on_pin = 12, .off_pin = HAL_INVALID_PIN, .on_high = 1, .is_latching = 0,
@@ -369,6 +393,7 @@ int main(void) {
     RUN_TEST(controller_capacity_is_bounded);
     RUN_TEST(configured_inching_applies_to_every_on_request);
     RUN_TEST(timed_on_never_outlasts_inching);
+    RUN_TEST(blocked_interlock_resume_drops_the_deferred_on);
     RUN_TEST(joining_a_group_with_an_energised_peer_switches_off);
     RUN_TEST(timed_on_remaining_reports_only_timed_deadlines);
     RUN_TEST(latching_pulse_is_retried_when_its_timer_cannot_be_armed);
