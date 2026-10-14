@@ -16,10 +16,10 @@
  *  - telink: the TLSR8258 32-bit system tick at 16 MHz (wraps every 268 s),
  *    extended to milliseconds the way src/telink/hal/timer.c does. Time
  *    steps refresh the extension at least every STUB_TELINK_REFRESH_MS, as
- *    the firmware's main loop and periodic refresh timer do.
+ *    the firmware's main loop and pre-sleep refresh bound guarantee.
  */
 #define STUB_TELINK_TICKS_PER_MS    16000u
-#define STUB_TELINK_REFRESH_MS      60000u
+#define STUB_TELINK_REFRESH_MS      200000u
 
 static uint64_t          start_ms;
 static int               initialized   = 0;

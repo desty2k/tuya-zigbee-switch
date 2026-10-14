@@ -11,10 +11,17 @@
 /*
  * clock_time() is a 32-bit 16 MHz tick that wraps every 268 s. hal_millis()
  * extends it to a full 32-bit millisecond count, which needs an update at
- * least once per tick wrap: from the main loop, and from a periodic event timer
- * that also bounds deep-retention sleep on end devices.
+ * least every 234.9 s (see hal/tick_clock.h).
+ *
+ * Awake, the main loop updates it on every pass. Asleep:
+ *  - suspend (routers, mains end devices) lasts at most 1 s;
+ *  - deep sleep without retention reboots, restarting the count;
+ *  - deep retention lasts until the nearest event timer. Before it, a one-shot
+ *    refresh timer is armed only when that nearest timer is further away than
+ *    MILLIS_REFRESH_BOUND_MS, so routine wakes (e.g. long polls) are not
+ *    multiplied and a device with no pending timer still reaches deep sleep.
  */
-#define MILLIS_REFRESH_PERIOD_MS    60000
+#define MILLIS_REFRESH_BOUND_MS    200000
 
 static hal_tick_clock_t  millis_clock;
 static ev_timer_event_t *millis_refresh_timer;
@@ -31,14 +38,24 @@ uint32_t hal_millis() {
 
 static s32 millis_refresh(void *arg) {
     (void)arg;
+    millis_refresh_timer = NULL;
     (void)hal_millis();
-    return 0;
+    return -1;
 }
 
 void telink_millis_poll(void) {
     (void)hal_millis();
-    if (millis_refresh_timer == NULL) {
+}
+
+void telink_millis_prepare_sleep(void) {
+    ev_timer_event_t *nearest;
+
+    if (millis_refresh_timer != NULL) {
+        ev_timer_taskCancel(&millis_refresh_timer);
+    }
+    nearest = ev_timer_nearestGet();
+    if (nearest != NULL && nearest->timeout > MILLIS_REFRESH_BOUND_MS) {
         millis_refresh_timer = ev_timer_taskPost(millis_refresh, NULL,
-                                                 MILLIS_REFRESH_PERIOD_MS);
+                                                 MILLIS_REFRESH_BOUND_MS);
     }
 }
