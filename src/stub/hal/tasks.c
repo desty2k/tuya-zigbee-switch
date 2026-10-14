@@ -1,5 +1,6 @@
 #include "hal/tasks.h"
 #include "hal/timer.h"
+#include "stub/hal/stub.h"
 #include "stub/machine_io.h"
 #include <pthread.h>
 #include <stdio.h>
@@ -9,9 +10,14 @@
 
 #define MAX_TASKS    32
 
+/*
+ * Deadlines use the 64-bit virtual clock rather than hal_millis(): the
+ * platform schedulers count down their own timers and are not affected by a
+ * wrap of the millisecond value the firmware sees.
+ */
 typedef struct {
     hal_task_t *task;
-    uint32_t    scheduled_time;
+    uint64_t    scheduled_time;
     int         active;
 } stub_task_entry_t;
 
@@ -19,13 +25,13 @@ static stub_task_entry_t tasks[MAX_TASKS];
 static int tasks_paused;
 
 void stub_tasks_poll(void) {
-    uint32_t current_time;
+    uint64_t current_time;
     int      tasks_executed = 0;
 
     if (tasks_paused) {
         return;
     }
-    current_time = hal_millis();
+    current_time = stub_millis_virtual();
 
     // Check all tasks for execution, keep looping until no tasks are executed in
     // a pass, to more agressively tests for tasks that reschedule themselves.
@@ -102,11 +108,12 @@ void hal_tasks_schedule(hal_task_t *task, uint32_t delay_ms) {
     }
 
     tasks[slot].task           = task;
-    tasks[slot].scheduled_time = hal_millis() + delay_ms;
+    tasks[slot].scheduled_time = stub_millis_virtual() + delay_ms;
     tasks[slot].active         = 1;
 
-    io_log("TASKS", "Scheduled task %p in slot %d, delay=%u ms, execute_at=%u",
-           (void *)task, slot, delay_ms, tasks[slot].scheduled_time);
+    io_log("TASKS", "Scheduled task %p in slot %d, delay=%u ms, execute_at=%llu",
+           (void *)task, slot, delay_ms,
+           (unsigned long long)tasks[slot].scheduled_time);
 }
 
 void hal_tasks_unschedule(hal_task_t *task) {

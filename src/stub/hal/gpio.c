@@ -2,6 +2,7 @@
 #include "hal/timer.h"
 #include "stub/machine_io.h"
 #include "stub/hal/gpio_counter.h"
+#include "stub/hal/stub.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -143,6 +144,27 @@ hal_gpio_pull_t hal_gpio_parse_pull(const char *pull_str) {
 
 // Stub-specific functions for testing
 
+static void stub_gpio_capture(hal_gpio_pin_t gpio_pin) {
+    uint8_t value = gpio_pins[gpio_pin].value;
+
+    if (value == gpio_pins[gpio_pin].last_level) {
+        return;
+    }
+
+    hal_gpio_edge_t edge = {
+        .pin          = gpio_pin,
+        .level        = value,
+        .timestamp_ms = hal_millis(),
+        .seq          = edge_seq++,
+    };
+
+    gpio_pins[gpio_pin].last_level = value;
+    diagnostics.gpio_edges_captured++;
+    if (edge_sink != NULL) {
+        edge_sink(&edge);
+    }
+}
+
 void stub_gpio_simulate_input(hal_gpio_pin_t gpio_pin, uint8_t value) {
     if (gpio_pin >= MAX_GPIO_PINS) {
         io_log("GPIO", "Error: Invalid input pin %d for simulation", gpio_pin);
@@ -158,23 +180,40 @@ void stub_gpio_simulate_input(hal_gpio_pin_t gpio_pin, uint8_t value) {
 
     if (old_value != value && gpio_pins[gpio_pin].watched) {
         diagnostics.gpio_irq_count++;
-        if (value != gpio_pins[gpio_pin].last_level) {
-            hal_gpio_edge_t edge = {
-                .pin          = gpio_pin,
-                .level        = value,
-                .timestamp_ms = hal_millis(),
-                .seq          = edge_seq++,
-            };
-
-            gpio_pins[gpio_pin].last_level = value;
-            diagnostics.gpio_edges_captured++;
-            if (edge_sink != NULL) {
-                edge_sink(&edge);
-            }
-        }
+        stub_gpio_capture(gpio_pin);
     }
 
     io_log("GPIO", "Simulated input pin %d = %d", gpio_pin, value);
+}
+
+void stub_gpio_burst(hal_gpio_pin_t gpio_pin, uint32_t count) {
+    for (uint32_t i = 0; i < count; i++) {
+        stub_gpio_simulate_input(gpio_pin, gpio_pins[gpio_pin].value ? 0 : 1);
+    }
+}
+
+/*
+ * Model Telink's deferred capture: the level changes while watched-pin
+ * interrupts are disabled, the main loop stalls for lag_ms, and the change is
+ * only observed (and stamped) when hal_gpio_process_pending() runs.
+ */
+void stub_gpio_simulate_late_input(hal_gpio_pin_t gpio_pin, uint8_t value,
+                                   uint32_t lag_ms) {
+    if (gpio_pin >= MAX_GPIO_PINS) {
+        io_log("GPIO", "Error: Invalid input pin %d for simulation", gpio_pin);
+        return;
+    }
+    if (gpio_pins[gpio_pin].value != value) {
+        stub_gpio_counter_capture_edge(gpio_pin, gpio_pins[gpio_pin].value,
+                                       value, hal_millis());
+    }
+    gpio_pins[gpio_pin].value = value;
+    stub_millis_step(lag_ms);
+    if (gpio_pins[gpio_pin].watched) {
+        stub_gpio_capture(gpio_pin);
+    }
+    io_log("GPIO", "Simulated late input pin %d = %d (lag %u ms)", gpio_pin,
+           value, lag_ms);
 }
 
 uint8_t stub_gpio_get_output(hal_gpio_pin_t gpio_pin) {

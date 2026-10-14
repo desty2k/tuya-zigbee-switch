@@ -287,6 +287,25 @@ class Device:
         )
         assert res.ok, f"Pin edge failed: {res.payload}"
 
+    def time_model(self, model: str) -> None:
+        res = self.p.exec(f"time_model {model}")
+        assert res.ok, f"time_model failed: {res.payload}"
+
+    def time_set(self, virtual_ms: int) -> None:
+        res = self.p.exec(f"time_set {virtual_ms}")
+        assert res.ok, f"time_set failed: {res.payload}"
+
+    def pin_burst(self, pin: str, count: int) -> None:
+        res = self.p.exec(f"pin_burst {self._parse_pin(pin)} {count}")
+        assert res.ok, f"pin_burst failed: {res.payload}"
+
+    def pin_late(self, pin: str, value: int, lag_ms: int) -> None:
+        res = self.p.exec(f"pin_late {self._parse_pin(pin)} {value} {lag_ms}")
+        assert res.ok, f"pin_late failed: {res.payload}"
+
+    def millis(self) -> int:
+        return int(self.status()["uptime_ms"])
+
     def inject_edges(self, pin: str, edges: list[tuple[int, int]]) -> None:
         previous_at = 0
         for value, at_ms in edges:

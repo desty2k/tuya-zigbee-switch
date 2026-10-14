@@ -8,6 +8,13 @@
 // GPIO stub functions
 void stub_gpio_enable_debug(int enable);
 void stub_gpio_simulate_input(hal_gpio_pin_t gpio_pin, uint8_t value);
+
+/** Toggle an input count times at one instant, before any worker can run. */
+void stub_gpio_burst(hal_gpio_pin_t gpio_pin, uint32_t count);
+
+/** Change an input, stall lag_ms, then capture the change stamped late. */
+void stub_gpio_simulate_late_input(hal_gpio_pin_t gpio_pin, uint8_t value,
+                                   uint32_t lag_ms);
 uint8_t stub_gpio_get_output(hal_gpio_pin_t gpio_pin);
 uint32_t stub_gpio_init_count(void);
 uint32_t stub_gpio_write_count(void);
@@ -52,9 +59,22 @@ void stub_set_adc_voltage_mv(uint16_t voltage_mv);
 void stub_set_battery_voltage_mv(uint16_t voltage_mv);
 
 // Millis stub functions
+typedef enum {
+    STUB_TIME_MODEL_NATIVE = 0,
+    STUB_TIME_MODEL_TELINK = 1,
+} stub_time_model_t;
+
 void stub_millis_init();
 void stub_millis_freeze();
 void stub_millis_unfreeze();
 void stub_millis_step(uint64_t step);
+
+/** Monotonic 64-bit virtual time in ms; never wraps. */
+uint64_t stub_millis_virtual(void);
+
+/** Jump frozen virtual time forward to virtual_ms; -1 if not frozen or backwards. */
+int stub_millis_set(uint64_t virtual_ms);
+void stub_millis_set_model(stub_time_model_t model);
+stub_time_model_t stub_millis_model(void);
 
 #endif // _HAL_STUB_H_
