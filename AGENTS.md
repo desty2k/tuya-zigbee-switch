@@ -153,9 +153,23 @@ Do write:
 - invariants a function relies on or maintains
 
 When replacing an implementation, **delete the old one in the same change**. No
-adapters, no parallel paths, no dead symbols. The only compatibility guarantees
-are external: the Zigbee interface (attribute ids, semantics, value encodings) and
-the ability to OTA-update from released firmware versions.
+adapters, no parallel paths, no dead symbols.
+
+This repository is the BSEED-focused fork (`desty2k/tuya-zigbee-switch`), a
+separate product from upstream `romasku/tuya-zigbee-switch`; it is not merged
+back. Compatibility guarantees:
+
+- None towards upstream firmware: upstream's Basic `0xFF0x` management
+  attributes, converters and NVM layouts are not preserved. Updating a device
+  from upstream or pre-release fork firmware resets its settings (network
+  membership, binds and groups survive).
+- The fork's own generated converters (`zigbee2mqtt/`, `zha/`, `homed/`) must
+  always match the firmware's Zigbee interface. Device management uses the
+  fork-private clusters `0xFC10`/`0xFC11`; every fork-private cluster uses the
+  single manufacturer code defined in `helper_scripts/management_protocol.json`.
+- From the first fork release onward, settings survive OTA between fork
+  releases: NVM layout changes need converting migrations, not clearing.
+- OTA images must install safely; image types stay unique per board.
 
 Documentation rules:
 

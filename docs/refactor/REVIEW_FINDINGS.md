@@ -780,15 +780,15 @@ Add these before changing firmware behaviour. Each maps to a finding.
   attribute-table pointer, so a private cluster with zero attributes takes the
   next cluster's identity. Latent.
 
-## 7. Decisions needed from the owner
+## 7. Owner decisions (answered 2026-10-14)
 
-| # | Question | Default if no answer |
-| --- | --- | --- |
-| D1 | Management interface: 0xFC10/0xFC11, or back on Basic `0xFF0x`? | 0xFC10/0xFC11. Templates and generated converters follow the firmware (C5). |
-| D2 | Settings continuity across OTA | None from upstream or pre-refactor builds (documented reset, C4). From the first fork release on, decide whether fork-to-fork OTA must keep settings; update `AGENTS.md` "Versioning and NVM" and its compatibility paragraph to state the fork's actual guarantees. |
-| D3 | Manufacturer code for fork-private clusters (0xFC01, 0xFC02, 0xFC10, 0xFC11) | One code for all, defined once in `helper_scripts/management_protocol.json` and generated into firmware and templates. Confirm `0x1A2B` is not assigned to another vendor before release. |
-| D4 | Freeze capability phases 5–9 (metering, overload, GPIO probe, pin-info, retry caches)? | Freeze until the outlet and cover hardware is traced. Remove the meter code (L1). Do not build the Zigbee GPIO probe: it pulses arbitrary pins as outputs on mains hardware. |
-| D5 | Split the work? | Yes, in order: (a) stub fidelity + C/H fixes for switches and relays; (b) cover controller fixes; (c) management protocol and converter regeneration. |
+| # | Decision |
+| --- | --- |
+| D1 | Management settings live on fork-private clusters 0xFC10/0xFC11. Templates and generated converters follow the firmware (C5). Basic `0xFF0x` is not restored. |
+| D2 | No settings continuity from upstream or pre-release fork firmware (documented reset, C4). From the first fork release onward, settings must survive fork-to-fork OTA: layout changes need converting migrations. Recorded in `AGENTS.md`. |
+| D3 | One manufacturer code for every fork-private cluster (0xFC01, 0xFC02, 0xFC10, 0xFC11), defined once in `helper_scripts/management_protocol.json` and generated into firmware and templates. Confirm `0x1A2B` is not assigned to another vendor; choose another if it is. |
+| D4 | Capability phases 5–9 are frozen. The meter code is removed in the cleanup wave (L1). No Zigbee GPIO probe. |
+| D5 | Work proceeds in waves (section 9). |
 
 ## 8. Exit criteria before any hardware flash
 
@@ -811,3 +811,44 @@ Add these before changing firmware behaviour. Each maps to a finding.
    4. confirm no ghost presses on long switch wiring at the 50 ms debounce,
       and no reset or hold from short taps over at least 10 minutes, which
       crosses the Telink clock wrap twice (C7, C8).
+
+## 9. Delegation plan
+
+Each implementing agent owns a vertical slice: stub fidelity for its area,
+failing tests, then the fix. Each works in its own worktree and branch; the
+integrator merges. After every wave an independent reviewer reruns all
+verification and checks the diff against this document before the merge.
+Implementing agents' own reports are not accepted as evidence.
+
+| Wave | Agent | Scope | Depends on |
+| --- | --- | --- | --- |
+| 0 | integrator | S1, S7, `AGENTS.md` compatibility text, decisions, Telink build host | — |
+| 1 | A: Zigbee HAL | S2, S3, S4 → C1, C2, C3, H5, H8, H1, M8, M9 | wave 0 |
+| 1 | B: input and timing | S5, S6 → C7, C8, H2, H3, H4, M11, M12 | wave 0 |
+| 1 | F: build and platform | H10 size check, C4 (Silabs migration version, changelog), H9 Silabs build | wave 0 |
+| 2 | C: relays and interlock | C9, M1, M3, M4, M5, L7 | A merged |
+| 2 | D: cover | H6, H7, M6, L5 | A merged |
+| 2 | E: integrations | C5, C6, D3, template/firmware parity check, regenerated converters | A merged |
+| 3 | cleanup | L1, L2, L3, L4, L8, L9, L10, M2, M7, M10, M13 | waves 1–2 |
+| 4 | owner | hardware exit criteria (section 8) | wave 3 |
+
+### Telink build host
+
+The Telink toolchain runs on `sk8` (x86_64 Ubuntu), not on macOS. Sync the
+worktree there and build:
+
+```bash
+rsync -az --delete --exclude telink_tools --exclude silabs_tools --exclude build \
+  --exclude stub_nvm_data --exclude .venv ./ sk8:Projects/tuya-zigbee-switch/
+sk8exec 'cd ~/Projects/tuya-zigbee-switch && export PATH=$HOME/.local/bin:$PATH && \
+  BOARD=SWITCH_BSEED_TS0726_4GANG make board/build'
+```
+
+`telink_tools` is installed there and `yq` (mikefarah v4) is in
+`~/.local/bin`. Use a separate remote directory per worktree when agents build
+in parallel. Do not commit the `bin/` output of verification builds.
+
+Baseline at `1f1d1ac4` (wave 0 start): `BOARD=SWITCH_BSEED_TS0726_4GANG make
+board/build` passes; 199760 text / 645 data / 39302 bss; `.bin` 200405 bytes;
+existing `hal/system.c:12` noreturn warning. The SDK patch applied with fuzz 2
+on hunks 3 and 7 and fuzz 1 on hunks 4 and 8 (confirms H1).
