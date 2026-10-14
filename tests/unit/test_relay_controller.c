@@ -278,6 +278,24 @@ TEST(explicit_timed_on_overrides_inching) {
     ASSERT_TRUE(!relay_ctrl_is_on(0));
 }
 
+TEST(joining_a_group_with_an_energised_peer_switches_off) {
+    relay_driver_t peer_driver = {
+        .on_pin = 12, .off_pin = HAL_INVALID_PIN, .on_high = 1, .is_latching = 0,
+    };
+    relay_config_t peer_config = { 0 };
+
+    reset_controller(false);
+    ASSERT_EQ(1, relay_ctrl_add(&peer_driver, &peer_config));
+    ASSERT_TRUE(interlock_add_group(1, 0x01, 0));
+    ASSERT_EQ(RELAY_RESULT_APPLIED, submit(RELAY_REQUEST_ON, RELAY_SOURCE_BUTTON));
+    ASSERT_EQ(RELAY_RESULT_APPLIED, relay_ctrl_submit(&(relay_request_t){
+        .relay_id = 1, .type = RELAY_REQUEST_ON, .source = RELAY_SOURCE_BUTTON,
+    }));
+    ASSERT_TRUE(relay_ctrl_set_interlock_group(1, 1));
+    ASSERT_TRUE(relay_ctrl_is_on(0));
+    ASSERT_TRUE(!relay_ctrl_is_on(1));
+}
+
 TEST(timed_on_remaining_reports_only_timed_deadlines) {
     reset_controller(false);
     ASSERT_EQ(0, relay_ctrl_timed_on_remaining_ms(0));
@@ -346,6 +364,7 @@ int main(void) {
     RUN_TEST(controller_capacity_is_bounded);
     RUN_TEST(configured_inching_applies_to_every_on_request);
     RUN_TEST(explicit_timed_on_overrides_inching);
+    RUN_TEST(joining_a_group_with_an_energised_peer_switches_off);
     RUN_TEST(timed_on_remaining_reports_only_timed_deadlines);
     RUN_TEST(latching_pulse_is_retried_when_its_timer_cannot_be_armed);
     RUN_TEST(latching_wait_is_retried_when_its_timer_cannot_be_armed);

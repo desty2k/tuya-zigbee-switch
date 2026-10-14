@@ -118,6 +118,18 @@ def test_interlock_attribute_accepts_only_config_groups() -> None:
         assert device.zcl_relay_get(3) == "1"
 
 
+def test_relay_joining_a_group_with_an_energised_peer_switches_off() -> None:
+    with StubProc(device_config="X;Y;RA0;RA1;RA2;K03:0;") as proc:
+        device = Device(proc)
+        device.zcl_relay_on(1)
+        device.zcl_relay_on(3)
+        device.write_zigbee_attr(
+            3, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF_INTERLOCK_GROUP, 1
+        )
+        assert device.zcl_relay_get(1) == "1"
+        assert device.zcl_relay_get(3) == "0"
+
+
 def test_config_interlock_wins_over_persisted_group() -> None:
     config = "X;Y;RA0;RA1;K03:0;"
     with StubProc(device_config=config) as proc:

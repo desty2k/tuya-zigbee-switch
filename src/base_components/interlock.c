@@ -17,6 +17,13 @@ static interlock_group_t *interlock_find_group(uint8_t group_id) {
     return NULL;
 }
 
+static bool interlock_peer_is_on(const interlock_group_t *group,
+                                 uint8_t relay_id, uint8_t peer_id) {
+    return peer_id != relay_id &&
+           (group->relay_mask & ((uint16_t)1 << peer_id)) != 0 &&
+           relay_ctrl_is_on(peer_id);
+}
+
 static void interlock_dead_time_elapsed(void *arg) {
     interlock_group_t *group    = (interlock_group_t *)arg;
     uint8_t            relay_id = group->pending_on_relay;
@@ -114,6 +121,21 @@ bool interlock_set_relay_group(uint8_t relay_id, uint8_t group_id) {
     }
     group->relay_mask |= (uint16_t)1 << relay_id;
     interlock_relay_groups[relay_id] = group_id;
+
+    /* A relay joining while it and a member are both on would leave two
+     * group relays energised; the joining one gives way. */
+    if (relay_ctrl_is_on(relay_id)) {
+        for (uint8_t peer_id = 0; peer_id < relay_ctrl_count(); peer_id++) {
+            if (interlock_peer_is_on(group, relay_id, peer_id)) {
+                (void)relay_ctrl_submit(&(relay_request_t){
+                    .relay_id = relay_id,
+                    .type     = RELAY_REQUEST_OFF,
+                    .source   = RELAY_SOURCE_INTERLOCK,
+                });
+                break;
+            }
+        }
+    }
     return true;
 }
 
@@ -141,9 +163,7 @@ bool interlock_prepare(uint8_t relay_id) {
         timer_cancel(&group->dead_time_timer);
     }
     for (uint8_t peer_id = 0; peer_id < relay_ctrl_count(); peer_id++) {
-        if (peer_id != relay_id &&
-            (group->relay_mask & ((uint16_t)1 << peer_id)) != 0 &&
-            relay_ctrl_is_on(peer_id)) {
+        if (interlock_peer_is_on(group, relay_id, peer_id)) {
             peer_was_on = true;
             relay_ctrl_submit(&(relay_request_t){
                 .relay_id = peer_id,
