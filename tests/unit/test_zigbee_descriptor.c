@@ -188,8 +188,13 @@ TEST(encoded_size_follows_string_prefix_and_rejects_overlong_strings) {
     ASSERT_EQ(2, hal_zigbee_attr_encoded_size(0x21, fixed_u16, 2));
 }
 
+static const zcl_frame_limits_t limits = {
+    .config_report_records   = 16,
+    .read_report_cfg_records = 16,
+};
+
 #define FRAME_OK(cmd, bytes) \
-        zcl_frame_is_well_formed((cmd), (bytes), sizeof(bytes), 16)
+        zcl_frame_is_well_formed((cmd), (bytes), sizeof(bytes), &limits)
 
 TEST(write_and_report_frames_must_end_after_their_last_record) {
     const uint8_t one_u8[]       = { 0x00, 0x40, 0x20, 0x07 };
@@ -203,7 +208,7 @@ TEST(write_and_report_frames_must_end_after_their_last_record) {
     const uint8_t trailing[]     = { 0x00, 0x40, 0x20, 0x07, 0x00 };
     const uint8_t structure[]    = { 0x00, 0x40, 0x4C, 0x00, 0x00 };
 
-    ASSERT_TRUE(zcl_frame_is_well_formed(ZCL_FRAME_CMD_WRITE, NULL, 0, 16));
+    ASSERT_TRUE(zcl_frame_is_well_formed(ZCL_FRAME_CMD_WRITE, NULL, 0, &limits));
     ASSERT_TRUE(FRAME_OK(ZCL_FRAME_CMD_WRITE, one_u8));
     ASSERT_TRUE(FRAME_OK(ZCL_FRAME_CMD_WRITE_UNDIVIDED, string));
     ASSERT_TRUE(FRAME_OK(ZCL_FRAME_CMD_REPORT, one_u8));
@@ -248,8 +253,8 @@ TEST(configure_reporting_records_are_bounded_and_counted) {
     ASSERT_TRUE(FRAME_OK(ZCL_FRAME_CMD_CONFIG_REPORT, discrete));
     ASSERT_TRUE(FRAME_OK(ZCL_FRAME_CMD_CONFIG_REPORT, receive));
     ASSERT_TRUE(!FRAME_OK(ZCL_FRAME_CMD_CONFIG_REPORT, cut));
-    ASSERT_TRUE(zcl_frame_is_well_formed(ZCL_FRAME_CMD_CONFIG_REPORT, many, 5 * 16, 16));
-    ASSERT_TRUE(!zcl_frame_is_well_formed(ZCL_FRAME_CMD_CONFIG_REPORT, many, 5 * 17, 16));
+    ASSERT_TRUE(zcl_frame_is_well_formed(ZCL_FRAME_CMD_CONFIG_REPORT, many, 5 * 16, &limits));
+    ASSERT_TRUE(!zcl_frame_is_well_formed(ZCL_FRAME_CMD_CONFIG_REPORT, many, 5 * 17, &limits));
 }
 
 TEST(read_reporting_configuration_response_is_bounded) {
@@ -262,8 +267,26 @@ TEST(read_reporting_configuration_response_is_bounded) {
     ASSERT_TRUE(!FRAME_OK(ZCL_FRAME_CMD_READ_REPORT_CFG_RSP, cut));
 }
 
+TEST(read_reporting_configuration_records_are_whole_and_counted) {
+    /* direction, attribute id */
+    uint8_t       many[3 * 18];
+    const uint8_t partial[] = { 0x00, 0x00, 0x00, 0x00 };
+
+    for (uint8_t i = 0; i < 18; i++) {
+        many[3 * i]     = 0x00;
+        many[3 * i + 1] = i;
+        many[3 * i + 2] = 0x00;
+    }
+    ASSERT_TRUE(!FRAME_OK(ZCL_FRAME_CMD_READ_REPORT_CFG, partial));
+    ASSERT_TRUE(zcl_frame_is_well_formed(ZCL_FRAME_CMD_READ_REPORT_CFG, many, 3, &limits));
+    ASSERT_TRUE(zcl_frame_is_well_formed(ZCL_FRAME_CMD_READ_REPORT_CFG, many, 3 * 16, &limits));
+    ASSERT_TRUE(!zcl_frame_is_well_formed(ZCL_FRAME_CMD_READ_REPORT_CFG, many, 3 * 17, &limits));
+    ASSERT_TRUE(!zcl_frame_is_well_formed(ZCL_FRAME_CMD_READ_REPORT_CFG, many, 3 * 18, &limits));
+}
+
 int main(void) {
     RUN_TEST(write_and_report_frames_must_end_after_their_last_record);
+    RUN_TEST(read_reporting_configuration_records_are_whole_and_counted);
     RUN_TEST(read_response_values_are_bounded_only_for_successful_records);
     RUN_TEST(configure_reporting_records_are_bounded_and_counted);
     RUN_TEST(read_reporting_configuration_response_is_bounded);

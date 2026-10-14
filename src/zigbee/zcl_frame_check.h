@@ -9,9 +9,12 @@
  * zcl_parseInReadReportCfgRspCmd) take every record's length from the frame
  * without checking it against the frame. They sum the lengths in 16 bits and
  * allocate that many bytes, so a long string prefix of 0xFFFD wraps the
- * allocation to a few bytes and the copy then overruns the heap. Any node on
- * the network can send these commands. The check below rejects every frame
- * whose records do not end exactly at the end of the payload before such a
+ * allocation to a few bytes and the copy then overruns the heap. Other
+ * handlers size an allocation in a u8 from the record count
+ * (zcl_parseInCfgReportCmd, zcl_readReportCfgHandler), which wraps for long
+ * frames. Any node on the network can send these commands. The check below
+ * rejects every frame whose records do not end exactly at the end of the
+ * payload, or that holds more records than its allocation fits, before such a
  * parser runs. The type sizes match the SDK's zcl_getDataTypeLen() and
  * zcl_analogDataType().
  */
@@ -19,18 +22,32 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define ZCL_FRAME_CMD_READ_RSP               0x01u
-#define ZCL_FRAME_CMD_WRITE                  0x02u
-#define ZCL_FRAME_CMD_WRITE_UNDIVIDED        0x03u
-#define ZCL_FRAME_CMD_WRITE_NO_RSP           0x05u
-#define ZCL_FRAME_CMD_CONFIG_REPORT          0x06u
-#define ZCL_FRAME_CMD_READ_REPORT_CFG_RSP    0x09u
-#define ZCL_FRAME_CMD_REPORT                 0x0Au
+#define ZCL_FRAME_CMD_READ_RSP                0x01u
+#define ZCL_FRAME_CMD_WRITE                   0x02u
+#define ZCL_FRAME_CMD_WRITE_UNDIVIDED         0x03u
+#define ZCL_FRAME_CMD_WRITE_NO_RSP            0x05u
+#define ZCL_FRAME_CMD_CONFIG_REPORT           0x06u
+#define ZCL_FRAME_CMD_READ_REPORT_CFG         0x08u
+#define ZCL_FRAME_CMD_READ_REPORT_CFG_RSP     0x09u
+#define ZCL_FRAME_CMD_REPORT                  0x0Au
 
-#define ZCL_FRAME_SEND_ATTR_REPORTS          0x00u
-#define ZCL_FRAME_STATUS_SUCCESS             0x00u
+#define ZCL_FRAME_SEND_ATTR_REPORTS           0x00u
+#define ZCL_FRAME_STATUS_SUCCESS              0x00u
 /* The SDK counts records in a u8. */
-#define ZCL_FRAME_MAX_RECORDS                255u
+#define ZCL_FRAME_MAX_RECORDS                 255u
+/* Read Reporting Configuration record: direction (1), attribute id (2). */
+#define ZCL_FRAME_READ_REPORT_CFG_REC_SIZE    3u
+
+/*
+ * Record counts beyond which the SDK's u8-sized allocations for a command's
+ * parsed form or response no longer hold every record.
+ */
+typedef struct {
+    /* Configure Reporting: zcl_parseInCfgReportCmd() allocation. */
+    uint16_t config_report_records;
+    /* Read Reporting Configuration: zcl_readReportCfgHandler() response. */
+    uint16_t read_report_cfg_records;
+} zcl_frame_limits_t;
 
 /** Size of a fixed-size ZCL type; 0 for types without a fixed size. */
 static inline uint8_t zcl_frame_type_size(uint8_t type) {
@@ -195,15 +212,20 @@ static inline bool zcl_frame_read_report_cfg_rsp_is_bounded(const uint8_t *data,
     return true;
 }
 
+/* Fixed-size records whose count the SDK derives as len / record_size. */
+static inline bool zcl_frame_fixed_records_are_bounded(uint16_t len, uint16_t record_size,
+                                                       uint16_t max_records) {
+    return len % record_size == 0 && len / record_size <= max_records;
+}
+
 /**
- * True when a foundation command's payload can be parsed by the SDK without
- * reading or writing past it. Commands without variable-length records pass.
- * `max_config_report_records` is the number of Configure Reporting records
- * whose parsed form fits the SDK's 8-bit allocation size.
+ * True when a foundation command's payload can be parsed and answered by the
+ * SDK without reading or writing past a buffer. Commands without
+ * variable-length records pass.
  */
 static inline bool zcl_frame_is_well_formed(uint8_t command_id, const uint8_t *data,
                                             uint16_t len,
-                                            uint16_t max_config_report_records) {
+                                            const zcl_frame_limits_t *limits) {
     if (len != 0 && data == 0) return false;
 
     switch (command_id) {
@@ -217,7 +239,12 @@ static inline bool zcl_frame_is_well_formed(uint8_t command_id, const uint8_t *d
         return zcl_frame_read_rsp_is_bounded(data, len);
 
     case ZCL_FRAME_CMD_CONFIG_REPORT:
-        return zcl_frame_config_report_is_bounded(data, len, max_config_report_records);
+        return zcl_frame_config_report_is_bounded(data, len,
+                                                  limits->config_report_records);
+
+    case ZCL_FRAME_CMD_READ_REPORT_CFG:
+        return zcl_frame_fixed_records_are_bounded(len, ZCL_FRAME_READ_REPORT_CFG_REC_SIZE,
+                                                   limits->read_report_cfg_records);
 
     case ZCL_FRAME_CMD_READ_REPORT_CFG_RSP:
         return zcl_frame_read_report_cfg_rsp_is_bounded(data, len);

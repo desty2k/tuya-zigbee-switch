@@ -172,12 +172,16 @@ static status_t cmd_callback(zclIncomingAddrInfo_t *addr_info, u8 cmd_id,
 /* Called by the patched zcl_foundationCmdHandler() before any parser runs;
  * see zigbee/zcl_frame_check.h. */
 bool hal_zigbee_telink_foundation_frame_ok(zclIncoming_t *message) {
-    // zcl_parseInCfgReportCmd() sizes its allocation in a u8.
-    const uint16_t max_config_report_records =
-        (255u - sizeof(zclCfgReportCmd_t)) / sizeof(zclCfgReportRec_t);
+    // zcl_parseInCfgReportCmd() and zcl_readReportCfgHandler() size their allocations in a u8.
+    static const zcl_frame_limits_t limits = {
+        .config_report_records   =
+            (255u - sizeof(zclCfgReportCmd_t)) / sizeof(zclCfgReportRec_t),
+        .read_report_cfg_records =
+            (255u - sizeof(zclReadReportCfgRspCmd_t)) / sizeof(zclReportCfgRspRec_t),
+    };
 
     return zcl_frame_is_well_formed(message->hdr.cmd, message->pData,
-                                    message->dataLen, max_config_report_records);
+                                    message->dataLen, &limits);
 }
 
 /*

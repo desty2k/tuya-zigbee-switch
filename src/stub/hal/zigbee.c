@@ -416,6 +416,14 @@ typedef struct {
     uint16_t              candidate_len;
 } stub_write_record_t;
 
+/* The Telink limits under the SDK's packed layout: a 1-byte record count
+ * followed by 14-byte zclCfgReportRec_t or 15-byte zclReportCfgRspRec_t
+ * records, in a u8-sized allocation. */
+static const zcl_frame_limits_t stub_frame_limits = {
+    .config_report_records   = (255u - 1u) / 14u,
+    .read_report_cfg_records = (255u - 1u) / 15u,
+};
+
 /* The record as it would arrive in a Write Attributes frame, checked the way
  * the patched Telink foundation dispatch checks it before the SDK parses it. */
 static bool stub_write_record_is_well_formed(const hal_zigbee_attribute *attribute,
@@ -429,7 +437,7 @@ static bool stub_write_record_is_well_formed(const hal_zigbee_attribute *attribu
     frame[2] = attribute->data_type_id;
     memcpy(&frame[3], value, len);
     return zcl_frame_is_well_formed(ZCL_FRAME_CMD_WRITE, frame, (uint16_t)(3 + len),
-                                    ZCL_FRAME_MAX_RECORDS);
+                                    &stub_frame_limits);
 }
 
 static hal_zigbee_cmd_result_t stub_write_prepare(
