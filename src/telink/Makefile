@@ -215,6 +215,18 @@ BIN_FILE := $(BIN_DIR)/$(FIRMWARE_BASENAME).bin
 OTA_FILE := $(BIN_DIR)/$(FIRMWARE_BASENAME).ota
 SIZEDUMMY := $(BUILD_DIR)/sizedummy
 
+# OTA slot limits for 512 KB flash, from telink_tools/sdk/proj/drivers/drv_nv.h
+# (FLASH_OTA_IMAGE_MAX_SIZE). The same .bin is packaged for every OTA variant.
+# - Without bootloader (BOOT_LOADER_MODE 0, this firmware): NV_BASE_ADDRESS
+#   0x34000 - app address 0 = 212992 bytes. A larger image cannot be received
+#   by this firmware, so it fails the build.
+# - With bootloader: (0x6A000 - 0x8000) / 2 = 0x31000 = 200704 bytes. Whether
+#   stock Tuya firmware uses this layout is not established; if it does, a
+#   larger -from_tuya image would be rejected or truncated when updating from
+#   stock firmware. Exceeding it only warns.
+OTA_SLOT_MAX_BYTES := 212992
+TUYA_OTA_SLOT_MAX_BYTES := 200704
+
 # Default target
 all: $(BIN_FILE) $(LST_FILE)
 	@echo "Build complete: $(BIN_FILE)"
@@ -235,6 +247,16 @@ $(BIN_FILE): $(ELF_FILE)
 	@mkdir -p $(dir $@)
 	@$(OBJCOPY) -O binary $< $@
 	@$(SIZE) $<
+	@size=$$(wc -c < $@ | tr -d ' '); \
+	echo "Image size: $$size bytes; OTA slot $(OTA_SLOT_MAX_BYTES) (headroom $$(($(OTA_SLOT_MAX_BYTES) - size))), bootloader-layout slot $(TUYA_OTA_SLOT_MAX_BYTES) (headroom $$(($(TUYA_OTA_SLOT_MAX_BYTES) - size)))"; \
+	if [ $$size -gt $(OTA_SLOT_MAX_BYTES) ]; then \
+		echo "ERROR: $@ exceeds the $(OTA_SLOT_MAX_BYTES)-byte OTA slot"; \
+		rm -f $@; \
+		exit 1; \
+	fi; \
+	if [ $$size -gt $(TUYA_OTA_SLOT_MAX_BYTES) ]; then \
+		echo "WARNING: $@ exceeds the $(TUYA_OTA_SLOT_MAX_BYTES)-byte bootloader-layout slot; the -from_tuya image may not install over stock firmware"; \
+	fi
 
 # Compile Telink-specific C files
 $(BUILD_DIR)/telink/%.o: %.c
