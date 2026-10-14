@@ -10,7 +10,6 @@
 #endif
 
 #define UNKNOWN_VERSION                 0
-#define RELAY_CONFIG_VERSION            2
 #define INTERLOCK_CONFIG_VERSION        3
 #define BUTTON_EVENT_CONFIG_VERSION     4
 #define CAPABILITY_OWNERSHIP_VERSION    5
@@ -75,9 +74,7 @@ void handle_version_changes() {
         return;
     }
 
-    if (oldVersion < RELAY_CONFIG_VERSION) {
-        delete_relay_configs();
-    } else if (oldVersion < INTERLOCK_CONFIG_VERSION) {
+    if (oldVersion < INTERLOCK_CONFIG_VERSION) {
         delete_relay_configs();
     }
     if (oldVersion < BUTTON_EVENT_CONFIG_VERSION) {

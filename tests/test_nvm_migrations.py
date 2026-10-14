@@ -58,3 +58,41 @@ def test_silabs_config_default_matches_migrations_version_file() -> None:
     match = re.search(r"#define\s+NVM_MIGRATIONS_VERSION\s+(\d+)", header)
     assert match is not None
     assert int(match.group(1)) == migrations_version()
+
+
+def test_boot_from_older_migration_version_resets_settings_and_stays_joined() -> None:
+    with StubProc(device_config=CONFIG) as process:
+        device = Device(process)
+        device.zcl_switch_relay_mode_set(SWITCH_EP,
+                                         ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DETACHED)
+        assert process.exec(
+            f"zcl_write 1 0x{ZCL_CLUSTER_DEVICE_CONFIG:04X} "
+            f"0x{ZCL_ATTR_DEVICE_CONFIG_MULTI_PRESS_RESET:04X} 3"
+        ).ok
+        assert relay_mode(device) == str(ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DETACHED)
+        assert multi_press_reset(device) == "3"
+    device_type_record = nvm_item(NV_ITEM_DEVICE_TYPE).read_bytes()
+
+    # Same NVM as a device running firmware with migration version 1.
+    nvm_item(NV_ITEM_CURRENT_VERSION_IN_NV).write_bytes(struct.pack("<H", 1))
+
+    events: list[Event] = []
+    with StubProc() as process:
+        process.on_event.append(events.append)
+        device = Device(process)
+        device.step_time(5000)
+        assert process.is_running()
+        assert device.is_joined()
+        assert not any(evt.kind == "zcl_leave_network" for evt in events)
+        assert device.read_zigbee_attr(1, ZCL_CLUSTER_DEVICE_CONFIG,
+                                       ZCL_ATTR_DEVICE_CONFIG_TEXT) == STUB_DEFAULT_CONFIG
+        assert multi_press_reset(device) == "10"
+    assert stored_version() == migrations_version()
+    assert nvm_item(NV_ITEM_DEVICE_TYPE).read_bytes() == device_type_record
+
+    # Reapplying the layout shows the switch and relay owners at defaults.
+    with StubProc(device_config=CONFIG) as process:
+        device = Device(process)
+        assert relay_mode(device) != str(ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DETACHED)
+        assert multi_press_reset(device) == "10"
+    assert stored_version() == migrations_version()
