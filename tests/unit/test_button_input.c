@@ -184,7 +184,8 @@ TEST(queue_overflow_resyncs_to_pin_level) {
     ASSERT_TRUE(button_input_is_down(button_id));
 }
 
-static bool inject_during_drain;
+static bool     inject_during_drain;
+static uint32_t clock_after_drain_inject;
 
 static void inject_edge_on_first_event(const button_event_t *event,
                                        void *arg) {
@@ -193,13 +194,17 @@ static void inject_edge_on_first_event(const button_event_t *event,
     if (inject_during_drain) {
         inject_during_drain = false;
         fake_gpio_inject_edge(TEST_PIN, 0, 131);
+        if (clock_after_drain_inject != 0) {
+            fake_clock_set(clock_after_drain_inject);
+        }
     }
 }
 
 TEST(edge_captured_during_drain_is_still_debounced) {
     setup_button(1, false);
     button_dispatcher_register(inject_edge_on_first_event, NULL);
-    inject_during_drain = true;
+    inject_during_drain      = true;
+    clock_after_drain_inject = 0;
     fake_gpio_inject_edge(TEST_PIN, 0, 100);
     fake_gpio_inject_edge(TEST_PIN, 1, 120);
     poll_at(125);
@@ -259,6 +264,40 @@ TEST(failed_debounce_schedule_is_retried_from_main_loop) {
     ASSERT_TRUE(button_input_is_down(button_id));
 }
 
+TEST(debounce_deadline_counts_from_edge_captured_during_drain) {
+    uint8_t button_id = setup_button(1, false);
+
+    button_dispatcher_register(inject_edge_on_first_event, NULL);
+    inject_during_drain = true;
+    /* The drain finishes at 135, after the press captured at 131. */
+    clock_after_drain_inject = 135;
+    fake_gpio_inject_edge(TEST_PIN, 0, 100);
+    fake_gpio_inject_edge(TEST_PIN, 1, 120);
+    poll_at(125);
+    poll_at(138);
+    ASSERT_TRUE(!button_input_is_down(button_id));
+    /* Due 8 ms after the press at 131, not 8 ms after the drain ended. */
+    poll_at(139);
+    ASSERT_TRUE(button_input_is_down(button_id));
+    ASSERT_EQ(131, events[2].timestamp_ms);
+}
+
+TEST(edge_older_than_resync_level_is_held_for_zero) {
+    uint8_t button_id = setup_button(1, false);
+
+    /* Overflow: the 33rd edge (press) is dropped; resync sees the press. */
+    for (uint32_t i = 0; i < GPIO_EDGE_QUEUE_SIZE + 1; i++) {
+        fake_gpio_inject_edge(TEST_PIN, (uint8_t)(i % 2), 100 + i);
+    }
+    poll_at(140);
+    /* A release captured before the resync read, delivered after it. */
+    fake_gpio_inject_edge(TEST_PIN, 1, 139);
+    poll_at(141);
+    poll_at(300);
+    ASSERT_EQ(0, event_count);
+    ASSERT_TRUE(!button_input_is_down(button_id));
+}
+
 int main(void) {
     RUN_TEST(edge_capture_never_schedules_the_worker);
     RUN_TEST(bounce_on_press);
@@ -275,6 +314,8 @@ int main(void) {
     RUN_TEST(edge_captured_during_drain_is_still_debounced);
     RUN_TEST(deferred_edge_does_not_prove_previous_level);
     RUN_TEST(deferred_edge_level_is_debounced_from_observation);
+    RUN_TEST(debounce_deadline_counts_from_edge_captured_during_drain);
+    RUN_TEST(edge_older_than_resync_level_is_held_for_zero);
     RUN_TEST(failed_worker_schedule_is_retried_from_main_loop);
     RUN_TEST(failed_debounce_schedule_is_retried_from_main_loop);
     return test_runner_failures == 0 ? 0 : 1;
