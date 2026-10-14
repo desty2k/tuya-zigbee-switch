@@ -32,12 +32,18 @@ void device_diagnostics_cluster_refresh(void) {
     instance->values[16]            = snapshot->steering_attempts;
     instance->values[17]            = snapshot->descriptor_validation_failures;
     instance->last_descriptor_error = snapshot->last_descriptor_error;
+#if FEATURE_PROBE
+    gpio_probe_cluster_refresh();
+#endif
 }
 
 void device_diagnostics_cluster_init(zigbee_device_diagnostics_cluster_t *cluster) {
     memset(cluster, 0, sizeof(*cluster));
     instance = cluster;
     cluster->capabilities = DIAGNOSTICS_CAPABILITY_CORE;
+#if FEATURE_PROBE
+    cluster->capabilities |= DIAGNOSTICS_CAPABILITY_PROBE;
+#endif
     device_diagnostics_cluster_refresh();
 }
 
@@ -68,12 +74,19 @@ void device_diagnostics_cluster_add_to_endpoint(
     }
     SETUP_ATTR(19, ZCL_ATTR_DIAGNOSTICS_LAST_DESCRIPTOR_ERROR,
                ZCL_DATA_TYPE_ENUM8, HAL_ATTR_READ, cluster->last_descriptor_error);
+#if FEATURE_PROBE
+    gpio_probe_cluster_setup(&cluster->probe,
+                             &cluster->attr_infos[DEVICE_DIAGNOSTICS_CORE_ATTRIBUTES]);
+#endif
     hal_zigbee_cluster endpoint_cluster = {
         .cluster_id        = ZCL_CLUSTER_DEVICE_DIAGNOSTICS,
         .manufacturer_code = ZIGBEE_MANAGEMENT_MANUFACTURER_CODE,
         .role            = HAL_ZIGBEE_ROLE_SERVER,
-        .attribute_count =                                  20,
+        .attribute_count = DEVICE_DIAGNOSTICS_ATTRIBUTES,
         .attributes      = cluster->attr_infos,
+#if FEATURE_PROBE
+        .cmd_callback      = gpio_probe_cluster_command,
+#endif
     };
     hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity,
                                     &endpoint_cluster);

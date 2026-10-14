@@ -10,6 +10,7 @@
 #include "base_components/network_indicator.h"
 #include "base_components/relay_controller.h"
 #include "base_components/relay_driver.h"
+#include "device_config/build_features.h"
 #include "device_config/config_nv.h"
 #include "device_config/feature_wiring.h"
 #include "device_config/nvm_items.h"
@@ -140,6 +141,11 @@ void stub_app_print_help(void) {
     puts("  pin_late <pin> <0|1> <lag_ms>         - Edge stamped lag_ms late");
     puts("  task_fail <count>                     - Reject task schedules");
     puts("  input_diag                            - Input scheduling counters");
+#if FEATURE_PROBE
+    puts("  probe_pin <pin> float|high|low|train <period_us> <high_us>");
+    puts("                                        - Electrical model of a probe pin");
+    puts("  probe_pin_info <pin>                  - Probe pin model state");
+#endif
     puts("  q, quit                               - Exit");
 }
 
@@ -206,6 +212,7 @@ const char *stub_app_attribute_value_to_string(hal_zigbee_attribute *attr,
         }
         break;
     case ZCL_DATA_TYPE_UINT32:
+    case ZCL_DATA_TYPE_BITMAP32:
         if (attr->size >= 4) {
             uint32_t val = (uint32_t)attr->value[0] |
                            ((uint32_t)attr->value[1] << 8) |
@@ -216,6 +223,18 @@ const char *stub_app_attribute_value_to_string(hal_zigbee_attribute *attr,
             buf[0] = '\0';
         }
         break;
+    case ZCL_DATA_TYPE_OCTET_STR: {
+        size_t  n   = 0;
+        uint8_t len = attr->size >= 1 ? attr->value[0] : 0;
+
+        if (len > attr->size - 1)
+            len = attr->size - 1;
+        buf[0] = '\0';
+        for (uint8_t i = 0; i < len && n + 3 <= bufsize; i++) {
+            n += snprintf(buf + n, bufsize - n, "%02x", attr->value[1 + i]);
+        }
+        break;
+    }
     case ZCL_DATA_TYPE_CHAR_STR: {
         if (attr->size >= 1) {
             uint8_t len = attr->value[0];

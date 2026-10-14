@@ -46,6 +46,27 @@ static status_t attr_write_result_to_status(hal_zigbee_cmd_result_t result) {
     return ZCL_STA_UNSUPPORTED_ATTRIBUTE;
 }
 
+#if FEATURE_PROBE
+
+/*
+ * zcl_cmdHandler() calls the command parser of a registered cluster without
+ * a NULL check. The GPIO probe takes commands on the diagnostics cluster, so
+ * probe images route them to the cluster's callback. Other images register
+ * no parser and must not receive cluster commands for these clusters.
+ */
+static status_t private_cluster_cmd_handler(zclIncoming_t *message) {
+    if (message->clusterAppCb == NULL) {
+        return ZCL_STA_UNSUP_MANU_CLUSTER_COMMAND;
+    }
+    return message->clusterAppCb(&message->addrInfo, message->hdr.cmd,
+                                 message->pData);
+}
+
+#define PRIVATE_CLUSTER_CMD_HANDLER    private_cluster_cmd_handler
+#else
+#define PRIVATE_CLUSTER_CMD_HANDLER    NULL
+#endif
+
 static status_t register_private_cluster(u8 endpoint, u16 unused_manu_code,
                                          u8 attr_num,
                                          const zclAttrInfo_t attr_table[],
@@ -58,7 +79,8 @@ static status_t register_private_cluster(u8 endpoint, u16 unused_manu_code,
     if (cluster != NULL && cluster->manufacturer_code != 0) {
         return zcl_registerCluster(endpoint, cluster->cluster_id,
                                    cluster->manufacturer_code, attr_num,
-                                   attr_table, NULL, callback);
+                                   attr_table, PRIVATE_CLUSTER_CMD_HANDLER,
+                                   callback);
     }
     return ZCL_STA_FAILURE;
 }

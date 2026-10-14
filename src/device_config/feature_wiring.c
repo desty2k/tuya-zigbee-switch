@@ -10,6 +10,9 @@
 #include "base_components/cover_controller.h"
 #include "base_components/diagnostics_service.h"
 #include "base_components/gesture_fsm.h"
+#if FEATURE_PROBE
+#include "base_components/gpio_probe_service.h"
+#endif
 #include "base_components/indicator_feedback.h"
 #include "base_components/interlock.h"
 #include "base_components/led.h"
@@ -103,6 +106,39 @@ enum {
 
 #define ATTRIBUTE_COUNT(type, member) \
         ((uint16_t)(sizeof(((type *)0)->member) / sizeof(hal_zigbee_attribute)))
+
+#if FEATURE_PROBE
+/* The config parser encodes a pin as port << 4 | index. */
+static void probe_claim(hal_gpio_pin_t pin) {
+    if (pin != HAL_INVALID_PIN) {
+        gpio_probe_service_claim((uint8_t)(pin >> 4), (uint8_t)(pin & 0x0F));
+    }
+}
+
+/* Every pin the composition gives a feature stays out of the probe. */
+static void probe_claim_composition(const device_composition_t *c) {
+    gpio_probe_service_init();
+    for (uint8_t i = 0; i < c->button_count; i++) {
+        probe_claim(c->buttons[i].pin);
+    }
+    for (uint8_t i = 0; i < c->relay_count; i++) {
+        probe_claim(c->relays[i].on_pin);
+        if (c->relays[i].is_latching) {
+            probe_claim(c->relays[i].off_pin);
+        }
+    }
+    for (uint8_t i = 0; i < c->indicator_count; i++) {
+        probe_claim(c->indicators[i].pin);
+    }
+    for (uint8_t i = 0; i < c->meter_count; i++) {
+        for (uint8_t j = 0; j < c->meters[i].counter_count; j++) {
+            probe_claim(c->meters[i].counter_pins[j]);
+        }
+    }
+    probe_claim(c->battery_pin);
+}
+
+#endif
 
 static void apply_status_led_mode(void *context,
                                   device_config_led_mode_t mode) {
@@ -270,6 +306,9 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
     if (feature_wiring_preflight(c) != FEATURE_WIRING_OK) {
         return FEATURE_WIRING_INVALID;
     }
+#if FEATURE_PROBE
+    probe_claim_composition(c);
+#endif
 
     memset(leds, 0, sizeof(leds)); memset(indicator_feedbacks, 0, sizeof(indicator_feedbacks));
     memset(button_configs, 0, sizeof(button_configs));
@@ -527,6 +566,10 @@ static void stop_wired_features(void) {
 
 void feature_wiring_build_recovery(void) {
     stop_wired_features();
+#if FEATURE_PROBE
+    /* Which pins a failed graph drives is unknown, so the probe stays off. */
+    gpio_probe_service_init();
+#endif
     memset(endpoints, 0, sizeof(endpoints));
     memset(clusters, 0, sizeof(clusters));
     memset(&basic_cluster, 0, sizeof(basic_cluster));
@@ -626,4 +669,7 @@ void feature_wiring_start(void) {
     }
     hal_register_on_network_status_change_callback(network_changed);
     network_changed(hal_zigbee_get_network_status());
+#if FEATURE_PROBE
+    gpio_probe_service_enable();
+#endif
 }

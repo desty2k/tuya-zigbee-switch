@@ -7,6 +7,10 @@
 #include "device_config/reset.h"
 #include "base_components/button_input.h"
 #include "base_components/diagnostics_service.h"
+#include "device_config/build_features.h"
+#if FEATURE_PROBE
+#include "base_components/gpio_probe_service.h"
+#endif
 #include "base_components/gesture_fsm.h"
 #include "hal/gpio.h"
 #include "hal/nvm.h"
@@ -122,6 +126,9 @@ void app_task() {
     hal_gpio_process_pending();
     button_input_process_pending();
     button_event_cluster_process_pending();
+#if FEATURE_PROBE
+    gpio_probe_service_poll();
+#endif
     app_track_network_status(network_status);
     network_diagnostics.uptime_ms = hal_millis();
     diagnostics_service_set_provider(app_diagnostics_provider, NULL);

@@ -86,7 +86,7 @@ board/%:
 PYTHON ?= $(shell command -v python >/dev/null 2>&1 && echo python || echo python3)
 
 # Run pytest tests (requires stub to be built)
-tests: stub/build stub/build_end_device stub/build_switch_only
+tests: stub/build stub/build_end_device stub/build_switch_only stub/build_probe
 	$(PYTHON) -m pytest tests/ -v
 
 include src/features.mk

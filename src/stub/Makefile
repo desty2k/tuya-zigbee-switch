@@ -6,8 +6,9 @@ BINARY             := $(BUILD_DIR)/stub_device
 
 CONFIG ?= X;Y;BA0u;LA1;SA2u;RA3;IA4;
 
-# The default stub contains every feature; build_switch_only builds the
-# relay + switch image of a wall switch board.
+# The default stub contains every feature but the probe; build_switch_only
+# builds the relay + switch image of a wall switch board and build_probe the
+# probe-only image of a GPIO probe board.
 include ../features.mk
 SWITCH_ONLY_FEATURES := relay switch
 
@@ -25,6 +26,7 @@ help:
 	@echo "  build              - Compile the stub device binary for host testing"
 	@echo "  build_end_device   - Compile the end-device stub binary"
 	@echo "  build_switch_only  - Compile a stub with only the relay and switch features"
+	@echo "  build_probe        - Compile a stub with only the GPIO probe feature"
 	@echo ""
 	@echo "Run Targets:"
 	@echo "  run                - Build and run the stub device in interactive mode"
@@ -87,7 +89,8 @@ SOURCES := \
 	$(SRC_DIR)/zigbee/device_config_cluster.c \
 	$(SRC_DIR)/zigbee/device_diagnostics_cluster.c \
 	$(SRC_DIR)/zigbee/button_event_cluster.c \
-	$(addprefix $(SRC_DIR)/,$(FEATURE_SOURCES))
+	$(addprefix $(SRC_DIR)/,$(FEATURE_SOURCES)) \
+	$(if $(filter probe,$(FEATURES)),$(SRC_DIR)/stub/hal/gpio_probe.c)
 
 INCLUDES := \
 	-I$(SRC_DIR) \
@@ -116,6 +119,9 @@ build_end_device: $(BUILD_DIR)
 build_switch_only: $(BUILD_DIR)
 	$(MAKE) build FEATURES="$(SWITCH_ONLY_FEATURES)" BINARY=$(BUILD_DIR)/stub_switch_only
 
+build_probe: $(BUILD_DIR)
+	$(MAKE) build FEATURES="probe" BINARY=$(BUILD_DIR)/stub_probe
+
 run: build
 	./$(BINARY) --device-config "$(CONFIG)"
 
@@ -123,4 +129,4 @@ clean:
 	rm -rf $(BUILD_DIR)
 	rm -rf ../../stub_nvm_data
 
-.PHONY: help build build_end_device build_switch_only run test clean
+.PHONY: help build build_end_device build_switch_only build_probe run test clean

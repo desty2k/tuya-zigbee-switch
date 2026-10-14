@@ -21,3 +21,6 @@
 #define FEATURE_BATTERY    1
 // <o FEATURE_METER>
 #define FEATURE_METER      1
+// The GPIO probe has no Silabs HAL.
+// <o FEATURE_PROBE>
+#define FEATURE_PROBE      0
