@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 #ifndef SIMPLE_REPL_MAX_LINE
-#define SIMPLE_REPL_MAX_LINE    256
+#define SIMPLE_REPL_MAX_LINE    1024
 #endif
 
 static const char     kPrompt[] = "> ";
@@ -121,7 +121,16 @@ int simple_repl_run(const SimpleReplConfig *cfg) {
             continue;
         }
 
-        simple_repl_dispatch_line(cfg, line);
+        if (strchr(line, '\n') == NULL && !feof(stdin)) {
+            /* Discard the remainder so it is never dispatched as a command. */
+            int ch;
+            while ((ch = getchar()) != '\n' && ch != EOF) {
+            }
+            io_res_err("line_too_long max=%d", SIMPLE_REPL_MAX_LINE - 2);
+            fflush(stdout);
+        } else {
+            simple_repl_dispatch_line(cfg, line);
+        }
 
         if (tty) {
             fputs(kPrompt, stdout);

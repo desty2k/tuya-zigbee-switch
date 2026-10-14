@@ -326,13 +326,10 @@ static int cmd_zcl_write(int argc, char **argv) {
         return -1;
     }
 
-    uint8_t candidate[256];
+    /* hal_zigbee_attribute.size is uint8_t, so every attribute fits. */
+    uint8_t candidate[UINT8_MAX + 1];
     hal_zigbee_attribute candidate_attr = *attr;
 
-    if (attr->size > sizeof(candidate)) {
-        io_res_err("value_too_large ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
-        return -1;
-    }
     memcpy(candidate, attr->value, attr->size);
     candidate_attr.value = candidate;
     int ret = stub_app_string_to_attribute_value(&candidate_attr, argv[4]);
