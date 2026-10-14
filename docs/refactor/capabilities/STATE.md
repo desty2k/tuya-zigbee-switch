@@ -91,16 +91,19 @@ remain usable when optional diagnostics are unsupported or resource-exhausted.
 | Device | MCU/module | Relay/button/LED pins | Meter IC/pins | Ratings/calibration | OTA ids | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | TS0726 `_TZ3002_pzao9ls1` | ZTU / TLSR8258 | known in existing config | none known | n/a | stock `54179`, firmware `43627` | profile present |
-| TS011F `_TZ3210_drzlxjne` | ZTU/TLSR8258 candidate | sibling candidate: LED C3, button B5, relay D2, indicator B4 | sibling candidate: CF C0, CF1 C2, SEL C1; exact IC unknown | 16 A product class; exact calibration unknown | reported stock manufacturer `4417`, image `54179`; new firmware id unassigned | blocked: open and trace exact unit |
+| TS011F `_TZ3210_drzlxjne` | Telink (OUI), module unknown; cannot be opened | unknown; to be found with the GPIO probe (REVIEW_FINDINGS section 10) | unknown: BL0937 or BL0942 | 16 A product class; calibration unknown | stock manufacturer `4417`, image type `54179`, file version `82` (owner capture 2026-10-14); probe image type unassigned | blocked: probe workstream |
 | TS130F `_TZ3000_vsj5o7dm` | TLSR8258/ZT-family candidate | stop/up/down, two relays and backlight all unknown | n/a unless found | stock travel/calibration behavior known; hardware values unknown | unknown | blocked: open and trace exact unit |
 
 Do not resolve unknown cells from another TS011F/TS130F profile. Record board
 revision, labeled ICs, continuity/pin tracing, stock Basic/OTA descriptors and a
 safe bench test before adding a database entry.
 
-Public evidence narrows the search without confirming GPIO. The exact outlet
-reports Basic application version `192`, while its OTA record reports file
-version `82`; these are different fields. Its endpoint has OnOff, Electrical
+Public evidence narrows the search without confirming GPIO. The owner's units
+report Basic `appVersion` 82, `stackVersion` 0, `hwVersion` 1, an empty
+`dateCode` and no `swBuildId` (unsupported attribute), and the OTA query
+`manufacturerCode` 4417, `imageType` 54179, `fileVersion` 82 (2026-10-14).
+Image type 54179 is shared by 149 stock Tuya entries in the OTA index, so
+every entry must be filtered by manufacturer name. Its endpoint has OnOff, Electrical
 Measurement and Metering. The candidate pins come from the hardware-confirmed
 `_TZ3000_2uollq9d` sibling and remain unconfirmed for `drzlxjne`. The exact cover
 reports app version `70`, position, moving, calibration, motor reversal and

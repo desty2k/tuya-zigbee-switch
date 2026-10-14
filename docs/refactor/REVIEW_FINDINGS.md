@@ -893,7 +893,15 @@ be discovered on the device itself with a probe running in our firmware.
   pad, which needs opening. The first converted outlet must be expendable.
 - The probe image installs over stock Tuya firmware, so its OTA file must fit
   the 200704-byte bootloader-layout slot (H10) with margin.
-- Before conversion, record the outlet's stock identity from Z2M:
+- Stock identity of the owner's outlets (captured 2026-10-14): Basic
+  `appVersion` 82, `stackVersion` 0, `hwVersion` 1, `dateCode` empty,
+  `swBuildId` unsupported; OTA `manufacturerCode` 4417, `imageType` 54179,
+  `fileVersion` 82. Image type 54179 is shared by 149 stock Tuya entries in
+  `zigbee2mqtt/ota/index_router.json`; only the `manufacturerName` filter keeps
+  them apart. The index generator must refuse any entry with a stock image type
+  that lacks a `manufacturerName` filter, and the probe board's entry must be
+  filtered to `_TZ3210_drzlxjne`.
+- For other outlets, record the stock identity from Z2M before conversion:
   `genBasic` `appVersion`, `stackVersion`, `hwVersion`, `dateCode`,
   `swBuildId`, and from the OTA "check for update" log `manufacturerCode`,
   `imageType`, `fileVersion`. The probe board's `stock_manufacturer_id` and
