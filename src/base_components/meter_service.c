@@ -399,9 +399,3 @@ meter_service_result_t meter_service_reset_energy(uint8_t meter_id) {
     notify_subscribers(meter_id, service);
     return METER_SERVICE_OK;
 }
-
-void meter_service_clear_owned(void) {
-    for (uint8_t meter_id = 0; meter_id < METER_SERVICE_MAX_INSTANCES; meter_id++) {
-        hal_nvm_delete(nvm_item(meter_id));
-    }
-}

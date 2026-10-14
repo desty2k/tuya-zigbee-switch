@@ -110,6 +110,4 @@ cover_result_t cover_controller_set_overrun(uint8_t cover_id,
 void cover_controller_action(void *context, uint8_t cover_id,
                              uint16_t action);
 
-void cover_controller_clear_owned(void);
-
 #endif

@@ -68,6 +68,10 @@ CONFIG_STR := $(shell yq -r .$(BOARD).config_str $(DEVICE_DB_FILE))
 FROM_STOCK_MANUFACTURER_ID := $(shell yq -r .$(BOARD).stock_manufacturer_id $(DEVICE_DB_FILE))
 FROM_STOCK_IMAGE_TYPE := $(shell yq -r .$(BOARD).stock_image_type $(DEVICE_DB_FILE))
 FIRMWARE_IMAGE_TYPE := $(shell yq -r .$(BOARD).firmware_image_type $(DEVICE_DB_FILE))
+# Features compiled into the image (src/features.mk). An empty list is valid;
+# build-firmware reruns the script so that an invalid board fails the build.
+BOARD_FEATURES_CMD := python3 helper_scripts/board_features.py --db $(DEVICE_DB_FILE) features $(BOARD)
+BOARD_FEATURES := $(shell $(BOARD_FEATURES_CMD) 2>/dev/null)
 
 # ==============================================================================
 # Platform Configuration
@@ -104,6 +108,7 @@ OTA_BUILD_ARGS := \
 	FILE_VERSION=$(FILE_VERSION) \
 	DEVICE_TYPE=$(DEVICE_TYPE) \
 	CONFIG_STR="$(CONFIG_STR)" \
+	FEATURES="$(BOARD_FEATURES)" \
 	IMAGE_TYPE=$(FIRMWARE_IMAGE_TYPE) \
 	BIN_FILE=../../$(BIN_FILE)
 endif
@@ -113,8 +118,11 @@ build: drop-old-files build-firmware generate-ota-files update-indexes
 
 # Build the firmware for the specified board
 build-firmware:
+	@$(BOARD_FEATURES_CMD) > /dev/null
+	@echo "Features of $(BOARD): $(BOARD_FEATURES)"
 ifeq ($(PLATFORM_PREFIX),silabs)
 	$(MAKE) silabs/gen \
+		FEATURES="$(BOARD_FEATURES)" \
 		VERSION_STR=$(VERSION_STR) \
 		NVM_MIGRATIONS_VERSION=$(NVM_MIGRATIONS_VERSION) \
 		FILE_VERSION=$(FILE_VERSION) \
@@ -128,6 +136,7 @@ ifeq ($(PLATFORM_PREFIX),telink)
 	$(MAKE) -C src/telink clean
 endif
 	$(MAKE) -C src/$(PLATFORM_PREFIX) build \
+		FEATURES="$(BOARD_FEATURES)" \
 		VERSION_STR=$(VERSION_STR) \
 		NVM_MIGRATIONS_VERSION=$(NVM_MIGRATIONS_VERSION) \
 		FILE_VERSION=$(FILE_VERSION) \

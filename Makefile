@@ -45,6 +45,7 @@ help:
 	@echo "  make tools/update_supported_devices - Generate supported devices documentation"
 	@echo "  make tools/freeze_ota_links        - Replace branch refs with commit hashes"
 	@echo "  make tools/unused_image_type       - Show next available firmware image type ID"
+	@echo "  make tools/check_device_features   - Check config tokens against board features"
 	@echo ""
 	@echo "Device-Specific Builds:"
 	@echo "  BOARD=DEVICE_NAME make board/build - Build specific device from device_db.yaml"
@@ -85,11 +86,15 @@ board/%:
 PYTHON ?= $(shell command -v python >/dev/null 2>&1 && echo python || echo python3)
 
 # Run pytest tests (requires stub to be built)
-tests: stub/build stub/build_end_device
+tests: stub/build stub/build_end_device stub/build_switch_only
 	$(PYTHON) -m pytest tests/ -v
 
+include src/features.mk
+
 UNIT_BUILD_DIR := build/unit
-UNIT_CFLAGS := -Wall -Wextra -Werror -std=c99 -DHAL_STUB -Isrc -Itests/unit
+UNIT_BASE_CFLAGS := -Wall -Wextra -Werror -std=c99 -DHAL_STUB -Isrc -Itests/unit
+unit_feature_defines = $(addprefix -D,$(call feature_defines_for,$(1)))
+UNIT_CFLAGS := $(UNIT_BASE_CFLAGS) $(call unit_feature_defines,$(ALL_FEATURES))
 UNIT_SUPPORT := \
 	tests/unit/support/fake_clock.c \
 	tests/unit/support/fake_tasks.c \
@@ -110,6 +115,12 @@ UNIT_CAPABILITY_STATE_TEST := $(UNIT_BUILD_DIR)/test_capability_state
 UNIT_COVER_TEST := $(UNIT_BUILD_DIR)/test_cover_controller
 UNIT_COUNTER_TEST := $(UNIT_BUILD_DIR)/test_gpio_counter
 UNIT_METER_TEST := $(UNIT_BUILD_DIR)/test_meter_service
+UNIT_PARSER_SWITCH_ONLY_TEST := $(UNIT_BUILD_DIR)/test_config_parser_switch_only
+UNIT_PARSER_COVER_BATTERY_TEST := $(UNIT_BUILD_DIR)/test_config_parser_cover_battery
+UNIT_PARSER_FEATURE_SOURCES := tests/unit/test_config_parser_features.c \
+	src/device_config/config_parser.c \
+	src/device_config/device_composition.c \
+	tests/unit/support/fake_gpio_counter.c
 TELINK_INIT_TEST_CFLAGS := $(UNIT_CFLAGS) -Itests/unit/telink_sdk_stub -Isrc/telink -Isrc/telink/hal
 
 $(UNIT_BUILD_DIR):
@@ -220,10 +231,17 @@ $(UNIT_METER_TEST): tests/unit/test_meter_service.c \
 		tests/unit/support/fake_tasks.c | $(UNIT_BUILD_DIR)
 	$(CC) $(UNIT_CFLAGS) $^ -o $@
 
+$(UNIT_PARSER_SWITCH_ONLY_TEST): $(UNIT_PARSER_FEATURE_SOURCES) | $(UNIT_BUILD_DIR)
+	$(CC) $(UNIT_BASE_CFLAGS) $(call unit_feature_defines,relay switch) $^ -o $@
+
+$(UNIT_PARSER_COVER_BATTERY_TEST): $(UNIT_PARSER_FEATURE_SOURCES) | $(UNIT_BUILD_DIR)
+	$(CC) $(UNIT_BASE_CFLAGS) $(call unit_feature_defines,cover battery) $^ -o $@
+
 unit_tests: $(UNIT_QUEUE_TEST) $(UNIT_TIMER_TEST) $(UNIT_BUTTON_TEST) \
 		$(UNIT_DEBOUNCE_FUZZ) $(UNIT_GESTURE_TEST) $(UNIT_RELAY_TEST) \
 		$(UNIT_INTERLOCK_TEST) $(UNIT_BUTTON_EVENT_TEST) $(UNIT_DESCRIPTOR_TEST) \
-		$(UNIT_TELINK_ZIGBEE_INIT_TEST) $(UNIT_CONFIG_PARSER_TEST) $(UNIT_ACTION_MAPPER_TEST) $(UNIT_CAPABILITY_STATE_TEST) $(UNIT_COVER_TEST) $(UNIT_COUNTER_TEST) $(UNIT_METER_TEST)
+		$(UNIT_TELINK_ZIGBEE_INIT_TEST) $(UNIT_CONFIG_PARSER_TEST) $(UNIT_ACTION_MAPPER_TEST) $(UNIT_CAPABILITY_STATE_TEST) $(UNIT_COVER_TEST) $(UNIT_COUNTER_TEST) $(UNIT_METER_TEST) \
+		$(UNIT_PARSER_SWITCH_ONLY_TEST) $(UNIT_PARSER_COVER_BATTERY_TEST)
 	./$(UNIT_QUEUE_TEST)
 	./$(UNIT_TIMER_TEST)
 	./$(UNIT_BUTTON_TEST)
@@ -240,6 +258,8 @@ unit_tests: $(UNIT_QUEUE_TEST) $(UNIT_TIMER_TEST) $(UNIT_BUTTON_TEST) \
 	./$(UNIT_COVER_TEST)
 	./$(UNIT_COUNTER_TEST)
 	./$(UNIT_METER_TEST)
+	./$(UNIT_PARSER_SWITCH_ONLY_TEST)
+	./$(UNIT_PARSER_COVER_BATTERY_TEST)
 
 # Format all C/H files using uncrustify
 format:

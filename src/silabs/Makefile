@@ -27,6 +27,11 @@ OTA_IMAGE_TYPE ?= ${IMAGE_TYPE}
 
 BOOTLOADER_TYPE ?= internal
 
+# Board features; board.mk passes the board's list (src/features.mk). The
+# slcp files list every feature source; code of a feature at 0 is unreferenced
+# and dropped by the linker's section garbage collection.
+include ../features.mk
+
 # Build configuration as comma-separated list
 empty :=
 space := $(empty) $(empty)
@@ -37,7 +42,8 @@ CONFIG_ITEMS := \
 	SL_ZIGBEE_AF_PLUGIN_OTA_CLIENT_POLICY_IMAGE_TYPE_ID:$(IMAGE_TYPE) \
 	VERSION_STR:"$(VERSION_STR)" \
 	NVM_MIGRATIONS_VERSION:$(NVM_MIGRATIONS_VERSION) \
-	DEFAULT_CONFIG:"$(CONFIG_STR)"
+	DEFAULT_CONFIG:"$(CONFIG_STR)" \
+	$(subst =,:,$(FEATURE_DEFINES))
 
 EXTRA_CONFIGURATION := $(subst $(space),$(comma),$(strip $(CONFIG_ITEMS)))
 
@@ -142,6 +148,11 @@ gen:
 	@grep -Eq '^#define[[:space:]]+NVM_MIGRATIONS_VERSION[[:space:]]+$(NVM_MIGRATIONS_VERSION)$$' \
 		"$(ZIGBEE_BUILD_DIR)/config/silabs_config.h" || \
 		{ echo "Generated silabs_config.h does not use NVM_MIGRATIONS_VERSION $(NVM_MIGRATIONS_VERSION)"; exit 1; }
+	@for define in $(FEATURE_DEFINES); do \
+		grep -Eq "^#define[[:space:]]+$${define%%=*}[[:space:]]+$${define#*=}$$" \
+			"$(ZIGBEE_BUILD_DIR)/config/silabs_config.h" || \
+			{ echo "Generated silabs_config.h does not set $$define"; exit 1; }; \
+	done
 
 # Build targets
 build:

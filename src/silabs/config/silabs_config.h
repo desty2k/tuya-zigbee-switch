@@ -8,3 +8,16 @@
 
 // <o DEFAULT_CONFIG>
 #define DEFAULT_CONFIG            "device;device;"
+
+// src/silabs/Makefile sets the board's features (src/features.mk) at
+// generation time; builds made elsewhere contain every feature.
+// <o FEATURE_RELAY>
+#define FEATURE_RELAY      1
+// <o FEATURE_SWITCH>
+#define FEATURE_SWITCH     1
+// <o FEATURE_COVER>
+#define FEATURE_COVER      1
+// <o FEATURE_BATTERY>
+#define FEATURE_BATTERY    1
+// <o FEATURE_METER>
+#define FEATURE_METER      1

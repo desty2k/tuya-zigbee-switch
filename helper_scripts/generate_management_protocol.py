@@ -34,6 +34,7 @@ def c_header(protocol):
                   "    DEVICE_CONFIG_ERROR_PARSE,", "    DEVICE_CONFIG_ERROR_RESOURCE,",
                   "    DEVICE_CONFIG_ERROR_NVM,", "    DEVICE_CONFIG_ERROR_PENDING,",
                   "    DEVICE_CONFIG_ERROR_UNSUPPORTED,", "    DEVICE_CONFIG_ERROR_OVERFLOW,",
+                  "    DEVICE_CONFIG_ERROR_FEATURE_MISSING,",
                   "} device_config_error_t;", "", "typedef enum {",
                   "    DEVICE_CONFIG_LED_NETWORK = 0,", "    DEVICE_CONFIG_LED_OFF,",
                   "    DEVICE_CONFIG_LED_ON,", "} device_config_led_mode_t;", "",

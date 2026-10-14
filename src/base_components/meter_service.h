@@ -2,10 +2,11 @@
 #define BASE_COMPONENTS_METER_SERVICE_H_
 
 #include "base_components/energy_meter.h"
+#include "device_config/nvm_items.h"
 #include <stdbool.h>
 #include <stdint.h>
 
-#define METER_SERVICE_MAX_INSTANCES      2
+#define METER_SERVICE_MAX_INSTANCES      MAX_METERS
 #define METER_SERVICE_MAX_SUBSCRIBERS    4
 
 typedef enum {
@@ -45,6 +46,5 @@ meter_service_result_t meter_service_set_calibration(
     uint8_t meter_id, const meter_calibration_t *calibration);
 meter_service_result_t meter_service_clear_calibration(uint8_t meter_id);
 meter_service_result_t meter_service_reset_energy(uint8_t meter_id);
-void meter_service_clear_owned(void);
 
 #endif /* BASE_COMPONENTS_METER_SERVICE_H_ */

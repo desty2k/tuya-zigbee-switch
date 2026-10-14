@@ -2,8 +2,6 @@
 #include "hal/printf_selector.h"
 #include "nvm_items.h"
 #include "capability_state.h"
-#include "base_components/cover_controller.h"
-#include "base_components/meter_service.h"
 
 #ifdef HAL_SILABS
 #include "silabs_config.h"
@@ -83,8 +81,15 @@ void handle_version_changes() {
     if (oldVersion < CAPABILITY_OWNERSHIP_VERSION) {
         capability_state_clear_owned();
     }
-    if (oldVersion < COVER_POSITION_VERSION) cover_controller_clear_owned();
-    if (oldVersion < METER_SERVICE_VERSION) meter_service_clear_owned();
+
+    /* Deleted by item id: images built without the cover or meter feature
+     * must still clear these records. */
+    if (oldVersion < COVER_POSITION_VERSION) {
+        for (uint8_t i = 0; i < MAX_COVERS; i++) hal_nvm_delete(NV_ITEM_COVER_STATE(i));
+    }
+    if (oldVersion < METER_SERVICE_VERSION) {
+        for (uint8_t i = 0; i < MAX_METERS; i++) hal_nvm_delete(NV_ITEM_METER_STATE(i));
+    }
     if (oldVersion < MANAGEMENT_SERVICE_VERSION) {
         hal_nvm_delete(NV_ITEM_DEVICE_CONFIG);
         hal_nvm_delete(NV_ITEM_BASIC_CLUSTER_DATA);

@@ -18,7 +18,7 @@
 
 typedef enum { CONFIG_PARSE_OK, CONFIG_PARSE_SYNTAX, CONFIG_PARSE_LIMIT,
                CONFIG_PARSE_REFERENCE, CONFIG_PARSE_PIN_CONFLICT,
-               CONFIG_PARSE_RESOURCE } config_parse_result_t;
+               CONFIG_PARSE_RESOURCE, CONFIG_PARSE_FEATURE_MISSING } config_parse_result_t;
 typedef enum { DEVICE_BUTTON_ONBOARD, DEVICE_BUTTON_SWITCH,
                DEVICE_BUTTON_COVER_SWITCH } device_button_role_t;
 typedef struct { hal_gpio_pin_t       pin; hal_gpio_pull_t pull; uint16_t debounce_ms;

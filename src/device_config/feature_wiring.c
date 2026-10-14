@@ -1,5 +1,6 @@
 #include "feature_wiring.h"
 #include "config_nv.h"
+#include "device_config/build_features.h"
 #include "device_config/config_parser.h"
 #include "device_config/device_config_service.h"
 #include "device_config/system_action.h"
@@ -32,10 +33,13 @@
 #include <string.h>
 
 void parse_config(void) {
-    device_composition_t c;
+    device_composition_t  c;
+    config_parse_result_t result = config_parser_parse(device_config_service_config(), &c);
 
-    if (config_parser_parse(device_config_service_config(), &c) != CONFIG_PARSE_OK) {
-        device_config_service_set_error(DEVICE_CONFIG_ERROR_PARSE);
+    if (result != CONFIG_PARSE_OK) {
+        device_config_service_set_error(result == CONFIG_PARSE_FEATURE_MISSING ?
+                                        DEVICE_CONFIG_ERROR_FEATURE_MISSING :
+                                        DEVICE_CONFIG_ERROR_PARSE);
         feature_wiring_build_recovery();
         return;
     }
@@ -48,31 +52,44 @@ void parse_config(void) {
 }
 
 network_indicator_t network_indicator = { .manual_state_when_connected = 1 };
-led_t                                      leds[5]; indicator_feedback_t indicator_feedbacks[5];
-uint8_t                                    leds_cnt;
-button_config_t                            button_configs[11]; gesture_config_t gesture_configs[11];
-input_button_role_t                        button_roles[11]; uint8_t buttons_cnt;
-relay_driver_t                             relay_drivers[10]; relay_config_t relay_configs[10];
-uint8_t                                    relays_cnt;
-zigbee_switch_cluster                      switch_clusters[10]; uint8_t switch_clusters_cnt;
-zigbee_relay_cluster                       relay_clusters[10]; uint8_t relay_clusters_cnt;
-zigbee_cover_switch_cluster                cover_switch_clusters[3];
-uint8_t                                    cover_switch_clusters_cnt;
-zigbee_cover_cluster                       cover_clusters[3]; uint8_t cover_clusters_cnt;
-cover_controller_config_t                  cover_controller_configs[3];
-uint8_t                                    allow_simultaneous_latching_pulses;
-battery_t                                  battery = { .pin         = HAL_INVALID_PIN,
-                                                       .voltage_min
-                                                                    =            2000,
-                                                       .voltage_max =
-                                                           3000 };
-hal_zigbee_endpoint                        endpoints[DEVICE_COMPOSITION_MAX_ENDPOINTS];
-static device_interlock_config_t           interlocks[10]; static uint8_t interlocks_cnt;
+led_t leds[5];
+indicator_feedback_t indicator_feedbacks[5];
+uint8_t             leds_cnt;
+button_config_t     button_configs[11];
+gesture_config_t    gesture_configs[11];
+input_button_role_t button_roles[11];
+uint8_t             buttons_cnt;
+relay_driver_t      relay_drivers[10];
+relay_config_t      relay_configs[10];
+uint8_t             relays_cnt;
+/* Endpoint counts per kind; a kind whose feature is not built stays at 0. */
+uint8_t switch_clusters_cnt;
+uint8_t relay_clusters_cnt;
+uint8_t cover_switch_clusters_cnt;
+uint8_t cover_clusters_cnt;
+#if FEATURE_SWITCH
+zigbee_switch_cluster switch_clusters[10];
+#endif
+#if FEATURE_RELAY
+zigbee_relay_cluster        relay_clusters[10];
+static zigbee_group_cluster group_cluster;
+#endif
+#if FEATURE_COVER
+zigbee_cover_switch_cluster cover_switch_clusters[3];
+zigbee_cover_cluster        cover_clusters[3];
+cover_controller_config_t   cover_controller_configs[3];
+#endif
+uint8_t             allow_simultaneous_latching_pulses;
+battery_t           battery = { .pin         = HAL_INVALID_PIN,
+                                .voltage_min =            2000,
+                                .voltage_max = 3000 };
+hal_zigbee_endpoint endpoints[DEVICE_COMPOSITION_MAX_ENDPOINTS];
+static device_interlock_config_t interlocks[10];
+static uint8_t interlocks_cnt;
 static zigbee_basic_cluster                basic_cluster = { .deviceEnable = 1 };
 static zigbee_device_config_cluster_t      config_cluster;
 static zigbee_device_diagnostics_cluster_t diagnostics_cluster;
-static zigbee_group_cluster                group_cluster;
-static hal_zigbee_cluster                  clusters[HAL_ZIGBEE_MAX_CLUSTERS];
+static hal_zigbee_cluster clusters[HAL_ZIGBEE_MAX_CLUSTERS];
 
 /* Clusters each endpoint kind adds. endpoint_slots() reserves them and the
  * preflight counts them; the add_to_endpoint functions add exactly these. */
@@ -104,10 +121,18 @@ static void action_mapper_system_sink(void *context, uint8_t action,
 }
 
 static void network_changed(hal_zigbee_network_status_t s) {
-    button_event_cluster_on_network_status_change(s); if (s == HAL_ZIGBEE_NETWORK_JOINED) {
-        network_indicator_connected(&network_indicator); update_switch_clusters();
+    button_event_cluster_on_network_status_change(s);
+    if (s == HAL_ZIGBEE_NETWORK_JOINED) {
+        network_indicator_connected(&network_indicator);
+#if FEATURE_SWITCH
+        update_switch_clusters();
+#endif
+#if FEATURE_RELAY
         update_relay_clusters();
-    } else network_indicator_not_connected(&network_indicator);
+#endif
+    } else {
+        network_indicator_not_connected(&network_indicator);
+    }
 }
 
 static void endpoint_slots(const device_composition_t *c) {
@@ -141,6 +166,106 @@ static uint8_t built_endpoint_count(void) {
     return count == 0 ? 1 : count;
 }
 
+#if FEATURE_RELAY || FEATURE_SWITCH
+
+/* The n-th indicator that is not the dedicated status LED, or NULL. Relay
+ * and switch endpoints take shared indicators in endpoint order. */
+static indicator_feedback_t *shared_indicator(const device_composition_t *c, uint8_t n) {
+    for (uint8_t i = 0; i < leds_cnt; i++) {
+        if (c->indicators[i].dedicated) continue;
+        if (n == 0) return &indicator_feedbacks[i];
+
+        n--;
+    }
+    return NULL;
+}
+
+#endif
+
+#if FEATURE_RELAY
+static void wire_relay_clusters(const device_composition_t *c) {
+    memset(relay_clusters, 0, sizeof(relay_clusters));
+    for (uint8_t i = 0; i < relay_clusters_cnt; i++) {
+        relay_clusters[i].relay_idx     = i;
+        relay_clusters[i].relay_id      = c->relay_endpoint_ids[i];
+        relay_clusters[i].indicator_led = shared_indicator(c, i);
+    }
+}
+
+#endif
+
+#if FEATURE_SWITCH
+static void wire_switch_clusters(const device_composition_t *c) {
+    memset(switch_clusters, 0, sizeof(switch_clusters));
+    for (uint8_t i = 0; i < switch_clusters_cnt; i++) {
+        const device_button_config_t *button = &c->buttons[c->switches[i].button_id];
+
+        switch_clusters[i].switch_idx  = i; switch_clusters[i].button_id = c->switches[i].button_id;
+        switch_clusters[i].relay_index = c->switches[i].relay_id + 1;
+        switch_clusters[i].mode        =
+            c->momentary_switches ? ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_MOMENTARY :
+            ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_TOGGLE;
+        switch_clusters[i].action             = ZCL_ONOFF_CONFIGURATION_SWITCH_ACTION_TOGGLE_SIMPLE;
+        switch_clusters[i].relay_mode         = ZCL_ONOFF_CONFIGURATION_RELAY_MODE_SHORT;
+        switch_clusters[i].binded_mode        = ZCL_ONOFF_CONFIGURATION_BINDED_MODE_SHORT;
+        switch_clusters[i].hold_duration_ms   = 800;
+        switch_clusters[i].multi_click_gap_ms = button->multi_click_gap_ms;
+        switch_clusters[i].debounce_ms        = button->debounce_ms;
+        switch_clusters[i].level_move_rate    = 50;
+        switch_clusters[i].indicator_led      = shared_indicator(c, i);
+        if (switch_clusters[i].relay_index > relay_clusters_cnt) {
+            switch_clusters[i].relay_mode  = ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DETACHED;
+            switch_clusters[i].relay_index = 0;
+        }
+    }
+}
+
+#endif
+
+#if FEATURE_COVER
+
+/* Cover relays form one interlock group per cover, numbered after the
+ * config's K groups. */
+static feature_wiring_result_t wire_covers(const device_composition_t *c) {
+    memset(cover_switch_clusters, 0, sizeof(cover_switch_clusters));
+    memset(cover_clusters, 0, sizeof(cover_clusters));
+    cover_controller_init();
+    for (uint8_t i = 0; i < cover_switch_clusters_cnt; i++) {
+        const device_button_config_t *open_button =
+            &c->buttons[c->cover_switches[i].open_button_id];
+
+        cover_switch_clusters[i].cover_switch_idx   = i;
+        cover_switch_clusters[i].open_button_id     = c->cover_switches[i].open_button_id;
+        cover_switch_clusters[i].close_button_id    = c->cover_switches[i].close_button_id;
+        cover_switch_clusters[i].hold_duration_ms   = 800;
+        cover_switch_clusters[i].multi_click_gap_ms = open_button->multi_click_gap_ms;
+        cover_switch_clusters[i].debounce_ms        = open_button->debounce_ms;
+    }
+    for (uint8_t i = 0; i < cover_clusters_cnt; i++) {
+        uint8_t  g    = interlocks_cnt + i + 1;
+        uint16_t mask = ((uint16_t)1 << c->covers[i].open_relay_id) |
+                        ((uint16_t)1 << c->covers[i].close_relay_id);
+
+        cover_controller_configs[i] = (cover_controller_config_t){
+            .open_relay_id     = c->covers[i].open_relay_id,
+            .close_relay_id    = c->covers[i].close_relay_id,
+            .manual_max_run_ms = COVER_DEFAULT_MANUAL_MAX_RUN_MS,
+        };
+        interlock_add_group(g, mask, 200);
+        relay_ctrl_set_interlock_group(c->covers[i].open_relay_id, g);
+        relay_ctrl_set_interlock_group(c->covers[i].close_relay_id, g);
+    }
+    for (uint8_t i = 0; i < cover_clusters_cnt; i++) {
+        cover_clusters[i].controller_id = cover_controller_add(&cover_controller_configs[i]);
+        if (cover_clusters[i].controller_id == UINT8_MAX) {
+            return FEATURE_WIRING_INVALID;
+        }
+    }
+    return FEATURE_WIRING_OK;
+}
+
+#endif
+
 feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
     if (feature_wiring_preflight(c) != FEATURE_WIRING_OK) {
         return FEATURE_WIRING_INVALID;
@@ -151,10 +276,7 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
     memset(gesture_configs, 0, sizeof(gesture_configs));
     memset(relay_drivers, 0, sizeof(relay_drivers));
     memset(relay_configs, 0, sizeof(relay_configs));
-    memset(switch_clusters, 0, sizeof(switch_clusters));
-    memset(relay_clusters, 0, sizeof(relay_clusters));
-    memset(cover_switch_clusters, 0, sizeof(cover_switch_clusters));
-    memset(cover_clusters, 0, sizeof(cover_clusters)); memset(endpoints, 0, sizeof(endpoints));
+    memset(endpoints, 0, sizeof(endpoints));
     memset(clusters, 0, sizeof(clusters));
     memset(network_indicator.indicators, 0, sizeof(network_indicator.indicators));
     network_indicator.has_dedicated_led = 0;
@@ -181,8 +303,6 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
     for (uint8_t i = 0; i < relays_cnt;
          i++) if (relay_ctrl_add(&relay_drivers[i],
                                  &relay_configs[i]) == UINT8_MAX) return FEATURE_WIRING_INVALID;
-
-    cover_controller_init();
 
     for (uint8_t i = 0; i < leds_cnt; i++) {
         hal_gpio_init(c->indicators[i].pin, 0, HAL_GPIO_PULL_NONE);
@@ -214,61 +334,12 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
                                                      c->buttons[i].multi_click_gap_ms };
         button_roles[i] = (input_button_role_t)c->buttons[i].role;
     }
-    for (uint8_t i = 0; i < relay_clusters_cnt; i++) {
-        uint8_t relay_id = c->relay_endpoint_ids[i];
-
-        relay_clusters[i].relay_idx = i;
-        relay_clusters[i].relay_id  = relay_id;
-    }
-    for (uint8_t i = 0; i < switch_clusters_cnt; i++) {
-        switch_clusters[i].switch_idx  = i; switch_clusters[i].button_id = c->switches[i].button_id;
-        switch_clusters[i].relay_index = c->switches[i].relay_id + 1;
-        switch_clusters[i].mode        =
-            c->momentary_switches ? ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_MOMENTARY :
-            ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_TOGGLE;
-        switch_clusters[i].action             = ZCL_ONOFF_CONFIGURATION_SWITCH_ACTION_TOGGLE_SIMPLE;
-        switch_clusters[i].relay_mode         = ZCL_ONOFF_CONFIGURATION_RELAY_MODE_SHORT;
-        switch_clusters[i].binded_mode        = ZCL_ONOFF_CONFIGURATION_BINDED_MODE_SHORT;
-        switch_clusters[i].hold_duration_ms   = 800;
-        switch_clusters[i].multi_click_gap_ms =
-            c->buttons[c->switches[i].button_id].multi_click_gap_ms;
-        switch_clusters[i].debounce_ms     = c->buttons[c->switches[i].button_id].debounce_ms;
-        switch_clusters[i].level_move_rate = 50;
-    }
-    for (uint8_t i = 0; i < leds_cnt; i++) {
-        if (c->indicators[i].dedicated) {
-            continue;
-        }
-        for (uint8_t relay_index = 0; relay_index < relay_clusters_cnt; relay_index++) {
-            if (relay_clusters[relay_index].indicator_led == NULL) {
-                relay_clusters[relay_index].indicator_led = &indicator_feedbacks[i];
-                break;
-            }
-        }
-        for (uint8_t switch_index = 0; switch_index < switch_clusters_cnt; switch_index++) {
-            if (switch_clusters[switch_index].indicator_led == NULL) {
-                switch_clusters[switch_index].indicator_led = &indicator_feedbacks[i];
-                break;
-            }
-        }
-    }
-    for (uint8_t i = 0; i < cover_switch_clusters_cnt; i++) {
-        cover_switch_clusters[i].cover_switch_idx   = i;
-        cover_switch_clusters[i].open_button_id     = c->cover_switches[i].open_button_id;
-        cover_switch_clusters[i].close_button_id    = c->cover_switches[i].close_button_id;
-        cover_switch_clusters[i].hold_duration_ms   = 800;
-        cover_switch_clusters[i].multi_click_gap_ms =
-            c->buttons[c->cover_switches[i].open_button_id].multi_click_gap_ms;
-        cover_switch_clusters[i].debounce_ms =
-            c->buttons[c->cover_switches[i].open_button_id].debounce_ms;
-    }
-    for (uint8_t i = 0; i < cover_clusters_cnt; i++) {
-        cover_controller_configs[i] = (cover_controller_config_t){
-            .open_relay_id     = c->covers[i].open_relay_id,
-            .close_relay_id    = c->covers[i].close_relay_id,
-            .manual_max_run_ms = COVER_DEFAULT_MANUAL_MAX_RUN_MS,
-        };
-    }
+#if FEATURE_RELAY
+    wire_relay_clusters(c);
+#endif
+#if FEATURE_SWITCH
+    wire_switch_clusters(c);
+#endif
     for (uint8_t i = 0; i < interlocks_cnt; i++) {
         uint8_t g = i + 1;
         interlock_add_group(g, interlocks[i].relay_mask, interlocks[i].dead_time_ms);
@@ -277,28 +348,11 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
              r++) if (interlocks[i].relay_mask & ((uint16_t)1 <<
                                                   r)) relay_ctrl_set_interlock_group(r, g);
     }
-    for (uint8_t i = 0; i < cover_clusters_cnt; i++) {
-        uint8_t  g    = interlocks_cnt + i + 1;
-        uint16_t mask = ((uint16_t)1 << cover_controller_configs[i].open_relay_id) |
-                        ((uint16_t)1 << cover_controller_configs[i].close_relay_id);
-        interlock_add_group(g, mask, 200);
-        relay_ctrl_set_interlock_group(cover_controller_configs[i].open_relay_id, g);
-        relay_ctrl_set_interlock_group(cover_controller_configs[i].close_relay_id, g);
+#if FEATURE_COVER
+    if (wire_covers(c) != FEATURE_WIRING_OK) {
+        return FEATURE_WIRING_INVALID;
     }
-    for (uint8_t i = 0; i < cover_clusters_cnt; i++) {
-        cover_clusters[i].controller_id =
-            cover_controller_add(&cover_controller_configs[i]);
-        if (cover_clusters[i].controller_id == UINT8_MAX) {
-            return FEATURE_WIRING_INVALID;
-        }
-    }
-    for (uint8_t i = 0; i < switch_clusters_cnt; i++) {
-        if (switch_clusters[i].relay_index > relay_clusters_cnt) {
-            switch_clusters[i].relay_mode =
-                ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DETACHED;
-            switch_clusters[i].relay_index = 0;
-        }
-    }
+#endif
     button_event_cluster_init();
     endpoint_slots(c); basic_cluster_add_to_endpoint(&basic_cluster, &endpoints[0]);
     device_config_cluster_init(&config_cluster);
@@ -306,13 +360,15 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
     device_diagnostics_cluster_init(&diagnostics_cluster);
     device_diagnostics_cluster_add_to_endpoint(&diagnostics_cluster, &endpoints[0]);
     { hal_zigbee_cluster ota; hal_ota_cluster_setup(&ota);
-      hal_zigbee_endpoint_add_cluster(&endpoints[0], endpoints[0].cluster_capacity, &ota);
-    } if (battery.pin != HAL_INVALID_PIN) {
+      hal_zigbee_endpoint_add_cluster(&endpoints[0], endpoints[0].cluster_capacity, &ota); }
+#if FEATURE_BATTERY
+    if (battery.pin != HAL_INVALID_PIN) {
         static zigbee_battery_cluster b;
 
         battery_init(&battery);
         battery_cluster_add_to_endpoint(&b, &endpoints[0]);
     }
+#endif
 #ifdef END_DEVICE
     {
         static zigbee_poll_control_cluster poll_control;
@@ -321,14 +377,19 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
                                              battery.pin != HAL_INVALID_PIN);
     }
 #endif
+#if FEATURE_SWITCH
     for (uint8_t i = 0; i < switch_clusters_cnt; i++) {
         switch_cluster_add_to_endpoint(&switch_clusters[i], &endpoints[i]);
     }
+#endif
+#if FEATURE_RELAY
     for (uint8_t i = 0; i < relay_clusters_cnt; i++) {
         uint8_t e = switch_clusters_cnt + i;
         relay_cluster_add_to_endpoint(&relay_clusters[i], &endpoints[e]);
         group_cluster_add_to_endpoint(&group_cluster, &endpoints[e]);
     }
+#endif
+#if FEATURE_COVER
     for (uint8_t i = 0; i < cover_switch_clusters_cnt;
          i++) cover_switch_cluster_add_to_endpoint(&cover_switch_clusters[i],
                                                    &endpoints[switch_clusters_cnt +
@@ -338,6 +399,7 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
          i++) cover_cluster_add_to_endpoint(&cover_clusters[i],
                                             &endpoints[switch_clusters_cnt + relay_clusters_cnt +
                                                        cover_switch_clusters_cnt + i]);
+#endif
     return hal_zigbee_validate_platform_graph(endpoints, built_endpoint_count()) ==
            HAL_ZIGBEE_DESCRIPTOR_OK ? FEATURE_WIRING_OK : FEATURE_WIRING_INVALID;
 }
@@ -449,7 +511,9 @@ static void stop_wired_features(void) {
         relay_driver_apply(&relay_drivers[i], false);
     }
     relay_ctrl_init();
+#if FEATURE_COVER
     cover_controller_init();
+#endif
     button_input_init();
     gesture_fsm_init();
     action_mapper_init();
@@ -494,19 +558,30 @@ void feature_wiring_build_recovery(void) {
 
 void feature_wiring_start(void) {
     button_input_init();
+#if FEATURE_SWITCH
     switch_cluster_register_input();
+#endif
+#if FEATURE_COVER
     cover_switch_cluster_register_input();
+#endif
     button_event_cluster_register_input();
     gesture_fsm_init();
+#if FEATURE_SWITCH
     switch_cluster_register_gestures();
+#endif
+#if FEATURE_COVER
     cover_switch_cluster_register_gestures();
+#endif
     action_mapper_init();
     action_mapper_set_sinks(&(action_mapper_sinks_t){
-        .cover  = cover_controller_action,
+#if FEATURE_COVER
+        .cover = cover_controller_action,
+#endif
         .system = action_mapper_system_sink,
     });
     button_event_cluster_register_gestures();
 
+#if FEATURE_SWITCH
     for (uint8_t i = 0; i < switch_clusters_cnt; i++) {
         uint8_t button_id = switch_clusters[i].button_id;
 
@@ -519,6 +594,8 @@ void feature_wiring_start(void) {
             switch_clusters[i].multi_click_gap_ms;
         button_configs[button_id].debounce_ms = switch_clusters[i].debounce_ms;
     }
+#endif
+#if FEATURE_COVER
     for (uint8_t i = 0; i < cover_switch_clusters_cnt; i++) {
         uint8_t open_id  = cover_switch_clusters[i].open_button_id;
         uint8_t close_id = cover_switch_clusters[i].close_button_id;
@@ -536,6 +613,7 @@ void feature_wiring_start(void) {
         button_configs[close_id].debounce_ms =
             cover_switch_clusters[i].debounce_ms;
     }
+#endif
     for (uint8_t i = 0; i < buttons_cnt; i++) {
         uint8_t id = button_input_add(&button_configs[i]); gesture_fsm_add(id, &gesture_configs[i]);
         action_mapper_add_reset_button(id, button_roles[i] == INPUT_BUTTON_ONBOARD);

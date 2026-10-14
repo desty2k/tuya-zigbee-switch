@@ -579,7 +579,3 @@ void cover_controller_action(void *context, uint8_t cover_id, uint16_t action) {
     else if (action == COVER_ACTION_CLOSE) (void)cover_close(cover_id);
     else if (action == COVER_ACTION_STOP) (void)cover_stop(cover_id);
 }
-
-void cover_controller_clear_owned(void) {
-    for (uint8_t i = 0; i < MAX_COVERS; i++) hal_nvm_delete(NV_ITEM_COVER_STATE(i));
-}

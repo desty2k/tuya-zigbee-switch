@@ -10,6 +10,7 @@
 
 #include "hal/zigbee.h"
 #include "telink_zigbee_hal.h"
+#include "device_config/build_features.h"
 #include "zigbee/battery_cluster.h"
 #include "zigbee/zcl_ids.h"
 #include "zigbee/zcl_frame_check.h"
@@ -96,10 +97,12 @@ static cluster_registerFunc_t get_register_func_by_cluster_id(u16 cluster_id) {
     if (cluster_id == ZCL_CLUSTER_GEN_BASIC) {
         return zcl_basic_register;
     }
+#if FEATURE_BATTERY
     if (cluster_id == ZCL_CLUSTER_GEN_POWER_CFG ||
         cluster_id == ZCL_CLUSTER_POWER_CFG) {
         return zcl_powerCfg_register;
     }
+#endif
     if (cluster_id == ZCL_CLUSTER_GEN_IDENTIFY) {
         return zcl_identify_register;
     }
@@ -118,9 +121,11 @@ static cluster_registerFunc_t get_register_func_by_cluster_id(u16 cluster_id) {
     if (cluster_id == ZCL_CLUSTER_GEN_MULTISTATE_INPUT_BASIC) {
         return zcl_multistate_input_register;
     }
+#if FEATURE_COVER
     if (cluster_id == ZCL_CLUSTER_CLOSURES_WINDOW_COVERING) {
         return zcl_windowCovering_register;
     }
+#endif
     if (cluster_id == ZCL_CLUSTER_GEN_POLL_CONTROL) {
         return zcl_pollCtrl_register;
     }
