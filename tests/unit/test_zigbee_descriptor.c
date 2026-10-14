@@ -180,6 +180,11 @@ TEST(encoded_size_follows_string_prefix_and_rejects_overlong_strings) {
     ASSERT_EQ(4, hal_zigbee_attr_encoded_size(HAL_ZIGBEE_TYPE_CHAR_STR, char_str, 33));
     ASSERT_EQ(4, hal_zigbee_attr_encoded_size(HAL_ZIGBEE_TYPE_LONG_CHAR_STR, long_str, 4));
     ASSERT_EQ(0, hal_zigbee_attr_encoded_size(HAL_ZIGBEE_TYPE_OCTET_STR, too_long, 2));
+    /* Invalid-string prefixes never become a length, so 0xFFFF cannot wrap to 1. */
+    ASSERT_EQ(0, hal_zigbee_attr_encoded_size(HAL_ZIGBEE_TYPE_LONG_CHAR_STR,
+                                              (const uint8_t[]){ 0xFF, 0xFF }, 0xFFFF));
+    ASSERT_EQ(0, hal_zigbee_attr_encoded_size(HAL_ZIGBEE_TYPE_CHAR_STR,
+                                              (const uint8_t[]){ 0xFF }, 0xFFFF));
     ASSERT_EQ(2, hal_zigbee_attr_encoded_size(0x21, fixed_u16, 2));
 }
 

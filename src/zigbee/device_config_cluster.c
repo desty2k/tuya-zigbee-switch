@@ -41,6 +41,8 @@ static hal_zigbee_cmd_result_t attr_write(uint8_t endpoint,
             candidate_len > sizeof(instance->config)) {
             return HAL_ZIGBEE_INVALID_VALUE;
         }
+        // The HALs reject the invalid long-string length 0xFFFF; any length
+        // that does not fit the text buffer, including it, is refused here.
         config_len = (uint16_t)candidate[0] | ((uint16_t)candidate[1] << 8);
         if (config_len >= sizeof(instance->config.data) ||
             (candidate_len != sizeof(instance->config) &&

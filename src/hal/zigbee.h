@@ -100,7 +100,9 @@ static inline bool hal_zigbee_type_is_string(uint8_t data_type_id) {
 
 /**
  * Encoded size of a ZCL value of `data_type_id` stored in `storage_size`
- * bytes. Returns 0 when a string's length prefix runs past `storage_size`.
+ * bytes. Returns 0 when a string's length prefix runs past `storage_size`,
+ * and for the invalid-string prefixes 0xFF and 0xFFFF, which as a length
+ * would wrap the SDK's 16-bit size (0xFFFF + 2 is 1).
  */
 static inline uint16_t hal_zigbee_attr_encoded_size(uint8_t data_type_id,
                                                     const uint8_t *value,
@@ -111,12 +113,17 @@ static inline uint16_t hal_zigbee_attr_encoded_size(uint8_t data_type_id,
         data_type_id == HAL_ZIGBEE_TYPE_CHAR_STR) {
         if (storage_size < 1) return 0;
 
+        if (value[0] == 0xFFu) return 0;
+
         size = 1u + value[0];
     } else if (data_type_id == HAL_ZIGBEE_TYPE_LONG_OCTET_STR ||
                data_type_id == HAL_ZIGBEE_TYPE_LONG_CHAR_STR) {
         if (storage_size < 2) return 0;
 
-        size = 2u + ((uint32_t)value[0] | ((uint32_t)value[1] << 8));
+        size = (uint32_t)value[0] | ((uint32_t)value[1] << 8);
+        if (size == 0xFFFFu) return 0;
+
+        size += 2u;
     } else {
         size = storage_size;
     }

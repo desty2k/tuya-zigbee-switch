@@ -224,8 +224,13 @@ status_t hal_zigbee_telink_pre_write(zclIncoming_t *message, u8 endpoint,
     }
     if (record->dataType != attribute->data_type_id) return ZCL_STA_INVALID_DATA_TYPE;
 
-    // zcl_setAttrVal() copies this many bytes into the attribute storage.
-    candidate_len = zcl_getAttrSize(record->dataType, record->attrData);
+    // zcl_setAttrVal() copies zcl_getAttrSize() bytes into the attribute
+    // storage; for strings that size is the prefix plus its length, computed
+    // here without the SDK's 16-bit wrap.
+    candidate_len = hal_zigbee_type_is_string(record->dataType) ?
+                    hal_zigbee_attr_encoded_size(record->dataType, record->attrData,
+                                                 attribute->size) :
+                    zcl_getAttrSize(record->dataType, record->attrData);
     if (candidate_len == 0 || candidate_len > attribute->size) return ZCL_STA_INVALID_VALUE;
 
     if (cluster->attr_write_callback == NULL) return ZCL_STA_SUCCESS;
