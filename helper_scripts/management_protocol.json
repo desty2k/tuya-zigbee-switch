@@ -40,7 +40,46 @@
         [69, "STEERING", "INT32U", "UINT32", "r", 0],
         [80, "DESCRIPTOR_FAILURES", "INT32U", "UINT32", "r", 0],
         [81, "LAST_DESCRIPTOR_ERROR", "ENUM8", "ENUM8", "r", 0]
-      ]
+      ],
+      "probe": {
+        "feature": "probe",
+        "capability_bit": 1,
+        "attributes": [
+          [256, "PROBE_STATUS", "ENUM8", "ENUM8", "r", 0],
+          [257, "PROBE_STATE", "BITMAP8", "BITMAP8", "r", 0],
+          [258, "PROBE_PINS", "OCTET_STRING", "OCTET_STR", "r", ""],
+          [259, "PROBE_LEVELS", "BITMAP32", "BITMAP32", "r", 0],
+          [260, "PROBE_CLASSES", "OCTET_STRING", "OCTET_STR", "r", ""],
+          [261, "PROBE_WATCH", "OCTET_STRING", "OCTET_STR", "r", ""]
+        ],
+        "commands": [
+          [0, "PROBE_STOP", []],
+          [1, "PROBE_SNAPSHOT", []],
+          [2, "PROBE_PULL_TEST", [["count", "uint8"], ["pins", "uint16[count]"]]],
+          [3, "PROBE_WATCH", [["duration_s", "uint16"], ["count", "uint8"],
+                              ["pins", "{pin:uint16,pull:uint8}[count]"]]],
+          [4, "PROBE_ARM", [["pin", "uint16"]]],
+          [5, "PROBE_PULSE", [["pin", "uint16"], ["level", "uint8"], ["duration_ms", "uint16"]]]
+        ],
+        "status": ["OK", "DISABLED", "BUSY", "BAD_PIN", "RANGE", "NOT_FLOATING",
+                   "NOT_ARMED", "VERIFY_FAILED", "RESOURCE"],
+        "classes": ["UNTESTED", "FLOATING", "DRIVEN_HIGH", "DRIVEN_LOW", "ACTIVE"],
+        "pulls": ["NONE", "UP", "DOWN"],
+        "state_bits": ["PULL_TEST", "WATCH", "ARMED", "PULSE"],
+        "watch_flags": ["RUNNING", "OVER_RATE"],
+        "watch_header": [["elapsed_ms", "uint32"]],
+        "watch_record": [["pin", "uint16"], ["edges", "uint32"], ["min_interval_us", "uint32"],
+                         ["max_interval_us", "uint32"], ["level", "uint8"], ["flags", "uint8"]],
+        "limits": {
+          "WATCH_MIN_S": 1,
+          "WATCH_MAX_S": 300,
+          "PULSE_MIN_MS": 1,
+          "PULSE_MAX_MS": 500,
+          "RATE_CEILING_HZ": 20000,
+          "ARM_TIMEOUT_MS": 30000,
+          "PULL_PHASE_MS": 25
+        }
+      }
     }
   ]
 }
