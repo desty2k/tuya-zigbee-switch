@@ -191,11 +191,11 @@ static indicator_feedback_t *shared_indicator(const device_composition_t *c, uin
 #if FEATURE_RELAY
 static void wire_relay_clusters(const device_composition_t *c) {
     memset(relay_clusters, 0, sizeof(relay_clusters));
+    relay_cluster_config_interlock_count = c->interlock_count;
     for (uint8_t i = 0; i < relay_clusters_cnt; i++) {
-        relay_clusters[i].relay_idx              = i;
-        relay_clusters[i].relay_id               = c->relay_endpoint_ids[i];
-        relay_clusters[i].indicator_led          = shared_indicator(c, i);
-        relay_clusters[i].config_interlock_count = c->interlock_count;
+        relay_clusters[i].relay_idx     = i;
+        relay_clusters[i].relay_id      = c->relay_endpoint_ids[i];
+        relay_clusters[i].indicator_led = shared_indicator(c, i);
     }
 }
 

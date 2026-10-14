@@ -38,13 +38,14 @@ void relay_cluster_handle_startup_mode(zigbee_relay_cluster *cluster);
 void sync_indicator_led(zigbee_relay_cluster *cluster);
 
 zigbee_relay_cluster *relay_cluster_by_endpoint[HAL_ZIGBEE_ENDPOINT_ID_MAX + 1];
+uint8_t relay_cluster_config_interlock_count;
 
 static bool relay_cluster_interlock_group_allowed(
     const zigbee_relay_cluster *cluster, uint8_t group_id) {
     if (cluster->config_interlock_group != INTERLOCK_NO_GROUP) {
         return group_id == cluster->config_interlock_group;
     }
-    return group_id <= cluster->config_interlock_count;
+    return group_id <= relay_cluster_config_interlock_count;
 }
 
 static zigbee_relay_cluster *relay_cluster_find(uint8_t endpoint) {
