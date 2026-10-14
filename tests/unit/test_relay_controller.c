@@ -265,15 +265,20 @@ TEST(configured_inching_applies_to_every_on_request) {
     }
 }
 
-TEST(explicit_timed_on_overrides_inching) {
+TEST(timed_on_never_outlasts_inching) {
     reset_controller(false);
     config.inching_ms = 100;
     ASSERT_EQ(RELAY_RESULT_APPLIED, submit_timed(RELAY_REQUEST_ON_TIMED, 500));
     ASSERT_EQ(AUTO_OFF_TIMED, relay_ctrl_auto_off_reason(0));
-    fake_clock_advance_ms(499);
+    fake_clock_advance_ms(99);
     fake_tasks_poll();
     ASSERT_TRUE(relay_ctrl_is_on(0));
     fake_clock_advance_ms(1);
+    fake_tasks_poll();
+    ASSERT_TRUE(!relay_ctrl_is_on(0));
+
+    ASSERT_EQ(RELAY_RESULT_APPLIED, submit_timed(RELAY_REQUEST_ON_TIMED, 40));
+    fake_clock_advance_ms(40);
     fake_tasks_poll();
     ASSERT_TRUE(!relay_ctrl_is_on(0));
 }
@@ -363,7 +368,7 @@ int main(void) {
     RUN_TEST(source_owned_inhibitors_block_on_like_requests_and_preserve_off);
     RUN_TEST(controller_capacity_is_bounded);
     RUN_TEST(configured_inching_applies_to_every_on_request);
-    RUN_TEST(explicit_timed_on_overrides_inching);
+    RUN_TEST(timed_on_never_outlasts_inching);
     RUN_TEST(joining_a_group_with_an_energised_peer_switches_off);
     RUN_TEST(timed_on_remaining_reports_only_timed_deadlines);
     RUN_TEST(latching_pulse_is_retried_when_its_timer_cannot_be_armed);

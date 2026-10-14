@@ -105,7 +105,8 @@ bool relay_ctrl_subscribe(uint8_t relay_id, relay_state_cb_t callback,
 /*
  * A configured inching duration turns every plain ON into a pulse, whatever
  * the source, so an impulse load (a garage door opener) is never left
- * energised. Only ON_TIMED, which carries its own deadline, bypasses it.
+ * energised. ON_TIMED keeps its own deadline but never runs past the
+ * inching duration.
  */
 relay_result_t relay_ctrl_submit(const relay_request_t *request) {
     relay_runtime_t *    runtime;
@@ -144,6 +145,10 @@ relay_result_t relay_ctrl_submit(const relay_request_t *request) {
         target_on       = true;
         auto_off_ms     = request->duration_ms;
         auto_off_reason = AUTO_OFF_TIMED;
+        if (runtime->config->inching_ms != 0 &&
+            auto_off_ms > runtime->config->inching_ms) {
+            auto_off_ms = runtime->config->inching_ms;
+        }
     } else {
         return RELAY_RESULT_INVALID;
     }
