@@ -971,3 +971,24 @@ be discovered on the device itself with a probe running in our firmware.
    `docs/refactor/capabilities/STATE.md`.
 4. With pins and meter IC known, write the outlet's real profile and unfreeze
    the meter driver work.
+
+## 11. Progress log
+
+| Date | Wave | Integration commit | Evidence | Result |
+| --- | --- | --- | --- | --- |
+| 2026-10-14 | 0 | `f3782569` | S1, S7, AGENTS.md compatibility text, decisions; `make tests` 282 passed | done |
+| 2026-10-14 | 1 F | `69e1929e` (ff) | C4 (version from file, migration test with mutation checks), H10 (OTA-file size check), H9 (Silabs compiles: ZS2S_TS0001 router, MOES_TS0011 end device); independent review PASS WITH NITS, nits fixed | merged |
+| 2026-10-14 | 1 B | `fix/wave1-b-input-timing` merge | S5, S6, C7, C8, H2, H3, H4, M11, M12; review PASS WITH NITS, nits fixed (sleep-safe tick refresh, backward-tick guard, test gaps, `D<N>` 1–200) | merged |
+| 2026-10-14 | — | `45a3bab4` | debounce default 25 ms (owner decision) | done |
+| 2026-10-14 | 1 A | `220cc6e4` | S2–S4, C1, C2, C3 (ZCL_CLUSTER_NUM_MAX 48), H1, H5, H8, M8, M9, frame check before every SDK foundation parser incl. 0x08, `zcl_init` hook leak fix, recovery drives relays off; review + security re-review (5M random frames under ASan) passed after fixes; integrator mutation check of the 0x08 guard; `make tests` 333 passed, unit tests pass, 0 warnings; sk8 4-gang build OTA file 204754 bytes (−4050 vs 200704) | merged; wave 1 complete |
+
+Open after wave 1: Write Undivided validates records against current state
+(documented limitation in `src/hal/zigbee.h`); `ZCL_REPORTING_TABLE_NUM` 12 is
+exactly full on the 4-gang with Z2M (raising it needs an NV migration of
+`NV_ITEM_ZCL_REPORT`); `timer_service` arm failures have no retry
+(`relay_driver.c` latching pulse, `cover_controller.c` safety timer); stub
+`step_time` fires due tasks only at step end; intermittent pytest thread warning
+from `tests/client.py` `_stderr_forward`; Silabs `-Wformat` warnings for
+`uint32_t`; cover-switch long-press duration is not persisted
+(`cover_switch_cluster.c:389`); end-device `_end_bss_` exceeds the 0x848000
+retention limit (pre-existing).
