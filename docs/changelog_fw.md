@@ -21,8 +21,13 @@ Please describe what you are working on, under ## Upcoming
 - **Button Event cluster** (`0xFC02`) sends press, release, hold, hold-release, and multi-click actions to the coordinator. Generated Zigbee2MQTT and ZHA integrations expose these actions, per-endpoint multi-click and debounce settings, and input diagnostics.
 - **Cover cluster** (window covering) for controlling the motor of curtains, blinds, and shutters.
   Supports open, close, and stop commands with motor safety delays.
+  - With open/close travel times set, the cover tracks its position and accepts *GoToLiftPercentage*.
+    `CurrentPositionLiftPercentage` follows ZCL: 0 = fully open, 100 = fully closed, 0xFF = position unknown.
+  - After a power loss during motion, or before the first full move, the position is unknown: *GoToLiftPercentage* to an intermediate position is refused and OPEN/CLOSE run the full travel time plus overrun. Reaching an endpoint makes the position known again.
+  - The motor stops if its cutoff timer cannot be armed.
 - **Cover switch cluster** for handling user input from window covering switches.
   Supports toggle/momentary switches, stop-on-repeat, stop button, local control, and remote device binding.
+  The long-press duration is saved and survives reboots and updates.
 - Relays now respond to *MoveToLevelWithOnOff*
   - Level = 0 -> Turn off relay
   - Level > 0 -> Turn on  relay
