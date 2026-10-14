@@ -85,6 +85,10 @@ bool cover_controller_subscribe(uint8_t cover_id, cover_state_cb_t callback,
                                 void *context);
 cover_motion_t cover_controller_motion(uint8_t cover_id);
 bool cover_controller_state(uint8_t cover_id, cover_state_t *state);
+
+/** True when travel times and deadzones in `state` are within range and the
+ * deadzones leave part of the travel between them. */
+bool cover_controller_settings_valid(const cover_state_t *state);
 uint8_t cover_controller_lift_percentage(uint8_t cover_id);
 bool cover_controller_motor_reversal(uint8_t cover_id);
 cover_result_t cover_controller_set_motor_reversal(uint8_t cover_id,

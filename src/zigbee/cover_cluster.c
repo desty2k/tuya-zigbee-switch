@@ -90,13 +90,28 @@ static hal_zigbee_cmd_result_t cover_cluster_attr_write(
         if (cluster->attr_infos[i].attribute_id != attribute_id) continue;
         if (candidate_len != cluster->attr_infos[i].size) return HAL_ZIGBEE_INVALID_VALUE;
 
-        if (phase != HAL_ZIGBEE_ATTR_COMMIT) return HAL_ZIGBEE_CMD_PROCESSED;
-
         cover_result_t result = COVER_RESULT_INVALID;
         uint32_t       value  = 0;
+        cover_state_t  state;
 
         for (uint16_t byte = 0; byte < candidate_len; byte++) {
             value |= (uint32_t)candidate[byte] << (8u * byte);
+        }
+        if (phase == HAL_ZIGBEE_ATTR_VALIDATE) {
+            if (!cover_controller_state(cluster->controller_id, &state)) {
+                return HAL_ZIGBEE_INVALID_VALUE;
+            }
+            if (attribute_id == ZCL_ATTR_WINDOW_COVERING_OPEN_TIME) {
+                state.open_time_ms = value;
+            } else if (attribute_id == ZCL_ATTR_WINDOW_COVERING_CLOSE_TIME) {
+                state.close_time_ms = value;
+            } else if (attribute_id == ZCL_ATTR_WINDOW_COVERING_CLOSED_DEADZONE) {
+                state.closed_deadzone_bp = (uint16_t)value;
+            } else if (attribute_id == ZCL_ATTR_WINDOW_COVERING_OPEN_DEADZONE) {
+                state.open_deadzone_bp = (uint16_t)value;
+            }
+            return cover_controller_settings_valid(&state) ?
+                   HAL_ZIGBEE_CMD_PROCESSED : HAL_ZIGBEE_INVALID_VALUE;
         }
         if (attribute_id == ZCL_ATTR_WINDOW_COVERING_MOTOR_REVERSAL) {
             result = cover_controller_set_motor_reversal(cluster->controller_id, value != 0);
@@ -115,8 +130,8 @@ static hal_zigbee_cmd_result_t cover_cluster_attr_write(
         }
         cover_cluster_sync(cluster, false);
 
-        /* The HAL copies the candidate into storage only after a successful
-         * COMMIT, so a value the controller refuses must fail the write. */
+        /* VALIDATE checked the value; COMMIT fails only when the controller
+         * cannot persist it, and then the HAL leaves the storage unchanged. */
         return result == COVER_RESULT_APPLIED || result == COVER_RESULT_UNCHANGED ?
                HAL_ZIGBEE_CMD_PROCESSED : HAL_ZIGBEE_INVALID_VALUE;
     }

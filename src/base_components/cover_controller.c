@@ -490,15 +490,19 @@ cover_result_t cover_controller_set_motor_reversal(uint8_t cover_id, bool motor_
     return COVER_RESULT_APPLIED;
 }
 
+bool cover_controller_settings_valid(const cover_state_t *state) {
+    return state->closed_deadzone_bp < COVER_POSITION_MAX_BP &&
+           state->open_deadzone_bp < COVER_POSITION_MAX_BP &&
+           state->closed_deadzone_bp + state->open_deadzone_bp < COVER_POSITION_MAX_BP &&
+           state->open_time_ms <= COVER_MAX_TRAVEL_TIME_MS &&
+           state->close_time_ms <= COVER_MAX_TRAVEL_TIME_MS;
+}
+
 static cover_result_t cover_set_state(uint8_t cover_id, cover_state_t state) {
     cover_runtime_t *runtime;
     cover_state_t    before;
 
-    if (cover_id >= cover_count || state.closed_deadzone_bp >= COVER_POSITION_MAX_BP ||
-        state.open_deadzone_bp >= COVER_POSITION_MAX_BP ||
-        state.closed_deadzone_bp + state.open_deadzone_bp >= COVER_POSITION_MAX_BP ||
-        state.open_time_ms > COVER_MAX_TRAVEL_TIME_MS ||
-        state.close_time_ms > COVER_MAX_TRAVEL_TIME_MS)
+    if (cover_id >= cover_count || !cover_controller_settings_valid(&state))
         return COVER_RESULT_INVALID;
 
     runtime = &cover_runtimes[cover_id];

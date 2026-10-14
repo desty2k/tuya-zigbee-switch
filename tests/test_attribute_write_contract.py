@@ -140,3 +140,16 @@ def test_fixed_size_value_of_wrong_length_is_rejected() -> None:
             f"0x{ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_LONG_PRESS_DUR:04X} 01"
         )
         assert not res.ok
+
+
+def test_undivided_cover_write_with_out_of_range_deadzone_changes_nothing() -> None:
+    """Cover range checks run in VALIDATE, before any record is committed."""
+    with StubProc(device_config="X;Y;CA0A1;") as proc:
+        device = Device(proc)
+        open_time = device.read_zigbee_attr(1, 0x0102, 0xFF02)
+        res = proc.exec(
+            "zcl_write_undivided 1 0x0102 0xFF02=30750000 0xFF05=1027"
+        )
+        assert not res.ok
+        assert device.read_zigbee_attr(1, 0x0102, 0xFF02) == open_time
+        assert device.read_zigbee_attr(1, 0x0102, 0xFF05) == "0"
