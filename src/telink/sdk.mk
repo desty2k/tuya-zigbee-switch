@@ -178,10 +178,33 @@ $(BUILD_DIR)/sdk/%.o: $(SDK_PATH)/%.c
 	@mkdir -p $(dir $@)
 	@$(CC) $(GCC_FLAGS) $(DEVICE_DEFS) $(INCLUDE_PATHS) -c -o $@ $<
 
+# A failed recipe must not leave a target behind that the next make trusts.
+.DELETE_ON_ERROR:
+
+# The patch must apply exactly (-F0): it is generated with `diff -u` against
+# the CRLF-stripped SDK file. It is applied in a scratch tree and the result
+# is moved into place only after the hook is confirmed present, so an
+# unpatched zcl.c is never compiled.
+PATCHED_ZCL_WORK := $(BUILD_DIR)/sdk-src-work
+
 $(PATCHED_ZCL_SOURCE): $(SDK_PATH)/zigbee/zcl/zcl.c $(PATCHED_ZCL_PATCH)
-	@mkdir -p $(dir $@)
-	@tr -d '\r' < $< > $@
-	@patch --batch --forward -p1 -d $(BUILD_DIR)/sdk-src < $(PATCHED_ZCL_PATCH)
+	@rm -rf $(PATCHED_ZCL_WORK)
+	@mkdir -p $(dir $@) $(PATCHED_ZCL_WORK)/zigbee/zcl
+	@tr -d '\r' < $< > $(PATCHED_ZCL_WORK)/zigbee/zcl/zcl.c
+	@patch --batch --forward -F0 -p1 -d $(PATCHED_ZCL_WORK) < $(PATCHED_ZCL_PATCH)
+	@grep -q 'hal_zigbee_telink_pre_write(zcl_incoming_write' \
+		$(PATCHED_ZCL_WORK)/zigbee/zcl/zcl.c || \
+		{ echo "error: $(PATCHED_ZCL_PATCH) did not install the write hook"; exit 1; }
+	@awk '/^_CODE_ZCL_ status_t zcl_foundationCmdHandler\(/ { in_handler = 1 } \
+		in_handler && /if \(!hal_zigbee_telink_foundation_frame_ok\(pCmd\)\)/ { checked = 1 } \
+		in_handler && /switch \(pCmd->hdr\.cmd\)/ { ok = checked; exit } \
+		in_handler && /^}/ { exit } \
+		END { exit !ok }' $(PATCHED_ZCL_WORK)/zigbee/zcl/zcl.c || \
+		{ echo "error: $(PATCHED_ZCL_PATCH) did not install the frame check before the command switch of zcl_foundationCmdHandler"; exit 1; }
+	@test "$$(grep -c 'zcl_incoming_write = pCmd;' $(PATCHED_ZCL_WORK)/zigbee/zcl/zcl.c)" = 3 || \
+		{ echo "error: $(PATCHED_ZCL_PATCH) did not wrap every write handler"; exit 1; }
+	@mv $(PATCHED_ZCL_WORK)/zigbee/zcl/zcl.c $@
+	@rm -rf $(PATCHED_ZCL_WORK)
 
 $(PATCHED_ZCL_OBJ): $(PATCHED_ZCL_SOURCE)
 	@echo "Compiling patched SDK $<"

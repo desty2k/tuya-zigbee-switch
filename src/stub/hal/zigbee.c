@@ -1,5 +1,7 @@
 #include "hal/zigbee.h"
+#include "stub/hal/stub.h"
 #include "stub/machine_io.h"
+#include "zigbee/zcl_frame_check.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,8 +18,7 @@ static void bytes_to_hexstr(const uint8_t *bytes, size_t len, char *out) {
     out[2 * len] = '\0';
 }
 
-#define MAX_ENDPOINTS    16
-#define MAX_BINDINGS     32
+#define MAX_BINDINGS    32
 
 typedef struct {
     uint16_t short_addr;
@@ -34,6 +35,8 @@ static uint32_t poll_rate_ms = 0;
 static uint32_t coordinator_send_failures;
 static uint32_t announce_failures;
 static hal_zigbee_diagnostics_t diagnostics;
+static hal_zigbee_graph_usage_t graph_usage;
+static uint32_t init_failures;
 
 static stub_binding_t bindings[MAX_BINDINGS];
 static int            binding_count = 0;
@@ -58,21 +61,26 @@ static hal_zigbee_cluster *find_unique_server_cluster(uint8_t endpoint,
     return result;
 }
 
-void hal_zigbee_init(hal_zigbee_endpoint *ep_list, uint8_t ep_count) {
+bool hal_zigbee_init(hal_zigbee_endpoint *ep_list, uint8_t ep_count) {
     hal_zigbee_descriptor_error_t validation =
-        hal_zigbee_validate_descriptor_graph(
-            ep_list, ep_count, MAX_ENDPOINTS, HAL_ZIGBEE_ENDPOINT_ID_MAX, 48,
-            160);
+        hal_zigbee_validate_platform_graph(ep_list, ep_count);
 
+    if (validation == HAL_ZIGBEE_DESCRIPTOR_OK && init_failures != 0) {
+        init_failures--;
+        validation = HAL_ZIGBEE_DESCRIPTOR_REGISTRATION_CAPACITY;
+    }
     if (validation != HAL_ZIGBEE_DESCRIPTOR_OK) {
         diagnostics.descriptor_validation_failures++;
         diagnostics.last_descriptor_error = validation;
-        io_log("ZIGBEE", "Error: invalid descriptor graph (%d)", validation);
-        exit(1);
+        io_log("ZIGBEE", "Error: descriptor graph exceeds platform limits (%d)",
+               validation);
+        io_evt("zcl_init_failed error=%d", validation);
+        return false;
     }
 
     endpoints       = ep_list;
     endpoints_count = ep_count;
+    graph_usage     = hal_zigbee_graph_usage(ep_list, ep_count);
 
     io_log("ZIGBEE", "Initialized Zigbee with %d endpoints", ep_count);
 
@@ -80,27 +88,11 @@ void hal_zigbee_init(hal_zigbee_endpoint *ep_list, uint8_t ep_count) {
         io_log("ZIGBEE", "Endpoint %d: profile=0x%04x, device=0x%04x, clusters=%d",
                ep_list[i].endpoint, ep_list[i].profile_id, ep_list[i].device_id,
                ep_list[i].cluster_count);
-
-        if (ep_list[i].cluster_count > 0 && !ep_list[i].clusters) {
-            io_log(
-                "ZIGBEE",
-                "Error: Endpoint %d has cluster count %d but NULL clusters pointer",
-                ep_list[i].endpoint, ep_list[i].cluster_count);
-            exit(1);
-        }
         for (int j = 0; j < ep_list[i].cluster_count; j++) {
             io_log("ZIGBEE", "  Cluster %d: id=0x%04x, attrs=%d, role=%d", j,
                    ep_list[i].clusters[j].cluster_id,
                    ep_list[i].clusters[j].attribute_count,
                    ep_list[i].clusters[j].role == HAL_ZIGBEE_ROLE_SERVER);
-            if (ep_list[i].clusters[j].attribute_count > 0 &&
-                !ep_list[i].clusters[j].attributes) {
-                io_log("ZIGBEE",
-                       "Error: Endpoint %d Cluster %d has attribute count %d but NULL "
-                       "attributes pointer",
-                       ep_list[i].endpoint, j, ep_list[i].clusters[j].attribute_count);
-                exit(1);
-            }
             for (int k = 0; k < ep_list[i].clusters[j].attribute_count; k++) {
                 io_log("ZIGBEE",
                        "    Attr %d: id=0x%04x, type=0x%02x, size=%d, flags=%d", k,
@@ -111,6 +103,15 @@ void hal_zigbee_init(hal_zigbee_endpoint *ep_list, uint8_t ep_count) {
             }
         }
     }
+    return true;
+}
+
+void stub_zigbee_reject_next_inits(uint32_t count) {
+    init_failures = count;
+}
+
+hal_zigbee_graph_usage_t stub_zigbee_get_graph_usage(void) {
+    return graph_usage;
 }
 
 hal_zigbee_diagnostics_t hal_zigbee_get_diagnostics(void) {
@@ -166,17 +167,37 @@ uint32_t hal_zigbee_get_poll_rate_ms(void) {
     return poll_rate_ms;
 }
 
+/* Telink and Silabs report only attributes flagged HAL_ATTR_REPORT, so the
+ * zcl_attr_change event (a report the stack would send) follows that rule. */
 void hal_zigbee_notify_attribute_changed(uint8_t endpoint, uint16_t cluster_id,
                                          uint16_t attribute_id) {
+    hal_zigbee_attribute *attribute = hal_zigbee_find_attribute_in_cluster(
+        find_unique_server_cluster(endpoint, cluster_id), attribute_id);
+
+    if (attribute == NULL || (attribute->flag & HAL_ATTR_REPORT) == 0) {
+        io_log("ZIGBEE", "Not reportable: ep=%d, cluster=0x%04x, attr=0x%04x",
+               endpoint, cluster_id, attribute_id);
+        return;
+    }
     io_log("ZIGBEE", "Attribute changed: ep=%d, cluster=0x%04x, attr=0x%04x",
            endpoint, cluster_id, attribute_id);
-    // In stub, do NOT call attr_change_callback here.
-    // That callback models "attribute written via Zigbee" (incoming write).
-    // Calling it from notify_attribute_changed() causes recursion when the
-    // application updates attributes in response to a write.
-    // Instead, emit an event so Python tests can observe the change.
     io_evt("zcl_attr_change ep=%u cluster=0x%04X attr=0x%04X", endpoint,
            cluster_id, attribute_id);
+}
+
+/* Telink's zcl_configureReporting() answers UNSUPPORTED_ATTRIBUTE for an
+ * attribute without the reportable access flag; the stub follows Telink.
+ * The Silabs framework answers UNREPORTABLE_ATTRIBUTE for the same record. */
+stub_zigbee_report_config_status_t
+stub_zigbee_configure_reporting(uint8_t endpoint, uint16_t cluster_id,
+                                uint16_t attribute_id) {
+    hal_zigbee_attribute *attribute = hal_zigbee_find_attribute_in_cluster(
+        find_unique_server_cluster(endpoint, cluster_id), attribute_id);
+
+    if (attribute == NULL || (attribute->flag & HAL_ATTR_REPORT) == 0)
+        return STUB_ZIGBEE_REPORT_CONFIG_UNSUPPORTED_ATTRIBUTE;
+
+    return STUB_ZIGBEE_REPORT_CONFIG_SUCCESS;
 }
 
 hal_zigbee_status_t hal_zigbee_send_cmd_to_bindings(const hal_zigbee_cmd *cmd) {
@@ -385,40 +406,225 @@ stub_zigbee_simulate_command_without_activity(uint8_t endpoint,
                                                  payload_len, false);
 }
 
+/* One Write Attributes record, checked the way the Telink pre-write hook
+ * checks it: writable server attribute, encoded size within `available`
+ * bytes and within the attribute storage. */
+typedef struct {
+    hal_zigbee_cluster *  cluster;
+    hal_zigbee_attribute *attribute;
+    const uint8_t *       candidate;
+    uint16_t              candidate_len;
+} stub_write_record_t;
+
+/* The Telink limits under the SDK's packed layout: a 1-byte record count
+ * followed by 14-byte zclCfgReportRec_t or 15-byte zclReportCfgRspRec_t
+ * records, in a u8-sized allocation. */
+static const zcl_frame_limits_t stub_frame_limits = {
+    .config_report_records   = (255u - 1u) / 14u,
+    .read_report_cfg_records = (255u - 1u) / 15u,
+};
+
+/* The record as it would arrive in a Write Attributes frame, checked the way
+ * the patched Telink foundation dispatch checks it before the SDK parses it. */
+static bool stub_write_record_is_well_formed(const hal_zigbee_attribute *attribute,
+                                             const uint8_t *value, uint16_t len) {
+    uint8_t frame[3 + 512];
+
+    if (len > sizeof(frame) - 3) return false;
+
+    frame[0] = (uint8_t)attribute->attribute_id;
+    frame[1] = (uint8_t)(attribute->attribute_id >> 8);
+    frame[2] = attribute->data_type_id;
+    memcpy(&frame[3], value, len);
+    return zcl_frame_is_well_formed(ZCL_FRAME_CMD_WRITE, frame, (uint16_t)(3 + len),
+                                    &stub_frame_limits);
+}
+
+static hal_zigbee_cmd_result_t stub_write_prepare(
+    uint8_t endpoint, uint16_t cluster_id, uint16_t attribute_id,
+    const uint8_t *candidate, uint16_t available, stub_write_record_t *record) {
+    record->cluster   = find_unique_server_cluster(endpoint, cluster_id);
+    record->attribute = hal_zigbee_find_attribute_in_cluster(record->cluster,
+                                                             attribute_id);
+    if (record->attribute == NULL || candidate == NULL ||
+        (record->attribute->flag & HAL_ATTR_WRITE) == 0) {
+        return HAL_ZIGBEE_CMD_SKIPPED;
+    }
+    record->candidate = candidate;
+    if (!stub_write_record_is_well_formed(record->attribute, candidate, available)) {
+        return HAL_ZIGBEE_MALFORMED_COMMAND;
+    }
+    if (!hal_zigbee_type_is_string(record->attribute->data_type_id)) {
+        record->candidate_len = available;
+        return available == record->attribute->size ?
+               HAL_ZIGBEE_CMD_PROCESSED : HAL_ZIGBEE_INVALID_VALUE;
+    }
+    record->candidate_len = hal_zigbee_attr_encoded_size(
+        record->attribute->data_type_id, candidate, available);
+    if (record->candidate_len == 0) return HAL_ZIGBEE_MALFORMED_COMMAND;
+
+    return record->candidate_len <= record->attribute->size ?
+           HAL_ZIGBEE_CMD_PROCESSED : HAL_ZIGBEE_INVALID_VALUE;
+}
+
+static hal_zigbee_cmd_result_t stub_write_phase(
+    uint8_t endpoint, const stub_write_record_t *record,
+    hal_zigbee_attr_write_phase_t phase) {
+    if (record->cluster->attr_write_callback == NULL) return HAL_ZIGBEE_CMD_PROCESSED;
+
+    return record->cluster->attr_write_callback(
+        endpoint, record->attribute->attribute_id, record->candidate,
+        record->candidate_len, phase);
+}
+
+/* VALIDATE, COMMIT, then copy into storage: the order of the patched Telink
+ * SDK, where zcl_setAttrVal runs after the pre-write hook returns. */
+static hal_zigbee_cmd_result_t stub_write_apply(uint8_t endpoint,
+                                                const stub_write_record_t *record) {
+    hal_zigbee_cmd_result_t result =
+        stub_write_phase(endpoint, record, HAL_ZIGBEE_ATTR_VALIDATE);
+
+    if (result != HAL_ZIGBEE_CMD_PROCESSED) return result;
+
+    result = stub_write_phase(endpoint, record, HAL_ZIGBEE_ATTR_COMMIT);
+    if (result != HAL_ZIGBEE_CMD_PROCESSED) return result;
+
+    memcpy(record->attribute->value, record->candidate, record->candidate_len);
+    return HAL_ZIGBEE_CMD_PROCESSED;
+}
+
 hal_zigbee_cmd_result_t stub_simulate_zigbee_attribute_write(
     uint8_t endpoint, uint16_t cluster_id, uint16_t attribute_id,
     const uint8_t *candidate, uint16_t candidate_len) {
-    hal_zigbee_cmd_result_t result = HAL_ZIGBEE_CMD_PROCESSED;
+    stub_write_record_t     record;
+    hal_zigbee_cmd_result_t result;
 
     if (zcl_activity_callback != NULL) {
         zcl_activity_callback();
     }
+    result = stub_write_prepare(endpoint, cluster_id, attribute_id, candidate,
+                                candidate_len, &record);
+    if (result != HAL_ZIGBEE_CMD_PROCESSED) return result;
 
-    hal_zigbee_cluster *cluster = hal_zigbee_find_cluster(
-        endpoints, endpoints_count, endpoint, cluster_id);
-    hal_zigbee_attribute *attribute = hal_zigbee_find_attribute(
-        endpoints, endpoints_count, endpoint, cluster_id, attribute_id);
-    if (cluster == NULL || cluster->role != HAL_ZIGBEE_ROLE_SERVER ||
-        attribute == NULL || candidate == NULL ||
-        candidate_len != attribute->size || (attribute->flag & HAL_ATTR_WRITE) == 0) {
+    return stub_write_apply(endpoint, &record);
+}
+
+hal_zigbee_cmd_result_t stub_simulate_zigbee_attribute_write_undivided(
+    uint8_t endpoint, uint16_t cluster_id, uint8_t count,
+    const uint16_t *attribute_ids, const uint8_t *const *candidates,
+    const uint16_t *candidate_lens) {
+    stub_write_record_t     records[STUB_ZIGBEE_MAX_WRITE_RECORDS];
+    hal_zigbee_cmd_result_t result;
+
+    if (count == 0 || count > STUB_ZIGBEE_MAX_WRITE_RECORDS) {
+        return HAL_ZIGBEE_MALFORMED_COMMAND;
+    }
+    if (zcl_activity_callback != NULL) {
+        zcl_activity_callback();
+    }
+    /* First pass: every record is checked and validated, nothing changes. */
+    for (uint8_t i = 0; i < count; i++) {
+        result = stub_write_prepare(endpoint, cluster_id, attribute_ids[i],
+                                    candidates[i], candidate_lens[i], &records[i]);
+        if (result == HAL_ZIGBEE_CMD_PROCESSED) {
+            result = stub_write_phase(endpoint, &records[i], HAL_ZIGBEE_ATTR_VALIDATE);
+        }
+        if (result != HAL_ZIGBEE_CMD_PROCESSED) return result;
+    }
+    /* Second pass: the SDK writes every record with its normal write path. */
+    for (uint8_t i = 0; i < count; i++) {
+        result = stub_write_apply(endpoint, &records[i]);
+        if (result != HAL_ZIGBEE_CMD_PROCESSED) return result;
+    }
+    return HAL_ZIGBEE_CMD_PROCESSED;
+}
+
+/* Size of the record value at `data`. The SDK takes it from the frame without
+ * a bound; the stub clamps it to the frame so that it never reads past it. */
+static uint16_t stub_foundation_value_size(uint8_t type, const uint8_t *data,
+                                           uint16_t left) {
+    uint16_t size;
+
+    return zcl_frame_value_size(type, data, left, &size) ? size : left;
+}
+
+/* attribute id (2), type (1), value */
+static hal_zigbee_cmd_result_t stub_foundation_write(
+    uint8_t endpoint, uint16_t cluster_id, const uint8_t *data, uint16_t len,
+    bool undivided) {
+    uint8_t                 count = 0;
+    uint16_t                attribute_ids[STUB_ZIGBEE_MAX_WRITE_RECORDS];
+    const uint8_t *         candidates[STUB_ZIGBEE_MAX_WRITE_RECORDS];
+    uint16_t                candidate_lens[STUB_ZIGBEE_MAX_WRITE_RECORDS];
+    hal_zigbee_cmd_result_t result = HAL_ZIGBEE_CMD_PROCESSED;
+
+    while (len >= 3) {
+        uint16_t attribute_id = (uint16_t)(data[0] | (data[1] << 8));
+        uint16_t size         = stub_foundation_value_size(data[2], data + 3, len - 3);
+
+        if (undivided) {
+            if (count == STUB_ZIGBEE_MAX_WRITE_RECORDS) return HAL_ZIGBEE_MALFORMED_COMMAND;
+
+            attribute_ids[count]  = attribute_id;
+            candidates[count]     = data + 3;
+            candidate_lens[count] = size;
+            count++;
+        } else {
+            hal_zigbee_cmd_result_t record_result = stub_simulate_zigbee_attribute_write(
+                endpoint, cluster_id, attribute_id, data + 3, size);
+
+            if (result == HAL_ZIGBEE_CMD_PROCESSED) result = record_result;
+        }
+        data += 3u + size;
+        len  -= 3u + size;
+    }
+    if (!undivided) return result;
+
+    return stub_simulate_zigbee_attribute_write_undivided(
+        endpoint, cluster_id, count, attribute_ids, candidates, candidate_lens);
+}
+
+/* direction (1), attribute id (2), configuration */
+static hal_zigbee_cmd_result_t stub_foundation_config_report(
+    uint8_t endpoint, uint16_t cluster_id, const uint8_t *data, uint16_t len) {
+    while (len >= 3) {
+        uint16_t size = zcl_frame_report_cfg_size(data[0], data + 3, len - 3);
+
+        if (data[0] == ZCL_FRAME_SEND_ATTR_REPORTS) {
+            (void)stub_zigbee_configure_reporting(
+                endpoint, cluster_id, (uint16_t)(data[1] | (data[2] << 8)));
+        }
+        if (size == 0) size = len - 3;
+        data += 3u + size;
+        len  -= 3u + size;
+    }
+    return HAL_ZIGBEE_CMD_PROCESSED;
+}
+
+hal_zigbee_cmd_result_t stub_zigbee_foundation_frame(uint8_t endpoint,
+                                                     uint16_t cluster_id,
+                                                     uint8_t command_id,
+                                                     const uint8_t *payload,
+                                                     uint16_t payload_len) {
+    if (!zcl_frame_is_well_formed(command_id, payload, payload_len, &stub_frame_limits)) {
+        return HAL_ZIGBEE_MALFORMED_COMMAND;
+    }
+    switch (command_id) {
+    case ZCL_FRAME_CMD_WRITE:
+    case ZCL_FRAME_CMD_WRITE_NO_RSP:
+        return stub_foundation_write(endpoint, cluster_id, payload, payload_len, false);
+
+    case ZCL_FRAME_CMD_WRITE_UNDIVIDED:
+        return stub_foundation_write(endpoint, cluster_id, payload, payload_len, true);
+
+    case ZCL_FRAME_CMD_CONFIG_REPORT:
+        return stub_foundation_config_report(endpoint, cluster_id, payload, payload_len);
+
+    case ZCL_FRAME_CMD_READ_REPORT_CFG:
+        /* The stub keeps no reporting configuration to answer with. */
+        return HAL_ZIGBEE_CMD_PROCESSED;
+
+    default:
         return HAL_ZIGBEE_CMD_SKIPPED;
     }
-    uint8_t previous[attribute->size];
-    memcpy(previous, attribute->value, attribute->size);
-    if (cluster->attr_write_callback != NULL) {
-        result = cluster->attr_write_callback(
-            endpoint, attribute_id, candidate, candidate_len,
-            HAL_ZIGBEE_ATTR_VALIDATE);
-        if (result == HAL_ZIGBEE_CMD_PROCESSED) {
-            memcpy(attribute->value, candidate, candidate_len);
-            result = cluster->attr_write_callback(
-                endpoint, attribute_id, candidate, candidate_len,
-                HAL_ZIGBEE_ATTR_COMMIT);
-        }
-    } else {
-        memcpy(attribute->value, candidate, candidate_len);
-    }
-    if (result != HAL_ZIGBEE_CMD_PROCESSED)
-        memcpy(attribute->value, previous, attribute->size);
-    return result;
 }

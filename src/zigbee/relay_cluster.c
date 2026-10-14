@@ -6,6 +6,7 @@
 #include "device_config/capability_state.h"
 #include "hal/nvm.h"
 #include "hal/printf_selector.h"
+#include <string.h>
 
 hal_zigbee_cmd_result_t relay_cluster_callback(zigbee_relay_cluster *cluster,
                                                uint8_t command_id,
@@ -57,6 +58,7 @@ static hal_zigbee_cmd_result_t relay_cluster_attr_write(
         if (candidate_len != cluster->attr_infos[i].size) return HAL_ZIGBEE_INVALID_VALUE;
 
         if (phase == HAL_ZIGBEE_ATTR_COMMIT) {
+            memcpy(cluster->attr_infos[i].value, candidate, candidate_len);
             relay_cluster_on_write_attr(cluster, attribute_id);
         }
         return HAL_ZIGBEE_CMD_PROCESSED;
@@ -97,8 +99,8 @@ void relay_cluster_add_to_endpoint(zigbee_relay_cluster *cluster,
     relay_cluster_handle_startup_mode(cluster);
     sync_indicator_led(cluster);
 
-    SETUP_ATTR(0, ZCL_ATTR_ONOFF, ZCL_DATA_TYPE_BOOLEAN, HAL_ATTR_READ,
-               cluster->on_off);
+    SETUP_ATTR(0, ZCL_ATTR_ONOFF, ZCL_DATA_TYPE_BOOLEAN,
+               (HAL_ATTR_READ | HAL_ATTR_REPORT), cluster->on_off);
     SETUP_ATTR(1, ZCL_ATTR_START_UP_ONOFF, ZCL_DATA_TYPE_ENUM8, (HAL_ATTR_READ | HAL_ATTR_WRITE),
                cluster->startup_mode);
     SETUP_ATTR(2, ZCL_ATTR_ONOFF_INCHING_DURATION, ZCL_DATA_TYPE_UINT16,
@@ -109,7 +111,8 @@ void relay_cluster_add_to_endpoint(zigbee_relay_cluster *cluster,
         SETUP_ATTR(4, ZCL_ATTR_ONOFF_INDICATOR_MODE, ZCL_DATA_TYPE_ENUM8,
                    (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->indicator_led_mode);
         SETUP_ATTR(5, ZCL_ATTR_ONOFF_INDICATOR_STATE, ZCL_DATA_TYPE_BOOLEAN,
-                   (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->indicator_state);
+                   (HAL_ATTR_READ | HAL_ATTR_WRITE | HAL_ATTR_REPORT),
+                   cluster->indicator_state);
     }
 
     hal_zigbee_cluster on_off_cluster = {

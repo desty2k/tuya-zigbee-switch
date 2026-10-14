@@ -14,6 +14,7 @@
 #include "hal/zigbee.h"
 #include "base_components/cover_controller.h"
 #include "zigbee_commands.h"
+#include <string.h>
 
 // ============================================================================
 // Configuration & Constants
@@ -410,6 +411,7 @@ static hal_zigbee_cmd_result_t cover_switch_cluster_attr_write(
         if (candidate_len != cluster->config_attr_infos[i].size) return HAL_ZIGBEE_INVALID_VALUE;
 
         if (phase == HAL_ZIGBEE_ATTR_COMMIT) {
+            memcpy(cluster->config_attr_infos[i].value, candidate, candidate_len);
             cover_switch_cluster_on_write_attr(cluster, attribute_id);
         }
         return HAL_ZIGBEE_CMD_PROCESSED;
@@ -474,9 +476,10 @@ void cover_switch_cluster_add_to_endpoint(zigbee_cover_switch_cluster *cluster,
         .attributes          = cluster->config_attr_infos,
         .attr_write_callback = cover_switch_cluster_attr_write,
     };
+    /* The cover switch sends WindowCovering commands to its bindings. */
     hal_zigbee_cluster covering_cluster = {
         .cluster_id = ZCL_CLUSTER_WINDOW_COVERING,
-        .role       = HAL_ZIGBEE_ROLE_SERVER,
+        .role       = HAL_ZIGBEE_ROLE_CLIENT,
     };
 
     // MultiStateInput for button press action reporting
@@ -488,7 +491,7 @@ void cover_switch_cluster_add_to_endpoint(zigbee_cover_switch_cluster *cluster,
                          HAL_ATTR_READ, multistate_out_of_service);
     SETUP_ATTR_FOR_TABLE(cluster->multistate_attr_infos, 2,
                          ZCL_ATTR_MULTISTATE_INPUT_PRESENT_VALUE, ZCL_DATA_TYPE_UINT16,
-                         HAL_ATTR_READ, cluster->present_value);
+                         (HAL_ATTR_READ | HAL_ATTR_REPORT), cluster->present_value);
     SETUP_ATTR_FOR_TABLE(cluster->multistate_attr_infos, 3,
                          ZCL_ATTR_MULTISTATE_INPUT_STATUS_FLAGS, ZCL_DATA_TYPE_BITMAP8,
                          HAL_ATTR_READ, multistate_flags);

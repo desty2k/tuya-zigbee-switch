@@ -6,12 +6,13 @@
 #include <stddef.h>
 #include <string.h>
 
-#define MAX_CLUSTERS    48
-#define MAX_ATTRS       160
+#if ZCL_FIXED_ENDPOINT_COUNT < HAL_ZIGBEE_MAX_ENDPOINTS
+#error "ZAP configuration has fewer endpoints than hal/zigbee_limits.h allows"
+#endif
 
 sl_zigbee_af_endpoint_type_t      endpoint_type_buffer[ZCL_FIXED_ENDPOINT_COUNT];
-sl_zigbee_af_cluster_t            clusters_buffer[MAX_CLUSTERS];
-sl_zigbee_af_attribute_metadata_t attributes_buffer[MAX_ATTRS];
+sl_zigbee_af_cluster_t            clusters_buffer[HAL_ZIGBEE_MAX_CLUSTERS];
+sl_zigbee_af_attribute_metadata_t attributes_buffer[HAL_ZIGBEE_MAX_ATTRIBUTES];
 
 hal_zigbee_endpoint *hal_endpoints;
 uint8_t hal_endpoints_cnt;
@@ -23,6 +24,10 @@ static sl_zigbee_af_status_t attr_write_result_to_status(
     if (result == HAL_ZIGBEE_CMD_PROCESSED) return SL_ZIGBEE_ZCL_STATUS_SUCCESS;
 
     if (result == HAL_ZIGBEE_INVALID_VALUE) return SL_ZIGBEE_ZCL_STATUS_INVALID_VALUE;
+
+    if (result == HAL_ZIGBEE_MALFORMED_COMMAND) return SL_ZIGBEE_ZCL_STATUS_MALFORMED_COMMAND;
+
+    if (result == HAL_ZIGBEE_ACTION_DENIED) return SL_ZIGBEE_ZCL_STATUS_ACTION_DENIED;
 
     return SL_ZIGBEE_ZCL_STATUS_UNSUPPORTED_ATTRIBUTE;
 }
@@ -124,16 +129,14 @@ bool sl_zigbee_af_pre_command_received_cb(sl_zigbee_af_cluster_command_t *cmd) {
     return false;
 }
 
-void hal_zigbee_init(hal_zigbee_endpoint *endpoints, uint8_t endpoints_cnt) {
+bool hal_zigbee_init(hal_zigbee_endpoint *endpoints, uint8_t endpoints_cnt) {
     hal_zigbee_descriptor_error_t descriptor_error =
-        hal_zigbee_validate_descriptor_graph(
-            endpoints, endpoints_cnt, ZCL_FIXED_ENDPOINT_COUNT,
-            HAL_ZIGBEE_ENDPOINT_ID_MAX, MAX_CLUSTERS, MAX_ATTRS);
+        hal_zigbee_validate_platform_graph(endpoints, endpoints_cnt);
 
     if (descriptor_error != HAL_ZIGBEE_DESCRIPTOR_OK) {
         diagnostics.descriptor_validation_failures++;
         diagnostics.last_descriptor_error = descriptor_error;
-        return;
+        return false;
     }
 
     hal_endpoints     = endpoints;
@@ -199,6 +202,7 @@ void hal_zigbee_init(hal_zigbee_endpoint *endpoints, uint8_t endpoints_cnt) {
                                              true);
         endpoint_type_ptr++;
     }
+    return true;
 }
 
 hal_zigbee_diagnostics_t hal_zigbee_get_diagnostics(void) {
@@ -273,27 +277,28 @@ sl_zigbee_af_status_t sl_zigbee_af_external_attribute_write_cb(
     if (attr == NULL || (attr->flag & HAL_ATTR_WRITE) == 0) {
         return SL_ZIGBEE_ZCL_STATUS_UNSUPPORTED_ATTRIBUTE;
     }
-    if (cluster->attr_write_callback != NULL) {
-        hal_zigbee_cmd_result_t result = cluster->attr_write_callback(
-            endpoint, attr->attribute_id, buffer, attr->size,
-            HAL_ZIGBEE_ATTR_VALIDATE);
-        if (result != HAL_ZIGBEE_CMD_PROCESSED)
-            return attr_write_result_to_status(result);
-    }
-    uint8_t previous[attr->size];
 
-    memmove(previous, attr->value, attr->size);
-    memmove(attr->value, buffer, attr->size);
+    /* The framework hands over the value in the attribute's storage size;
+     * strings carry their own length prefix. */
+    uint16_t candidate_len = hal_zigbee_attr_encoded_size(attr->data_type_id,
+                                                          buffer, attr->size);
+
+    if (candidate_len == 0) return SL_ZIGBEE_ZCL_STATUS_INVALID_VALUE;
+
+    /* HAL write contract (hal/zigbee.h): VALIDATE, COMMIT, then the copy. */
     if (cluster->attr_write_callback != NULL) {
         sl_zigbee_af_status_t status = attr_write_result_to_status(
             cluster->attr_write_callback(endpoint, attr->attribute_id, buffer,
-                                         attr->size, HAL_ZIGBEE_ATTR_COMMIT));
+                                         candidate_len, HAL_ZIGBEE_ATTR_VALIDATE));
 
-        if (status != SL_ZIGBEE_ZCL_STATUS_SUCCESS)
-            memmove(attr->value, previous, attr->size);
-        return status;
+        if (status != SL_ZIGBEE_ZCL_STATUS_SUCCESS) return status;
+
+        status = attr_write_result_to_status(
+            cluster->attr_write_callback(endpoint, attr->attribute_id, buffer,
+                                         candidate_len, HAL_ZIGBEE_ATTR_COMMIT));
+        if (status != SL_ZIGBEE_ZCL_STATUS_SUCCESS) return status;
     }
-
+    memmove(attr->value, buffer, candidate_len);
     return SL_ZIGBEE_ZCL_STATUS_SUCCESS;
 }
 

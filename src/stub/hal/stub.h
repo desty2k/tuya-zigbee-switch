@@ -42,6 +42,20 @@ void stub_zigbee_add_binding(uint16_t short_addr, uint8_t endpoint,
                              uint16_t cluster_id);
 void stub_zigbee_clear_bindings(void);
 hal_zigbee_endpoint *stub_zigbee_get_endpoints(uint8_t *count);
+hal_zigbee_graph_usage_t stub_zigbee_get_graph_usage(void);
+
+/** Make the next `count` hal_zigbee_init calls fail the way a refused SDK
+ * registration does on Telink. */
+void stub_zigbee_reject_next_inits(uint32_t count);
+
+typedef enum {
+    STUB_ZIGBEE_REPORT_CONFIG_SUCCESS,
+    STUB_ZIGBEE_REPORT_CONFIG_UNSUPPORTED_ATTRIBUTE,
+} stub_zigbee_report_config_status_t;
+/** Answer a Configure Reporting record the way the Telink stack does. */
+stub_zigbee_report_config_status_t
+stub_zigbee_configure_reporting(uint8_t endpoint, uint16_t cluster_id,
+                                uint16_t attribute_id);
 hal_zigbee_cmd_result_t stub_zigbee_simulate_command(uint8_t endpoint,
                                                      uint16_t cluster_id,
                                                      uint8_t command_id,
@@ -53,9 +67,30 @@ stub_zigbee_simulate_command_without_activity(uint8_t endpoint,
                                               uint8_t command_id,
                                               void *payload,
                                               uint16_t payload_len);
+
+/** Write one attribute as a Write Attributes record. `candidate` holds
+ * `candidate_len` bytes of ZCL encoding; strings take their length prefix. */
 hal_zigbee_cmd_result_t stub_simulate_zigbee_attribute_write(
     uint8_t endpoint, uint16_t cluster_id, uint16_t attribute_id,
     const uint8_t *candidate, uint16_t candidate_len);
+
+#define STUB_ZIGBEE_MAX_WRITE_RECORDS    8
+/** Write Attributes Undivided: all records are validated before any is written. */
+hal_zigbee_cmd_result_t stub_simulate_zigbee_attribute_write_undivided(
+    uint8_t endpoint, uint16_t cluster_id, uint8_t count,
+    const uint16_t *attribute_ids, const uint8_t *const *candidates,
+    const uint16_t *candidate_lens);
+
+/** A received ZCL foundation command payload, handled the way the patched
+ * Telink zcl_foundationCmdHandler() handles it: the frame check of
+ * zigbee/zcl_frame_check.h runs before any record is parsed. Writes, Write
+ * Undivided, Configure Reporting and Read Reporting Configuration are
+ * simulated; other commands answer HAL_ZIGBEE_CMD_SKIPPED. */
+hal_zigbee_cmd_result_t stub_zigbee_foundation_frame(uint8_t endpoint,
+                                                     uint16_t cluster_id,
+                                                     uint8_t command_id,
+                                                     const uint8_t *payload,
+                                                     uint16_t payload_len);
 
 // ADC stub functions
 void stub_set_adc_voltage_mv(uint16_t voltage_mv);

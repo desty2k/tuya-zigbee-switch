@@ -277,6 +277,28 @@ def test_check_in_sends_event(bat_device: Device):
     assert cmd_evt is not None
 
 
+def test_written_check_in_interval_schedules_next_check_in_and_persists(cleanup_nvm):
+    """The written interval, not the previous one, drives the next check-in."""
+    new_interval = BATTERY_LONG_POLL_INTERVAL * 2  # 4 minutes
+
+    proc1 = make_end_device(BATTERY_CONFIG)
+    dev1 = Device(proc1)
+    dev1.write_zigbee_attr(
+        1, ZCL_CLUSTER_POLL_CONTROL, ZCL_ATTR_POLL_CTRL_CHECK_IN_INTERVAL, new_interval
+    )
+    dev1.clear_events()
+    dev1.step_time(new_interval * QS_TO_MS + 1)
+    assert dev1.wait_for_cmd_send(
+        ep=1, cluster=ZCL_CLUSTER_POLL_CONTROL, cmd=0x00, timeout=1.0
+    ) is not None
+    proc1.stop()
+
+    proc2 = make_end_device(BATTERY_CONFIG)
+    dev2 = Device(proc2)
+    assert read_poll_attr(dev2, ZCL_ATTR_POLL_CTRL_CHECK_IN_INTERVAL) == new_interval
+    proc2.stop()
+
+
 def test_nvm_persistence(cleanup_nvm):
     """Poll control settings persist across restarts via NVM."""
     config = BATTERY_CONFIG

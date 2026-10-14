@@ -3,23 +3,40 @@
 #include "zcl_include.h"
 #include <stdint.h>
 
-static char    init_trace[5];
+static char    init_trace[16];
 static uint8_t init_trace_count;
 static af_simple_descriptor_t descriptor;
 static hal_zigbee_endpoint *  zcl_endpoints;
 static uint8_t zcl_endpoints_count;
 static af_simple_descriptor_t *ota_descriptors;
 static af_simple_descriptor_t *bdb_descriptors;
+static bool graph_supported;
+static bool zcl_registration_ok;
+
+static void reset_trace(void) {
+    init_trace_count    = 0;
+    graph_supported     = true;
+    zcl_registration_ok = true;
+}
 
 void telink_zigbee_hal_network_init(void) {
     init_trace[init_trace_count++] = 'N';
 }
 
-void telink_zigbee_hal_zcl_init(hal_zigbee_endpoint *endpoints,
+bool telink_zigbee_hal_zcl_graph_supported(hal_zigbee_endpoint *endpoints,
+                                           uint8_t endpoints_cnt) {
+    (void)endpoints;
+    (void)endpoints_cnt;
+    init_trace[init_trace_count++] = 'V';
+    return graph_supported;
+}
+
+bool telink_zigbee_hal_zcl_init(hal_zigbee_endpoint *endpoints,
                                 uint8_t endpoints_cnt) {
     init_trace[init_trace_count++] = 'Z';
     zcl_endpoints       = endpoints;
     zcl_endpoints_count = endpoints_cnt;
+    return zcl_registration_ok;
 }
 
 af_simple_descriptor_t *telink_zigbee_hal_zcl_get_descriptors(void) {
@@ -36,13 +53,44 @@ void telink_zigbee_hal_bdb_init(af_simple_descriptor_t *endpoint_descriptor) {
     bdb_descriptors = endpoint_descriptor;
 }
 
+/* Runs first: the network layer is initialized once per boot. */
+TEST(rejected_graph_touches_no_stack_layer_and_recovery_starts_it) {
+    hal_zigbee_endpoint endpoints[1] = { 0 };
+
+    reset_trace();
+    graph_supported = false;
+    ASSERT_TRUE(!hal_zigbee_init(endpoints, 1));
+    ASSERT_EQ(1, init_trace_count);
+    ASSERT_EVENT_LOG_EQ("V", init_trace, init_trace_count);
+
+    reset_trace();
+    ASSERT_TRUE(hal_zigbee_init(endpoints, 1));
+    ASSERT_EVENT_LOG_EQ("VNZOB", init_trace, init_trace_count);
+}
+
+TEST(refused_registration_skips_ota_and_bdb_and_keeps_network_for_recovery) {
+    hal_zigbee_endpoint endpoints[2] = { 0 };
+
+    reset_trace();
+    zcl_registration_ok = false;
+    ASSERT_TRUE(!hal_zigbee_init(endpoints, 2));
+    ASSERT_EQ(2, init_trace_count);
+    ASSERT_EVENT_LOG_EQ("VZ", init_trace, init_trace_count);
+
+    reset_trace();
+    ASSERT_TRUE(hal_zigbee_init(endpoints, 1));
+    ASSERT_EQ(4, init_trace_count);
+    ASSERT_EVENT_LOG_EQ("VZOB", init_trace, init_trace_count);
+    ASSERT_EQ(1, zcl_endpoints_count);
+}
+
 TEST(initializes_ota_after_zcl_and_before_bdb) {
     hal_zigbee_endpoint endpoints[2] = { 0 };
 
-    hal_zigbee_init(endpoints, 2);
-
+    reset_trace();
+    ASSERT_TRUE(hal_zigbee_init(endpoints, 2));
     ASSERT_EQ(4, init_trace_count);
-    ASSERT_EVENT_LOG_EQ("NZOB", init_trace, init_trace_count);
+    ASSERT_EVENT_LOG_EQ("VZOB", init_trace, init_trace_count);
     ASSERT_TRUE(zcl_endpoints == endpoints);
     ASSERT_EQ(2, zcl_endpoints_count);
     ASSERT_TRUE(ota_descriptors == &descriptor);
@@ -50,6 +98,8 @@ TEST(initializes_ota_after_zcl_and_before_bdb) {
 }
 
 int main(void) {
+    RUN_TEST(rejected_graph_touches_no_stack_layer_and_recovery_starts_it);
+    RUN_TEST(refused_registration_skips_ota_and_bdb_and_keeps_network_for_recovery);
     RUN_TEST(initializes_ota_after_zcl_and_before_bdb);
     return test_runner_failures != 0;
 }

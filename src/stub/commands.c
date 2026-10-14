@@ -9,6 +9,9 @@
 #include "stub/hal/stub.h"
 
 #include "stub/stub_app.h"
+#include "device_config/config_parser.h"
+#include "device_config/device_config_service.h"
+#include "device_config/feature_wiring.h"
 #include "base_components/button_input.h"
 #include "base_components/gesture_fsm.h"
 #include "base_components/timer_service.h"
@@ -136,6 +139,49 @@ static int cmd_diag(int argc, char **argv) {
               network_diag.steering_attempts, network_diag.announce_attempts,
               network_diag.announce_failures, network_diag.uptime_ms,
               network_diag.last_transition_ms);
+    return 0;
+}
+
+static void print_graph_usage(const char *prefix,
+                              const hal_zigbee_graph_usage_t *usage) {
+    printf("%s endpoints=%u server_clusters=%u client_clusters=%u attributes=%u "
+           "zcl_registrations=%u\n", prefix, usage->endpoints,
+           usage->server_clusters, usage->client_clusters, usage->attributes,
+           usage->zcl_registrations);
+}
+
+/* Resources of the registered graph and of the stored config's preflight,
+ * next to the shared platform limits they are checked against. */
+static int cmd_zcl_graph_usage(int argc, char **argv) {
+    hal_zigbee_graph_usage_t actual    = stub_zigbee_get_graph_usage();
+    hal_zigbee_graph_usage_t preflight = { 0 };
+    device_composition_t     composition;
+    int preflight_ok;
+
+    (void)argc;
+    (void)argv;
+    preflight_ok = config_parser_parse(device_config_service_config(),
+                                       &composition) == CONFIG_PARSE_OK;
+    if (preflight_ok) {
+        feature_wiring_graph_usage(&composition, &preflight);
+    }
+    print_graph_usage("actual", &actual);
+    print_graph_usage("preflight", &preflight);
+    io_res_ok("endpoints=%u server_clusters=%u client_clusters=%u attributes=%u "
+              "zcl_registrations=%u preflight_parsed=%d "
+              "preflight_endpoints=%u preflight_server_clusters=%u "
+              "preflight_client_clusters=%u preflight_attributes=%u "
+              "preflight_zcl_registrations=%u max_endpoints=%u "
+              "max_server_clusters=%u max_client_clusters=%u max_clusters=%u "
+              "max_attributes=%u max_zcl_registrations=%u",
+              actual.endpoints, actual.server_clusters, actual.client_clusters,
+              actual.attributes, actual.zcl_registrations, preflight_ok,
+              preflight.endpoints, preflight.server_clusters,
+              preflight.client_clusters, preflight.attributes,
+              preflight.zcl_registrations, HAL_ZIGBEE_MAX_ENDPOINTS,
+              HAL_ZIGBEE_MAX_SERVER_CLUSTERS, HAL_ZIGBEE_MAX_CLIENT_CLUSTERS,
+              HAL_ZIGBEE_MAX_CLUSTERS, HAL_ZIGBEE_MAX_ATTRIBUTES,
+              HAL_ZIGBEE_MAX_ZCL_REGISTRATIONS);
     return 0;
 }
 
@@ -269,6 +315,37 @@ static int cmd_zcl_list_attrs(int argc, char **argv) {
     return 0;
 }
 
+/* Registered descriptor as `ep:cluster:role:manufacturer` entries, where role
+ * is S (server, receives commands) or C (client, sends commands). */
+static int cmd_zcl_clusters(int argc, char **argv) {
+    uint8_t count;
+    hal_zigbee_endpoint *eps = stub_zigbee_get_endpoints(&count);
+    char   out[1024];
+    size_t used = 0;
+
+    (void)argc;
+    (void)argv;
+    out[0] = '\0';
+    for (uint8_t i = 0; i < count; i++) {
+        for (uint8_t j = 0; j < eps[i].cluster_count; j++) {
+            const hal_zigbee_cluster *cluster = &eps[i].clusters[j];
+            int written = snprintf(out + used, sizeof(out) - used,
+                                   "%s%u:0x%04X:%c:0x%04X", used ? "," : "",
+                                   eps[i].endpoint, cluster->cluster_id,
+                                   cluster->role == HAL_ZIGBEE_ROLE_SERVER ? 'S' : 'C',
+                                   cluster->manufacturer_code);
+
+            if (written < 0 || (size_t)written >= sizeof(out) - used) {
+                io_res_err("too_many_clusters");
+                return -1;
+            }
+            used += (size_t)written;
+        }
+    }
+    io_res_ok("clusters=%s", out);
+    return 0;
+}
+
 static int cmd_zcl_read(int argc, char **argv) {
     if (argc != 4) {
         fprintf(stderr, "Usage: zcl_read <ep:dec> <cluster:hex> <attr:hex>\n");
@@ -340,7 +417,11 @@ static int cmd_zcl_write(int argc, char **argv) {
         return -1;
     }
 
-    if (stub_simulate_zigbee_attribute_write(ep, cl, at, candidate, attr->size) !=
+    if (stub_simulate_zigbee_attribute_write(
+            ep, cl, at, candidate,
+            hal_zigbee_type_is_string(attr->data_type_id) ?
+            hal_zigbee_attr_encoded_size(attr->data_type_id, candidate, attr->size) :
+            attr->size) !=
         HAL_ZIGBEE_CMD_PROCESSED) {
         io_res_err("rejected ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
         return -1;
@@ -378,6 +459,47 @@ static int cmd_zcl_write_raw(int argc, char **argv) {
     return 0;
 }
 
+/* zcl_write_undivided <ep> <cluster> <attr>=<hex bytes> ... */
+static int cmd_zcl_write_undivided(int argc, char **argv) {
+    uint8_t        ep;
+    uint16_t       cl;
+    uint8_t        count = (uint8_t)(argc - 3);
+    uint16_t       attribute_ids[STUB_ZIGBEE_MAX_WRITE_RECORDS];
+    uint8_t        values[STUB_ZIGBEE_MAX_WRITE_RECORDS][64];
+    const uint8_t *candidates[STUB_ZIGBEE_MAX_WRITE_RECORDS];
+    uint16_t       candidate_lens[STUB_ZIGBEE_MAX_WRITE_RECORDS];
+
+    if (argc < 4 || argc - 3 > STUB_ZIGBEE_MAX_WRITE_RECORDS ||
+        parse_u8_dec(argv[1], &ep) || parse_u16_hex(argv[2], &cl)) {
+        io_res_err("usage");
+        return -1;
+    }
+    for (uint8_t i = 0; i < count; i++) {
+        char *separator = strchr(argv[3 + i], '=');
+
+        if (separator == NULL) {
+            io_res_err("bad_args");
+            return -1;
+        }
+        *separator = '\0';
+        if (parse_u16_hex(argv[3 + i], &attribute_ids[i]) ||
+            parse_hex_bytes(separator + 1, values[i], sizeof(values[i]),
+                            &candidate_lens[i])) {
+            io_res_err("bad_args");
+            return -1;
+        }
+        candidates[i] = values[i];
+    }
+    if (stub_simulate_zigbee_attribute_write_undivided(
+            ep, cl, count, attribute_ids, candidates, candidate_lens) !=
+        HAL_ZIGBEE_CMD_PROCESSED) {
+        io_res_err("rejected ep=%u cluster=0x%04X", ep, cl);
+        return -1;
+    }
+    io_res_ok("ep=%u cluster=0x%04X records=%u", ep, cl, count);
+    return 0;
+}
+
 static int cmd_zcl_attr_callback(int argc, char **argv) {
     uint8_t  ep;
     uint16_t cl;
@@ -390,9 +512,71 @@ static int cmd_zcl_attr_callback(int argc, char **argv) {
     }
     hal_zigbee_attribute *attr = stub_app_find_attr(ep, cl, at);
     if (attr != NULL)
-        (void)stub_simulate_zigbee_attribute_write(ep, cl, at, attr->value,
-                                                   attr->size);
+        (void)stub_simulate_zigbee_attribute_write(
+            ep, cl, at, attr->value,
+            hal_zigbee_type_is_string(attr->data_type_id) ?
+            hal_zigbee_attr_encoded_size(attr->data_type_id, attr->value, attr->size) :
+            attr->size);
     io_res_ok("ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
+    return 0;
+}
+
+static int cmd_zcl_configure_reporting(int argc, char **argv) {
+    uint8_t  ep;
+    uint16_t cl;
+    uint16_t at;
+    stub_zigbee_report_config_status_t status;
+
+    if (argc != 4 || parse_u8_dec(argv[1], &ep) ||
+        parse_u16_hex(argv[2], &cl) || parse_u16_hex(argv[3], &at)) {
+        io_res_err("usage");
+        return -1;
+    }
+    status = stub_zigbee_configure_reporting(ep, cl, at);
+    if (status == STUB_ZIGBEE_REPORT_CONFIG_UNSUPPORTED_ATTRIBUTE) {
+        io_res_err("unsupported_attribute ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
+        return -1;
+    }
+    io_res_ok("ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
+    return 0;
+}
+
+static const char *cmd_result_name(hal_zigbee_cmd_result_t result) {
+    switch (result) {
+    case HAL_ZIGBEE_CMD_PROCESSED:    return "PROCESSED";
+
+    case HAL_ZIGBEE_INVALID_VALUE:    return "INVALID_VALUE";
+
+    case HAL_ZIGBEE_MALFORMED_COMMAND: return "MALFORMED_COMMAND";
+
+    case HAL_ZIGBEE_ACTION_DENIED:    return "ACTION_DENIED";
+
+    case HAL_ZIGBEE_CMD_SKIPPED:      return "SKIPPED";
+
+    default:                          return "UNKNOWN";
+    }
+}
+
+/* zcl_foundation <ep> <cluster:hex> <cmd:hex> [payload hex] */
+static int cmd_zcl_foundation(int argc, char **argv) {
+    uint8_t  ep;
+    uint16_t cl;
+    uint16_t command_id;
+    uint8_t  payload[256];
+    uint16_t payload_len = 0;
+    hal_zigbee_cmd_result_t result;
+
+    if ((argc != 4 && argc != 5) || parse_u8_dec(argv[1], &ep) ||
+        parse_u16_hex(argv[2], &cl) || parse_u16_hex(argv[3], &command_id) ||
+        command_id > UINT8_MAX ||
+        (argc == 5 && parse_hex_bytes(argv[4], payload, sizeof(payload), &payload_len))) {
+        io_res_err("usage");
+        return -1;
+    }
+    result = stub_zigbee_foundation_frame(ep, cl, (uint8_t)command_id,
+                                          payload_len > 0 ? payload : NULL, payload_len);
+    io_res_ok("ep=%u cluster=0x%04X cmd=0x%02X result=%s payload_len=%u", ep, cl,
+              command_id, cmd_result_name(result), payload_len);
     return 0;
 }
 
@@ -459,27 +643,7 @@ static int cmd_zcl_cmd_impl(int argc, char **argv, bool trigger_activity) {
             payload_len);
     }
 
-    const char *result_str;
-    switch (result) {
-    case HAL_ZIGBEE_CMD_PROCESSED:
-        result_str = "PROCESSED";
-        break;
-    case HAL_ZIGBEE_INVALID_VALUE:
-        result_str = "INVALID_VALUE";
-        break;
-    case HAL_ZIGBEE_MALFORMED_COMMAND:
-        result_str = "MALFORMED_COMMAND";
-        break;
-    case HAL_ZIGBEE_ACTION_DENIED:
-        result_str = "ACTION_DENIED";
-        break;
-    case HAL_ZIGBEE_CMD_SKIPPED:
-        result_str = "SKIPPED";
-        break;
-    default:
-        result_str = "UNKNOWN";
-        break;
-    }
+    const char *result_str = cmd_result_name(result);
 
     printf("ZCL command result: %s (ep=%d, cluster=0x%04X, cmd=0x%02X, "
            "payload_len=%d)\n",
@@ -716,46 +880,52 @@ static int cmd_input_diag(int argc, char **argv) {
     (void)argc;
     (void)argv;
     io_res_ok("button_schedule_failures=%u timer_schedule_failures=%u "
-              "gpio_edges_dropped=%u",
+              "gpio_edges_dropped=%u zb_button_event_schedule_failures=%u",
               button_input_schedule_failures(), timer_schedule_failures(),
-              button_input_gpio_edges_dropped());
+              button_input_gpio_edges_dropped(),
+              button_event_cluster_schedule_failures());
     return 0;
 }
 
 /* Command table */
 static const SimpleReplCommand kCmds[] = {
-    { "machine",             cmd_machine             },
-    { "help",                cmd_help                },
-    { "s",                   cmd_status              },
-    { "status",              cmd_status              },
-    { "diag",                cmd_diag                },
-    { "net",                 cmd_net                 },
-    { "tx_fail",             cmd_tx_fail             },
-    { "announce_fail",       cmd_announce_fail       },
-    { "nvm_fail",            cmd_nvm_fail            },
-    { "set_pin",             cmd_pin                 },
-    { "pin_edge",            cmd_pin_edge            },
-    { "read_pin",            cmd_read_pin            },
-    { "zcl_read",            cmd_zcl_read            },
-    { "zcl_write",           cmd_zcl_write           },
-    { "zcl_write_raw",       cmd_zcl_write_raw       },
-    { "zcl_attr_callback",   cmd_zcl_attr_callback   },
-    { "zcl_list_attrs",      cmd_zcl_list_attrs      },
-    { "zcl_cmd",             cmd_zcl_cmd             },
-    { "zcl_cmd_no_activity", cmd_zcl_cmd_no_activity },
-    { "freeze_time",         cmd_freeze_time         },
-    { "step_time",           cmd_step_time           },
-    { "time_advance",        cmd_time_advance        },
-    { "tasks_poll",          cmd_tasks_poll          },
-    { "set_battery_voltage", cmd_set_battery_voltage },
-    { "time_model",          cmd_time_model          },
-    { "time_set",            cmd_time_set            },
-    { "pin_burst",           cmd_pin_burst           },
-    { "pin_late",            cmd_pin_late            },
-    { "task_fail",           cmd_task_fail           },
-    { "input_diag",          cmd_input_diag          },
-    { "q",                   cmd_quit                },
-    { "quit",                cmd_quit                },
+    { "machine",                 cmd_machine                 },
+    { "help",                    cmd_help                    },
+    { "s",                       cmd_status                  },
+    { "status",                  cmd_status                  },
+    { "diag",                    cmd_diag                    },
+    { "net",                     cmd_net                     },
+    { "tx_fail",                 cmd_tx_fail                 },
+    { "announce_fail",           cmd_announce_fail           },
+    { "nvm_fail",                cmd_nvm_fail                },
+    { "set_pin",                 cmd_pin                     },
+    { "pin_edge",                cmd_pin_edge                },
+    { "read_pin",                cmd_read_pin                },
+    { "zcl_read",                cmd_zcl_read                },
+    { "zcl_write",               cmd_zcl_write               },
+    { "zcl_write_raw",           cmd_zcl_write_raw           },
+    { "zcl_write_undivided",     cmd_zcl_write_undivided     },
+    { "zcl_attr_callback",       cmd_zcl_attr_callback       },
+    { "zcl_list_attrs",          cmd_zcl_list_attrs          },
+    { "zcl_graph_usage",         cmd_zcl_graph_usage         },
+    { "zcl_clusters",            cmd_zcl_clusters            },
+    { "zcl_configure_reporting", cmd_zcl_configure_reporting },
+    { "zcl_foundation",          cmd_zcl_foundation          },
+    { "zcl_cmd",                 cmd_zcl_cmd                 },
+    { "zcl_cmd_no_activity",     cmd_zcl_cmd_no_activity     },
+    { "freeze_time",             cmd_freeze_time             },
+    { "step_time",               cmd_step_time               },
+    { "time_advance",            cmd_time_advance            },
+    { "tasks_poll",              cmd_tasks_poll              },
+    { "set_battery_voltage",     cmd_set_battery_voltage     },
+    { "time_model",              cmd_time_model              },
+    { "time_set",                cmd_time_set                },
+    { "pin_burst",               cmd_pin_burst               },
+    { "pin_late",                cmd_pin_late                },
+    { "task_fail",               cmd_task_fail               },
+    { "input_diag",              cmd_input_diag              },
+    { "q",                       cmd_quit                    },
+    { "quit",                    cmd_quit                    },
 };
 
 const SimpleReplCommand *commands_table(void) {

@@ -19,8 +19,9 @@
  * Adjust these values according to application requirements
  */
 
-/* ZCL: Maximum number of clusters (in + out cluster count) */
-#define ZCL_CLUSTER_NUM_MAX        32
+/* ZCL: cluster table entries; see hal/zigbee_limits.h */
+#include "hal/zigbee_limits.h"
+#define ZCL_CLUSTER_NUM_MAX        HAL_ZIGBEE_MAX_ZCL_REGISTRATIONS
 
 /* ZCL: Maximum number of reporting table entries */
 #define ZCL_REPORTING_TABLE_NUM    12

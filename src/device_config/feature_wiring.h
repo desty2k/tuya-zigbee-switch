@@ -26,6 +26,12 @@ extern battery_t           battery;
 
 void parse_config(void);
 void feature_wiring_build_recovery(void);
+
+/** Platform resources the graph built from `composition` takes. */
+void feature_wiring_graph_usage(const device_composition_t *composition,
+                                hal_zigbee_graph_usage_t *usage);
+
+/** Accept a composition only if its graph fits the shared platform limits. */
 feature_wiring_result_t feature_wiring_preflight(
     const device_composition_t *composition);
 feature_wiring_result_t feature_wiring_build(

@@ -11,6 +11,7 @@
 #include "hal/printf_selector.h"
 #include "hal/system.h"
 #include "zigbee_commands.h"
+#include <string.h>
 
 const uint8_t  multistate_out_of_service = 0;
 const uint8_t  multistate_flags          = 0;
@@ -166,6 +167,7 @@ static hal_zigbee_cmd_result_t switch_cluster_attr_write(
             return HAL_ZIGBEE_INVALID_VALUE;
 
         if (phase == HAL_ZIGBEE_ATTR_COMMIT) {
+            memcpy(cluster->attr_infos[i].value, candidate, candidate_len);
             switch_cluster_on_write_attr(cluster, attribute_id);
         }
         return HAL_ZIGBEE_CMD_PROCESSED;
@@ -187,7 +189,8 @@ void switch_cluster_add_to_endpoint(zigbee_switch_cluster *cluster,
     SETUP_ATTR(0, ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_TYPE, ZCL_DATA_TYPE_ENUM8,
                HAL_ATTR_READ, cluster->mode);
     SETUP_ATTR(1, ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_ACTIONS,
-               ZCL_DATA_TYPE_ENUM8, (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->action);
+               ZCL_DATA_TYPE_ENUM8, (HAL_ATTR_READ | HAL_ATTR_WRITE | HAL_ATTR_REPORT),
+               cluster->action);
     SETUP_ATTR(2, ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_MODE, ZCL_DATA_TYPE_ENUM8,
                (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->mode);
     SETUP_ATTR(3, ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_RELAY_MODE,
@@ -209,9 +212,10 @@ void switch_cluster_add_to_endpoint(zigbee_switch_cluster *cluster,
         .attributes          = cluster->attr_infos,
         .attr_write_callback = switch_cluster_attr_write,
     };
+    /* The switch sends OnOff and Level commands to its bindings. */
     hal_zigbee_cluster on_off_cluster = {
         .cluster_id = ZCL_CLUSTER_ON_OFF,
-        .role       = HAL_ZIGBEE_ROLE_SERVER,
+        .role       = HAL_ZIGBEE_ROLE_CLIENT,
     };
 
     SETUP_ATTR_FOR_TABLE(cluster->multistate_attr_infos, 0,
@@ -224,7 +228,7 @@ void switch_cluster_add_to_endpoint(zigbee_switch_cluster *cluster,
                          multistate_out_of_service);
     SETUP_ATTR_FOR_TABLE(cluster->multistate_attr_infos, 2,
                          ZCL_ATTR_MULTISTATE_INPUT_PRESENT_VALUE,
-                         ZCL_DATA_TYPE_UINT16, HAL_ATTR_READ,
+                         ZCL_DATA_TYPE_UINT16, (HAL_ATTR_READ | HAL_ATTR_REPORT),
                          cluster->multistate_state);
     SETUP_ATTR_FOR_TABLE(cluster->multistate_attr_infos, 3,
                          ZCL_ATTR_MULTISTATE_INPUT_STATUS_FLAGS,
@@ -238,7 +242,7 @@ void switch_cluster_add_to_endpoint(zigbee_switch_cluster *cluster,
     };
     hal_zigbee_cluster level_cluster = {
         .cluster_id = ZCL_CLUSTER_LEVEL_CONTROL,
-        .role       = HAL_ZIGBEE_ROLE_SERVER,
+        .role       = HAL_ZIGBEE_ROLE_CLIENT,
     };
 
     hal_zigbee_endpoint_add_cluster(endpoint, endpoint->cluster_capacity,
@@ -544,13 +548,6 @@ void synchronize_multistate_state(zigbee_switch_cluster *cluster) {
 static void switch_cluster_on_write_attr(zigbee_switch_cluster *cluster,
                                          uint16_t attribute_id) {
     printf("Index at write attr: %d\r\n", cluster->switch_idx);
-    if (attribute_id == ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_RELAY_INDEX) {
-        if (relay_clusters_cnt == 0) {
-            cluster->relay_index = 0;
-        } else if (cluster->relay_index < 1 || cluster->relay_index > relay_clusters_cnt) {
-            cluster->relay_index = 1;
-        }
-    }
     if (attribute_id == ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_MODE) {
         button_input_apply_switch_mode(
             cluster->button_id, cluster->mode ==

@@ -24,6 +24,7 @@
 #include "zigbee/device_config_cluster.h"
 #include "zigbee/device_diagnostics_cluster.h"
 #include "zigbee/zcl_cluster_defs.h"
+#include "zigbee/zcl_ids.h"
 #include "zigbee/group_cluster.h"
 #include "zigbee/poll_control_cluster.h"
 #include "zigbee/relay_cluster.h"
@@ -65,12 +66,26 @@ battery_t                                  battery = { .pin         = HAL_INVALI
                                                                     =            2000,
                                                        .voltage_max =
                                                            3000 };
-hal_zigbee_endpoint                        endpoints[10];
+hal_zigbee_endpoint                        endpoints[DEVICE_COMPOSITION_MAX_ENDPOINTS];
 static device_interlock_config_t           interlocks[10]; static uint8_t interlocks_cnt;
 static zigbee_basic_cluster                basic_cluster = { .deviceEnable = 1 };
 static zigbee_device_config_cluster_t      config_cluster;
 static zigbee_device_diagnostics_cluster_t diagnostics_cluster;
-static zigbee_group_cluster                group_cluster; static hal_zigbee_cluster clusters[50];
+static zigbee_group_cluster                group_cluster;
+static hal_zigbee_cluster                  clusters[HAL_ZIGBEE_MAX_CLUSTERS];
+
+/* Clusters each endpoint kind adds. endpoint_slots() reserves them and the
+ * preflight counts them; the add_to_endpoint functions add exactly these. */
+enum {
+    EP1_BASE_CLUSTERS     = 4, /* Basic, device config, diagnostics, OTA */
+    SWITCH_CLUSTERS       = 5, /* config, OnOff/Level clients, multistate, button events */
+    RELAY_CLUSTERS        = 3, /* OnOff, Level, Groups */
+    COVER_SWITCH_CLUSTERS = 4, /* config, WindowCovering client, multistate, button events */
+    COVER_CLUSTERS        = 1, /* WindowCovering */
+};
+
+#define ATTRIBUTE_COUNT(type, member) \
+        ((uint16_t)(sizeof(((type *)0)->member) / sizeof(hal_zigbee_attribute)))
 
 static void apply_status_led_mode(void *context,
                                   device_config_led_mode_t mode) {
@@ -96,28 +111,34 @@ static void network_changed(hal_zigbee_network_status_t s) {
 }
 
 static void endpoint_slots(const device_composition_t *c) {
-    hal_zigbee_cluster *p = clusters; size_t left = 50; for (uint8_t i = 0; i < c->endpoint_count;
-                                                             i++) {
-        uint8_t slots = i == 0 ? (uint8_t)(4 + (battery.pin != HAL_INVALID_PIN)) : 0;
-#ifdef END_DEVICE
+    hal_zigbee_cluster *p = clusters;
+
+    for (uint8_t i = 0; i < c->endpoint_count; i++) {
+        uint8_t slots = 0;
+
         if (i == 0) {
+            slots = EP1_BASE_CLUSTERS + (battery.pin != HAL_INVALID_PIN);
+#ifdef END_DEVICE
             slots++;
-        }
 #endif
-        if (i < switch_clusters_cnt) slots += 5;
-        else if (i < switch_clusters_cnt + relay_clusters_cnt) slots += 3;
-        else if (i <
-                 switch_clusters_cnt + relay_clusters_cnt + cover_switch_clusters_cnt) slots += 4;
-        else {
-            slots++;
         }
+        if (i < switch_clusters_cnt) slots += SWITCH_CLUSTERS;
+        else if (i < switch_clusters_cnt + relay_clusters_cnt) slots += RELAY_CLUSTERS;
+        else if (i < switch_clusters_cnt + relay_clusters_cnt + cover_switch_clusters_cnt)
+            slots += COVER_SWITCH_CLUSTERS;
+        else if (i < switch_clusters_cnt + relay_clusters_cnt + cover_switch_clusters_cnt +
+                 cover_clusters_cnt) slots += COVER_CLUSTERS;
         endpoints[i].endpoint   = i + 1;
         endpoints[i].profile_id = 0x0104; endpoints[i].device_id = 0xffff;
         endpoints[i].clusters   = p; endpoints[i].cluster_capacity = slots; p += slots;
-        left -= slots;
     }
+}
 
-    (void)left;
+static uint8_t built_endpoint_count(void) {
+    uint8_t count = switch_clusters_cnt + relay_clusters_cnt + cover_switch_clusters_cnt +
+                    cover_clusters_cnt;
+
+    return count == 0 ? 1 : count;
 }
 
 feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
@@ -317,28 +338,131 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
          i++) cover_cluster_add_to_endpoint(&cover_clusters[i],
                                             &endpoints[switch_clusters_cnt + relay_clusters_cnt +
                                                        cover_switch_clusters_cnt + i]);
-    return FEATURE_WIRING_OK;
+    return hal_zigbee_validate_platform_graph(endpoints, built_endpoint_count()) ==
+           HAL_ZIGBEE_DESCRIPTOR_OK ? FEATURE_WIRING_OK : FEATURE_WIRING_INVALID;
+}
+
+void feature_wiring_graph_usage(const device_composition_t *c,
+                                hal_zigbee_graph_usage_t *usage) {
+    hal_zigbee_cluster ota;
+    uint8_t            shared_indicators = 0;
+    uint8_t            relays_with_indicator;
+
+    *usage = (hal_zigbee_graph_usage_t){ .endpoints = c->endpoint_count };
+    hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_BASIC, HAL_ZIGBEE_ROLE_SERVER,
+                                       ATTRIBUTE_COUNT(zigbee_basic_cluster, attr_infos));
+    hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_DEVICE_CONFIG,
+                                       HAL_ZIGBEE_ROLE_SERVER,
+                                       ATTRIBUTE_COUNT(zigbee_device_config_cluster_t,
+                                                       attr_infos));
+    hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_DEVICE_DIAGNOSTICS,
+                                       HAL_ZIGBEE_ROLE_SERVER,
+                                       ATTRIBUTE_COUNT(zigbee_device_diagnostics_cluster_t,
+                                                       attr_infos));
+    hal_ota_cluster_setup(&ota);
+    hal_zigbee_graph_usage_add_cluster(usage, ota.cluster_id, ota.role, ota.attribute_count);
+    if (c->battery_pin != HAL_INVALID_PIN) {
+        hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_POWER_CFG,
+                                           HAL_ZIGBEE_ROLE_SERVER,
+                                           ATTRIBUTE_COUNT(zigbee_battery_cluster, attr_infos));
+    }
+#ifdef END_DEVICE
+    hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_POLL_CONTROL, HAL_ZIGBEE_ROLE_SERVER,
+                                       ATTRIBUTE_COUNT(zigbee_poll_control_cluster,
+                                                       attr_infos));
+#endif
+    for (uint8_t i = 0; i < c->switch_count; i++) {
+        hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_ON_OFF_SWITCH_CONFIG,
+                                           HAL_ZIGBEE_ROLE_SERVER,
+                                           ATTRIBUTE_COUNT(zigbee_switch_cluster, attr_infos));
+        hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_ON_OFF, HAL_ZIGBEE_ROLE_CLIENT, 0);
+        hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_MULTISTATE_INPUT_BASIC,
+                                           HAL_ZIGBEE_ROLE_SERVER,
+                                           ATTRIBUTE_COUNT(zigbee_switch_cluster,
+                                                           multistate_attr_infos));
+        hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_BUTTON_EVENT,
+                                           HAL_ZIGBEE_ROLE_SERVER,
+                                           ATTRIBUTE_COUNT(zigbee_button_event_cluster,
+                                                           attr_infos));
+        hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_LEVEL_CONTROL, HAL_ZIGBEE_ROLE_CLIENT,
+                                           0);
+    }
+    for (uint8_t i = 0; i < c->indicator_count; i++) {
+        if (!c->indicators[i].dedicated) shared_indicators++;
+    }
+    relays_with_indicator = shared_indicators < c->relay_endpoint_count ?
+                            shared_indicators : c->relay_endpoint_count;
+    for (uint8_t i = 0; i < c->relay_endpoint_count; i++) {
+        uint16_t on_off_attributes = ATTRIBUTE_COUNT(zigbee_relay_cluster, attr_infos);
+
+        if (i >= relays_with_indicator) on_off_attributes -= 2;
+        hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_ON_OFF, HAL_ZIGBEE_ROLE_SERVER,
+                                           on_off_attributes);
+        hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_LEVEL_CONTROL,
+                                           HAL_ZIGBEE_ROLE_SERVER, 0);
+        hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_GROUPS, HAL_ZIGBEE_ROLE_SERVER,
+                                           ATTRIBUTE_COUNT(zigbee_group_cluster, attr_infos));
+    }
+    for (uint8_t i = 0; i < c->cover_switch_count; i++) {
+        hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_COVER_SWITCH_CONFIG,
+                                           HAL_ZIGBEE_ROLE_SERVER,
+                                           ATTRIBUTE_COUNT(zigbee_cover_switch_cluster,
+                                                           config_attr_infos));
+        hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_WINDOW_COVERING,
+                                           HAL_ZIGBEE_ROLE_CLIENT, 0);
+        hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_MULTISTATE_INPUT_BASIC,
+                                           HAL_ZIGBEE_ROLE_SERVER,
+                                           ATTRIBUTE_COUNT(zigbee_cover_switch_cluster,
+                                                           multistate_attr_infos));
+        hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_BUTTON_EVENT,
+                                           HAL_ZIGBEE_ROLE_SERVER,
+                                           ATTRIBUTE_COUNT(zigbee_button_event_cluster,
+                                                           attr_infos));
+    }
+    for (uint8_t i = 0; i < c->cover_count; i++) {
+        hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_WINDOW_COVERING,
+                                           HAL_ZIGBEE_ROLE_SERVER,
+                                           ATTRIBUTE_COUNT(zigbee_cover_cluster, attr_infos));
+    }
 }
 
 feature_wiring_result_t feature_wiring_preflight(const device_composition_t *c) {
-    size_t cluster_count = 4;
+    hal_zigbee_graph_usage_t usage;
 
     if (device_composition_validate(c) != CONFIG_PARSE_OK) {
         return FEATURE_WIRING_INVALID;
     }
-    if (c->battery_pin != HAL_INVALID_PIN) cluster_count++;
-#ifdef END_DEVICE
-    cluster_count++;
-#endif
-    cluster_count += (size_t)c->switch_count * 5;
-    cluster_count += (size_t)c->relay_endpoint_count * 3;
-    cluster_count += (size_t)c->cover_switch_count * 4;
-    cluster_count += c->cover_count;
-    return cluster_count <= sizeof(clusters) / sizeof(clusters[0]) ?
+    feature_wiring_graph_usage(c, &usage);
+    return hal_zigbee_check_graph_usage(&usage) == HAL_ZIGBEE_DESCRIPTOR_OK ?
            FEATURE_WIRING_OK : FEATURE_WIRING_INVALID;
 }
 
+/*
+ * A graph that cannot run leaves the device as safe as a config that failed
+ * to parse: every relay off, no input action and no cover movement. Relays
+ * are switched off through their drivers because the controller is reset
+ * afterwards; pending deferred switch-ons are cancelled first.
+ */
+static void stop_wired_features(void) {
+    for (uint8_t i = 0; i < relays_cnt; i++) {
+        relay_ctrl_cancel_deferred_on(i);
+        relay_driver_apply(&relay_drivers[i], false);
+    }
+    relay_ctrl_init();
+    cover_controller_init();
+    button_input_init();
+    gesture_fsm_init();
+    action_mapper_init();
+    relays_cnt                = 0;
+    buttons_cnt               = 0;
+    switch_clusters_cnt       = 0;
+    relay_clusters_cnt        = 0;
+    cover_switch_clusters_cnt = 0;
+    cover_clusters_cnt        = 0;
+}
+
 void feature_wiring_build_recovery(void) {
+    stop_wired_features();
     memset(endpoints, 0, sizeof(endpoints));
     memset(clusters, 0, sizeof(clusters));
     memset(&basic_cluster, 0, sizeof(basic_cluster));
@@ -352,7 +476,7 @@ void feature_wiring_build_recovery(void) {
     endpoints[0].profile_id       = 0x0104;
     endpoints[0].device_id        = 0xffff;
     endpoints[0].clusters         = clusters;
-    endpoints[0].cluster_capacity = 4;
+    endpoints[0].cluster_capacity = EP1_BASE_CLUSTERS;
     basic_cluster_add_to_endpoint(&basic_cluster, &endpoints[0]);
     device_config_cluster_init(&config_cluster);
     device_config_cluster_add_to_endpoint(&config_cluster, &endpoints[0]);
@@ -417,10 +541,11 @@ void feature_wiring_start(void) {
         action_mapper_add_reset_button(id, button_roles[i] == INPUT_BUTTON_ONBOARD);
     }
     button_event_cluster_sync_states();
-    hal_zigbee_init(endpoints,
-                    switch_clusters_cnt + relay_clusters_cnt + cover_switch_clusters_cnt +
-                    cover_clusters_cnt ? switch_clusters_cnt + relay_clusters_cnt +
-                    cover_switch_clusters_cnt + cover_clusters_cnt : 1);
+    if (!hal_zigbee_init(endpoints, built_endpoint_count())) {
+        device_config_service_set_error(DEVICE_CONFIG_ERROR_RESOURCE);
+        feature_wiring_build_recovery();
+        return;
+    }
     hal_register_on_network_status_change_callback(network_changed);
     network_changed(hal_zigbee_get_network_status());
 }

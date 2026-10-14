@@ -90,26 +90,50 @@ static hal_zigbee_cmd_result_t cover_cluster_attr_write(
         if (cluster->attr_infos[i].attribute_id != attribute_id) continue;
         if (candidate_len != cluster->attr_infos[i].size) return HAL_ZIGBEE_INVALID_VALUE;
 
-        if (phase != HAL_ZIGBEE_ATTR_COMMIT) return HAL_ZIGBEE_CMD_PROCESSED;
+        cover_result_t result = COVER_RESULT_INVALID;
+        uint32_t       value  = 0;
+        cover_state_t  state;
 
+        for (uint16_t byte = 0; byte < candidate_len; byte++) {
+            value |= (uint32_t)candidate[byte] << (8u * byte);
+        }
+        if (phase == HAL_ZIGBEE_ATTR_VALIDATE) {
+            if (!cover_controller_state(cluster->controller_id, &state)) {
+                return HAL_ZIGBEE_INVALID_VALUE;
+            }
+            if (attribute_id == ZCL_ATTR_WINDOW_COVERING_OPEN_TIME) {
+                state.open_time_ms = value;
+            } else if (attribute_id == ZCL_ATTR_WINDOW_COVERING_CLOSE_TIME) {
+                state.close_time_ms = value;
+            } else if (attribute_id == ZCL_ATTR_WINDOW_COVERING_CLOSED_DEADZONE) {
+                state.closed_deadzone_bp = (uint16_t)value;
+            } else if (attribute_id == ZCL_ATTR_WINDOW_COVERING_OPEN_DEADZONE) {
+                state.open_deadzone_bp = (uint16_t)value;
+            }
+            return cover_controller_settings_valid(&state) ?
+                   HAL_ZIGBEE_CMD_PROCESSED : HAL_ZIGBEE_INVALID_VALUE;
+        }
         if (attribute_id == ZCL_ATTR_WINDOW_COVERING_MOTOR_REVERSAL) {
-            (void)cover_controller_set_motor_reversal(cluster->controller_id,
-                                                      cluster->motor_reversal != 0);
+            result = cover_controller_set_motor_reversal(cluster->controller_id, value != 0);
         } else if (attribute_id == ZCL_ATTR_WINDOW_COVERING_OPEN_TIME) {
-            (void)cover_controller_set_open_time(cluster->controller_id, cluster->open_time_ms);
+            result = cover_controller_set_open_time(cluster->controller_id, value);
         } else if (attribute_id == ZCL_ATTR_WINDOW_COVERING_CLOSE_TIME) {
-            (void)cover_controller_set_close_time(cluster->controller_id, cluster->close_time_ms);
+            result = cover_controller_set_close_time(cluster->controller_id, value);
         } else if (attribute_id == ZCL_ATTR_WINDOW_COVERING_CLOSED_DEADZONE) {
-            (void)cover_controller_set_closed_deadzone(cluster->controller_id,
-                                                       cluster->closed_deadzone_bp);
+            result = cover_controller_set_closed_deadzone(cluster->controller_id,
+                                                          (uint16_t)value);
         } else if (attribute_id == ZCL_ATTR_WINDOW_COVERING_OPEN_DEADZONE) {
-            (void)cover_controller_set_open_deadzone(cluster->controller_id,
-                                                     cluster->open_deadzone_bp);
+            result = cover_controller_set_open_deadzone(cluster->controller_id,
+                                                        (uint16_t)value);
         } else if (attribute_id == ZCL_ATTR_WINDOW_COVERING_OVERRUN) {
-            (void)cover_controller_set_overrun(cluster->controller_id, cluster->overrun_ms);
+            result = cover_controller_set_overrun(cluster->controller_id, (uint16_t)value);
         }
         cover_cluster_sync(cluster, false);
-        return HAL_ZIGBEE_CMD_PROCESSED;
+
+        /* VALIDATE checked the value; COMMIT fails only when the controller
+         * cannot persist it, and then the HAL leaves the storage unchanged. */
+        return result == COVER_RESULT_APPLIED || result == COVER_RESULT_UNCHANGED ?
+               HAL_ZIGBEE_CMD_PROCESSED : HAL_ZIGBEE_INVALID_VALUE;
     }
     return HAL_ZIGBEE_CMD_SKIPPED;
 }
@@ -170,9 +194,9 @@ void cover_cluster_add_to_endpoint(zigbee_cover_cluster *cluster,
     SETUP_ATTR(0, ZCL_ATTR_WINDOW_COVERING_TYPE, ZCL_DATA_TYPE_ENUM8, HAL_ATTR_READ,
                window_covering_type);
     SETUP_ATTR(1, ZCL_ATTR_WINDOW_COVERING_CURRENT_POSITION_LIFT_PERCENTAGE,
-               ZCL_DATA_TYPE_UINT8, HAL_ATTR_READ, cluster->position);
-    SETUP_ATTR(2, ZCL_ATTR_WINDOW_COVERING_MOVING, ZCL_DATA_TYPE_ENUM8, HAL_ATTR_READ,
-               cluster->moving);
+               ZCL_DATA_TYPE_UINT8, (HAL_ATTR_READ | HAL_ATTR_REPORT), cluster->position);
+    SETUP_ATTR(2, ZCL_ATTR_WINDOW_COVERING_MOVING, ZCL_DATA_TYPE_ENUM8,
+               (HAL_ATTR_READ | HAL_ATTR_REPORT), cluster->moving);
     SETUP_ATTR(3, ZCL_ATTR_WINDOW_COVERING_MOTOR_REVERSAL, ZCL_DATA_TYPE_BOOLEAN,
                (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->motor_reversal);
     SETUP_ATTR(4, ZCL_ATTR_WINDOW_COVERING_OPEN_TIME, ZCL_DATA_TYPE_UINT32,
