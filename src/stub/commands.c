@@ -417,7 +417,11 @@ static int cmd_zcl_write(int argc, char **argv) {
         return -1;
     }
 
-    if (stub_simulate_zigbee_attribute_write(ep, cl, at, candidate, attr->size) !=
+    if (stub_simulate_zigbee_attribute_write(
+            ep, cl, at, candidate,
+            hal_zigbee_type_is_string(attr->data_type_id) ?
+            hal_zigbee_attr_encoded_size(attr->data_type_id, candidate, attr->size) :
+            attr->size) !=
         HAL_ZIGBEE_CMD_PROCESSED) {
         io_res_err("rejected ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
         return -1;
@@ -508,8 +512,11 @@ static int cmd_zcl_attr_callback(int argc, char **argv) {
     }
     hal_zigbee_attribute *attr = stub_app_find_attr(ep, cl, at);
     if (attr != NULL)
-        (void)stub_simulate_zigbee_attribute_write(ep, cl, at, attr->value,
-                                                   attr->size);
+        (void)stub_simulate_zigbee_attribute_write(
+            ep, cl, at, attr->value,
+            hal_zigbee_type_is_string(attr->data_type_id) ?
+            hal_zigbee_attr_encoded_size(attr->data_type_id, attr->value, attr->size) :
+            attr->size);
     io_res_ok("ep=%u cluster=0x%04X attr=0x%04X", ep, cl, at);
     return 0;
 }

@@ -117,6 +117,22 @@ def test_string_longer_than_attribute_storage_is_rejected() -> None:
         ) == before
 
 
+def test_long_string_prefix_past_the_frame_is_rejected_unchanged() -> None:
+    """0xFFFD wraps the Telink parser's 16-bit allocation; the frame check stops it."""
+    with StubProc(device_config=CONFIG) as proc:
+        device = Device(proc)
+        before = device.read_zigbee_attr(1, ZCL_CLUSTER_DEVICE_CONFIG, ZCL_ATTR_DEVICE_CONFIG_TEXT)
+        for value in ("FDFF4D3B", "FFFF4D", "05"):
+            res = proc.exec(
+                f"zcl_write_raw 1 0x{ZCL_CLUSTER_DEVICE_CONFIG:04X} "
+                f"0x{ZCL_ATTR_DEVICE_CONFIG_TEXT:04X} {value}"
+            )
+            assert not res.ok, value
+        assert device.read_zigbee_attr(
+            1, ZCL_CLUSTER_DEVICE_CONFIG, ZCL_ATTR_DEVICE_CONFIG_TEXT
+        ) == before
+
+
 def test_fixed_size_value_of_wrong_length_is_rejected() -> None:
     with StubProc(device_config=CONFIG) as proc:
         res = proc.exec(

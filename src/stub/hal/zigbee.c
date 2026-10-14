@@ -1,6 +1,7 @@
 #include "hal/zigbee.h"
 #include "stub/hal/stub.h"
 #include "stub/machine_io.h"
+#include "zigbee/zcl_frame_check.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -405,6 +406,22 @@ typedef struct {
     uint16_t              candidate_len;
 } stub_write_record_t;
 
+/* The record as it would arrive in a Write Attributes frame, checked the way
+ * the patched Telink foundation dispatch checks it before the SDK parses it. */
+static bool stub_write_record_is_well_formed(const hal_zigbee_attribute *attribute,
+                                             const uint8_t *value, uint16_t len) {
+    uint8_t frame[3 + 512];
+
+    if (len > sizeof(frame) - 3) return false;
+
+    frame[0] = (uint8_t)attribute->attribute_id;
+    frame[1] = (uint8_t)(attribute->attribute_id >> 8);
+    frame[2] = attribute->data_type_id;
+    memcpy(&frame[3], value, len);
+    return zcl_frame_is_well_formed(ZCL_FRAME_CMD_WRITE, frame, (uint16_t)(3 + len),
+                                    ZCL_FRAME_MAX_RECORDS);
+}
+
 static hal_zigbee_cmd_result_t stub_write_prepare(
     uint8_t endpoint, uint16_t cluster_id, uint16_t attribute_id,
     const uint8_t *candidate, uint16_t available, stub_write_record_t *record) {
@@ -416,6 +433,9 @@ static hal_zigbee_cmd_result_t stub_write_prepare(
         return HAL_ZIGBEE_CMD_SKIPPED;
     }
     record->candidate = candidate;
+    if (!stub_write_record_is_well_formed(record->attribute, candidate, available)) {
+        return HAL_ZIGBEE_MALFORMED_COMMAND;
+    }
     if (!hal_zigbee_type_is_string(record->attribute->data_type_id)) {
         record->candidate_len = available;
         return available == record->attribute->size ?

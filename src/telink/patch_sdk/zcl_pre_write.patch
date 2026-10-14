@@ -1,12 +1,13 @@
 --- a/zigbee/zcl/zcl.c
 +++ b/zigbee/zcl/zcl.c
-@@ -540,8 +540,17 @@
+@@ -540,8 +540,18 @@
   *
   * @return  ZCL Status
   */
 +/* Write command being handled; the application's pre-write hook sees it. */
 +static zclIncoming_t *zcl_incoming_write;
 +_CODE_ZCL_ status_t hal_zigbee_telink_pre_write(zclIncoming_t *pInHdlrMsg, u8 endpoint, u16 clusterId, zclWriteRec_t *pWriteRec, bool enable);
++_CODE_ZCL_ bool hal_zigbee_telink_foundation_frame_ok(zclIncoming_t *pInHdlrMsg);
  _CODE_ZCL_ status_t zcl_attrWrite(u8 endpoint, u16 clusterId, zclWriteRec_t *pWriteRec, bool enable)
  {
 +    if (zcl_incoming_write) {
@@ -18,7 +19,18 @@
      zclAttrInfo_t *pAttrEntry = zcl_findAttribute(endpoint, clusterId, pWriteRec->attrID);
      if (!pAttrEntry) {
          /* Not found */
-@@ -697,16 +706,22 @@
+@@ -686,6 +696,10 @@
+ {
+     u8 status = ZCL_STA_SUCCESS;
+
++    /* The zcl_parseIn* parsers trust record lengths; check them first. */
++    if (!hal_zigbee_telink_foundation_frame_ok(pCmd)) {
++        return ZCL_STA_MALFORMED_COMMAND;
++    }
+     switch (pCmd->hdr.cmd) {
+ #ifdef ZCL_READ
+     case ZCL_CMD_READ:
+@@ -697,16 +711,22 @@
  #endif
  #ifdef ZCL_WRITE
      case ZCL_CMD_WRITE:
@@ -41,3 +53,12 @@
          break;
  #endif
  #ifdef ZCL_REPORT
+@@ -1731,8 +1751,6 @@
+                 pBuf += reportChangeLen;
+
+                 dataLen += reportChangeLen;
+-            } else {
+-                pBuf++;
+             }
+         } else {
+             pBuf += 2;
