@@ -6,9 +6,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define RELAY_LATCH_PULSE_MS      100
-#define RELAY_LATCH_WAIT_MS       50
-#define RELAY_DRIVER_MAX_RETRY    10
+#define RELAY_LATCH_PULSE_MS    100
+#define RELAY_LATCH_WAIT_MS     50
 
 typedef struct {
     hal_gpio_pin_t on_pin;
@@ -25,10 +24,10 @@ void relay_driver_init(relay_driver_t *driver);
 void relay_driver_apply(relay_driver_t *driver, bool on);
 
 /**
- * Restarts latching pulses whose timer could not be armed. Called from the
- * application loop; a coil is only energised once its end-of-pulse timer is
- * armed, so a failed arm delays the pulse but never leaves a coil powered.
+ * Restarts a latching pulse whose timer could not be armed. A coil is only
+ * energised once its end-of-pulse timer is armed, so a failed arm delays the
+ * pulse but never leaves a coil powered.
  */
-void relay_driver_process_pending(void);
+void relay_driver_retry(relay_driver_t *driver);
 
 #endif

@@ -344,7 +344,7 @@ TEST(latching_pulse_is_retried_when_its_timer_cannot_be_armed) {
     fake_tasks_poll();
     ASSERT_EQ(0, fake_relay_hw_level(10));
 
-    relay_driver_process_pending();
+    relay_ctrl_process_pending();
     ASSERT_EQ(1, fake_relay_hw_level(10));
     fake_clock_advance_ms(RELAY_LATCH_PULSE_MS - 1);
     fake_tasks_poll();
@@ -352,7 +352,7 @@ TEST(latching_pulse_is_retried_when_its_timer_cannot_be_armed) {
     fake_clock_advance_ms(1);
     fake_tasks_poll();
     ASSERT_EQ(0, fake_relay_hw_level(10));
-    relay_driver_process_pending();
+    relay_ctrl_process_pending();
     ASSERT_EQ(0, fake_relay_hw_level(10));
 }
 
@@ -374,7 +374,7 @@ TEST(latching_wait_is_retried_when_its_timer_cannot_be_armed) {
     ASSERT_EQ(0, fake_relay_hw_level(10));
     ASSERT_EQ(0, fake_relay_hw_level(12));
 
-    relay_driver_process_pending();
+    relay_ctrl_process_pending();
     ASSERT_EQ(1, fake_relay_hw_level(12));
     fake_clock_advance_ms(RELAY_LATCH_PULSE_MS);
     fake_tasks_poll();

@@ -203,6 +203,12 @@ relay_result_t relay_ctrl_submit(const relay_request_t *request) {
     return RELAY_RESULT_APPLIED;
 }
 
+void relay_ctrl_process_pending(void) {
+    for (uint8_t i = 0; i < relay_ctrl_relay_count; i++) {
+        relay_driver_retry(relay_ctrl_runtimes[i].driver);
+    }
+}
+
 bool relay_ctrl_is_on(uint8_t relay_id) {
     return relay_id < relay_ctrl_relay_count &&
            relay_ctrl_runtimes[relay_id].is_on;

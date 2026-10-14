@@ -62,6 +62,9 @@ uint8_t relay_ctrl_add(relay_driver_t *driver, relay_config_t *config);
 bool relay_ctrl_subscribe(uint8_t relay_id, relay_state_cb_t callback,
                           void *context);
 relay_result_t relay_ctrl_submit(const relay_request_t *request);
+
+/** Retries latching pulses whose timer could not be armed; app loop only. */
+void relay_ctrl_process_pending(void);
 bool relay_ctrl_is_on(uint8_t relay_id);
 uint8_t relay_ctrl_count(void);
 void relay_ctrl_set_inching_ms(uint8_t relay_id, uint16_t inching_ms);

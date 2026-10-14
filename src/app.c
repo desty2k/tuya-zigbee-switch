@@ -8,7 +8,7 @@
 #include "base_components/button_input.h"
 #include "base_components/diagnostics_service.h"
 #include "base_components/gesture_fsm.h"
-#include "base_components/relay_driver.h"
+#include "base_components/relay_controller.h"
 #include "hal/gpio.h"
 #include "hal/nvm.h"
 #include "hal/printf_selector.h"
@@ -123,7 +123,7 @@ void app_task() {
     hal_gpio_process_pending();
     button_input_process_pending();
     button_event_cluster_process_pending();
-    relay_driver_process_pending();
+    relay_ctrl_process_pending();
     app_track_network_status(network_status);
     network_diagnostics.uptime_ms = hal_millis();
     diagnostics_service_set_provider(app_diagnostics_provider, NULL);
