@@ -165,7 +165,9 @@ static config_parse_result_t parse_token(const char *token,
     if (strcmp(token, "SLP") == 0) {
         out->simultaneous_latching_pulses = true;
     } else if (token[0] == 'D') {
-        if (!parse_uint16(token + 1, debounce_ms)) {
+        // Same 1..200 ms range as the DebounceMs attribute that reports it.
+        if (!parse_uint16(token + 1, debounce_ms) || *debounce_ms < 1 ||
+            *debounce_ms > 200) {
             return CONFIG_PARSE_SYNTAX;
         }
     } else if (token[0] == 'G') {
