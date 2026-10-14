@@ -73,7 +73,8 @@ only in configuration source and reported reason.
 
 ```text
 relay_ctrl_submit(req):
-    resolve target = TOGGLE ? (is_on ? OFF : ON) : req.type
+    resolve target = TOGGLE ? (is_on or ON pending dead time ? OFF : ON) : req.type
+    if target == ON and inching_ms != 0: target = PULSE(inching_ms)
     if target turns the relay ON:
         interlock_prepare(relay_id)      # may defer the ON, see below
     apply(target)
@@ -86,14 +87,17 @@ relay_ctrl_submit(req):
 | Current auto-off | Request | Result |
 | --- | --- | --- |
 | any | `OFF` | relay OFF, timer cancelled, reason `NONE` |
-| any | `ON` (source ≠ `TIMER`) | relay ON, timer cancelled, reason `NONE` |
-| any | `TOGGLE` | resolves to `ON` or `OFF` above |
+| any | `ON`, `inching_ms == 0` | relay ON, timer cancelled, reason `NONE` |
+| any | `ON`, `inching_ms != 0` | handled as `PULSE(0)` |
+| any | `TOGGLE` | resolves to `ON` or `OFF` above; a relay whose ON waits for interlock dead time counts as ON, so the toggle cancels it |
 | any | `ON_TIMED(d)` | relay ON, timer restarted with `d`, reason `TIMED` |
 | any | `PULSE(d)` | relay ON, timer restarted with `d` or `inching_ms`, reason `PULSE` |
 | `PULSE` / `TIMED` | timer expiry | internal `relay_ctrl_submit(OFF, source = TIMER)` |
 
-Consequences: an explicit `ON` cancels a pending auto-off; an explicit `OFF`
-cancels everything; a new timed request replaces the previous one; a new pulse
+Consequences: with inching disabled an explicit `ON` cancels a pending
+auto-off; with inching enabled every `ON`, whatever its source (Zigbee
+command, binding, local switch, startup restore), restarts the pulse, so an
+impulse load is never left energised. An explicit `OFF` cancels everything; a new timed request replaces the previous one; a new pulse
 restarts the pulse (pulse 500 ms, then another pulse 500 ms after 300 ms results
 in OFF at 800 ms).
 
@@ -107,19 +111,26 @@ policies and interlock stay in one place.
 | On/Off `On` (0x01), `OnWithRecallGlobalScene` (0x41) | `ON` |
 | On/Off `Off` (0x00), `OffWithEffect` (0x40) | `OFF` |
 | On/Off `Toggle` (0x02) | `TOGGLE` |
-| On/Off `OnWithTimedOff` (0x42) | `ON_TIMED(on_time × 100 ms)`; `off_wait_time` is not implemented |
+| On/Off `OnWithTimedOff` (0x42) | see below |
 | Level `MoveToLevelWithOnOff` | level 0 → `OFF`, otherwise `ON` |
 | On/Off `InchingDuration` attribute (`0xff03`) | writes `inching_ms` |
-| On/Off `InterlockGroup` attribute (`0xff04`) | writes `interlock_group` |
+| On/Off `InterlockGroup` attribute (`0xff04`) | writes `interlock_group`, restricted as described under Interlock |
 
-When `InchingDuration` is nonzero, relay endpoint `On` and
-`OnWithRecallGlobalScene` commands submit `PULSE(0)` so the configured duration
-is used. Other callers submit an explicit `PULSE` when they want inching;
-`RELAY_REQUEST_ON` always retains its timer-cancelling meaning.
+The controller applies inching itself, so the cluster submits plain `ON`.
+
+`OnWithTimedOff` follows ZCL 3.8.2.3.6 without `OffWaitTime`:
+
+- with *accept only when on* (bit 0 of the control field) set, the command is
+  discarded while the relay is off;
+- `OnTime` 0xFFFF submits `ON` with no deadline;
+- otherwise the deadline is `max(OnTime × 100 ms, time left on a running
+  OnWithTimedOff deadline)` and the request is `ON_TIMED(deadline)`; a
+  deadline of 0 (zero `OnTime` and nothing running) changes nothing, so an
+  off relay is never pulsed for zero time.
 
 Startup behaviour (`StartUpOnOff`, `0x4003`) is applied at boot as
 `relay_ctrl_submit(..., source = RELAY_SOURCE_STARTUP)`; `TOGGLE` and
-`PREVIOUS` modes keep persisting the relay state on change, exactly as today.
+`PREVIOUS` modes keep persisting the relay state on change.
 
 ## Interlock
 
@@ -152,19 +163,33 @@ return DEFER
 Rules:
 
 - Interlock operates on logical relay ids, never on GPIO pins.
-- A relay belongs to at most one group.
+- A relay belongs to at most one group. Groups exist only as the device
+  config string defines them: `K` groups take ids 1..n in config order, cover
+  groups follow. No group is created at runtime.
+- The config string is authoritative. A relay the config puts in a group
+  stays there; its `InterlockGroup` attribute is read-only in effect (any
+  other value is rejected with `INVALID_VALUE`) and a persisted value never
+  overrides it. A relay the config leaves ungrouped may join a `K` group, or
+  leave it, through the attribute; cover groups and undefined ids are
+  rejected.
+- `K<mask>` without `:ms` uses `INTERLOCK_DEFAULT_DEAD_TIME_MS` (200 ms, the
+  cover reversal time): long enough for a de-energised contact to open and
+  an inductive load's arc or a reversing motor's back-EMF to decay.
+  `K<mask>:0` switches peers off and the target on in the same request.
 - Dead time starts when a group member actually changes from ON to OFF. An
   initial request does not wait when every member is already OFF.
 - ON of a deferred target is applied by the group's dead-time callback through
   `relay_ctrl_submit(ON, source = RELAY_SOURCE_INTERLOCK)`; a conflicting request
-  arriving during the dead time replaces `pending_on_relay`, and an `OFF` for the
-  pending relay clears it.
+  arriving during the dead time replaces `pending_on_relay`, and an `OFF` (or a
+  `TOGGLE`) for the pending relay clears it. The callback's admission of its
+  own target is cleared whatever the submit returns, so a `BLOCKED` resume
+  cannot let a later ON skip the peer shutdown.
 - A deferred pulse or timed-on starts its auto-off deadline when the target is
   actually energised, not when the request is first submitted.
 - Applies to every source: physical button, gesture, Zigbee command, binding,
   timer expiry, pulse, startup restore and cover movement.
 - Cover endpoints register their open/close relay pair as an implicit interlock
-  group with `dead_time_ms = 200` (the existing `RELAY_MIN_SWITCH_TIME_MS`), so
+  group with `dead_time_ms = INTERLOCK_DEFAULT_DEAD_TIME_MS` (200 ms), so
   the two motor directions cannot be energised together even if a future code
   path forgets the cover state machine. The cover cluster keeps its own movement
   sequencing and `moving` attribute and issues requests with
@@ -193,6 +218,11 @@ void relay_driver_apply(relay_driver_t *d, bool on);
   `on_pin` or `off_pin`. While another relay's coil pulse is active, the pulse is
   retried after `RELAY_LATCH_WAIT_MS` (50 ms), unless the global
   `allow_simultaneous_latching_pulses` (`SLP` config token) is set.
+- The coil is energised only after its end-of-pulse timer is armed. When the
+  timer cannot be armed (task pool full), neither the pulse nor the wait
+  starts; the driver queues itself and `relay_driver_process_pending()`, run
+  from the application loop, starts it again. A coil is never left powered
+  and a pulse is never dropped.
 - The latching coil pulse is a hardware detail and is unrelated to
   `RELAY_REQUEST_PULSE` (inching). The two never share a timer or a name.
 - `relay_driver` reports nothing and knows no policy.

@@ -121,10 +121,11 @@ feature wiring, config/runtime split, phased migration.
     The first explicit request therefore reaches the driver even when it is OFF;
     later requests for the current state remain deduplicated.
 
-20. **Relay endpoint On commands select configured inching.** Zigbee has no
-    separate pulse command, so an On command received by a relay endpoint submits
-    `PULSE(0)` when `InchingDuration` is nonzero. Typed `ON` requests remain
-    available to cancel auto-off exactly as the controller policy specifies.
+20. **Inching applies to every ON.** `relay_controller` turns any `ON` request
+    (Zigbee On, Toggle, MoveToLevelWithOnOff, bindings, local switch, startup
+    restore) into `PULSE(inching_ms)` while `InchingDuration` is nonzero, so an
+    impulse load such as a garage door opener is never left energised by a
+    source that forgot to ask for a pulse. `ON_TIMED` keeps its own deadline.
 
 21. **Interlock dead time starts at an actual OFF transition.** A group whose
     members are already OFF can energise its first target immediately. This
