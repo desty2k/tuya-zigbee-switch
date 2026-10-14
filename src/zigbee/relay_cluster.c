@@ -6,6 +6,7 @@
 #include "device_config/capability_state.h"
 #include "hal/nvm.h"
 #include "hal/printf_selector.h"
+#include <string.h>
 
 hal_zigbee_cmd_result_t relay_cluster_callback(zigbee_relay_cluster *cluster,
                                                uint8_t command_id,
@@ -57,6 +58,7 @@ static hal_zigbee_cmd_result_t relay_cluster_attr_write(
         if (candidate_len != cluster->attr_infos[i].size) return HAL_ZIGBEE_INVALID_VALUE;
 
         if (phase == HAL_ZIGBEE_ATTR_COMMIT) {
+            memcpy(cluster->attr_infos[i].value, candidate, candidate_len);
             relay_cluster_on_write_attr(cluster, attribute_id);
         }
         return HAL_ZIGBEE_CMD_PROCESSED;

@@ -83,12 +83,20 @@ typedef enum {
  * encoded size: the type size for fixed-size types, length prefix plus data
  * for strings. The HAL rejects candidates longer than the attribute storage.
  *
- * A write of several records (also Write Attributes Undivided) validates
- * every record before it commits any.
+ * Write Attributes handles its records one after another. Write Attributes
+ * Undivided first validates every record and then writes each of them with
+ * the steps above, so a rejected record leaves every attribute unchanged.
  */
 typedef hal_zigbee_cmd_result_t (*hal_zigbee_attr_write_callback_t)(
     uint8_t endpoint, uint16_t attribute_id, const uint8_t *candidate,
     uint16_t candidate_len, hal_zigbee_attr_write_phase_t phase);
+
+static inline bool hal_zigbee_type_is_string(uint8_t data_type_id) {
+    return data_type_id == HAL_ZIGBEE_TYPE_OCTET_STR ||
+           data_type_id == HAL_ZIGBEE_TYPE_CHAR_STR ||
+           data_type_id == HAL_ZIGBEE_TYPE_LONG_OCTET_STR ||
+           data_type_id == HAL_ZIGBEE_TYPE_LONG_CHAR_STR;
+}
 
 /**
  * Encoded size of a ZCL value of `data_type_id` stored in `storage_size`

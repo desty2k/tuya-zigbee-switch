@@ -11,6 +11,7 @@
 #include "hal/printf_selector.h"
 #include "hal/timer.h"
 #include "hal/zigbee.h"
+#include <string.h>
 
 // Battery device defaults (ZCL spec)
 // All values in quarter-seconds
@@ -236,11 +237,6 @@ static void poll_control_cluster_on_write_attr(uint16_t attribute_id) {
     if (attribute_id == ZCL_ATTR_POLL_CTRL_CHECK_IN_INTERVAL) {
         printf("Poll control: check-in interval written=%lu\r\n",
                (unsigned long)cluster->check_in_interval);
-        if (cluster->check_in_interval != 0 &&
-            (cluster->check_in_interval < cluster->long_poll_interval)) {
-            printf("Poll control: invalid check-in interval, reverting\r\n");
-            cluster->check_in_interval = cluster->long_poll_interval;
-        }
         // Reschedule check-in timer
         timer_cancel(&cluster->check_in_timer);
         if (cluster->check_in_interval != 0) {
@@ -278,8 +274,14 @@ static hal_zigbee_cmd_result_t poll_control_cluster_attr_write(
     } else {
         return HAL_ZIGBEE_CMD_SKIPPED;
     }
-    if (phase == HAL_ZIGBEE_ATTR_COMMIT)
+    if (phase == HAL_ZIGBEE_ATTR_COMMIT) {
+        if (attribute_id == ZCL_ATTR_POLL_CTRL_CHECK_IN_INTERVAL) {
+            memcpy(&cluster->check_in_interval, candidate, candidate_len);
+        } else {
+            memcpy(&cluster->fast_poll_timeout, candidate, candidate_len);
+        }
         poll_control_cluster_on_write_attr(attribute_id);
+    }
     return HAL_ZIGBEE_CMD_PROCESSED;
 }
 

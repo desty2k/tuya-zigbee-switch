@@ -454,6 +454,47 @@ static int cmd_zcl_write_raw(int argc, char **argv) {
     return 0;
 }
 
+/* zcl_write_undivided <ep> <cluster> <attr>=<hex bytes> ... */
+static int cmd_zcl_write_undivided(int argc, char **argv) {
+    uint8_t        ep;
+    uint16_t       cl;
+    uint8_t        count = (uint8_t)(argc - 3);
+    uint16_t       attribute_ids[STUB_ZIGBEE_MAX_WRITE_RECORDS];
+    uint8_t        values[STUB_ZIGBEE_MAX_WRITE_RECORDS][64];
+    const uint8_t *candidates[STUB_ZIGBEE_MAX_WRITE_RECORDS];
+    uint16_t       candidate_lens[STUB_ZIGBEE_MAX_WRITE_RECORDS];
+
+    if (argc < 4 || argc - 3 > STUB_ZIGBEE_MAX_WRITE_RECORDS ||
+        parse_u8_dec(argv[1], &ep) || parse_u16_hex(argv[2], &cl)) {
+        io_res_err("usage");
+        return -1;
+    }
+    for (uint8_t i = 0; i < count; i++) {
+        char *separator = strchr(argv[3 + i], '=');
+
+        if (separator == NULL) {
+            io_res_err("bad_args");
+            return -1;
+        }
+        *separator = '\0';
+        if (parse_u16_hex(argv[3 + i], &attribute_ids[i]) ||
+            parse_hex_bytes(separator + 1, values[i], sizeof(values[i]),
+                            &candidate_lens[i])) {
+            io_res_err("bad_args");
+            return -1;
+        }
+        candidates[i] = values[i];
+    }
+    if (stub_simulate_zigbee_attribute_write_undivided(
+            ep, cl, count, attribute_ids, candidates, candidate_lens) !=
+        HAL_ZIGBEE_CMD_PROCESSED) {
+        io_res_err("rejected ep=%u cluster=0x%04X", ep, cl);
+        return -1;
+    }
+    io_res_ok("ep=%u cluster=0x%04X records=%u", ep, cl, count);
+    return 0;
+}
+
 static int cmd_zcl_attr_callback(int argc, char **argv) {
     uint8_t  ep;
     uint16_t cl;
@@ -731,6 +772,7 @@ static const SimpleReplCommand kCmds[] = {
     { "zcl_read",                cmd_zcl_read                },
     { "zcl_write",               cmd_zcl_write               },
     { "zcl_write_raw",           cmd_zcl_write_raw           },
+    { "zcl_write_undivided",     cmd_zcl_write_undivided     },
     { "zcl_attr_callback",       cmd_zcl_attr_callback       },
     { "zcl_list_attrs",          cmd_zcl_list_attrs          },
     { "zcl_graph_usage",         cmd_zcl_graph_usage         },

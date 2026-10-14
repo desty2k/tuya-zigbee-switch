@@ -183,7 +183,10 @@ def test_cover_rejects_manual_goto_and_invalid_deadzone_write(cover_device: Devi
 
     d.write_zigbee_attr(endpoint, ZCL_CLUSTER_WINDOW_COVERING,
                         ZCL_ATTR_WINDOW_COVERING_CLOSED_DEADZONE, 9999)
-    d.write_zigbee_attr(endpoint, ZCL_CLUSTER_WINDOW_COVERING,
-                        ZCL_ATTR_WINDOW_COVERING_OPEN_DEADZONE, 1)
+    # The controller refuses deadzones that overlap; the write fails and the
+    # attribute keeps its value.
+    res = d.p.exec(f"zcl_write {endpoint} 0x{ZCL_CLUSTER_WINDOW_COVERING:04X} "
+                   f"0x{ZCL_ATTR_WINDOW_COVERING_OPEN_DEADZONE:04X} 1")
+    assert not res.ok
     assert int(d.read_zigbee_attr(endpoint, ZCL_CLUSTER_WINDOW_COVERING,
                                   ZCL_ATTR_WINDOW_COVERING_OPEN_DEADZONE)) == 0

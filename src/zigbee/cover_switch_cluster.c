@@ -14,6 +14,7 @@
 #include "hal/zigbee.h"
 #include "base_components/cover_controller.h"
 #include "zigbee_commands.h"
+#include <string.h>
 
 // ============================================================================
 // Configuration & Constants
@@ -410,6 +411,7 @@ static hal_zigbee_cmd_result_t cover_switch_cluster_attr_write(
         if (candidate_len != cluster->config_attr_infos[i].size) return HAL_ZIGBEE_INVALID_VALUE;
 
         if (phase == HAL_ZIGBEE_ATTR_COMMIT) {
+            memcpy(cluster->config_attr_infos[i].value, candidate, candidate_len);
             cover_switch_cluster_on_write_attr(cluster, attribute_id);
         }
         return HAL_ZIGBEE_CMD_PROCESSED;

@@ -293,27 +293,32 @@ static hal_zigbee_cmd_result_t button_event_cluster_attr_write(
         return HAL_ZIGBEE_CMD_SKIPPED;
     }
     if (attribute_id == ZCL_ATTR_BUTTON_EVENT_MULTI_CLICK_GAP) {
-        uint16_t gap = (uint16_t)candidate[0] | ((uint16_t)candidate[1] << 8);
-        if (candidate_len != sizeof(gap) || gap < 100 || gap > 2000)
-            return HAL_ZIGBEE_INVALID_VALUE;
+        uint16_t gap;
+
+        if (candidate_len != sizeof(gap)) return HAL_ZIGBEE_INVALID_VALUE;
+
+        gap = (uint16_t)candidate[0] | ((uint16_t)candidate[1] << 8);
+        if (gap < 100 || gap > 2000) return HAL_ZIGBEE_INVALID_VALUE;
 
         if (phase != HAL_ZIGBEE_ATTR_COMMIT) return HAL_ZIGBEE_CMD_PROCESSED;
 
+        cluster->multi_click_gap_ms = gap;
         for (uint8_t i = 0; i < cluster->button_count; i++) {
-            gesture_fsm_set_multi_click_gap_ms(cluster->button_ids[i],
-                                               cluster->multi_click_gap_ms);
+            gesture_fsm_set_multi_click_gap_ms(cluster->button_ids[i], gap);
         }
     } else if (attribute_id == ZCL_ATTR_BUTTON_EVENT_DEBOUNCE_MS) {
-        uint16_t debounce =
-            (uint16_t)candidate[0] | ((uint16_t)candidate[1] << 8);
-        if (candidate_len != sizeof(debounce) || debounce < 1 || debounce > 200)
-            return HAL_ZIGBEE_INVALID_VALUE;
+        uint16_t debounce;
+
+        if (candidate_len != sizeof(debounce)) return HAL_ZIGBEE_INVALID_VALUE;
+
+        debounce = (uint16_t)candidate[0] | ((uint16_t)candidate[1] << 8);
+        if (debounce < 1 || debounce > 200) return HAL_ZIGBEE_INVALID_VALUE;
 
         if (phase != HAL_ZIGBEE_ATTR_COMMIT) return HAL_ZIGBEE_CMD_PROCESSED;
 
+        cluster->debounce_ms = debounce;
         for (uint8_t i = 0; i < cluster->button_count; i++) {
-            button_input_set_debounce_ms(cluster->button_ids[i],
-                                         cluster->debounce_ms);
+            button_input_set_debounce_ms(cluster->button_ids[i], debounce);
         }
     } else {
         return HAL_ZIGBEE_CMD_SKIPPED;

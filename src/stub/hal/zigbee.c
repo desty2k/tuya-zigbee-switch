@@ -395,40 +395,108 @@ stub_zigbee_simulate_command_without_activity(uint8_t endpoint,
                                                  payload_len, false);
 }
 
+/* One Write Attributes record, checked the way the Telink pre-write hook
+ * checks it: writable server attribute, encoded size within `available`
+ * bytes and within the attribute storage. */
+typedef struct {
+    hal_zigbee_cluster *  cluster;
+    hal_zigbee_attribute *attribute;
+    const uint8_t *       candidate;
+    uint16_t              candidate_len;
+} stub_write_record_t;
+
+static hal_zigbee_cmd_result_t stub_write_prepare(
+    uint8_t endpoint, uint16_t cluster_id, uint16_t attribute_id,
+    const uint8_t *candidate, uint16_t available, stub_write_record_t *record) {
+    record->cluster   = find_unique_server_cluster(endpoint, cluster_id);
+    record->attribute = hal_zigbee_find_attribute_in_cluster(record->cluster,
+                                                             attribute_id);
+    if (record->attribute == NULL || candidate == NULL ||
+        (record->attribute->flag & HAL_ATTR_WRITE) == 0) {
+        return HAL_ZIGBEE_CMD_SKIPPED;
+    }
+    record->candidate = candidate;
+    if (!hal_zigbee_type_is_string(record->attribute->data_type_id)) {
+        record->candidate_len = available;
+        return available == record->attribute->size ?
+               HAL_ZIGBEE_CMD_PROCESSED : HAL_ZIGBEE_INVALID_VALUE;
+    }
+    record->candidate_len = hal_zigbee_attr_encoded_size(
+        record->attribute->data_type_id, candidate, available);
+    if (record->candidate_len == 0) return HAL_ZIGBEE_MALFORMED_COMMAND;
+
+    return record->candidate_len <= record->attribute->size ?
+           HAL_ZIGBEE_CMD_PROCESSED : HAL_ZIGBEE_INVALID_VALUE;
+}
+
+static hal_zigbee_cmd_result_t stub_write_phase(
+    uint8_t endpoint, const stub_write_record_t *record,
+    hal_zigbee_attr_write_phase_t phase) {
+    if (record->cluster->attr_write_callback == NULL) return HAL_ZIGBEE_CMD_PROCESSED;
+
+    return record->cluster->attr_write_callback(
+        endpoint, record->attribute->attribute_id, record->candidate,
+        record->candidate_len, phase);
+}
+
+/* VALIDATE, COMMIT, then copy into storage: the order of the patched Telink
+ * SDK, where zcl_setAttrVal runs after the pre-write hook returns. */
+static hal_zigbee_cmd_result_t stub_write_apply(uint8_t endpoint,
+                                                const stub_write_record_t *record) {
+    hal_zigbee_cmd_result_t result =
+        stub_write_phase(endpoint, record, HAL_ZIGBEE_ATTR_VALIDATE);
+
+    if (result != HAL_ZIGBEE_CMD_PROCESSED) return result;
+
+    result = stub_write_phase(endpoint, record, HAL_ZIGBEE_ATTR_COMMIT);
+    if (result != HAL_ZIGBEE_CMD_PROCESSED) return result;
+
+    memcpy(record->attribute->value, record->candidate, record->candidate_len);
+    return HAL_ZIGBEE_CMD_PROCESSED;
+}
+
 hal_zigbee_cmd_result_t stub_simulate_zigbee_attribute_write(
     uint8_t endpoint, uint16_t cluster_id, uint16_t attribute_id,
     const uint8_t *candidate, uint16_t candidate_len) {
-    hal_zigbee_cmd_result_t result = HAL_ZIGBEE_CMD_PROCESSED;
+    stub_write_record_t     record;
+    hal_zigbee_cmd_result_t result;
 
     if (zcl_activity_callback != NULL) {
         zcl_activity_callback();
     }
+    result = stub_write_prepare(endpoint, cluster_id, attribute_id, candidate,
+                                candidate_len, &record);
+    if (result != HAL_ZIGBEE_CMD_PROCESSED) return result;
 
-    hal_zigbee_cluster *cluster = hal_zigbee_find_cluster(
-        endpoints, endpoints_count, endpoint, cluster_id);
-    hal_zigbee_attribute *attribute = hal_zigbee_find_attribute(
-        endpoints, endpoints_count, endpoint, cluster_id, attribute_id);
-    if (cluster == NULL || cluster->role != HAL_ZIGBEE_ROLE_SERVER ||
-        attribute == NULL || candidate == NULL ||
-        candidate_len != attribute->size || (attribute->flag & HAL_ATTR_WRITE) == 0) {
-        return HAL_ZIGBEE_CMD_SKIPPED;
+    return stub_write_apply(endpoint, &record);
+}
+
+hal_zigbee_cmd_result_t stub_simulate_zigbee_attribute_write_undivided(
+    uint8_t endpoint, uint16_t cluster_id, uint8_t count,
+    const uint16_t *attribute_ids, const uint8_t *const *candidates,
+    const uint16_t *candidate_lens) {
+    stub_write_record_t     records[STUB_ZIGBEE_MAX_WRITE_RECORDS];
+    hal_zigbee_cmd_result_t result;
+
+    if (count == 0 || count > STUB_ZIGBEE_MAX_WRITE_RECORDS) {
+        return HAL_ZIGBEE_MALFORMED_COMMAND;
     }
-    uint8_t previous[attribute->size];
-    memcpy(previous, attribute->value, attribute->size);
-    if (cluster->attr_write_callback != NULL) {
-        result = cluster->attr_write_callback(
-            endpoint, attribute_id, candidate, candidate_len,
-            HAL_ZIGBEE_ATTR_VALIDATE);
+    if (zcl_activity_callback != NULL) {
+        zcl_activity_callback();
+    }
+    /* First pass: every record is checked and validated, nothing changes. */
+    for (uint8_t i = 0; i < count; i++) {
+        result = stub_write_prepare(endpoint, cluster_id, attribute_ids[i],
+                                    candidates[i], candidate_lens[i], &records[i]);
         if (result == HAL_ZIGBEE_CMD_PROCESSED) {
-            memcpy(attribute->value, candidate, candidate_len);
-            result = cluster->attr_write_callback(
-                endpoint, attribute_id, candidate, candidate_len,
-                HAL_ZIGBEE_ATTR_COMMIT);
+            result = stub_write_phase(endpoint, &records[i], HAL_ZIGBEE_ATTR_VALIDATE);
         }
-    } else {
-        memcpy(attribute->value, candidate, candidate_len);
+        if (result != HAL_ZIGBEE_CMD_PROCESSED) return result;
     }
-    if (result != HAL_ZIGBEE_CMD_PROCESSED)
-        memcpy(attribute->value, previous, attribute->size);
-    return result;
+    /* Second pass: the SDK writes every record with its normal write path. */
+    for (uint8_t i = 0; i < count; i++) {
+        result = stub_write_apply(endpoint, &records[i]);
+        if (result != HAL_ZIGBEE_CMD_PROCESSED) return result;
+    }
+    return HAL_ZIGBEE_CMD_PROCESSED;
 }

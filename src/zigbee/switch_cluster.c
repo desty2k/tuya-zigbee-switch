@@ -11,6 +11,7 @@
 #include "hal/printf_selector.h"
 #include "hal/system.h"
 #include "zigbee_commands.h"
+#include <string.h>
 
 const uint8_t  multistate_out_of_service = 0;
 const uint8_t  multistate_flags          = 0;
@@ -166,6 +167,7 @@ static hal_zigbee_cmd_result_t switch_cluster_attr_write(
             return HAL_ZIGBEE_INVALID_VALUE;
 
         if (phase == HAL_ZIGBEE_ATTR_COMMIT) {
+            memcpy(cluster->attr_infos[i].value, candidate, candidate_len);
             switch_cluster_on_write_attr(cluster, attribute_id);
         }
         return HAL_ZIGBEE_CMD_PROCESSED;
@@ -546,13 +548,6 @@ void synchronize_multistate_state(zigbee_switch_cluster *cluster) {
 static void switch_cluster_on_write_attr(zigbee_switch_cluster *cluster,
                                          uint16_t attribute_id) {
     printf("Index at write attr: %d\r\n", cluster->switch_idx);
-    if (attribute_id == ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_RELAY_INDEX) {
-        if (relay_clusters_cnt == 0) {
-            cluster->relay_index = 0;
-        } else if (cluster->relay_index < 1 || cluster->relay_index > relay_clusters_cnt) {
-            cluster->relay_index = 1;
-        }
-    }
     if (attribute_id == ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_MODE) {
         button_input_apply_switch_mode(
             cluster->button_id, cluster->mode ==
