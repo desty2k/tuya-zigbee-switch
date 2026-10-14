@@ -8,7 +8,7 @@
  * half-periods), which otherwise commits as presses. Devices can lower it with
  * a D<N> token once hardware measurements justify a shorter value.
  */
-#define CONFIG_DEFAULT_DEBOUNCE_MS           50
+#define CONFIG_DEFAULT_DEBOUNCE_MS           25
 #define CONFIG_DEFAULT_MULTI_CLICK_GAP_MS    350
 
 static bool parse_pin(const char *text, const char **end, hal_gpio_pin_t *pin) {

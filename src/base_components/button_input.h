@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 #define BUTTON_INPUT_MAX              16
-#define BUTTON_DEBOUNCE_DEFAULT_MS    50
+#define BUTTON_DEBOUNCE_DEFAULT_MS    25
 
 typedef enum {
     BUTTON_STATE_UP   = 0,

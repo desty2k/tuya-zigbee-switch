@@ -161,7 +161,7 @@ changes): `btn_event id= type= seq= press_id= t=` and
 
 `tests/conftest.py` changes:
 
-- `DEBOUNCE_MS = 8` to match the new default.
+- `DEBOUNCE_MS = 25` to match the default.
 - `press_button` / `release_button` step `DEBOUNCE_MS + 2`.
 - new helpers: `inject_edges(pin, [(value, at_ms), ...])`, `click_n(pin, n, gap_ms)`,
   `hold_button(pin, ms)`, `counters()`.

@@ -48,13 +48,13 @@ TEST(parses_every_legacy_token_without_mutating_input) {
     ASSERT_EQ(0, memcmp(source, text, sizeof(text)));
 }
 
-TEST(debounce_defaults_to_50_ms_without_d_token) {
+TEST(debounce_defaults_to_25_ms_without_d_token) {
     device_composition_t composition;
 
     ASSERT_EQ(CONFIG_PARSE_OK,
               config_parser_parse("Tuya;TS0726;SA0u;BA2d;", &composition));
-    ASSERT_EQ(50, composition.buttons[0].debounce_ms);
-    ASSERT_EQ(50, composition.buttons[1].debounce_ms);
+    ASSERT_EQ(25, composition.buttons[0].debounce_ms);
+    ASSERT_EQ(25, composition.buttons[1].debounce_ms);
 }
 
 TEST(debounce_outside_attribute_range_is_rejected) {
@@ -237,7 +237,7 @@ TEST(parser_failure_zeroes_the_output) {
 
 int main(void) {
     RUN_TEST(parses_every_legacy_token_without_mutating_input);
-    RUN_TEST(debounce_defaults_to_50_ms_without_d_token);
+    RUN_TEST(debounce_defaults_to_25_ms_without_d_token);
     RUN_TEST(debounce_outside_attribute_range_is_rejected);
     RUN_TEST(global_debounce_and_gap_apply_regardless_of_token_position);
     RUN_TEST(preserves_endpoint_order_and_detaches_missing_relays);

@@ -38,10 +38,12 @@ feature wiring, config/runtime split, phased migration.
    `N_CLICK(1)` latency too high for remotes. 350 ms is the compromise, and it is
    configurable per endpoint.
 
-5. **Debounce default is 50 ms.** Mains-frequency pickup on long switch wiring
-   has 8.3–10 ms half-periods, so any default below that commits ghost presses.
-   A shorter default needs the hardware regression pass in stage 6; devices can
-   lower it with a `D<N>` token.
+5. **Debounce default is 25 ms.** Mains-frequency pickup on long switch wiring
+   has 8.3–10 ms half-periods, so any default at or below that commits ghost
+   presses; 25 ms keeps a 2.5× margin over a 50 Hz half-cycle while adding less
+   press latency than upstream's 50 ms. The value is provisional until the
+   hardware regression pass in stage 6; devices can override it with a `D<N>`
+   token.
 
 6. **A hold flushes the pending click sequence.** `click, click, hold` emits
    `N_CLICK(2)` before `HOLD_START` instead of discarding the clicks, so mixed

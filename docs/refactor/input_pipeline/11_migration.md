@@ -47,7 +47,7 @@ Gate: `test_timer_service`; pytest suite green; no behaviour change.
 ## Stage 4 — Button input
 
 Scope: `button_input` with the timestamp-based commit algorithm, `press_id`,
-`button_dispatcher`. Default `debounce_ms` becomes 8. Consumers are still the old
+`button_dispatcher`. Default `debounce_ms` becomes 25. Consumers are still the old
 cluster callbacks, now driven from dispatcher sinks.
 Gate: `test_button_input`, `fuzz_debounce`, `test_input_latency.py`, updated
 `conftest.DEBOUNCE_MS`, pytest suite green.
@@ -146,7 +146,7 @@ deleted in the stage that replaces it.
 
 | Change | Effect |
 | --- | --- |
-| `debounce_ms` default 50 → 8 | faster reaction; noisy hardware can set a higher value with `D<N>` or the per-endpoint attribute |
+| `debounce_ms` default 50 → 25 | faster reaction; noisy hardware can set a higher value with `D<N>` or the per-endpoint attribute |
 | Multi-click gap default 800 → 350 ms | click sequences must be slightly faster; `N_CLICK(1)` latency drops accordingly |
 | Reset by clicks resolves as a gesture | with the default threshold of 10 (equal to `GESTURE_MAX_N_CLICK`) it still fires on the 10th click with no added delay |
 | A press that becomes a hold no longer counts as a click | holds and clicks stop interfering |

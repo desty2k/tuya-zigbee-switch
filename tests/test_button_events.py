@@ -1,6 +1,6 @@
 import struct
 
-from conftest import wait_for
+from conftest import DEBOUNCE_MS, wait_for
 
 from tests.zcl_consts import (
     ZCL_ATTR_DIAGNOSTICS_BUTTON_EVENTS,
@@ -94,7 +94,7 @@ def test_timing_attributes_update_input_pipeline(device, button_pin):
     ) == "350"
     assert device.read_zigbee_attr(
         1, ZCL_CLUSTER_BUTTON_EVENT, ZCL_ATTR_BUTTON_EVENT_DEBOUNCE_MS
-    ) == "50"
+    ) == str(DEBOUNCE_MS)
     device.write_zigbee_attr(
         1, ZCL_CLUSTER_BUTTON_EVENT, ZCL_ATTR_BUTTON_EVENT_MULTI_CLICK_GAP, 150
     )
