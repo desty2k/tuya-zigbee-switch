@@ -247,7 +247,8 @@ $(BIN_FILE): $(ELF_FILE)
 	@echo "Binary size: $$(wc -c < $@ | tr -d ' ') bytes"
 
 # Our own code (common/ and telink/ objects) is optimised for size: the image
-# must fit the 200704-byte bootloader-layout OTA slot. The SDK objects
+# must fit the 200704-byte bootloader-layout OTA slot. This includes the
+# patched SDK NV driver under telink/patch_sdk/. The vendor SDK objects
 # (build/telink/sdk, sdk.mk) stay at -O2; building them with -Os saves about
 # 3 KB more and is held in reserve.
 $(BUILD_DIR)/telink/%.o: GCC_FLAGS += -Os

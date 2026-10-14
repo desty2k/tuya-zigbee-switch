@@ -100,6 +100,13 @@ def test_config_write_with_excluded_feature_is_rejected() -> None:
         )
         # Validation refuses the write without touching the running config.
         assert not res.ok
+        record = (
+            ZCL_ATTR_DEVICE_CONFIG_TEXT.to_bytes(2, "little") + bytes([0x44]) + data
+        )
+        res = proc.exec(
+            f"zcl_foundation 1 0x{ZCL_CLUSTER_DEVICE_CONFIG:04X} 0x02 {record.hex()}"
+        )
+        assert res.payload["result"] == "INVALID_VALUE"
         assert _config_state(device) == (
             str(DEVICE_CONFIG_STATUS_READY),
             str(DEVICE_CONFIG_ERROR_NONE),
