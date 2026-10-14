@@ -135,3 +135,28 @@ def test_edge_queue_overflow_converges_to_released() -> None:
 
         assert device.counters()["gpio_edges_dropped"] == 1
         assert [e["type"] for e in button_events(device)] == ["DOWN", "UP"]
+
+
+def test_glitch_observed_late_is_not_a_press() -> None:
+    """A microsecond spike whose return edge is only seen after a 60 ms stall."""
+    with StubProc(device_config="A;B;SA0u;RB1;") as proc:
+        device = Device(proc)
+        device.set_gpio("A0", 0)
+        device.pin_late("A0", 1, 60)
+        step_fine(device, 500)
+
+        assert button_events(device) == []
+        assert not gestures(device)
+
+
+def test_press_observed_late_still_commits_its_release() -> None:
+    """A real press with a late-observed release still produces DOWN and UP
+    once the release level is stable."""
+    with StubProc(device_config="A;B;SA0u;RB1;") as proc:
+        device = Device(proc)
+        device.set_gpio("A0", 0)
+        step_fine(device, 100)
+        device.pin_late("A0", 1, 30)
+        step_fine(device, 100)
+
+        assert [e["type"] for e in button_events(device)] == ["DOWN", "UP"]

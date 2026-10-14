@@ -144,7 +144,7 @@ hal_gpio_pull_t hal_gpio_parse_pull(const char *pull_str) {
 
 // Stub-specific functions for testing
 
-static void stub_gpio_capture(hal_gpio_pin_t gpio_pin) {
+static void stub_gpio_capture(hal_gpio_pin_t gpio_pin, uint8_t flags) {
     uint8_t value = gpio_pins[gpio_pin].value;
 
     if (value == gpio_pins[gpio_pin].last_level) {
@@ -154,6 +154,7 @@ static void stub_gpio_capture(hal_gpio_pin_t gpio_pin) {
     hal_gpio_edge_t edge = {
         .pin          = gpio_pin,
         .level        = value,
+        .flags        = flags,
         .timestamp_ms = hal_millis(),
         .seq          = edge_seq++,
     };
@@ -180,7 +181,7 @@ void stub_gpio_simulate_input(hal_gpio_pin_t gpio_pin, uint8_t value) {
 
     if (old_value != value && gpio_pins[gpio_pin].watched) {
         diagnostics.gpio_irq_count++;
-        stub_gpio_capture(gpio_pin);
+        stub_gpio_capture(gpio_pin, 0);
     }
 
     io_log("GPIO", "Simulated input pin %d = %d", gpio_pin, value);
@@ -210,7 +211,7 @@ void stub_gpio_simulate_late_input(hal_gpio_pin_t gpio_pin, uint8_t value,
     gpio_pins[gpio_pin].value = value;
     stub_millis_step(lag_ms);
     if (gpio_pins[gpio_pin].watched) {
-        stub_gpio_capture(gpio_pin);
+        stub_gpio_capture(gpio_pin, HAL_GPIO_EDGE_DEFERRED);
     }
     io_log("GPIO", "Simulated late input pin %d = %d (lag %u ms)", gpio_pin,
            value, lag_ms);

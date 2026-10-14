@@ -210,6 +210,28 @@ TEST(edge_captured_during_drain_is_still_debounced) {
     ASSERT_EQ(BUTTON_EVENT_UP, events[1].type);
 }
 
+TEST(deferred_edge_does_not_prove_previous_level) {
+    setup_button(1, false);
+    fake_gpio_inject_edge(TEST_PIN, 0, 100);
+    fake_gpio_inject_edge_flags(TEST_PIN, 1, 160, HAL_GPIO_EDGE_DEFERRED);
+    poll_at(300);
+    ASSERT_EQ(0, event_count);
+}
+
+TEST(deferred_edge_level_is_debounced_from_observation) {
+    uint8_t button_id = setup_button(1, false);
+
+    fake_gpio_inject_edge(TEST_PIN, 0, 100);
+    poll_at(110);
+    ASSERT_TRUE(button_input_is_down(button_id));
+    fake_gpio_inject_edge_flags(TEST_PIN, 1, 200, HAL_GPIO_EDGE_DEFERRED);
+    poll_at(207);
+    ASSERT_TRUE(button_input_is_down(button_id));
+    poll_at(208);
+    ASSERT_TRUE(!button_input_is_down(button_id));
+    ASSERT_EQ(200, events[1].timestamp_ms);
+}
+
 int main(void) {
     RUN_TEST(edge_capture_never_schedules_the_worker);
     RUN_TEST(bounce_on_press);
@@ -224,5 +246,7 @@ int main(void) {
     RUN_TEST(two_buttons_interleave_with_global_sequence);
     RUN_TEST(queue_overflow_resyncs_to_pin_level);
     RUN_TEST(edge_captured_during_drain_is_still_debounced);
+    RUN_TEST(deferred_edge_does_not_prove_previous_level);
+    RUN_TEST(deferred_edge_level_is_debounced_from_observation);
     return test_runner_failures == 0 ? 0 : 1;
 }

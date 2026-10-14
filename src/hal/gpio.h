@@ -7,10 +7,18 @@
 
 typedef uint16_t hal_gpio_pin_t;
 
+/*
+ * The level change happened while capture was blind (interrupts masked or the
+ * device asleep) and was only observed at timestamp_ms. The previous level
+ * may have ended at any point before that, so its duration is unknown.
+ */
+#define HAL_GPIO_EDGE_DEFERRED    0x01
+
 typedef struct {
     hal_gpio_pin_t pin;
     uint8_t        level;
-    uint32_t       timestamp_ms;
+    uint8_t        flags;        // HAL_GPIO_EDGE_* bits
+    uint32_t       timestamp_ms; // time the new level was first observed
     uint32_t       seq;
 } hal_gpio_edge_t;
 

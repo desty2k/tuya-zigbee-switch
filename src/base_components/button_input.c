@@ -68,7 +68,9 @@ static void button_input_process_edge(const hal_gpio_edge_t *edge) {
         if (new_state == runtime->raw_state) {
             return;
         }
+        // A deferred edge does not prove how long the previous level lasted.
         if (runtime->raw_state != runtime->stable_state &&
+            (edge->flags & HAL_GPIO_EDGE_DEFERRED) == 0 &&
             button_input_held_ms(edge->timestamp_ms, runtime->raw_since_ms) >=
             button_configs[button_id].debounce_ms) {
             button_input_commit(button_id, runtime->raw_state,
@@ -90,6 +92,7 @@ static void button_input_resync(uint32_t now) {
         hal_gpio_edge_t edge = {
             .pin          = button_configs[button_id].pin,
             .level        = hal_gpio_read(button_configs[button_id].pin),
+            .flags        = HAL_GPIO_EDGE_DEFERRED,
             .timestamp_ms = now,
             .seq          =                                            0,
         };

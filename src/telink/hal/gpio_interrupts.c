@@ -53,7 +53,7 @@ static void read_snapshot(uint8_t *snapshot) {
     drv_gpio_read_all(snapshot);
 }
 
-static bool capture_snapshot(uint8_t *snapshot) {
+static bool capture_snapshot(uint8_t *snapshot, uint8_t flags) {
     bool     changed = false;
     uint32_t now     = hal_millis();
 
@@ -70,6 +70,7 @@ static bool capture_snapshot(uint8_t *snapshot) {
         hal_gpio_edge_t edge = {
             .pin          = watched_pins[i].pin,
             .level        = level,
+            .flags        = flags,
             .timestamp_ms = now,
             .seq          = edge_seq++,
         };
@@ -123,7 +124,7 @@ void hal_gpio_process_pending(void) {
     read_snapshot(snapshot);
     do {
         set_irq_polarities(snapshot);
-        changed = capture_snapshot(snapshot);
+        changed = capture_snapshot(snapshot, HAL_GPIO_EDGE_DEFERRED);
         tries++;
     } while (changed && tries < MAX_REARM_TRIES);
 
@@ -131,14 +132,14 @@ void hal_gpio_process_pending(void) {
         diagnostics.gpio_rearm_limit_hits++;
     }
     enable_watched_irqs();
-    capture_snapshot(snapshot);
+    capture_snapshot(snapshot, HAL_GPIO_EDGE_DEFERRED);
 }
 
 static void gpio_isr_callback(void) {
     uint8_t snapshot[GPIO_PORT_COUNT];
 
     diagnostics.gpio_irq_count++;
-    capture_snapshot(snapshot);
+    capture_snapshot(snapshot, 0);
     disable_watched_irqs();
     gpio_dispatch_pending = true;
 }
@@ -203,7 +204,7 @@ void telink_gpio_reinit_interrupts(void) {
 
     is_isr_initialized = false;
     init_isr();
-    capture_snapshot(snapshot);
+    capture_snapshot(snapshot, HAL_GPIO_EDGE_DEFERRED);
     gpio_dispatch_pending = true;
     hal_gpio_process_pending();
 }
