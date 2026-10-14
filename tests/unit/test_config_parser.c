@@ -78,17 +78,19 @@ static uint32_t relay_topology_of(const char *config) {
     return device_composition_relay_topology(&composition);
 }
 
-TEST(relay_topology_tracks_only_relay_layout) {
-    uint32_t base = relay_topology_of("A;B;SA0u;RB0;RB1;");
+TEST(relay_topology_tracks_only_relay_endpoints_and_groups) {
+    uint32_t base   = relay_topology_of("A;B;SA0u;RB0;RB1;");
+    uint32_t paired = relay_topology_of("A;B;SA0u;RB0;RB1;K3;");
 
     ASSERT_EQ(base, relay_topology_of("Other;Model;SA0u;RB0;RB1;G400;LC0;"));
-    ASSERT_TRUE(base != relay_topology_of("A;B;SA0u;RB0;RB1;K3;"));
-    ASSERT_TRUE(relay_topology_of("A;B;SA0u;RB0;RB1;K3;") !=
-                relay_topology_of("A;B;SA0u;RB0;RB1;K3:0;"));
-    ASSERT_TRUE(base != relay_topology_of("A;B;SA0u;RB1;RB0;"));
-    ASSERT_TRUE(base != relay_topology_of("A;B;SA0u;RB0C0;RB1;"));
+    ASSERT_EQ(base, relay_topology_of("A;B;SA0u;RB1;RB0;"));
+    ASSERT_EQ(base, relay_topology_of("A;B;SA0u;RB0C0;RB1;"));
+    ASSERT_EQ(paired, relay_topology_of("A;B;SA0u;RB0;RB1;K3:0;"));
+    ASSERT_EQ(paired, relay_topology_of("A;B;SA0u;RB0;RB1;K3:500;"));
+    ASSERT_TRUE(base != paired);
     ASSERT_TRUE(base != relay_topology_of("A;B;SA0u;RB0;"));
-    ASSERT_TRUE(base != relay_topology_of("A;B;SA0u;RB0;RB1;CC1C2;"));
+    ASSERT_EQ(base, relay_topology_of("A;B;SA0u;RB0;RB1;CC1C2;"));
+    ASSERT_TRUE(paired != relay_topology_of("A;B;SA0u;RB0;RB1;RB2;K5;"));
 }
 
 TEST(debounce_outside_attribute_range_is_rejected) {
@@ -273,7 +275,7 @@ int main(void) {
     RUN_TEST(parses_every_legacy_token_without_mutating_input);
     RUN_TEST(debounce_defaults_to_25_ms_without_d_token);
     RUN_TEST(interlock_dead_time_defaults_without_duration);
-    RUN_TEST(relay_topology_tracks_only_relay_layout);
+    RUN_TEST(relay_topology_tracks_only_relay_endpoints_and_groups);
     RUN_TEST(debounce_outside_attribute_range_is_rejected);
     RUN_TEST(global_debounce_and_gap_apply_regardless_of_token_position);
     RUN_TEST(preserves_endpoint_order_and_detaches_missing_relays);

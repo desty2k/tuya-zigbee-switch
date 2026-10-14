@@ -169,6 +169,11 @@ def test_relay_settings_reset_when_relay_topology_changes() -> None:
     # Adding an interlock group changes the relay topology.
     assert settings("X;Y;RA0;RA1;K03;") != (str(START_UP_ON), "500")
 
+    configure("X;Y;RA0;RA1;K03;")
+    # Retuning the dead time or repinning a relay keeps the relay settings.
+    assert settings("X;Y;RA0;RA1;K03:500;") == (str(START_UP_ON), "500")
+    assert settings("X;Y;RA0;RA2;K03:500;") == (str(START_UP_ON), "500")
+
 
 def test_dead_time_defaults_when_k_has_no_duration() -> None:
     with StubProc(device_config="X;Y;RA0;RA1;K03;") as proc:

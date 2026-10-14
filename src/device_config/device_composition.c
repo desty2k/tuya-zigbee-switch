@@ -164,12 +164,6 @@ uint32_t device_composition_relay_topology(
     const device_composition_t *composition) {
     uint32_t hash = 2166136261u;
 
-    hash = topology_mix(hash, composition->relay_count, 1);
-    for (uint8_t i = 0; i < composition->relay_count; i++) {
-        hash = topology_mix(hash, composition->relays[i].on_pin, 2);
-        hash = topology_mix(hash, composition->relays[i].off_pin, 2);
-        hash = topology_mix(hash, composition->relays[i].is_latching, 1);
-    }
     hash = topology_mix(hash, composition->relay_endpoint_count, 1);
     for (uint8_t i = 0; i < composition->relay_endpoint_count; i++) {
         hash = topology_mix(hash, composition->relay_endpoint_ids[i], 1);
@@ -177,12 +171,6 @@ uint32_t device_composition_relay_topology(
     hash = topology_mix(hash, composition->interlock_count, 1);
     for (uint8_t i = 0; i < composition->interlock_count; i++) {
         hash = topology_mix(hash, composition->interlocks[i].relay_mask, 2);
-        hash = topology_mix(hash, composition->interlocks[i].dead_time_ms, 2);
-    }
-    hash = topology_mix(hash, composition->cover_count, 1);
-    for (uint8_t i = 0; i < composition->cover_count; i++) {
-        hash = topology_mix(hash, composition->covers[i].open_relay_id, 1);
-        hash = topology_mix(hash, composition->covers[i].close_relay_id, 1);
     }
     return hash;
 }

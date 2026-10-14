@@ -47,7 +47,7 @@ Please describe what you are working on, under ## Upcoming
 - Add `D<N>` config option to customize button debounce delay in milliseconds
 - **Relay inching** (`InchingDuration`) pulses the relay for every switch-on: Zigbee On, Toggle, *MoveToLevelWithOnOff*, bindings, local switches and startup ON.
 - **Relay interlock** (`K<mask>[:<ms>]` config option) is defined by the config string only; Zigbee can add an ungrouped relay to a `K` group but cannot change config-defined groups. `K` without `:<ms>` waits 200 ms between one relay switching off and the next switching on.
-- Relay settings (startup mode, indicator modes, inching, interlock) reset when the config string changes the relays, their endpoints, interlock groups or cover relay pairs.
+- Relay settings (startup mode, indicator modes, inching, interlock) reset when the config string changes the relay behind an endpoint or the relays of an interlock group; relay pins, dead times and cover relay pairs do not reset them.
 - *OnWithTimedOff* honours "accept only when on", never shortens a running timed-off and treats an on time of 0xFFFF as "stay on".
 - **Bi-stable (latching) relays** have been reworked
   - They now use proper pulses instead of continuously driving the coil
