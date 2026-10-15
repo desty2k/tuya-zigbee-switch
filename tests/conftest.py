@@ -351,10 +351,11 @@ class Device:
         self._events.append(evt)
 
     def _parse_pin(self, pin: str) -> int:
+        """Stub HAL pin id: Telink's port << 8 | 1 << index encoding."""
         port = pin[0].upper()
         number = int(pin[1:])
-        port_offset = (ord(port) - ord("A")) * 16
-        return port_offset + number
+        assert "A" <= port <= "Z" and 0 <= number <= 7, f"Bad pin: {pin}"
+        return ((ord(port) - ord("A")) << 8) | (1 << number)
 
     # --- Zigbee helpers ---
     def is_joined(self) -> bool:

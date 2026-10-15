@@ -14,6 +14,7 @@
 #define COVER_POSITION_VERSION          7
 #define METER_SERVICE_VERSION           8
 #define MANAGEMENT_SERVICE_VERSION      9
+#define COVER_SWITCH_HOLD_VERSION       10
 
 static void delete_switch_configs(void) {
     for (uint8_t switch_idx = 0; switch_idx < MAX_SWITCHES; switch_idx++) {
@@ -95,6 +96,9 @@ void handle_version_changes() {
         hal_nvm_delete(NV_ITEM_BASIC_CLUSTER_DATA);
         hal_nvm_delete(NV_ITEM_MULTI_PRESS_RESET_COUNT);
         hal_nvm_delete(NV_ITEM_DEVICE_CONFIG_SERVICE);
+    }
+    if (oldVersion < COVER_SWITCH_HOLD_VERSION) {
+        capability_state_add_cover_switch_hold();
     }
     write_version_to_nv(currentVersion);
 }

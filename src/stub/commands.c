@@ -740,7 +740,7 @@ static int cmd_pin_edge(int argc, char **argv) {
         return -1;
     }
     pin = strtol(argv[1], &e, 10);
-    if (*argv[1] == '\0' || *e || pin < 0 || pin > 255) {
+    if (*argv[1] == '\0' || *e || pin < 0 || pin >= STUB_GPIO_PIN_LIMIT) {
         io_res_err("bad_pin=%s", argv[1]);
         return -1;
     }
@@ -837,7 +837,7 @@ static int cmd_pin_burst(int argc, char **argv) {
     unsigned long long pin;
     unsigned long long count;
 
-    if (argc != 3 || parse_ulong_arg(argv[1], 255, &pin) != 0 ||
+    if (argc != 3 || parse_ulong_arg(argv[1], STUB_GPIO_PIN_LIMIT - 1, &pin) != 0 ||
         parse_ulong_arg(argv[2], 1000, &count) != 0) {
         io_res_err("usage");
         return -1;
@@ -852,7 +852,7 @@ static int cmd_pin_late(int argc, char **argv) {
     unsigned long long value;
     unsigned long long lag_ms;
 
-    if (argc != 4 || parse_ulong_arg(argv[1], 255, &pin) != 0 ||
+    if (argc != 4 || parse_ulong_arg(argv[1], STUB_GPIO_PIN_LIMIT - 1, &pin) != 0 ||
         parse_ulong_arg(argv[2], 1, &value) != 0 ||
         parse_ulong_arg(argv[3], 60000, &lag_ms) != 0) {
         io_res_err("usage");

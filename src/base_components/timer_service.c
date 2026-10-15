@@ -29,7 +29,7 @@ void app_timer_start(app_timer_t *timer, uint32_t delay_ms) {
     timer_restart(timer, delay_ms);
 }
 
-void timer_restart(app_timer_t *timer, uint32_t delay_ms) {
+bool timer_restart(app_timer_t *timer, uint32_t delay_ms) {
     if (timer->active) {
         hal_tasks_unschedule(&timer->task);
     }
@@ -38,6 +38,7 @@ void timer_restart(app_timer_t *timer, uint32_t delay_ms) {
     if (!timer->active) {
         schedule_failures++;
     }
+    return timer->active;
 }
 
 void timer_cancel(app_timer_t *timer) {

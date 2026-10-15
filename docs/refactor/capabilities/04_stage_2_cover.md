@@ -111,7 +111,8 @@ OPEN/CLOSE endpoint motion clamps the public value on entry into the endpoint
 dead zone, continues through calibrated travel, then overruns for `overrun_ms`.
 Completion sets the physical endpoint exactly and confidence KNOWN. Intermediate
 stops are ESTIMATED. Manual motion and boot after interrupted movement are
-UNKNOWN.
+UNKNOWN. From UNKNOWN, OPEN/CLOSE run full travel plus overrun, STOP keeps
+UNKNOWN, and intermediate GOTO is refused.
 
 ### NVM write order
 
@@ -139,9 +140,11 @@ length before reading its byte. Preserve:
 | OpenDeadzone `0xff05` | `uint16` basis points writable | controller config |
 | Overrun `0xff06` | `uint16` ms writable | controller config |
 
-The existing Z2M `coverInverted: true` remains so user-facing position stays
-0 closed / 100 open. Update Telink/Silabs tables and source templates in the same
-phase; commit regenerated artifacts separately.
+Zigbee2MQTT's `windowCovering` extend shows the standard ZCL value as
+0 closed / 100 open only without `coverInverted`; the template must not set
+it. Unknown position reads `0xFF`, which Zigbee2MQTT ignores. Update
+Telink/Silabs tables and source templates in the same phase; commit
+regenerated artifacts separately.
 
 ## Required tests
 

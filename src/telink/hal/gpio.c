@@ -1,6 +1,6 @@
 #include "hal/gpio.h"
-#include "atoi.h"
 #include "hal/tasks.h"
+#include "telink_gpio_pin.h"
 #pragma pack(push, 1)
 #include "tl_common.h"
 #pragma pack(pop)
@@ -8,6 +8,12 @@
 #include <stdint.h>
 #include <string.h>
 // hal_gpio_pin_t directly stores GPIO_PinTypeDef values
+
+// telink_gpio_pin.h encodes pins without the SDK; fail the build on mismatch.
+typedef char telink_gpio_pin_encoding_matches_sdk[
+        (GPIO_GROUPA == 0x000 && GPIO_GROUPB == 0x100 && GPIO_GROUPC == 0x200 &&
+         GPIO_GROUPD == 0x300 && GPIO_GROUPE == 0x400 &&
+         GPIO_PC2 == 0x204 && GPIO_PB7 == 0x180) ? 1 : -1];
 
 // GPIO config tracking for deep retention re-init
 // After deep retention wake, all GPIO SFRs are lost and must be replayed.
@@ -138,46 +144,7 @@ uint8_t hal_gpio_read(hal_gpio_pin_t gpio_pin) {
 }
 
 hal_gpio_pin_t hal_gpio_parse_pin(const char *s) {
-    if (!s || strlen(s) < 2) {
-        return HAL_INVALID_PIN;
-    }
-
-    // Parse format like "A5", "B3", etc.
-    char port = s[0];
-    int  pin  = atoi(&s[1]);
-
-    if (pin < 0 || pin > 7) {
-        return HAL_INVALID_PIN;
-    }
-
-    // Return direct Telink GPIO_PinTypeDef values
-    uint16_t port_base;
-    switch (port) {
-    case 'A':
-    case 'a':
-        port_base = GPIO_GROUPA;
-        break;
-    case 'B':
-    case 'b':
-        port_base = GPIO_GROUPB;
-        break;
-    case 'C':
-    case 'c':
-        port_base = GPIO_GROUPC;
-        break;
-    case 'D':
-    case 'd':
-        port_base = GPIO_GROUPD;
-        break;
-    case 'E':
-    case 'e':
-        port_base = GPIO_GROUPE;
-        break;
-    default:
-        return HAL_INVALID_PIN;
-    }
-
-    return (hal_gpio_pin_t)(port_base | BIT(pin));
+    return telink_gpio_pin_from_text(s);
 }
 
 hal_gpio_pull_t hal_gpio_parse_pull(const char *pull_str) {

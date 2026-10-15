@@ -993,14 +993,18 @@ from `tests/client.py` `_stderr_forward`; Silabs `-Wformat` warnings for
 (`cover_switch_cluster.c:389`); end-device `_end_bss_` exceeds the 0x848000
 retention limit (pre-existing).
 | 2026-10-14 | 1.5 S | `961d28ee` | D6 per-board `features` (schema, `make tools/check_device_features` in CI, `FEATURE_*` defines, parser rejects missing-feature tokens → recovery LastError 8 `FEATURE_MISSING`), D7 `-Os` on own Telink objects; review PASS WITH NITS, nits fixed by integrator (`820d12fb`); `make tests` 343 passed, unit tests pass, 0 warnings; 4-gang OTA 192114 (8590 under 200704), GIRIER TS130F cover 199266 (1438), MHCOZY end device 161618 | merged |
+| 2026-10-14 | 2 D | `fix/wave2-d-cover` merge | H6, L5, cover cutoff-timer retry (stop + `ACTION_DENIED` when unarmable), cover-switch long press persisted (`NVM_MIGRATIONS_VERSION` 10, converting step), M6 confirmed by tests; H7 firmware keeps ZCL lift % (0 = open), unknown = 0xFF (Z2M drops values > 100); review PASS WITH NITS, nits fixed (`7b2254e6`) | merged |
+| 2026-10-14 | 2 C | `4da53063` | C9 (config `K` authoritative, writes limited to config groups, relay records reset when endpoint→relay map or K membership changes; fingerprint NVM item 101), M1, M3, M4, M5 (inching in `relay_controller` for every ON source, timed-on capped by inching), L7 (`K` default dead time 200 ms), latching coil retry, joining a group while a peer is on switches the joiner off; review PASS WITH NITS, nits + size cuts fixed; `make tests` 370 passed, unit 0 failures, 0 warnings; sk8 OTA: GIRIER TS130F 1G 200146 / 2G 200162 (≈550 under 200704), 4-gang 192690 | merged |
+| 2026-10-14 | 2 P | `feat/wave2-p-probe` @ `05c97753` | probe service, TLSR8258 HAL, 0xFC11 probe commands, board `OUTLET_BSEED_TS011F_PROBE` (image type 47116, `build: no`), index guard for stock image types, discovery helper; pulse safety mutation-checked by implementer and reviewer; probe OTA 190866 (9838 under 200704); review: firmware safe, deliverable FAIL (section 12 step 2) | pushed, unmerged |
 
-## 12. Next steps (current as of `961d28ee`)
+## 12. Next steps (current as of wave 2 C/D merge)
 
-Wave 0, 1 and 1.5 are merged into `refactor/input-pipeline`. Nothing has been
-flashed. The OTA index still lists the old `538f75d3` TS0726 build; the owner
-does not install it.
+Waves 0, 1, 1.5 and wave 2 C and D are merged into `refactor/input-pipeline`.
+Wave 2 P is pushed unmerged on `feat/wave2-p-probe`. Nothing has been flashed.
+The OTA index still lists the old `538f75d3` TS0726 build; the owner does not
+install it. **No integration build may be flashed until step 1 below is done.**
 
-### Process rules (learned during waves 0–1.5)
+### Process rules (learned during waves 0–2)
 
 - Create each worktree by hand from the integration branch
   (`git worktree add .claude/worktrees/<name> -b <branch> refactor/input-pipeline`)
@@ -1012,34 +1016,96 @@ does not install it.
 - For review follow-ups, launch a fresh agent with only the remaining items,
   pointed at the existing worktree; do not resume an agent whose context is
   already large.
-- Telink and Silabs builds run on `sk8` (section 9). Silabs tools live in
+- Telink and Silabs builds run on `sk8` (section 9), one remote directory per
+  worktree (`~/Projects/tz-<name>`, with a `telink_tools` symlink to
+  `~/Projects/tuya-zigbee-switch/telink_tools`). Silabs tools live in
   `~/Projects/tz-wave1-f/silabs_tools`, environment `~/Projects/tz-wave1-f-env.sh`.
+- Push only to the fork remote `desty2k`, never to `origin` (upstream).
+- The owner's usage budget is limited: keep briefs short, avoid extra agents.
 
-### Wave 2 — parallel, each from the current integration commit
+### 1. Blocker — config pins never reach the right GPIO (found in wave 2 P, verified)
 
-| Agent | Scope | Notes |
-| --- | --- | --- |
-| C: relays and interlock | C9, M1, M3, M4, M5, L7; retry for `timer_service` arm failures used by the latching-relay pulse (`relay_driver.c`) | config-string interlock must win over persisted values; inching in `relay_controller` for every ON source |
-| D: cover | H6, H7 (firmware side), M6 remainder, L5; persist cover-switch long-press duration (`cover_switch_cluster.c:389`); retry for the cover safety timer arm (`cover_controller.c`) | builds with the `cover` feature only; keep GIRIER TS130F under 200704 bytes (1438 bytes headroom now) |
-| P: GPIO probe | section 10 | add `probe` to `src/features.mk` and the schema enum; outlet probe board entry with a new unique image type, stock manufacturer 4417 / image type 54179, filtered to `_TZ3210_drzlxjne`; index generator refuses stock-image-type entries without a `manufacturerName` filter; discovery helper script and doc |
+- **Where:** `src/device_config/config_parser.c:15-30` (`parse_pin`) stores a
+  pin as `(port - 'A') << 4 | index`. Nothing converts it before
+  `feature_wiring` passes it to the HAL. The HAL encodings differ:
+  Telink `hal_gpio_parse_pin` (`src/telink/hal/gpio.c:140-180`) returns
+  `GPIO_GROUPx | BIT(n)` (port << 8 | 1 << n); Silabs returns
+  `port << 8 | index`. `main` called `hal_gpio_parse_pin`.
+- **Effect:** on Telink every configured pin is wrong (`RC2` = 0x22 drives
+  PA1 and PA5); on Silabs every pin outside port A is wrong. Relays, buttons,
+  LEDs would hit random pins on real hardware. The stub accepts the parser's
+  encoding, so no test caught it.
+- **Fix:** the parser gets pins from the HAL (`hal_gpio_parse_pin`, which is
+  the cross-platform contract), or a single HAL conversion is applied in one
+  place; delete the private encoding. Make the stub encoding differ from the
+  parser's naive one (e.g. Telink-like) so a missing conversion fails tests;
+  add a test per platform encoding (native unit test against the Telink and
+  Silabs `hal_gpio_parse_pin` logic). Check the probe's claimed-pin exclusion
+  (wave 2 P, `port << 8 | index` portable ids) uses the same conversion.
+- Then rebuild 4-gang and GIRIER on sk8 and record sizes.
 
-### Wave 2b — after C, D and P merge
+### 2. Wave 2 P follow-ups (branch `feat/wave2-p-probe`, then merge)
 
-| Agent | Scope |
-| --- | --- |
-| E: integrations | C5, C6, D3 (confirm `0x1A2B` is not assigned to another vendor, else pick a code); Z2M/ZHA/HOMEd templates use 0xFC10/0xFC11 from `management_protocol.json`; H7 template side (`coverInverted`); probe commands in templates; template/firmware parity check; regenerate converters and docs in a separate commit |
+Review verdict: firmware safe (pulse rules mutation-checked), deliverable FAIL:
+1. **Index leak (medium):** `docs/contribute/porting.md` tells the owner to run
+   `BOARD=OUTLET_BSEED_TS011F_PROBE make board/build`, which runs
+   `update-indexes` (`board.mk:117,185-194`) and adds a `from_tuya` probe entry
+   (54179, version 0xFFFFFFFF, `_TZ3210_drzlxjne`) to
+   `zigbee2mqtt/ota/index_router.json`. Every owner outlet would be offered
+   the probe. Make `update-indexes` refuse probe boards and document
+   `board/build-firmware board/generate-ota-files` plus a local-only index.
+2. **Reply too large (medium):** `probe_discovery.py:159-163` reads all six
+   probe attributes at once (~167 B reply, no fragmentation). Read one or two
+   at a time.
+3. **Pull test strength (medium, design):** the 10 kΩ pull-up
+   (`src/telink/hal/gpio_probe.c:68`) makes a transistor-driven relay pin
+   read DRIVEN_LOW (pulse refused) and may click the relay. Use
+   `HAL_GPIO_PULL_UP_1M` for classification; make the stub discovery test
+   model a transistor-base relay pin, not a floating one.
+4. **Docs (low):** state that the pulse cutoff timer runs from the main loop
+   (watchdog is the backstop); record probe size in
+   `docs/refactor/capabilities/STATE.md` (`.zigbee` 190866 B).
+5. **Converter (high, moves to wave 2b E):** no Z2M converter for the probe
+   exists; the helper needs a `probe` state key and 0xFC11 commands 0x00–0x05
+   (table in the P branch's `management_protocol.json`), model
+   `TS011F-probe` / `_TZ3210_drzlxjne`, capability bit 1. `paho-mqtt` is not
+   in `requirements.txt`.
+6. Telink cluster-specific commands to 0xFC10/0xFC11, on/off-config and
+   multistate call a NULL handler in non-probe images (fixed for probe only;
+   68 B on the 4-gang). Fix everywhere if size allows (GIRIER headroom ≈550 B).
 
-### Wave 3 — cleanup
+### 3. Verification debt
+
+- Silabs builds not run for waves 2 C and D (`NVM_MIGRATIONS_VERSION` 10 in
+  `silabs_config.h`, shared code changes). Build ZS2S_TS0001 and MOES_TS0011.
+- GIRIER TS130F headroom is ≈550 B; any further cover/relay code needs size
+  cuts first.
+
+### 4. Wave 2b — E: integrations (after steps 1 and 2)
+
+C5, C6, D3 (confirm `0x1A2B` is not assigned to another vendor, else pick a
+code); Z2M/ZHA/HOMEd templates use 0xFC10/0xFC11 from
+`management_protocol.json`; remove `coverInverted: true` from
+`switch_custom.js.jinja` (firmware sends ZCL lift %, 0 = open, unknown 0xFF);
+add cover attributes OpenTime 0xFF02 / CloseTime 0xFF03 (uint32 ms,
+0–429496), ClosedDeadzone 0xFF04 / OpenDeadzone 0xFF05 (uint16 1/100 %, each
+≤ 9999, sum < 10000), Overrun 0xFF06 (uint16 ms), cover-switch long press
+0x0005 on 0xFC01; check ZHA handling of 0xFF position; probe converter (step
+2.5); template/firmware parity check; regenerate converters and docs in a
+separate commit.
+
+### 5. Wave 3 — cleanup
 
 L2, L3 (`i<image_type>` token ignored), L4 (`feature_wiring.c` readability),
-L8, L9, L10, M2, M7, M10, M13, and the section 11 follow-ups: stub `step_time`
-ordering, intermittent pytest `_stderr_forward` warning, Silabs `-Wformat`
-warnings, end-device `_end_bss_` beyond the 0x848000 retention limit, the
-`ZCL_REPORTING_TABLE_NUM` decision (needs an `NV_ITEM_ZCL_REPORT` migration to
-grow). L1 is resolved by D6 (meter code compiles only with the `meter`
-feature).
+L8, L9, L10, M2, M7, M10, M13, and: stub `step_time` fires due tasks only at
+step end; intermittent pytest `_stderr_forward` warning; Silabs `-Wformat`
+warnings; end-device `_end_bss_` beyond the 0x848000 retention limit;
+`ZCL_REPORTING_TABLE_NUM` decision (needs an `NV_ITEM_ZCL_REPORT`
+migration to grow); Write Undivided validates against current state. L1 is
+resolved by D6. Owner decision pending: the relay InterlockGroup attribute is
+effectively read-only without a `K` token — keep (recommended) or remove.
 
-### Release and hardware
+### 6. Release and hardware
 
 1. Generate the OTA index entries for the fixed build with immutable URLs
    (H0.1, commit SHA or tag) and replace the `538f75d3` entries. Tell the owner

@@ -5,30 +5,45 @@
 #include <string.h>
 
 /*
- * 50 ms rejects mains-frequency pickup on long switch wiring (8.3-10 ms
- * half-periods), which otherwise commits as presses. Devices can lower it with
- * a D<N> token once hardware measurements justify a shorter value.
+ * 25 ms keeps a 2.5x margin over a 50 Hz half-cycle (10 ms; 8.3 ms at 60 Hz) of
+ * mains pickup on long switch wiring, which otherwise commits as presses, while
+ * adding less press latency than 50 ms. A D<N> token overrides it per device.
  */
 #define CONFIG_DEFAULT_DEBOUNCE_MS           25
 #define CONFIG_DEFAULT_MULTI_CLICK_GAP_MS    350
 
+/*
+ * A pin is a port letter followed by a decimal index of 0..15 ("C2"); the
+ * characters after it belong to the token (pull suffix, second pin). The HAL
+ * converts the name to its platform pin id and rejects pins the chip lacks.
+ */
 static bool parse_pin(const char *text, const char **end, hal_gpio_pin_t *pin) {
-    uint16_t number = 0;
-    char     port;
+    char           name[4];
+    uint8_t        length = 1;
+    hal_gpio_pin_t parsed;
 
     if (text == NULL || text[0] < 'A' || text[0] > 'Z' ||
         text[1] < '0' || text[1] > '9') {
         return false;
     }
-    port = *text++;
-    while (*text >= '0' && *text <= '9') {
-        number = (uint16_t)(number * 10U + (uint16_t)(*text++ - '0'));
+    name[0] = text[0];
+    while (text[length] >= '0' && text[length] <= '9') {
+        if (length >= sizeof(name) - 1) {
+            return false;
+        }
+        name[length] = text[length];
+        length++;
     }
-    if (number > 15) {
+    name[length] = '\0';
+    if (length == 3 && (name[1] - '0') * 10 + (name[2] - '0') > 15) {
         return false;
     }
-    *pin = (hal_gpio_pin_t)(((uint16_t)(port - 'A') << 4) | number);
-    *end = text;
+    parsed = hal_gpio_parse_pin(name);
+    if (parsed == HAL_INVALID_PIN) {
+        return false;
+    }
+    *pin = parsed;
+    *end = text + length;
     return true;
 }
 
@@ -210,7 +225,7 @@ static config_parse_result_t parse_token(const char *token,
         }
     } else if (token[0] == 'K') {
         uint16_t mask;
-        uint16_t dead_time_ms = 0;
+        uint16_t dead_time_ms = DEVICE_COMPOSITION_DEFAULT_DEAD_TIME_MS;
 
         if (!parse_hex_mask(token + 1, &mask, &end) ||
             (*end != '\0' && (*end != ':' || !parse_uint16(end + 1, &dead_time_ms)))) {

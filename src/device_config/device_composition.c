@@ -150,3 +150,24 @@ config_parse_result_t device_composition_validate(
     }
     return CONFIG_PARSE_OK;
 }
+
+/* FNV-1a style mixing of whole fields, so struct padding never enters the
+ * hash. */
+static uint32_t topology_mix(uint32_t hash, uint32_t value) {
+    return (hash ^ value) * 16777619u;
+}
+
+uint32_t device_composition_relay_topology(
+    const device_composition_t *composition) {
+    uint32_t hash = 2166136261u;
+
+    hash = topology_mix(hash, composition->relay_endpoint_count);
+    for (uint8_t i = 0; i < composition->relay_endpoint_count; i++) {
+        hash = topology_mix(hash, composition->relay_endpoint_ids[i]);
+    }
+    hash = topology_mix(hash, composition->interlock_count);
+    for (uint8_t i = 0; i < composition->interlock_count; i++) {
+        hash = topology_mix(hash, composition->interlocks[i].relay_mask);
+    }
+    return hash;
+}

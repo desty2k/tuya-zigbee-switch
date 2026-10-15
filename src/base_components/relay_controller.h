@@ -11,7 +11,6 @@
 
 typedef struct {
     uint16_t inching_ms;
-    uint8_t  interlock_group;
 } relay_config_t;
 
 typedef enum {
@@ -62,13 +61,18 @@ uint8_t relay_ctrl_add(relay_driver_t *driver, relay_config_t *config);
 bool relay_ctrl_subscribe(uint8_t relay_id, relay_state_cb_t callback,
                           void *context);
 relay_result_t relay_ctrl_submit(const relay_request_t *request);
+
+/** Retries latching pulses whose timer could not be armed; app loop only. */
+void relay_ctrl_process_pending(void);
 bool relay_ctrl_is_on(uint8_t relay_id);
 uint8_t relay_ctrl_count(void);
 void relay_ctrl_set_inching_ms(uint8_t relay_id, uint16_t inching_ms);
 uint16_t relay_ctrl_get_inching_ms(uint8_t relay_id);
-void relay_ctrl_set_interlock_group(uint8_t relay_id, uint8_t group_id);
-uint8_t relay_ctrl_get_interlock_group(uint8_t relay_id);
+
 auto_off_reason_t relay_ctrl_auto_off_reason(uint8_t relay_id);
+
+/** Time left before an ON_TIMED deadline switches the relay off; 0 if none. */
+uint32_t relay_ctrl_timed_on_remaining_ms(uint8_t relay_id);
 void relay_ctrl_cancel_deferred_on(uint8_t relay_id);
 bool relay_ctrl_inhibit(uint16_t relay_mask, uint8_t inhibit_id);
 bool relay_ctrl_release(uint16_t relay_mask, uint8_t inhibit_id);

@@ -343,6 +343,7 @@ void cover_switch_cluster_store_attrs_to_nv(zigbee_cover_switch_cluster *cluster
     nv_config_buffer.switch_type        = cluster->switch_type;
     nv_config_buffer.multi_click_gap_ms = cluster->multi_click_gap_ms;
     nv_config_buffer.debounce_ms        = cluster->debounce_ms;
+    nv_config_buffer.hold_duration_ms   = cluster->hold_duration_ms;
 
     (void)capability_state_store_cover_switch(cluster->cover_switch_idx, &nv_config_buffer);
 }
@@ -360,6 +361,7 @@ void cover_switch_cluster_load_attrs_from_nv(zigbee_cover_switch_cluster *cluste
     cluster->switch_type        = nv_config_buffer.switch_type;
     cluster->multi_click_gap_ms = nv_config_buffer.multi_click_gap_ms;
     cluster->debounce_ms        = nv_config_buffer.debounce_ms;
+    cluster->hold_duration_ms   = nv_config_buffer.hold_duration_ms;
 }
 
 // ============================================================================

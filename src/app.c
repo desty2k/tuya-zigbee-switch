@@ -12,6 +12,7 @@
 #include "base_components/gpio_probe_service.h"
 #endif
 #include "base_components/gesture_fsm.h"
+#include "base_components/relay_controller.h"
 #include "hal/gpio.h"
 #include "hal/nvm.h"
 #include "hal/printf_selector.h"
@@ -126,6 +127,7 @@ void app_task() {
     hal_gpio_process_pending();
     button_input_process_pending();
     button_event_cluster_process_pending();
+    relay_ctrl_process_pending();
 #if FEATURE_PROBE
     gpio_probe_service_poll();
 #endif

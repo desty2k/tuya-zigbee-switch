@@ -121,7 +121,9 @@ UNIT_PARSER_COVER_BATTERY_TEST := $(UNIT_BUILD_DIR)/test_config_parser_cover_bat
 UNIT_PARSER_FEATURE_SOURCES := tests/unit/test_config_parser_features.c \
 	src/device_config/config_parser.c \
 	src/device_config/device_composition.c \
-	tests/unit/support/fake_gpio_counter.c
+	tests/unit/support/fake_gpio_counter.c \
+	tests/unit/support/fake_gpio_parse.c
+UNIT_GPIO_PIN_TEST := $(UNIT_BUILD_DIR)/test_gpio_pin_mapping
 TELINK_INIT_TEST_CFLAGS := $(UNIT_CFLAGS) -Itests/unit/telink_sdk_stub -Isrc/telink -Isrc/telink/hal
 
 $(UNIT_BUILD_DIR):
@@ -189,8 +191,14 @@ $(UNIT_TELINK_ZIGBEE_INIT_TEST): tests/unit/test_telink_zigbee_init.c \
 $(UNIT_CONFIG_PARSER_TEST): tests/unit/test_config_parser.c \
 		src/device_config/config_parser.c \
 		src/device_config/device_composition.c \
-		tests/unit/support/fake_gpio_counter.c | $(UNIT_BUILD_DIR)
+		tests/unit/support/fake_gpio_counter.c \
+		tests/unit/support/fake_gpio_parse.c | $(UNIT_BUILD_DIR)
 	$(CC) $(UNIT_CFLAGS) $^ -o $@
+
+$(UNIT_GPIO_PIN_TEST): tests/unit/test_gpio_pin_mapping.c src/hal/gpio_pin_text.h \
+		src/telink/hal/telink_gpio_pin.h \
+		src/silabs/hal/silabs_gpio_pin.h | $(UNIT_BUILD_DIR)
+	$(CC) $(UNIT_CFLAGS) $< -o $@
 
 $(UNIT_ACTION_MAPPER_TEST): tests/unit/test_action_mapper.c \
 		src/base_components/action_mapper.c \
@@ -249,7 +257,8 @@ unit_tests: $(UNIT_QUEUE_TEST) $(UNIT_TIMER_TEST) $(UNIT_BUTTON_TEST) \
 		$(UNIT_DEBOUNCE_FUZZ) $(UNIT_GESTURE_TEST) $(UNIT_RELAY_TEST) \
 		$(UNIT_INTERLOCK_TEST) $(UNIT_BUTTON_EVENT_TEST) $(UNIT_DESCRIPTOR_TEST) \
 		$(UNIT_TELINK_ZIGBEE_INIT_TEST) $(UNIT_CONFIG_PARSER_TEST) $(UNIT_ACTION_MAPPER_TEST) $(UNIT_CAPABILITY_STATE_TEST) $(UNIT_COVER_TEST) $(UNIT_COUNTER_TEST) $(UNIT_METER_TEST) \
-		$(UNIT_PROBE_TEST) $(UNIT_PARSER_SWITCH_ONLY_TEST) $(UNIT_PARSER_COVER_BATTERY_TEST)
+		$(UNIT_PROBE_TEST) $(UNIT_PARSER_SWITCH_ONLY_TEST) $(UNIT_PARSER_COVER_BATTERY_TEST) \
+		$(UNIT_GPIO_PIN_TEST)
 	./$(UNIT_QUEUE_TEST)
 	./$(UNIT_TIMER_TEST)
 	./$(UNIT_BUTTON_TEST)
@@ -269,6 +278,7 @@ unit_tests: $(UNIT_QUEUE_TEST) $(UNIT_TIMER_TEST) $(UNIT_BUTTON_TEST) \
 	./$(UNIT_PROBE_TEST)
 	./$(UNIT_PARSER_SWITCH_ONLY_TEST)
 	./$(UNIT_PARSER_COVER_BATTERY_TEST)
+	./$(UNIT_GPIO_PIN_TEST)
 
 # Format all C/H files using uncrustify
 format:

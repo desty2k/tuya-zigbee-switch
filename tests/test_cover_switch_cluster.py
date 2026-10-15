@@ -327,3 +327,23 @@ def test_binded_reverse(cover_switch_device: Device):
     cover_switch_device.press_button("A1")
     cover_switch_device.release_button("A1")
     cover_switch_device.wait_for_cmd_send(1, ZCL_CLUSTER_WINDOW_COVERING, ZCL_CMD_WINDOW_COVERING_DOWN_CLOSE)
+
+
+def test_long_press_duration_survives_reboot():
+    config = "Mfr;Model;XA0A1u;CB0B1;"
+    with StubProc(device_config=config) as p:
+        d = Device(p)
+        d.write_zigbee_attr(1, ZCL_CLUSTER_COVER_SWITCH_CONFIG,
+                            ZCL_ATTR_COVER_SWITCH_LONG_PRESS_DURATION, 1500)
+
+    with StubProc() as p:
+        d = Device(p)
+        d.step_time(MINIMUM_SWITCH_TIME_MS)
+        assert d.read_zigbee_attr(1, ZCL_CLUSTER_COVER_SWITCH_CONFIG,
+                                  ZCL_ATTR_COVER_SWITCH_LONG_PRESS_DURATION) == "1500"
+        d.press_button("A0")
+        d.step_time(LONG_PRESS_TIME_MS)
+        assert d.zcl_switch_get_multistate_value(1) == OPEN
+        d.step_time(1500 - LONG_PRESS_TIME_MS)
+        assert d.zcl_switch_get_multistate_value(1) == LONG_OPEN
+        d.release_button("A0")

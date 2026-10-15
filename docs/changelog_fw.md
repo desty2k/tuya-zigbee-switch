@@ -23,8 +23,13 @@ Please describe what you are working on, under ## Upcoming
 - **Button Event cluster** (`0xFC02`) sends press, release, hold, hold-release, and multi-click actions to the coordinator. Generated Zigbee2MQTT and ZHA integrations expose these actions, per-endpoint multi-click and debounce settings, and input diagnostics.
 - **Cover cluster** (window covering) for controlling the motor of curtains, blinds, and shutters.
   Supports open, close, and stop commands with motor safety delays.
+  - With open/close travel times set, the cover tracks its position and accepts *GoToLiftPercentage*.
+    `CurrentPositionLiftPercentage` follows ZCL: 0 = fully open, 100 = fully closed, 0xFF = position unknown.
+  - After a power loss during motion, or before the first full move, the position is unknown: *GoToLiftPercentage* to an intermediate position is refused and OPEN/CLOSE run the full travel time plus overrun. Reaching an endpoint makes the position known again.
+  - The motor stops if its cutoff timer cannot be armed, and the command fails with `ACTION_DENIED`.
 - **Cover switch cluster** for handling user input from window covering switches.
   Supports toggle/momentary switches, stop-on-repeat, stop button, local control, and remote device binding.
+  The long-press duration is saved and survives reboots and updates.
 - Relays now respond to *MoveToLevelWithOnOff*
   - Level = 0 -> Turn off relay
   - Level > 0 -> Turn on  relay
@@ -42,6 +47,10 @@ Please describe what you are working on, under ## Upcoming
   The first boot after the OTA update clears switch and relay settings (switch mode, detached mode, long press, startup mode, indicator modes, inching), cover calibration and position, a custom config string, the network LED setting and the multi-press reset count.
   The device then runs with its board's default config, like a fresh flash. Network membership, binds and groups are kept.
 - Add `D<N>` config option to customize button debounce delay in milliseconds
+- **Relay inching** (`InchingDuration`) pulses the relay for every switch-on: Zigbee On, Toggle, *MoveToLevelWithOnOff*, bindings, local switches and startup ON.
+- **Relay interlock** (`K<mask>[:<ms>]` config option) is defined by the config string only; Zigbee can add an ungrouped relay to a `K` group but cannot change config-defined groups. A relay that joins a group while another member is on switches off. `K` without `:<ms>` waits 200 ms between one relay switching off and the next switching on.
+- Relay settings (startup mode, indicator modes, inching, interlock) reset when the config string changes the relay behind an endpoint or the relays of an interlock group; relay pins, dead times and cover relay pairs do not reset them.
+- *OnWithTimedOff* honours "accept only when on", never shortens a running timed-off and treats an on time of 0xFFFF as "stay on". On a relay with inching the inching duration caps the on time.
 - **Bi-stable (latching) relays** have been reworked
   - They now use proper pulses instead of continuously driving the coil
   - Pressing multiple buttons will toggle the relays with small delays in-between (safe)
