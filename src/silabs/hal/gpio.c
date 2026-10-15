@@ -2,8 +2,14 @@
 #include <stddef.h>
 #include <string.h>
 
+#ifdef SL_COMPONENT_CATALOG_PRESENT
+#include "sl_component_catalog.h"
+#endif
 #include "sl_clock_manager.h"
 #include "sl_gpio.h"
+#if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
+#include "sl_power_manager.h"
+#endif
 
 #include "hal/gpio.h"
 #include "hal/timer.h"
@@ -44,6 +50,10 @@ static int_slot_t             s_slots[MAX_INT_LINES]; // 16 EXTI lines total
 static hal_gpio_edge_sink_t   edge_sink;
 static hal_gpio_diagnostics_t diagnostics;
 
+/* Set by the EXTI handler after delivering an edge, cleared by the main loop
+ * that consumes it. */
+static volatile bool edge_pending;
+
 static int32_t alloc_int_slot(void) {
     for (uint8_t i = 0; i < 16; i++) {
         if (!s_slots[i].in_use) {
@@ -74,6 +84,7 @@ static void _dispatch_regular(uint8_t intNo, void *ctx) {
             if (edge_sink != NULL) {
                 edge_sink(&edge);
             }
+            edge_pending = true;
         }
     }
 }
@@ -103,10 +114,6 @@ void hal_gpio_init(hal_gpio_pin_t gpio_pin, uint8_t is_input,
         // Output: push-pull, initial low
         sl_gpio_set_pin_mode(&sl_gpio, SL_GPIO_MODE_PUSH_PULL, 0);
     }
-
-    // Optional: store pull direction for interrupt polarity later.
-    // We don’t keep a global pin map; polarity is picked at registration time
-    // by looking up the slot when the user calls hal_gpio_int_callback.
 }
 
 void hal_gpio_set(hal_gpio_pin_t gpio_pin) {
@@ -129,19 +136,31 @@ uint8_t hal_gpio_read(hal_gpio_pin_t gpio_pin) {
     return value;
 }
 
-// Register an interrupt that also attempts EM4 wake-up.
-// - Wakes from EM2/EM3 via normal EXTI (edge-sensitive).
-// - Wakes from EM4 if the pin supports EM4WU (level-sensitive).
-//   Polarity rule:
-//     * If input has pull-up  -> active-low (wake on low level).
-//     * If input has pull-down-> active-high (wake on high level).
-//     * Otherwise default to rising+falling EXTI and active-low EM4WU.
 void hal_gpio_set_edge_sink(hal_gpio_edge_sink_t sink) {
     edge_sink = sink;
 }
 
 void hal_gpio_process_pending(void) {
+    edge_pending = false;
 }
+
+#if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
+
+/*
+ * Edge sinks only queue work for the main loop. Without these hooks the power
+ * manager may go back to sleep after the EXTI interrupt (when the wake-up
+ * also restored the HF clock) or enter sleep between the main loop pass and
+ * the sleep call, leaving the press unhandled until the next stack event.
+ */
+bool app_is_ok_to_sleep(void) {
+    return !edge_pending;
+}
+
+sl_power_manager_on_isr_exit_t app_sleep_on_isr_exit(void) {
+    return edge_pending ? SL_POWER_MANAGER_WAKEUP : SL_POWER_MANAGER_IGNORE;
+}
+
+#endif
 
 void hal_gpio_watch_pin(hal_gpio_pin_t gpio_pin) {
     hal_gpio_ensure_clock();
