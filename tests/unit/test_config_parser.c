@@ -1,5 +1,6 @@
 #include "device_config/config_parser.h"
 #include "support/fake_gpio_counter.h"
+#include "support/fake_gpio_parse.h"
 #include "support/runner.h"
 
 #include <string.h>
@@ -271,6 +272,40 @@ TEST(parser_failure_zeroes_the_output) {
     }
 }
 
+TEST(pins_are_the_hal_pin_ids) {
+    device_composition_t composition;
+
+    ASSERT_EQ(CONFIG_PARSE_OK,
+              config_parser_parse("Tuya;Pins;SB7u;RC2;RD3E4;LA1i;BTA5;XB0B1d;",
+                                  &composition));
+    ASSERT_EQ(FAKE_GPIO_PIN('B', 7), composition.buttons[0].pin);
+    ASSERT_EQ(FAKE_GPIO_PIN('C', 2), composition.relays[0].on_pin);
+    ASSERT_EQ(FAKE_GPIO_PIN('D', 3), composition.relays[1].on_pin);
+    ASSERT_EQ(FAKE_GPIO_PIN('E', 4), composition.relays[1].off_pin);
+    ASSERT_EQ(FAKE_GPIO_PIN('A', 1), composition.indicators[0].pin);
+    ASSERT_EQ(FAKE_GPIO_PIN('A', 5), composition.battery_pin);
+    ASSERT_EQ(FAKE_GPIO_PIN('B', 0), composition.buttons[1].pin);
+    ASSERT_EQ(FAKE_GPIO_PIN('B', 1), composition.buttons[2].pin);
+    ASSERT_EQ(HAL_GPIO_PULL_DOWN, composition.buttons[2].pull);
+}
+
+TEST(pins_the_hal_rejects_fail_the_parse) {
+    device_composition_t composition;
+
+    ASSERT_EQ(CONFIG_PARSE_SYNTAX,
+              config_parser_parse("Tuya;Pins;SZ1u;", &composition));
+    ASSERT_EQ(CONFIG_PARSE_SYNTAX,
+              config_parser_parse("Tuya;Pins;XA0Z1u;", &composition));
+    ASSERT_EQ(CONFIG_PARSE_SYNTAX,
+              config_parser_parse("Tuya;Pins;BTZ5;", &composition));
+    ASSERT_TRUE(config_parser_parse("Tuya;Pins;RZ1;", &composition) !=
+                CONFIG_PARSE_OK);
+    ASSERT_EQ(CONFIG_PARSE_SYNTAX,
+              config_parser_parse("Tuya;Pins;SA16u;", &composition));
+    ASSERT_EQ(CONFIG_PARSE_SYNTAX,
+              config_parser_parse("Tuya;Pins;SA100u;", &composition));
+}
+
 int main(void) {
     RUN_TEST(parses_every_legacy_token_without_mutating_input);
     RUN_TEST(debounce_defaults_to_25_ms_without_d_token);
@@ -285,6 +320,8 @@ int main(void) {
     RUN_TEST(rejects_conflicting_pins_and_invalid_references);
     RUN_TEST(rejects_unavailable_or_conflicting_meter_counter_routes);
     RUN_TEST(parser_failure_zeroes_the_output);
+    RUN_TEST(pins_are_the_hal_pin_ids);
+    RUN_TEST(pins_the_hal_rejects_fail_the_parse);
 
     return test_runner_failures == 0 ? 0 : 1;
 }

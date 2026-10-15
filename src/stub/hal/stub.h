@@ -6,6 +6,10 @@
 #include <stdint.h>
 
 // GPIO stub functions
+
+/* Pin ids are below this bound: port Z (25) << 8 | 1 << 7 is the largest. */
+#define STUB_GPIO_PIN_LIMIT    0x1A00
+
 void stub_gpio_enable_debug(int enable);
 void stub_gpio_simulate_input(hal_gpio_pin_t gpio_pin, uint8_t value);
 

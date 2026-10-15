@@ -7,6 +7,7 @@
 
 #include "hal/gpio.h"
 #include "hal/timer.h"
+#include "silabs/hal/silabs_gpio_pin.h"
 #include "silabs/hal/silabs_gpio_utils.h"
 #include <stdio.h>
 
@@ -197,12 +198,13 @@ hal_gpio_diagnostics_t hal_gpio_get_diagnostics(void) {
     return diagnostics;
 }
 
-hal_gpio_pin_t hal_gpio_parse_pin(const char *s) {
-    if (!s || s[0] < 'A' || s[0] > 'D' || s[1] < '0' || s[1] > '8')
-        return HAL_INVALID_PIN;
+// silabs_gpio_pin.h encodes ports without emlib; fail the build on mismatch.
+typedef char silabs_gpio_pin_encoding_matches_emlib[
+        (gpioPortA == 0 && gpioPortB == 1 && gpioPortC == 2 && gpioPortD == 3) ?
+        1 : -1];
 
-    static const uint8_t ports[] = { gpioPortA, gpioPortB, gpioPortC, gpioPortD };
-    return (hal_gpio_pin_t)((ports[s[0] - 'A'] << 8) | (uint8_t)(s[1] - '0'));
+hal_gpio_pin_t hal_gpio_parse_pin(const char *s) {
+    return silabs_gpio_pin_from_text(s);
 }
 
 hal_gpio_pull_t hal_gpio_parse_pull(const char *pull_str) {

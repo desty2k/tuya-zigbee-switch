@@ -69,7 +69,9 @@ def test_mains_frequency_pickup_does_not_toggle_relay() -> None:
         device.step_time(1000)
 
         relay_writes = [
-            e for e in device._events if e.kind == "gpio" and e.payload["pin"] == "17"
+            e
+            for e in device._events
+            if e.kind == "gpio" and int(e.payload["pin"]) == device._parse_pin("B1")
         ]
         assert relay_writes == []
         assert device.get_gpio("B1", refresh=True) == relay_before
