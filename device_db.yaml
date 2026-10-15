@@ -3131,7 +3131,7 @@ OUTLET_BSEED_TS011F_PROBE:
   tuya_module: null
   mcu_family: Telink
   mcu: TLSR8258
-  config_str: _TZ3210_drzlxjne;TS011F-probe;SB4u;RB5;
+  config_str: _TZ3210_drzlxjne;TS011F-probe;SB4u;RB5;IC4;M;
   alt_config_str: null
   features: [probe, relay, switch]
   old_manufacturer_names: null
