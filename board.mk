@@ -122,12 +122,13 @@ build: check-publishable drop-old-files build-firmware generate-ota-files update
 # Probe boards are built with board/build-firmware board/generate-ota-files
 # and installed from a local index (docs/contribute/porting.md).
 check-publishable:
-ifneq ($(filter probe,$(BOARD_FEATURES)),)
-	@echo "Error: $(BOARD) is a GPIO probe board; it is never added to the OTA indexes." >&2
-	@echo "Build it with: BOARD=$(BOARD) make board/build-firmware board/generate-ota-files" >&2
-	@echo "and install it from a local OTA index (docs/contribute/porting.md)." >&2
-	@exit 1
-endif
+	@features="$$($(BOARD_FEATURES_CMD))" || exit 1; \
+	case " $$features " in *" probe "*) \
+		echo "Error: $(BOARD) is a GPIO probe board; it is never added to the OTA indexes." >&2; \
+		echo "Build it with: BOARD=$(BOARD) make board/build-firmware board/generate-ota-files" >&2; \
+		echo "and install it from a local OTA index (docs/contribute/porting.md)." >&2; \
+		exit 1;; \
+	esac
 
 # Build the firmware for the specified board
 build-firmware:

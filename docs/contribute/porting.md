@@ -194,6 +194,10 @@ no Read Attributes response needs APS fragmentation:
 7. The helper prints a proposed config string and meter pin map. Record them
    in `docs/refactor/capabilities/STATE.md`, then write the real profile.
 
+The probe image reports its own image type (47116), which no published index
+entry matches. Leaving it means installing the real outlet firmware from a
+local OTA index whose entry carries that image type.
+
 ## Build and install
 
 [`device_db.yaml`]: /device_db.yaml
