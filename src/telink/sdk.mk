@@ -179,6 +179,10 @@ $(BUILD_DIR)/sdk/proj/drivers/drv_nv.o: GCC_FLAGS += -Dnv_resetToFactoryNew=nv_r
 
 $(SDK_OBJS): GCC_FLAGS += -fpack-struct
 
+# The patched copy lives outside the SDK tree; its `#include "../zcl_include.h"`
+# resolves through the original directory.
+$(PATCHED_WINDOW_COVERING_OBJ): GCC_FLAGS += -I$(SDK_PATH)/zigbee/zcl/closures
+
 # Compile SDK C files
 $(BUILD_DIR)/sdk/%.o: $(SDK_PATH)/%.c
 	@echo "Compiling SDK $<"
