@@ -22,6 +22,36 @@ OUTPUTS = {
 }
 
 
+# C type and constant prefix of each DEVICE_CONFIG enum.
+C_ENUMS = {
+    "STATUS": ("device_config_status_t", "DEVICE_CONFIG_STATUS"),
+    "LAST_ERROR": ("device_config_error_t", "DEVICE_CONFIG_ERROR"),
+    "STATUS_LED_MODE": ("device_config_led_mode_t", "DEVICE_CONFIG_LED"),
+}
+
+# ZCL data type ids, by the herdsman `Zcl.DataType` names used in the JSON.
+ZCL_TYPE_IDS = {"BITMAP8": 0x18, "BITMAP32": 0x1B, "UINT8": 0x20, "UINT16": 0x21,
+                "UINT32": 0x23, "ENUM8": 0x30, "OCTET_STR": 0x41, "LONG_CHAR_STR": 0x44}
+
+# zigpy types for the same names.
+ZIGPY_TYPES = {"BITMAP8": "t.bitmap8", "BITMAP32": "t.bitmap32", "UINT8": "t.uint8_t",
+               "UINT16": "t.uint16_t", "UINT32": "t.uint32_t", "ENUM8": "t.enum8",
+               "OCTET_STR": "t.LVBytes", "LONG_CHAR_STR": "t.LongCharacterString"}
+
+# herdsman parameter types of probe command fields.
+Z2M_PARAMETER_TYPES = {"uint8": "Zcl.DataType.UINT8", "uint16": "Zcl.DataType.UINT16",
+                       "uint16[count]": "Zcl.BuffaloZclDataType.LIST_UINT16"}
+
+
+def config_cluster(protocol):
+    return next(cluster for cluster in protocol["clusters"] if "enums" in cluster)
+
+
+def camel(name):
+    head, *rest = name.lower().split("_")
+    return head + "".join(part.capitalize() for part in rest)
+
+
 def probe_block(protocol):
     for cluster in protocol["clusters"]:
         if "probe" in cluster:
@@ -50,18 +80,10 @@ def c_header(protocol):
             for cmd_id, cmd_name, _ in cluster["probe"]["commands"]:
                 lines.append(f"#define {'ZCL_CMD_' + prefix + '_' + cmd_name:<45} 0x{cmd_id:02X}u")
         lines.append("")
-    lines.extend(["typedef enum {", "    DEVICE_CONFIG_STATUS_READY = 0,",
-                  "    DEVICE_CONFIG_STATUS_REBOOT_PENDING,", "    DEVICE_CONFIG_STATUS_ERROR,",
-                  "} device_config_status_t;", "", "typedef enum {",
-                  "    DEVICE_CONFIG_ERROR_NONE = 0,", "    DEVICE_CONFIG_ERROR_ARGUMENT,",
-                  "    DEVICE_CONFIG_ERROR_PARSE,", "    DEVICE_CONFIG_ERROR_RESOURCE,",
-                  "    DEVICE_CONFIG_ERROR_NVM,", "    DEVICE_CONFIG_ERROR_PENDING,",
-                  "    DEVICE_CONFIG_ERROR_UNSUPPORTED,", "    DEVICE_CONFIG_ERROR_OVERFLOW,",
-                  "    DEVICE_CONFIG_ERROR_FEATURE_MISSING,",
-                  "} device_config_error_t;", "", "typedef enum {",
-                  "    DEVICE_CONFIG_LED_NETWORK = 0,", "    DEVICE_CONFIG_LED_OFF,",
-                  "    DEVICE_CONFIG_LED_ON,", "} device_config_led_mode_t;", "",
-                  *aligned_defines([
+    enums = config_cluster(protocol)["enums"]
+    for key, (type_name, prefix) in C_ENUMS.items():
+        lines += c_enum(type_name, prefix, enums[key])
+    lines.extend([*aligned_defines([
                       ("DIAGNOSTICS_CAPABILITY_CORE", "(1u << 0)"),
                       ("DIAGNOSTICS_CAPABILITY_PROBE",
                        f"(1u << {probe_block(protocol)[1]['capability_bit']})")]),
@@ -147,14 +169,73 @@ def test_constants(protocol):
     return "\n".join(lines)
 
 
+def z2m_parameter_type(kind):
+    # A list of records goes on the wire as raw bytes the caller packs.
+    return "Zcl.BuffaloZclDataType.LIST_UINT8" if kind.startswith("{") else Z2M_PARAMETER_TYPES[kind]
+
+
+def z2m_attributes(attributes, indent):
+    lines = []
+    for attr_id, name, _, z2m_type, access, _ in attributes:
+        write = ", write: true" if access == "rw" else ""
+        lines.append(f"{indent}{camel(name)}: {{ID: 0x{attr_id:04X}, type: Zcl.DataType.{z2m_type}{write}}},")
+    return lines
+
+
 def z2m_template(protocol):
-    return "// Generated from helper_scripts/management_protocol.json.\n" + \
-        f"const managementProtocol = {{manufacturerCode: 0x{protocol['manufacturer_code']:04X}, deviceConfig: 0x{protocol['clusters'][0]['id']:04X}, deviceDiagnostics: 0x{protocol['clusters'][1]['id']:04X}}};\n"
+    """`managementProtocol`: cluster ids, attribute and probe command definitions
+    in the shape `deviceAddCustomCluster` takes."""
+    config, (diagnostics, probe) = config_cluster(protocol), probe_block(protocol)
+    lines = ["// Generated from helper_scripts/management_protocol.json.",
+             "const managementProtocol = {",
+             f"    manufacturerCode: 0x{protocol['manufacturer_code']:04X},",
+             "    deviceConfig: {", f"        ID: 0x{config['id']:04X},", "        attributes: {"]
+    lines += z2m_attributes(config["attributes"], " " * 12)
+    lines += ["        },", "        enums: {"]
+    for key, names in config["enums"].items():
+        lines.append(f"            {camel(key)}: [{', '.join(repr(n.lower()) for n in names)}],")
+    lines += ["        },", "    },", "    deviceDiagnostics: {", f"        ID: 0x{diagnostics['id']:04X},",
+              "        attributes: {"]
+    lines += z2m_attributes(diagnostics["attributes"], " " * 12)
+    lines += ["        },", "    },", "    probe: {", f"        capabilityBit: {probe['capability_bit']},",
+              "        attributes: {"]
+    lines += z2m_attributes(probe["attributes"], " " * 12)
+    lines += ["        },", "        commands: {"]
+    for cmd_id, name, fields in probe["commands"]:
+        parameters = ", ".join(f"{{name: \"{field}\", type: {z2m_parameter_type(kind)}}}"
+                               for field, kind in fields)
+        lines.append(f"            {camel(name)}: {{name: \"{camel(name)}\", ID: 0x{cmd_id:02X}, parameters: [{parameters}]}},")
+    lines += ["        },", "    },", "};", ""]
+    return "\n".join(lines)
+
+
+def zha_enum_class(key):
+    return "DeviceConfig" + "".join(part.capitalize() for part in key.lower().split("_"))
+
+
+def zha_attributes(variable, attributes, enums):
+    lines = [f"{variable} = ("]
+    for attr_id, name, _, z2m_type, access, _ in attributes:
+        kind = zha_enum_class(name) if name in enums else ZIGPY_TYPES[z2m_type]
+        lines.append(f"    (0x{attr_id:04X}, \"{name.lower()}\", {kind}, \"{access}\"),")
+    return lines + [")"]
 
 
 def zha_template(protocol):
-    return "# Generated from helper_scripts/management_protocol.json.\n" + \
-        f"MANAGEMENT_PROTOCOL = {{'manufacturer_code': 0x{protocol['manufacturer_code']:04X}, 'device_config': 0x{protocol['clusters'][0]['id']:04X}, 'device_diagnostics': 0x{protocol['clusters'][1]['id']:04X}}}\n"
+    """Management attribute tables as (id, name, zigpy type, access) tuples and the
+    DEVICE_CONFIG enums as zigpy enum8 classes."""
+    config, (diagnostics, _) = config_cluster(protocol), probe_block(protocol)
+    lines = ["# Generated from helper_scripts/management_protocol.json.",
+             f"MANAGEMENT_PROTOCOL = {{'manufacturer_code': 0x{protocol['manufacturer_code']:04X}, "
+             f"'device_config': 0x{config['id']:04X}, 'device_diagnostics': 0x{diagnostics['id']:04X}}}",
+             ""]
+    for key, names in config["enums"].items():
+        lines.append(f"class {zha_enum_class(key)}(t.enum8):")
+        lines += [f"    {name.lower()} = {value}" for value, name in enumerate(names)]
+        lines.append("")
+    lines += zha_attributes("DEVICE_CONFIG_ATTRIBUTES", config["attributes"], config["enums"]) + [""]
+    lines += zha_attributes("DEVICE_DIAGNOSTICS_ATTRIBUTES", diagnostics["attributes"], {}) + [""]
+    return "\n".join(lines)
 
 
 def render(protocol):

@@ -29,8 +29,14 @@ if __name__ == "__main__":
     db = yaml.safe_load(db_str)
 
     devices = []
+    probes = []
 
     for device in db.values():
+        # A GPIO probe board is built on demand (`build: no`) but still needs its
+        # converter: the discovery helper drives it through Zigbee2MQTT.
+        if "probe" in (device.get("features") or []):
+            probes.append({"zb_model": device["config_str"].split(";")[1]})
+            continue
         # Skip if build == no. Defaults to yes
         if not device.get("build", True):
             continue
@@ -122,6 +128,6 @@ if __name__ == "__main__":
 
     template = env.get_template("switch_custom.js.jinja")
 
-    print(template.render(devices=devices, z2m_v1=args.z2m_v1))
+    print(template.render(devices=devices, probes=probes, z2m_v1=args.z2m_v1))
 
     exit(0)

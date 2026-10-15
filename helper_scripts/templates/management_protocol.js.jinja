@@ -1,2 +1,65 @@
 // Generated from helper_scripts/management_protocol.json.
-const managementProtocol = {manufacturerCode: 0x1A2B, deviceConfig: 0xFC10, deviceDiagnostics: 0xFC11};
+const managementProtocol = {
+    manufacturerCode: 0x1A2B,
+    deviceConfig: {
+        ID: 0xFC10,
+        attributes: {
+            schemaVersion: {ID: 0x0000, type: Zcl.DataType.UINT16},
+            revision: {ID: 0x0001, type: Zcl.DataType.UINT32},
+            text: {ID: 0x0002, type: Zcl.DataType.LONG_CHAR_STR, write: true},
+            status: {ID: 0x0003, type: Zcl.DataType.ENUM8},
+            lastError: {ID: 0x0004, type: Zcl.DataType.ENUM8},
+            statusLedMode: {ID: 0x0010, type: Zcl.DataType.ENUM8, write: true},
+            multiPressReset: {ID: 0x0011, type: Zcl.DataType.UINT8, write: true},
+        },
+        enums: {
+            status: ['ready', 'reboot_pending', 'error'],
+            lastError: ['none', 'argument', 'parse', 'resource', 'nvm', 'pending', 'unsupported', 'overflow', 'feature_missing'],
+            statusLedMode: ['network', 'off', 'on'],
+        },
+    },
+    deviceDiagnostics: {
+        ID: 0xFC11,
+        attributes: {
+            uptimeMs: {ID: 0x0000, type: Zcl.DataType.UINT32},
+            capabilities: {ID: 0x0001, type: Zcl.DataType.BITMAP32},
+            gpioEdges: {ID: 0x0010, type: Zcl.DataType.UINT32},
+            gpioDropped: {ID: 0x0011, type: Zcl.DataType.UINT32},
+            gpioRearmHits: {ID: 0x0012, type: Zcl.DataType.UINT32},
+            buttonEvents: {ID: 0x0020, type: Zcl.DataType.UINT32},
+            gestures: {ID: 0x0021, type: Zcl.DataType.UINT32},
+            zbSubmitted: {ID: 0x0030, type: Zcl.DataType.UINT32},
+            zbDropped: {ID: 0x0031, type: Zcl.DataType.UINT32},
+            zbExpired: {ID: 0x0032, type: Zcl.DataType.UINT32},
+            zbSendFailed: {ID: 0x0033, type: Zcl.DataType.UINT32},
+            zbHighWater: {ID: 0x0034, type: Zcl.DataType.UINT32},
+            networkTransitions: {ID: 0x0040, type: Zcl.DataType.UINT32},
+            networkLosses: {ID: 0x0041, type: Zcl.DataType.UINT32},
+            networkJoins: {ID: 0x0042, type: Zcl.DataType.UINT32},
+            announces: {ID: 0x0043, type: Zcl.DataType.UINT32},
+            announceFailures: {ID: 0x0044, type: Zcl.DataType.UINT32},
+            steering: {ID: 0x0045, type: Zcl.DataType.UINT32},
+            descriptorFailures: {ID: 0x0050, type: Zcl.DataType.UINT32},
+            lastDescriptorError: {ID: 0x0051, type: Zcl.DataType.ENUM8},
+        },
+    },
+    probe: {
+        capabilityBit: 1,
+        attributes: {
+            probeStatus: {ID: 0x0100, type: Zcl.DataType.ENUM8},
+            probeState: {ID: 0x0101, type: Zcl.DataType.BITMAP8},
+            probePins: {ID: 0x0102, type: Zcl.DataType.OCTET_STR},
+            probeLevels: {ID: 0x0103, type: Zcl.DataType.BITMAP32},
+            probeClasses: {ID: 0x0104, type: Zcl.DataType.OCTET_STR},
+            probeWatch: {ID: 0x0105, type: Zcl.DataType.OCTET_STR},
+        },
+        commands: {
+            probeStop: {name: "probeStop", ID: 0x00, parameters: []},
+            probeSnapshot: {name: "probeSnapshot", ID: 0x01, parameters: []},
+            probePullTest: {name: "probePullTest", ID: 0x02, parameters: [{name: "count", type: Zcl.DataType.UINT8}, {name: "pins", type: Zcl.BuffaloZclDataType.LIST_UINT16}]},
+            probeWatch: {name: "probeWatch", ID: 0x03, parameters: [{name: "duration_s", type: Zcl.DataType.UINT16}, {name: "count", type: Zcl.DataType.UINT8}, {name: "pins", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+            probeArm: {name: "probeArm", ID: 0x04, parameters: [{name: "pin", type: Zcl.DataType.UINT16}]},
+            probePulse: {name: "probePulse", ID: 0x05, parameters: [{name: "pin", type: Zcl.DataType.UINT16}, {name: "level", type: Zcl.DataType.UINT8}, {name: "duration_ms", type: Zcl.DataType.UINT16}]},
+        },
+    },
+};

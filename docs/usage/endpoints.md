@@ -41,4 +41,13 @@ Zigbee2MQTT exposes `press`, `release`, `hold`, and `hold_release` actions, plus
 
 `MultiClickGap` (100–2000 ms, default 350 ms) and `DebounceMs` (1–200 ms, default 25 ms) are writable on `0xFC02` per endpoint. A cover-switch endpoint applies its values to both its open and close inputs. HOMEd exposes these settings and `ButtonState` as custom attributes; its extension format does not represent custom cluster commands, so command actions are available through Zigbee2MQTT and ZHA.
 
-The Basic cluster (`0x0000`) exposes read-only `uint32` diagnostic counters: GPIO edges captured and dropped, logical button events and gestures emitted, queued Zigbee button events dropped, and GPIO rearm-limit hits. They are useful for diagnosing missed input or noisy wiring without a debug probe.
+## Device management
+
+Endpoint 1 carries two manufacturer-specific clusters. Every fork-private cluster (`0xFC01`, `0xFC02`, `0xFC10`, `0xFC11`) answers only requests sent with the manufacturer code `0x1A2B` (`helper_scripts/management_protocol.json`); the generated Zigbee2MQTT, ZHA and HOMEd integrations send it.
+
+- **Device Config** (`0xFC10`): the config string (`Text`, writable), its `Status` and `LastError`, the status LED mode (`network`, `off`, `on`) and the multi-press reset count (0 disables it).
+- **Device Diagnostics** (`0xFC11`): read-only `uint32` counters for uptime, GPIO edges captured and dropped, rearm-limit hits, button events and gestures, queued Zigbee button events (submitted, dropped, expired, send failures, high water), network transitions, losses, joins, announces and steering, and descriptor validation failures. They are useful for diagnosing missed input or noisy wiring without a debug probe.
+
+## Covers
+
+A cover endpoint reports `CurrentPositionLiftPercentage` the ZCL way: 0 = fully open, 100 = fully closed, `0xFF` while the position is unknown. Zigbee2MQTT, ZHA and HOMEd show 100 = open. Zigbee2MQTT and ZHA show an unknown position as no value; HOMEd cannot filter it and shows an out-of-range position. The Window Covering cluster also carries writable settings without a manufacturer code: `OpenTime` (`0xFF02`) and `CloseTime` (`0xFF03`), `uint32` in ms, 0–429496; `ClosedDeadzone` (`0xFF04`) and `OpenDeadzone` (`0xFF05`), `uint16` in 1/100 %, the travel next to each end that reports as fully closed or open, together below 100 %; `Overrun` (`0xFF06`), `uint16` ms added to a move to an end. The cover-switch cluster (`0xFC01`) holds the cover-switch long-press duration (`0x0005`, ms).

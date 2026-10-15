@@ -5,36 +5,42 @@ import yaml
 from pathlib import Path
 
 
-DIAGNOSTIC_COUNTERS = (
-    ("gpioEdgesCaptured", 0xff10),
-    ("gpioEdgesDropped", 0xff11),
-    ("buttonEventsEmitted", 0xff12),
-    ("gesturesEmitted", 0xff13),
-    ("buttonEventsDropped", 0xff14),
-    ("gpioRearmLimitHits", 0xff15),
-    ("buttonEventsExpired", 0xff16),
-    ("buttonEventsSendFailed", 0xff17),
-    ("buttonEventsHighWater", 0xff18),
-    ("buttonEventsSubmitted", 0xff19),
-    ("networkTransitions", 0xff1a),
-    ("networkLosses", 0xff1b),
-    ("networkJoins", 0xff1c),
-    ("announceAttempts", 0xff1d),
-    ("announceFailures", 0xff1e),
-    ("steeringAttempts", 0xff1f),
-    ("uptimeMs", 0xff20),
-    ("descriptorValidationFailures", 0xff22),
-    ("lastDescriptorError", 0xff23),
-)
+PROTOCOL = json.loads((Path(__file__).resolve().parent / "management_protocol.json").read_text())
+MANUFACTURER_CODE = PROTOCOL["manufacturer_code"]
+CONFIG_CLUSTER = next(cluster for cluster in PROTOCOL["clusters"] if "enums" in cluster)
+DIAGNOSTICS_CLUSTER = next(cluster for cluster in PROTOCOL["clusters"] if "probe" in cluster)
+
+# ZCL data type ids by the herdsman type names in management_protocol.json.
+DATA_TYPES = {"BITMAP8": 0x18, "BITMAP32": 0x1B, "UINT8": 0x20, "UINT16": 0x21,
+              "UINT32": 0x23, "ENUM8": 0x30, "OCTET_STR": 0x41, "LONG_CHAR_STR": 0x44}
+
+
+def camel(name):
+    head, *rest = name.lower().split("_")
+    return head + "".join(part.capitalize() for part in rest)
+
+
+def management_attribute(cluster, name, kind, **extra):
+    """customAttributes entry for a management attribute, by its JSON name."""
+    attr_id, _, _, data_type, access, _ = next(a for a in cluster["attributes"] if a[1] == name)
+    entry = {"type": kind, "clusterId": cluster["id"], "attributeId": attr_id,
+             "dataType": DATA_TYPES[data_type], "manufacturerCode": MANUFACTURER_CODE}
+    if access == "rw":
+        entry["action"] = True
+    entry.update(extra)
+    return entry
 
 
 def button_event_options():
     return {
         "customAttributes": {
-            "buttonState": {"type": "enum", "clusterId": 0xfc02, "attributeId": 0x0000, "dataType": 0x30, "binding": True,
+            "buttonState": {"type": "enum", "clusterId": 0xfc02, "attributeId": 0x0000, "dataType": 0x30,
+                            "manufacturerCode": MANUFACTURER_CODE, "binding": True,
                             "reporting": {"minInterval": 0, "maxInterval": 255, "valueChange": 1}},
-            "multiClickGap": {"type": "value", "clusterId": 0xfc02, "attributeId": 0x0002, "dataType": 0x21, "action": True},
-            "debounce": {"type": "value", "clusterId": 0xfc02, "attributeId": 0x0003, "dataType": 0x21, "action": True},
+            "multiClickGap": {"type": "value", "clusterId": 0xfc02, "attributeId": 0x0002, "dataType": 0x21,
+                              "manufacturerCode": MANUFACTURER_CODE, "action": True},
+            "debounce": {"type": "value", "clusterId": 0xfc02, "attributeId": 0x0003, "dataType": 0x21,
+                         "manufacturerCode": MANUFACTURER_CODE, "action": True},
         },
         "buttonState": {"enum": ["released", "pressed"]},
         "multiClickGap": {"type": "number", "min": 100, "max": 2000},
@@ -140,22 +146,31 @@ if __name__ == "__main__":
             }
         })
 
+        enums = CONFIG_CLUSTER["enums"]
         basic_custom_attrs = {
-            "multiPressResetCount": {"type": "value", "clusterId": 0x0000, "attributeId": 0xff02, "dataType": 0x20, "action": True}
+            "multiPressResetCount": management_attribute(CONFIG_CLUSTER, "MULTI_PRESS_RESET", "value"),
+            "deviceConfigStatus": management_attribute(CONFIG_CLUSTER, "STATUS", "enum"),
+            "deviceConfigLastError": management_attribute(CONFIG_CLUSTER, "LAST_ERROR", "enum"),
         }
-        basic_exposes = ["multiPressResetCount"]
+        basic_exposes = ["multiPressResetCount", "deviceConfigStatus", "deviceConfigLastError"]
         basic_options = {
-            "multiPressResetCount": {"type": "number", "min": 0, "max": 255}
+            "multiPressResetCount": {"type": "number", "min": 0, "max": 255},
+            "deviceConfigStatus": {"enum": [name.lower() for name in enums["STATUS"]]},
+            "deviceConfigLastError": {"enum": [name.lower() for name in enums["LAST_ERROR"]]},
         }
-        for name, attribute_id in DIAGNOSTIC_COUNTERS:
-            basic_custom_attrs[name] = {"type": "value", "clusterId": 0x0000, "attributeId": attribute_id, "dataType": 0x23}
-            basic_exposes.append(name)
-            basic_options[name] = {"type": "number", "min": 0, "max": 4294967295}
+        for attr_id, name, _, data_type, _, _ in DIAGNOSTICS_CLUSTER["attributes"]:
+            if data_type != "UINT32":
+                continue
+            counter = camel(name)
+            basic_custom_attrs[counter] = management_attribute(DIAGNOSTICS_CLUSTER, name, "value")
+            basic_exposes.append(counter)
+            basic_options[counter] = {"type": "number", "min": 0, "max": 4294967295}
 
         if has_dedicated_net_led:
-            basic_custom_attrs["networkIndicator"] = {"type": "bool", "clusterId": 0x0000, "attributeId": 0xff01, "dataType": 0x10, "action": True}
-            basic_exposes.append("networkIndicator")
-            basic_options["networkIndicator"] = {"type": "toggle"}
+            basic_custom_attrs["statusLedMode"] = management_attribute(CONFIG_CLUSTER, "STATUS_LED_MODE", "enum")
+            basic_exposes.append("statusLedMode")
+            basic_options["statusLedMode"] = {"type": "select",
+                                              "enum": [name.lower() for name in enums["STATUS_LED_MODE"]]}
 
         data[zb_manufacturer].append({
             "modelNames": model_names,
@@ -215,10 +230,32 @@ if __name__ == "__main__":
 
         if cover_switch_cnt:
             cover_switch_endpoints = list(range(switch_cnt + relay_cnt + 1, switch_cnt + relay_cnt + 1 + cover_switch_cnt))
+            cover_switch_options = button_event_options()
+            cover_switch_attrs = {
+                "coverSwitchType": ("enum", 0x0000, 0x30),
+                "coverIndex": ("enum", 0x0001, 0x20),
+                "coverSwitchReversal": ("bool", 0x0002, 0x10),
+                "coverLocalMode": ("enum", 0x0003, 0x30),
+                "coverBindedMode": ("enum", 0x0004, 0x30),
+                "longPressDuration": ("value", 0x0005, 0x21),
+            }
+            for name, (kind, attribute_id, data_type) in cover_switch_attrs.items():
+                cover_switch_options["customAttributes"][name] = {
+                    "type": kind, "clusterId": 0xfc01, "attributeId": attribute_id, "dataType": data_type,
+                    "manufacturerCode": MANUFACTURER_CODE, "action": True}
+            cover_modes = ["immediate", "short_press", "long_press", "hybrid"]
+            cover_switch_options.update({
+                "coverSwitchType": {"type": "select", "enum": ["toggle", "momentary"]},
+                "coverIndex": {"type": "select", "enum": ["detached"] + [f"cover_{i + 1}" for i in range(cover_cnt)]},
+                "coverSwitchReversal": {"type": "toggle"},
+                "coverLocalMode": {"type": "select", "enum": cover_modes},
+                "coverBindedMode": {"type": "select", "enum": cover_modes},
+                "longPressDuration": {"type": "number", "min": 0, "max": 5000},
+            })
             data[zb_manufacturer].append({
                 "modelNames": model_names,
-                "exposes": ["buttonState", "multiClickGap", "debounce"],
-                "options": button_event_options(),
+                "exposes": ["buttonState", "multiClickGap", "debounce", *cover_switch_attrs],
+                "options": cover_switch_options,
                 "endpointId": cover_switch_endpoints
             })
 
@@ -247,15 +284,29 @@ if __name__ == "__main__":
                 "actions": ["coverStatus", "coverPosition"],
                 "bindings": ["cover"],
                 "reportings": ["coverPosition"],
-                "exposes": ["cover", "coverMoving", "coverMotorReversal"],
+                "exposes": ["cover", "coverMoving", "coverMotorReversal", "coverOpenTime", "coverCloseTime",
+                            "coverClosedDeadzone", "coverOpenDeadzone", "coverOverrun"],
                 "options": {
                     "customAttributes": {
                         "coverMoving": {"type": "enum", "clusterId": 0x0102, "attributeId": 0xff00, "dataType": 0x30, "binding": True,
                                         "reporting": {"minInterval": 0, "maxInterval": 255, "valueChange": 1}},
-                        "coverMotorReversal": {"type": "value", "clusterId": 0x0102, "attributeId": 0xff01, "dataType": 0x10, "action": True}
+                        "coverMotorReversal": {"type": "value", "clusterId": 0x0102, "attributeId": 0xff01, "dataType": 0x10, "action": True},
+                        "coverOpenTime": {"type": "value", "clusterId": 0x0102, "attributeId": 0xff02, "dataType": 0x23, "action": True},
+                        "coverCloseTime": {"type": "value", "clusterId": 0x0102, "attributeId": 0xff03, "dataType": 0x23, "action": True},
+                        # Deadzones are stored in 1/100 %.
+                        "coverClosedDeadzone": {"type": "value", "clusterId": 0x0102, "attributeId": 0xff04, "dataType": 0x21,
+                                                "action": True, "divider": 100},
+                        "coverOpenDeadzone": {"type": "value", "clusterId": 0x0102, "attributeId": 0xff05, "dataType": 0x21,
+                                              "action": True, "divider": 100},
+                        "coverOverrun": {"type": "value", "clusterId": 0x0102, "attributeId": 0xff06, "dataType": 0x21, "action": True},
                     },
                     "coverMoving": {"enum": ["stopped", "opening", "closing"]},
-                    "coverMotorReversal": {"type": "toggle"}
+                    "coverMotorReversal": {"type": "toggle"},
+                    "coverOpenTime": {"type": "number", "min": 0, "max": 429496, "unit": "ms"},
+                    "coverCloseTime": {"type": "number", "min": 0, "max": 429496, "unit": "ms"},
+                    "coverClosedDeadzone": {"type": "number", "min": 0, "max": 99.99, "step": 0.01, "unit": "%"},
+                    "coverOpenDeadzone": {"type": "number", "min": 0, "max": 99.99, "step": 0.01, "unit": "%"},
+                    "coverOverrun": {"type": "number", "min": 0, "max": 65535, "unit": "ms"}
                 },
                 "endpointId": cover_endpoints
             })
