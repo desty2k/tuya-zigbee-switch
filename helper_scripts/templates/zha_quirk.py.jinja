@@ -14,9 +14,9 @@ from zhaquirks.const import (
     TRIPLE_PRESS,
     ZHA_SEND_EVENT,
 )
-from zigpy.quirks.v2 import QuirkBuilder, ReportingConfig, SensorDeviceClass, EntityType
-from zigpy.zcl import ClusterType, foundation
-from zigpy.zcl.clusters.general import OnOffConfiguration, SwitchType, MultistateInput, OnOff, Basic
+from zigpy.quirks.v2 import EntityPlatform, QuirkBuilder, ReportingConfig, SensorDeviceClass, EntityType
+from zigpy.zcl import AttributeUpdatedEvent, ClusterType, foundation
+from zigpy.zcl.clusters.general import OnOffConfiguration, SwitchType, MultistateInput, OnOff
 from zigpy.zcl.clusters.closures import WindowCovering
 from zigpy.zcl.foundation import ZCLAttributeDef, ZCLCommandDef
 import zigpy.types as t
@@ -112,111 +112,37 @@ class CustomMultistateInputCluster(CustomCluster, MultistateInput):
 
     class AttributeDefs(foundation.BaseAttributeDefs):
         present_value: Final = ZCLAttributeDef(
-            id=0x0055, type=t.uint16_t, access="r*w", mandatory=True
+            id=0x0055, type=t.uint16_t, access="rp", mandatory=True
         )
         cluster_revision: Final = foundation.ZCL_CLUSTER_REVISION_ATTR
         reporting_status: Final = foundation.ZCL_REPORTING_STATUS_ATTR
 
 
-class CustomBasicCluster(CustomCluster, Basic):
+def management_attribute_defs(attributes):
+    """AttributeDefs for a management cluster from its generated attribute table."""
+    defs = {
+        name: ZCLAttributeDef(id=attr_id, type=kind, access=access, is_manufacturer_specific=True)
+        for attr_id, name, kind, access in attributes
+    }
+    defs["cluster_revision"] = foundation.ZCL_CLUSTER_REVISION_ATTR
+    defs["reporting_status"] = foundation.ZCL_REPORTING_STATUS_ATTR
+    return type("AttributeDefs", (foundation.BaseAttributeDefs,), defs)
 
-    class AttributeDefs(foundation.BaseAttributeDefs):
 
-        networkIndicator = ZCLAttributeDef(
-            id=0xff01,
-            type=t.Bool,
-            access="rw",  
-            is_manufacturer_specific=False,
-        )
+class DeviceConfigCluster(CustomCluster):
+    cluster_id = MANAGEMENT_PROTOCOL["device_config"]
+    name = "Device Config"
+    ep_attribute = "device_config"
+    manufacturer_id_override = MANAGEMENT_PROTOCOL["manufacturer_code"]
+    AttributeDefs = management_attribute_defs(DEVICE_CONFIG_ATTRIBUTES)
 
-        multi_press_reset_count = ZCLAttributeDef(
-            id=0xff02,
-            type=t.uint8_t,
-            access="rw",
-            is_manufacturer_specific=False,
-        )
 
-        gpio_edges_captured = ZCLAttributeDef(
-            id=0xff10,
-            type=t.uint32_t,
-            access="r",
-            is_manufacturer_specific=False,
-        )
-
-        gpio_edges_dropped = ZCLAttributeDef(
-            id=0xff11,
-            type=t.uint32_t,
-            access="r",
-            is_manufacturer_specific=False,
-        )
-
-        button_events_emitted = ZCLAttributeDef(
-            id=0xff12,
-            type=t.uint32_t,
-            access="r",
-            is_manufacturer_specific=False,
-        )
-
-        gestures_emitted = ZCLAttributeDef(
-            id=0xff13,
-            type=t.uint32_t,
-            access="r",
-            is_manufacturer_specific=False,
-        )
-
-        zb_button_events_dropped = ZCLAttributeDef(
-            id=0xff14,
-            type=t.uint32_t,
-            access="r",
-            is_manufacturer_specific=False,
-        )
-
-        gpio_rearm_limit_hits = ZCLAttributeDef(
-            id=0xff15,
-            type=t.uint32_t,
-            access="r",
-            is_manufacturer_specific=False,
-        )
-
-        zb_button_events_expired = ZCLAttributeDef(
-            id=0xff16, type=t.uint32_t, access="r", is_manufacturer_specific=False,
-        )
-        zb_button_events_send_failed = ZCLAttributeDef(
-            id=0xff17, type=t.uint32_t, access="r", is_manufacturer_specific=False,
-        )
-        zb_button_events_high_water = ZCLAttributeDef(
-            id=0xff18, type=t.uint32_t, access="r", is_manufacturer_specific=False,
-        )
-        zb_button_events_submitted = ZCLAttributeDef(
-            id=0xff19, type=t.uint32_t, access="r", is_manufacturer_specific=False,
-        )
-        network_transitions = ZCLAttributeDef(
-            id=0xff1a, type=t.uint32_t, access="r", is_manufacturer_specific=False,
-        )
-        network_losses = ZCLAttributeDef(
-            id=0xff1b, type=t.uint32_t, access="r", is_manufacturer_specific=False,
-        )
-        network_joins = ZCLAttributeDef(
-            id=0xff1c, type=t.uint32_t, access="r", is_manufacturer_specific=False,
-        )
-        announce_attempts = ZCLAttributeDef(
-            id=0xff1d, type=t.uint32_t, access="r", is_manufacturer_specific=False,
-        )
-        announce_failures = ZCLAttributeDef(
-            id=0xff1e, type=t.uint32_t, access="r", is_manufacturer_specific=False,
-        )
-        steering_attempts = ZCLAttributeDef(
-            id=0xff1f, type=t.uint32_t, access="r", is_manufacturer_specific=False,
-        )
-        uptime_ms = ZCLAttributeDef(
-            id=0xff20, type=t.uint32_t, access="r", is_manufacturer_specific=False,
-        )
-        descriptor_validation_failures = ZCLAttributeDef(
-            id=0xff22, type=t.uint32_t, access="r", is_manufacturer_specific=False,
-        )
-        last_descriptor_error = ZCLAttributeDef(
-            id=0xff23, type=t.uint8_t, access="r", is_manufacturer_specific=False,
-        )
+class DeviceDiagnosticsCluster(CustomCluster):
+    cluster_id = MANAGEMENT_PROTOCOL["device_diagnostics"]
+    name = "Device Diagnostics"
+    ep_attribute = "device_diagnostics"
+    manufacturer_id_override = MANAGEMENT_PROTOCOL["manufacturer_code"]
+    AttributeDefs = management_attribute_defs(DEVICE_DIAGNOSTICS_ATTRIBUTES)
 
 
 class ButtonState(t.enum8):
@@ -243,34 +169,35 @@ N_CLICK_ACTIONS = {
 
 class CustomButtonEventCluster(CustomCluster):
     cluster_id = 0xFC02
+    manufacturer_id_override = MANAGEMENT_PROTOCOL["manufacturer_code"]
 
     class AttributeDefs(foundation.BaseAttributeDefs):
         button_state = ZCLAttributeDef(
             id=0x0000,
             type=ButtonState,
             access="rp",
-            is_manufacturer_specific=False,
+            is_manufacturer_specific=True,
         )
 
         last_event_seq = ZCLAttributeDef(
             id=0x0001,
             type=t.uint16_t,
             access="rp",
-            is_manufacturer_specific=False,
+            is_manufacturer_specific=True,
         )
 
         multi_click_gap = ZCLAttributeDef(
             id=0x0002,
             type=t.uint16_t,
             access="rw",
-            is_manufacturer_specific=False,
+            is_manufacturer_specific=True,
         )
 
         debounce_ms = ZCLAttributeDef(
             id=0x0003,
             type=t.uint16_t,
             access="rw",
-            is_manufacturer_specific=False,
+            is_manufacturer_specific=True,
         )
 
         cluster_revision: Final = foundation.ZCL_CLUSTER_REVISION_ATTR
@@ -391,6 +318,7 @@ class CoverMoving(t.enum8):
 
 class CustomCoverSwitchCluster(CustomCluster):
     cluster_id = 0xFC01
+    manufacturer_id_override = MANAGEMENT_PROTOCOL["manufacturer_code"]
     
     class AttributeDefs(foundation.BaseAttributeDefs):
         switch_type = ZCLAttributeDef(
@@ -454,6 +382,65 @@ class CustomWindowCoveringCluster(CustomCluster, WindowCovering):
             type=t.Bool,
             access="rw",
             is_manufacturer_specific=False,
+        )
+
+        open_time = ZCLAttributeDef(
+            id=0xff02,
+            type=t.uint32_t,
+            access="rw",
+            is_manufacturer_specific=False,
+        )
+
+        close_time = ZCLAttributeDef(
+            id=0xff03,
+            type=t.uint32_t,
+            access="rw",
+            is_manufacturer_specific=False,
+        )
+
+        closed_deadzone = ZCLAttributeDef(
+            id=0xff04,
+            type=t.uint16_t,
+            access="rw",
+            is_manufacturer_specific=False,
+        )
+
+        open_deadzone = ZCLAttributeDef(
+            id=0xff05,
+            type=t.uint16_t,
+            access="rw",
+            is_manufacturer_specific=False,
+        )
+
+        overrun = ZCLAttributeDef(
+            id=0xff06,
+            type=t.uint16_t,
+            access="rw",
+            is_manufacturer_specific=False,
+        )
+
+    def _update_attribute(self, attrid, value):
+        # The device reports lift 0xFF while the position is unknown (after a
+        # power loss during motion, before the first full move). ZHA would show
+        # 100 - 255, so the cached position is cleared and the cover entity is
+        # told to re-evaluate.
+        lift = WindowCovering.AttributeDefs.current_position_lift_percentage
+        if attrid != lift.id or value is None or value <= 100:
+            super()._update_attribute(attrid, value)
+            return
+        super()._update_attribute(attrid, None)
+        self.emit(
+            AttributeUpdatedEvent.event_type,
+            AttributeUpdatedEvent(
+                device_ieee=str(self.endpoint.device.ieee),
+                endpoint_id=self.endpoint.endpoint_id,
+                cluster_type=self.cluster_type,
+                cluster_id=self.cluster_id,
+                attribute_name=lift.name,
+                attribute_id=lift.id,
+                manufacturer_code=None,
+                value=None,
+            ),
         )
 
 '''``````````````````````````````````````````````````````````````````
@@ -783,14 +770,36 @@ for config in CONFIGS:
                 entity_type=EntityType.CONFIG,
             )
         )
+        # Travel times 0-429496 ms; deadzones in 1/100 %, and the device rejects
+        # a pair that leaves no travel between them.
+        for attribute, label, max_value, multiplier, step, unit in (
+            ("open_time", "Cover open time", 429496, None, 1, "ms"),
+            ("close_time", "Cover close time", 429496, None, 1, "ms"),
+            ("closed_deadzone", "Cover closed deadzone", 99.99, 0.01, 0.01, "%"),
+            ("open_deadzone", "Cover open deadzone", 99.99, 0.01, 0.01, "%"),
+            ("overrun", "Cover overrun", 65535, None, 1, "ms"),
+        ):
+            builder = builder.number(
+                attribute,
+                CustomWindowCoveringCluster.cluster_id,
+                translation_key=f"cover_{attribute}_{endpoint_id}",
+                fallback_name=f"{label} {endpoint_id}",
+                min_value=0,
+                max_value=max_value,
+                step=step,
+                multiplier=multiplier,
+                unit=unit,
+                endpoint_id=endpoint_id,
+                entity_type=EntityType.CONFIG,
+            )
 
     builder = (
         builder
-        .removes(Basic.cluster_id, cluster_type=ClusterType.Client, endpoint_id=1)
-        .adds(CustomBasicCluster, endpoint_id=1)
+        .adds(DeviceConfigCluster, endpoint_id=1)
+        .adds(DeviceDiagnosticsCluster, endpoint_id=1)
         .number(
-            CustomBasicCluster.AttributeDefs.multi_press_reset_count.name,
-            CustomBasicCluster.cluster_id,
+            "multi_press_reset",
+            DeviceConfigCluster.cluster_id,
             translation_key="multi_press_reset_count",
             fallback_name="Multi press reset count",
             min_value=0,
@@ -801,44 +810,40 @@ for config in CONFIGS:
         )
     )
 
-    for counter_name, counter_label in (
-        ("gpio_edges_captured", "GPIO edges captured"),
-        ("gpio_edges_dropped", "GPIO edges dropped"),
-        ("button_events_emitted", "Button events emitted"),
-        ("gestures_emitted", "Gestures emitted"),
-        ("zb_button_events_dropped", "Button events dropped"),
-        ("gpio_rearm_limit_hits", "GPIO rearm limit hits"),
-        ("network_transitions", "Network transitions"),
-        ("network_losses", "Network losses"),
-        ("network_joins", "Network joins"),
-        ("announce_attempts", "Announce attempts"),
-        ("announce_failures", "Announce failures"),
-        ("steering_attempts", "Steering attempts"),
-        ("uptime_ms", "Uptime milliseconds"),
-        ("descriptor_validation_failures", "Descriptor validation failures"),
-        ("last_descriptor_error", "Last descriptor error"),
-    ):
+    for attribute, enum_class in (("status", DeviceConfigStatus), ("last_error", DeviceConfigLastError)):
+        builder = builder.enum(
+            attribute,
+            enum_class,
+            DeviceConfigCluster.cluster_id,
+            entity_platform=EntityPlatform.SENSOR,
+            entity_type=EntityType.DIAGNOSTIC,
+            translation_key=f"device_config_{attribute}",
+            fallback_name="Device config " + attribute.replace("_", " "),
+            endpoint_id=1,
+        )
+
+    for _, counter_name, _, _ in DEVICE_DIAGNOSTICS_ATTRIBUTES:
+        if counter_name == "capabilities":
+            continue
         builder = builder.sensor(
             counter_name,
-            CustomBasicCluster.cluster_id,
+            DeviceDiagnosticsCluster.cluster_id,
             translation_key=counter_name,
-            fallback_name=counter_label,
+            fallback_name=counter_name.replace("_", " ").capitalize(),
             endpoint_id=1,
             entity_type=EntityType.DIAGNOSTIC,
             initially_disabled=True,
         )
 
     if has_dedicated_net_led:
-        builder = (
-            builder
-            .switch(
-                CustomBasicCluster.AttributeDefs.networkIndicator.name,
-                CustomBasicCluster.cluster_id,
-                translation_key="network_indicator",
-                fallback_name="Network indicator",
-                endpoint_id=1,
-                entity_type=EntityType.CONFIG,
-            )
+        builder = builder.enum(
+            "status_led_mode",
+            DeviceConfigStatusLedMode,
+            DeviceConfigCluster.cluster_id,
+            translation_key="status_led_mode",
+            fallback_name="Status LED mode",
+            endpoint_id=1,
+            entity_type=EntityType.CONFIG,
         )
 
     builder.add_to_registry()

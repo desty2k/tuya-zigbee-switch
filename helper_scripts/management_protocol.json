@@ -13,7 +13,13 @@
         [4, "LAST_ERROR", "ENUM8", "ENUM8", "r", 0],
         [16, "STATUS_LED_MODE", "ENUM8", "ENUM8", "rw", 0],
         [17, "MULTI_PRESS_RESET", "INT8U", "UINT8", "rw", 10]
-      ]
+      ],
+      "enums": {
+        "STATUS": ["READY", "REBOOT_PENDING", "ERROR"],
+        "LAST_ERROR": ["NONE", "ARGUMENT", "PARSE", "RESOURCE", "NVM", "PENDING",
+                       "UNSUPPORTED", "OVERFLOW", "FEATURE_MISSING"],
+        "STATUS_LED_MODE": ["NETWORK", "OFF", "ON"]
+      }
     },
     {
       "id": 64529,

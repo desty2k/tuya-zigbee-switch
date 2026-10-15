@@ -178,8 +178,11 @@ probeable.
 
 Procedure, with `helper_scripts/probe_discovery.py <friendly name>` driving
 Zigbee2MQTT over MQTT (needs `paho-mqtt` from `requirements.txt` and the fork
-converter for the probe board). It reads one probe attribute per request, so
-no Read Attributes response needs APS fragmentation:
+converter `zigbee2mqtt/converters/switch_custom.js`, which carries the probe
+board as model `TS011F-probe` although the board is `build: no`; it publishes
+the probe attributes under the `probe` state key with octet strings in hex).
+It reads one probe attribute per request, so no Read Attributes response needs
+APS fragmentation:
 
 1. OTA the probe image onto one expendable device with nothing plugged in.
 2. Snapshot, then pull test all pins.

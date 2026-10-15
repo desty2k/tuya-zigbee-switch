@@ -350,6 +350,47 @@ static int cmd_zcl_clusters(int argc, char **argv) {
     return 0;
 }
 
+/* Attribute descriptor of one server cluster as `manufacturer=0xMMMM
+ * attrs=0xAAAA:TT:F,...`: id, ZCL data type and the HAL_ATTR_* flags, all hex. */
+static int cmd_zcl_attrs(int argc, char **argv) {
+    uint8_t              ep, count;
+    uint16_t             cl;
+    hal_zigbee_endpoint *eps = stub_zigbee_get_endpoints(&count);
+    char   out[1024];
+    size_t used = 0;
+
+    if (argc != 3 || parse_u8_dec(argv[1], &ep) || parse_u16_hex(argv[2], &cl)) {
+        fprintf(stderr, "Usage: zcl_attrs <ep:dec> <cluster:hex>\n");
+        io_res_err("usage");
+        return -1;
+    }
+    out[0] = '\0';
+    for (uint8_t i = 0; i < count; i++) {
+        if (eps[i].endpoint != ep) continue;
+        for (uint8_t j = 0; j < eps[i].cluster_count; j++) {
+            const hal_zigbee_cluster *cluster = &eps[i].clusters[j];
+
+            if (cluster->cluster_id != cl || cluster->role != HAL_ZIGBEE_ROLE_SERVER) continue;
+            for (uint8_t k = 0; k < cluster->attribute_count; k++) {
+                const hal_zigbee_attribute *attr = &cluster->attributes[k];
+                int written = snprintf(out + used, sizeof(out) - used, "%s0x%04X:%02X:%X",
+                                       used ? "," : "", attr->attribute_id,
+                                       attr->data_type_id, attr->flag);
+
+                if (written < 0 || (size_t)written >= sizeof(out) - used) {
+                    io_res_err("too_many_attrs");
+                    return -1;
+                }
+                used += (size_t)written;
+            }
+            io_res_ok("manufacturer=0x%04X attrs=%s", cluster->manufacturer_code, out);
+            return 0;
+        }
+    }
+    io_res_err("no_cluster");
+    return -1;
+}
+
 static int cmd_zcl_read(int argc, char **argv) {
     if (argc != 4) {
         fprintf(stderr, "Usage: zcl_read <ep:dec> <cluster:hex> <attr:hex>\n");
@@ -970,6 +1011,7 @@ static const SimpleReplCommand kCmds[] = {
     { "zcl_list_attrs",          cmd_zcl_list_attrs          },
     { "zcl_graph_usage",         cmd_zcl_graph_usage         },
     { "zcl_clusters",            cmd_zcl_clusters            },
+    { "zcl_attrs",               cmd_zcl_attrs               },
     { "zcl_configure_reporting", cmd_zcl_configure_reporting },
     { "zcl_foundation",          cmd_zcl_foundation          },
     { "zcl_cmd",                 cmd_zcl_cmd                 },
