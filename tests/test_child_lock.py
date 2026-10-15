@@ -36,7 +36,7 @@ from zcl_consts import (
 DEVICE_CONFIG_ERROR_PARSE = 2
 DEVICE_CONFIG_ERROR_NVM = 4
 PAIR_HOLD_MS = 3000
-STOP_HOLD_MS = 3000
+STOP_HOLD_MS = 5000
 SINGLE_HOLD_MS = 10_000
 # Blinks are 250 ms on and 250 ms off; 3 blinks end within 1.5 s.
 BLINKS_DONE_MS = 1600
@@ -126,7 +126,7 @@ def bound_commands(d: Device) -> list:
 # ---------------------------------------------------------------------------
 
 
-def test_cover_hold_stop_3s_locks_with_three_blinks(shutter: Device):
+def test_cover_hold_stop_5s_locks_with_three_blinks(shutter: Device):
     assert lock_state(shutter) == "0"
     shutter.clear_events()
 
@@ -139,7 +139,7 @@ def test_cover_hold_stop_3s_locks_with_three_blinks(shutter: Device):
     shutter.wait_for_attr_change(1, ZCL_CLUSTER_DEVICE_CONFIG, ZCL_ATTR_DEVICE_CONFIG_CHILD_LOCK)
 
 
-def test_cover_release_before_3s_does_not_lock(shutter: Device):
+def test_cover_release_before_5s_does_not_lock(shutter: Device):
     shutter.clear_events()
     hold(shutter, ("A0",), STOP_HOLD_MS - 200)
     shutter.step_time(BLINKS_DONE_MS)
@@ -148,7 +148,7 @@ def test_cover_release_before_3s_does_not_lock(shutter: Device):
     assert led_switched_on(shutter, "D2") == 0
 
 
-def test_cover_repress_restarts_the_3s_hold(shutter: Device):
+def test_cover_repress_restarts_the_5s_hold(shutter: Device):
     hold(shutter, ("A0",), STOP_HOLD_MS - 500)
     shutter.press_button("A0")
     shutter.step_time(1000)

@@ -12,7 +12,7 @@
 /* Hold time of a cover stop button lock gesture, in ms. A stop hold has no
  * other action, and touch panels whose touch chip reports one pad at a time
  * cannot hold open and close together. */
-#define CHILD_LOCK_STOP_HOLD_MS      3000
+#define CHILD_LOCK_STOP_HOLD_MS      5000
 
 /* Hold time of a one-button lock gesture, in ms. Longer than the longest
  * long-press duration the converters offer (5000 ms), and a held press is
