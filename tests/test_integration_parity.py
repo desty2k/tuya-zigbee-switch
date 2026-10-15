@@ -21,8 +21,8 @@ ROOT = Path(__file__).resolve().parent.parent
 PROTOCOL = json.loads((ROOT / "helper_scripts/management_protocol.json").read_text())
 HAL_ATTR_WRITE = 1 << 1
 
-# Endpoints: switch 1, relay 2 (with indicator), cover switch 3, cover 4.
-FULL_CONFIG = "M;Parity;SA2u;RB2;IC5;XA0A1u;CB0B1;BTA5;"
+# Endpoints: switch 1 (with the meter), relay 2 (with indicator), cover switch 3, cover 4.
+FULL_CONFIG = "M;Parity;SA2u;RB2;IC5;XA0A1u;CB0B1;BTA5;EBC2C3D2;"
 PROBE_CMD = ["./build/stub/stub_probe"]
 PROBE_BOARD = "OUTLET_BSEED_TS011F_PROBE"
 PROBE_CONFIG = yaml.safe_load((ROOT / "device_db.yaml").read_text())[PROBE_BOARD]["config_str"]
@@ -193,7 +193,7 @@ def mismatches(refs: set[Reference], firmware: dict[int, tuple[int, dict]]) -> l
 def test_integration_attributes_match_the_firmware(firmware, script, args, parse) -> None:
     refs = parse(generate(script, *args))
     management = {cluster["id"] for cluster in PROTOCOL["clusters"]}
-    assert {ref[0] for ref in refs} >= management | {0xFC01, 0xFC02, 0x0102}
+    assert {ref[0] for ref in refs} >= management | {0xFC01, 0xFC02, 0xFC12, 0x0102}
     assert mismatches(refs, firmware) == []
 
 
@@ -204,7 +204,7 @@ def test_management_protocol_matches_the_firmware(firmware) -> None:
         expected = cluster["attributes"] + cluster.get("probe", {}).get("attributes", [])
         assert {attr_id: (Z2M_TYPES[kind], access == "rw") for attr_id, _, _, kind, access, _ in expected} == \
             {attr_id: (kind, bool(flags & HAL_ATTR_WRITE)) for attr_id, (kind, flags) in attrs.items()}
-    for cluster in (0xFC01, 0xFC02):
+    for cluster in (0xFC01, 0xFC02, 0xFC12):
         assert firmware[cluster][0] == PROTOCOL["manufacturer_code"]
 
 
