@@ -7,8 +7,9 @@ helper_scripts/management_protocol.json. The procedure is in
 docs/contribute/porting.md, section "GPIO probe":
 
   snapshot -> pull test -> watch with no load -> watch while the button is
-  pressed -> watch with a resistive load -> pulse each floating pin with the
-  load unplugged, asking what was heard or seen.
+  pressed -> watch with a resistive load -> pulse each floating pin, and each
+  quiet driven-low pin briefly high, with the load unplugged, asking what was
+  heard or seen.
 
 It prints a proposed config string and meter pin map. Nothing is stored on
 the device; a reboot ends every probe operation.
@@ -283,6 +284,19 @@ def discover(probe: Z2MProbe, args: argparse.Namespace) -> None:
             if baseline and abs(hz - baseline) / baseline > 0.2:
                 print(f"  {cf1[0]} changed {baseline:.1f} -> {hz:.1f} Hz while {pin} was high: SEL")
                 found.sel.append(pin)
+
+    # A driven-low pin is a low-resistance relay transistor base or a chip
+    # output; pins that pulsed in a watch are meter outputs and stay untouched.
+    quiet_low = [p for p, c in found.classes.items() if c == "DRIVEN_LOW"
+                 and not found.idle_hz.get(p) and not found.loaded_hz.get(p)]
+    for pin in quiet_low:
+        status = probe.pulse(pin, 1, LIMITS["DRIVEN_LOW_PULSE_MAX_MS"])
+        if status != "OK":
+            print(f"  {pin} level 1: {status}")
+            continue
+        if ask(f"  {pin} (driven low) lifted high: [c]lick, [n]othing?").startswith("c") \
+                and pin not in found.relay:
+            found.relay.append(pin)
 
     config, meter = propose(found, args.manufacturer, args.model)
     print(f"\nProposed config string: {config}")

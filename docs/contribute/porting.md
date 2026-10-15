@@ -167,9 +167,9 @@ defined in `helper_scripts/management_protocol.json`):
 | --- | --- |
 | Boot | No pin is touched; nothing is persisted |
 | Snapshot | Reads every probeable pin without changing its mode |
-| Pull test | Pull-up (10 kΩ), pull-down (100 kΩ), twice, 25 ms each; classifies each pin *floating*, *driven high*, *driven low* or *active*; ends with no pull. A relay driven through a transistor with a base resistor of about 20 kΩ or more classifies *floating* and may click during the pull-up phases; one with a low base resistor (a few kΩ) reads *driven low* and is never pulsed |
+| Pull test | Pull-up (10 kΩ), pull-down (100 kΩ), twice, 25 ms each; classifies each pin *floating*, *driven high*, *driven low* or *active*; ends with no pull. A relay driven through a transistor with a base resistor of about 20 kΩ or more classifies *floating* and may click during the pull-up phases; one with a low base resistor (a few kΩ) reads *driven low* |
 | Watch | Counts rising edges on up to 2 pins for 1–300 s: count, min/max interval, last level; a pin above 20 kHz is stopped and flagged |
-| Arm + pulse | Drives one *floating* pin to a level for 1–500 ms, then input without pull. Needs an arm before each pulse; the pin must follow both pulls again right before it is driven. The cutoff runs on the main loop (a task, re-checked every pass), not in an interrupt; if the main loop stalls, the 1 s watchdog reset is the backstop, so a pulse can last up to about 1 s |
+| Arm + pulse | Drives one *floating* pin to a level for 1–500 ms, or one *driven low* pin to level 1 for 1–50 ms, then input without pull and output latch 0. *Driven high* and *active* pins are never driven. A *driven low* pin may be a low-resistance transistor base or a chip output such as BL0937 `CF`, so it is only lifted briefly. Needs an arm before each pulse; the pin must show its class again under both pulls right before it is driven. The cutoff runs on the main loop (a task, re-checked every pass), not in an interrupt; if the main loop stalls, the 1 s watchdog reset is the backstop, so a pulse can last up to about 1 s |
 | Stop | Ends every operation, returns its pins to input without pull |
 
 Pins needed by the platform (TLSR8258 SWS `PA7`, flash `PE0`–`PE3`, debug UART
@@ -191,9 +191,10 @@ APS fragmentation:
 4. Watch while pressing the button: the pin with edges is the button.
 5. Watch with a resistive load: a pin whose rate rises with the load is `CF`.
    No pulse activity at all suggests a BL0942 (UART).
-6. Unplug the load. Pulse each floating pin high and low and answer what was
-   heard (relay click) or seen (LED). A pin that changes the `CF1` rate while
-   high is `SEL`.
+6. Unplug the load. Pulse each floating pin high and low, and each driven-low
+   pin with no pulse activity high for 50 ms, and answer what was heard (relay
+   click) or seen (LED). A floating pin that changes the `CF1` rate while high
+   is `SEL`.
 7. The helper prints a proposed config string and meter pin map. Record them
    in `docs/refactor/capabilities/STATE.md`, then write the real profile.
 

@@ -13,11 +13,14 @@
  *
  * Probeable pins are the platform's probe table minus every pin claimed by a
  * configured feature. Safety rules for output pulses:
- *  - only a pin classified FLOATING by a pull test of this boot;
+ *  - only a pin classified FLOATING or DRIVEN_LOW by a pull test of this
+ *    boot; a DRIVEN_LOW pin only to level 1 and for at most
+ *    GPIO_PROBE_DRIVEN_LOW_PULSE_MAX_MS, since it may be a chip output;
  *  - only after an explicit arm of that pin, consumed by the pulse attempt
  *    and void after GPIO_PROBE_ARM_TIMEOUT_MS;
  *  - one pin at a time, never a pin under watch or pull test;
- *  - the pin must follow both pulls again right before it is driven;
+ *  - the pin must show its class again under both pulls right before it is
+ *    driven;
  *  - 1 to GPIO_PROBE_PULSE_MAX_MS ms; the cutoff runs from a task and is
  *    re-checked by gpio_probe_service_poll(), both on the main loop, not in
  *    an interrupt. If the main loop stalls, the platform watchdog reset

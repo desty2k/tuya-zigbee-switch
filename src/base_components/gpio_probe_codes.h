@@ -30,21 +30,22 @@ typedef enum {
     GPIO_PROBE_PULL_DOWN,
 } gpio_probe_pull_t;
 
-#define GPIO_PROBE_STATE_PULL_TEST      (1u << 0)
-#define GPIO_PROBE_STATE_WATCH          (1u << 1)
-#define GPIO_PROBE_STATE_ARMED          (1u << 2)
-#define GPIO_PROBE_STATE_PULSE          (1u << 3)
-#define GPIO_PROBE_WATCH_RUNNING        (1u << 0)
-#define GPIO_PROBE_WATCH_OVER_RATE      (1u << 1)
+#define GPIO_PROBE_STATE_PULL_TEST            (1u << 0)
+#define GPIO_PROBE_STATE_WATCH                (1u << 1)
+#define GPIO_PROBE_STATE_ARMED                (1u << 2)
+#define GPIO_PROBE_STATE_PULSE                (1u << 3)
+#define GPIO_PROBE_WATCH_RUNNING              (1u << 0)
+#define GPIO_PROBE_WATCH_OVER_RATE            (1u << 1)
 
-#define GPIO_PROBE_WATCH_MIN_S          1u
-#define GPIO_PROBE_WATCH_MAX_S          300u
-#define GPIO_PROBE_PULSE_MIN_MS         1u
-#define GPIO_PROBE_PULSE_MAX_MS         500u
-#define GPIO_PROBE_RATE_CEILING_HZ      20000u
-#define GPIO_PROBE_ARM_TIMEOUT_MS       30000u
-#define GPIO_PROBE_PULL_PHASE_MS        25u
-#define GPIO_PROBE_WATCH_HEADER_SIZE    4u
-#define GPIO_PROBE_WATCH_RECORD_SIZE    16u
+#define GPIO_PROBE_WATCH_MIN_S                1u
+#define GPIO_PROBE_WATCH_MAX_S                300u
+#define GPIO_PROBE_PULSE_MIN_MS               1u
+#define GPIO_PROBE_PULSE_MAX_MS               500u
+#define GPIO_PROBE_DRIVEN_LOW_PULSE_MAX_MS    50u
+#define GPIO_PROBE_RATE_CEILING_HZ            20000u
+#define GPIO_PROBE_ARM_TIMEOUT_MS             30000u
+#define GPIO_PROBE_PULL_PHASE_MS              25u
+#define GPIO_PROBE_WATCH_HEADER_SIZE          4u
+#define GPIO_PROBE_WATCH_RECORD_SIZE          16u
 
 #endif

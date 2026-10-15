@@ -331,8 +331,8 @@ static void pulse_poll(uint32_t now) {
     }
 }
 
-/* The pin follows a pull-up and a pull-down right now; leaves it in pull-down. */
-static gpio_probe_class_t verify_floating(hal_gpio_probe_id_t pin) {
+/* The class the pin shows under a pull-up and a pull-down right now; leaves it in pull-down. */
+static gpio_probe_class_t verify_class(hal_gpio_probe_id_t pin) {
     bool up_one = false, up_zero = false, down_one = false, down_zero = false;
 
     hal_gpio_probe_input(pin, HAL_GPIO_PULL_UP);
@@ -352,6 +352,28 @@ static gpio_probe_class_t verify_floating(hal_gpio_probe_id_t pin) {
         }
     }
     return classify(up_one, up_zero, down_one, down_zero);
+}
+
+static bool pulse_eligible(gpio_probe_class_t pin_class) {
+    return pin_class == GPIO_PROBE_CLASS_FLOATING || pin_class == GPIO_PROBE_CLASS_DRIVEN_LOW;
+}
+
+/*
+ * A driven-low pin is a transistor base behind a low resistor or a chip
+ * output such as BL0937 CF; it may only be lifted, briefly, so that a relay
+ * clicks while an output fights the pin for at most
+ * GPIO_PROBE_DRIVEN_LOW_PULSE_MAX_MS.
+ */
+static bool pulse_in_range(gpio_probe_class_t pin_class, uint8_t level,
+                           uint16_t duration_ms) {
+    if (duration_ms < GPIO_PROBE_PULSE_MIN_MS ||
+        duration_ms > GPIO_PROBE_PULSE_MAX_MS || level > 1) {
+        return false;
+    }
+    if (pin_class == GPIO_PROBE_CLASS_DRIVEN_LOW) {
+        return level == 1 && duration_ms <= GPIO_PROBE_DRIVEN_LOW_PULSE_MAX_MS;
+    }
+    return true;
 }
 
 static void disarm_if_expired(uint32_t now) {
@@ -534,7 +556,7 @@ gpio_probe_status_t gpio_probe_service_arm(hal_gpio_probe_id_t pin) {
     if (pulse_running || pull_running || is_watched(pin)) {
         return GPIO_PROBE_STATUS_BUSY;
     }
-    if (classes[position] != GPIO_PROBE_CLASS_FLOATING) {
+    if (!pulse_eligible((gpio_probe_class_t)classes[position])) {
         return GPIO_PROBE_STATUS_NOT_FLOATING;
     }
     armed     = true;
@@ -548,6 +570,7 @@ gpio_probe_status_t gpio_probe_service_pulse(hal_gpio_probe_id_t pin,
     int8_t             position = position_of(pin);
     uint32_t           now      = hal_millis();
     bool               was_armed;
+    gpio_probe_class_t pin_class;
     gpio_probe_class_t observed;
 
     if (!enabled) {
@@ -566,18 +589,18 @@ gpio_probe_status_t gpio_probe_service_pulse(hal_gpio_probe_id_t pin,
     if (!was_armed) {
         return GPIO_PROBE_STATUS_NOT_ARMED;
     }
-    if (duration_ms < GPIO_PROBE_PULSE_MIN_MS ||
-        duration_ms > GPIO_PROBE_PULSE_MAX_MS || level > 1) {
-        return GPIO_PROBE_STATUS_RANGE;
-    }
     if (pull_running || is_watched(pin)) {
         return GPIO_PROBE_STATUS_BUSY;
     }
-    if (classes[position] != GPIO_PROBE_CLASS_FLOATING) {
+    pin_class = (gpio_probe_class_t)classes[position];
+    if (!pulse_eligible(pin_class)) {
         return GPIO_PROBE_STATUS_NOT_FLOATING;
     }
-    observed = verify_floating(pin);
-    if (observed != GPIO_PROBE_CLASS_FLOATING) {
+    if (!pulse_in_range(pin_class, level, duration_ms)) {
+        return GPIO_PROBE_STATUS_RANGE;
+    }
+    observed = verify_class(pin);
+    if (observed != pin_class) {
         classes[position] = (uint8_t)observed;
         release(pin);
         return GPIO_PROBE_STATUS_VERIFY_FAILED;

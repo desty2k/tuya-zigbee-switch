@@ -249,6 +249,7 @@ void hal_gpio_probe_input(hal_gpio_probe_id_t id, hal_gpio_pull_t pull) {
         return;
     }
     pins[index].output_enabled = 0;
+    pins[index].output_level   = 0;
     pins[index].pull           = pull;
     update_pin((uint8_t)index);
 }
