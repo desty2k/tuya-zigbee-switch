@@ -183,11 +183,11 @@ defined in `helper_scripts/management_protocol.json`):
 
 | Step | Effect |
 | --- | --- |
-| Boot | No probeable pin is touched; nothing is persisted |
+| Boot | Every probeable pin becomes an input with the 100 kΩ pull-down (the rest state), so no relay driver input floats and half-energises its coil on mains hum; nothing is persisted. The recovery graph rests every pin the same way |
 | Snapshot | Reads every probeable pin without changing its mode |
-| Pull test | Pull-up (10 kΩ), pull-down (100 kΩ), twice, 25 ms each; classifies each pin *floating*, *driven high*, *driven low* or *active*; ends with no pull. A relay driven through a transistor with a base resistor of about 20 kΩ or more classifies *floating* and may click during the pull-up phases; one with a low base resistor (a few kΩ) reads *driven low* |
+| Pull test | Pull-up (10 kΩ), pull-down (100 kΩ), twice, 25 ms each; classifies each pin *floating*, *driven high*, *driven low* or *active*; ends in the rest state. A relay driven through a transistor with a base resistor of about 20 kΩ or more classifies *floating* and may click during the pull-up phases; one with a low base resistor (a few kΩ) reads *driven low* |
 | Watch | Counts rising edges on up to 2 pins for 1–300 s: count, min/max interval, last level; a pin above 20 kHz is stopped and flagged |
-| Arm + pulse | Drives one *floating* pin to a level for 1–500 ms, or one *driven low* pin to level 1 for 1–50 ms, then input without pull and output latch 0. *Driven high* and *active* pins are never driven. A *driven low* pin may be a low-resistance transistor base or a chip output such as BL0937 `CF`, so it is only lifted briefly. Needs an arm before each pulse; the pin must show its class again under both pulls right before it is driven. The cutoff runs on the main loop (a task, re-checked every pass), not in an interrupt; if the main loop stalls, the 1 s watchdog reset is the backstop, so a pulse can last up to about 1 s |
+| Arm + pulse | Drives one *floating* pin to a level for 1–500 ms, or one *driven low* pin to level 1 for 1–50 ms, then the rest state with output latch 0. *Driven high* and *active* pins are never driven. A *driven low* pin may be a low-resistance transistor base or a chip output such as BL0937 `CF`, so it is only lifted briefly. Needs an arm before each pulse; the pin must show its class again under both pulls right before it is driven. The cutoff runs on the main loop (a task, re-checked every pass), not in an interrupt; if the main loop stalls, the 1 s watchdog reset is the backstop, so a pulse can last up to about 1 s |
 | Stop | Ends every operation, returns its pins to input without pull |
 
 Pins needed by the platform (TLSR8258 SWS `PA7`, flash `PE0`–`PE3`, debug UART
