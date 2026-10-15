@@ -2,8 +2,10 @@
 #define _HAL_GPIO_PIN_TEXT_H_
 
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdint.h>
+
+/* No <stddef.h>: the Telink SDK defines its own size_t and the toolchain
+ * header conflicts with it. */
 
 /*
  * Splits a pin name of the form "<port letter><index>" ("C2", "B7") into a
@@ -20,7 +22,7 @@ static inline bool hal_gpio_pin_text_split(const char *s, uint8_t *port,
                                            uint8_t *index) {
     uint8_t value;
 
-    if (s == NULL || (uint8_t)(s[0] - 'A') > 'Z' - 'A' ||
+    if (!s || (uint8_t)(s[0] - 'A') > 'Z' - 'A' ||
         hal_gpio_pin_text_digit(s[1]) > 9) {
         return false;
     }
