@@ -6,6 +6,8 @@ _Open the **Outline** (table of contents) from the top right._
 
 Please describe what you are working on, under ## Upcoming
 
+- A switch whose relay index points at a relay endpoint drives that endpoint's relay when a cover is defined before the relays in the device config; it drove the cover's open relay.
+
 ------------------------------------------------------->
 
 ## Upcoming

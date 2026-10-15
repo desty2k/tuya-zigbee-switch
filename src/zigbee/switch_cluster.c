@@ -2,9 +2,11 @@
 #include "base_components/button_dispatcher.h"
 #include "base_components/action_mapper.h"
 #include "cluster_common.h"
+#include "relay_cluster.h"
 #include "zcl_cluster_defs.h"
 #include "zcl_ids.h"
 #include "zcl_types.h"
+#include "device_config/build_features.h"
 #include "device_config/capability_state.h"
 #include "hal/nvm.h"
 
@@ -24,6 +26,9 @@ const uint16_t multistate_num_of_states  = 3;
 #define MULTISTATE_POSITION_OFF    4
 
 extern uint8_t relay_clusters_cnt;
+#if FEATURE_RELAY
+extern zigbee_relay_cluster relay_clusters[];
+#endif
 extern zigbee_switch_cluster switch_clusters[];
 extern uint8_t switch_clusters_cnt;
 
@@ -126,6 +131,21 @@ void update_switch_clusters() {
 
 static bool switch_cluster_has_valid_relay(const zigbee_switch_cluster *cluster) {
     return cluster->relay_index > 0 && cluster->relay_index <= relay_clusters_cnt;
+}
+
+/*
+ * relay_index is the 1-based relay endpoint index. Cover tokens also own
+ * relays, so the relay id comes from the relay endpoint. Callers check
+ * switch_cluster_has_valid_relay() first; without the relay feature
+ * relay_clusters_cnt is 0 and no relay is valid.
+ */
+static uint8_t switch_cluster_relay_id(const zigbee_switch_cluster *cluster) {
+#if FEATURE_RELAY
+    return relay_clusters[cluster->relay_index - 1].relay_id;
+#else
+    (void)cluster;
+    return 0;
+#endif
 }
 
 static void switch_cluster_flash_indicator(zigbee_switch_cluster *cluster) {
@@ -269,7 +289,7 @@ void switch_cluster_add_to_endpoint(zigbee_switch_cluster *cluster,
 static void switch_cluster_submit_relay(zigbee_switch_cluster *cluster,
                                         relay_request_type_t type,
                                         relay_request_source_t source) {
-    (void)action_mapper_relay_request(cluster->relay_index - 1, type, source);
+    (void)action_mapper_relay_request(switch_cluster_relay_id(cluster), type, source);
 }
 
 static void switch_cluster_relay_action_on(
@@ -340,7 +360,7 @@ void switch_cluster_binding_action_on(zigbee_switch_cluster *cluster) {
         if (!switch_cluster_has_valid_relay(cluster)) {
             cmd_id = ZCL_CMD_ONOFF_TOGGLE;
         } else {
-            bool relay_is_on = relay_ctrl_is_on(cluster->relay_index - 1);
+            bool relay_is_on = relay_ctrl_is_on(switch_cluster_relay_id(cluster));
             if (cluster->action ==
                 ZCL_ONOFF_CONFIGURATION_SWITCH_ACTION_TOGGLE_SMART_SYNC)
                 cmd_id = relay_is_on ? ZCL_CMD_ONOFF_ON : ZCL_CMD_ONOFF_OFF;
@@ -384,7 +404,7 @@ void switch_cluster_binding_action_off(zigbee_switch_cluster *cluster) {
         if (!switch_cluster_has_valid_relay(cluster)) {
             cmd_id = ZCL_CMD_ONOFF_TOGGLE;
         } else {
-            bool relay_is_on = relay_ctrl_is_on(cluster->relay_index - 1);
+            bool relay_is_on = relay_ctrl_is_on(switch_cluster_relay_id(cluster));
             if (cluster->action ==
                 ZCL_ONOFF_CONFIGURATION_SWITCH_ACTION_TOGGLE_SMART_SYNC)
                 cmd_id = relay_is_on ? ZCL_CMD_ONOFF_ON : ZCL_CMD_ONOFF_OFF;
