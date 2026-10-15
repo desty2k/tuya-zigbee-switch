@@ -39,6 +39,14 @@ void gesture_fsm_init(void);
 void gesture_fsm_add(uint8_t button_id, const gesture_config_t *config);
 void gesture_fsm_set_hold_ms(uint8_t button_id, uint16_t hold_ms);
 void gesture_fsm_set_multi_click_gap_ms(uint8_t button_id, uint16_t gap_ms);
+
+/**
+ * Restart a button's gesture state from its current input state after the
+ * input was re-seeded without events (polarity change). An active hold ends
+ * with HOLD_END; pending clicks are dropped; a button that now reads pressed
+ * is treated like a boot press, so its release is not a click.
+ */
+void gesture_fsm_resync(uint8_t button_id);
 bool gesture_fsm_hold_active(uint8_t button_id);
 void gesture_fsm_register_sink(gesture_sink_t sink, void *arg);
 uint32_t gesture_fsm_events_emitted(void);

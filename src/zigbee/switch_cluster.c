@@ -552,6 +552,7 @@ static void switch_cluster_on_write_attr(zigbee_switch_cluster *cluster,
         button_input_apply_switch_mode(
             cluster->button_id, cluster->mode ==
             ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_MOMENTARY_NC);
+        gesture_fsm_resync(cluster->button_id);
         synchronize_multistate_state(cluster);
     }
     if (attribute_id == ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_LONG_PRESS_DUR) {

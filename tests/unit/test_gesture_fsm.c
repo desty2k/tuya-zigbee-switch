@@ -180,6 +180,44 @@ TEST(hold_wins_at_exact_release_time) {
     ASSERT_EQ(GESTURE_HOLD_END, gesture_log[1].type);
 }
 
+TEST(resync_ends_hold_and_drops_stale_press) {
+    setup_gesture(800, 0);
+    poll_at(1000);
+    emit_up(1000);
+    emit_down(1100);
+    poll_at(1900);
+    ASSERT_EQ(1, gesture_count);
+    ASSERT_EQ(GESTURE_HOLD_START, gesture_log[0].type);
+
+    /* The pin still reads low; active-high polarity makes that released. */
+    fake_clock_set(2000);
+    button_input_set_active_high(0, true);
+    gesture_fsm_resync(0);
+    ASSERT_EQ(2, gesture_count);
+    ASSERT_EQ(GESTURE_HOLD_END, gesture_log[1].type);
+    ASSERT_EQ(900, gesture_log[1].duration_ms);
+    poll_at(5000);
+    ASSERT_EQ(2, gesture_count);
+}
+
+TEST(resync_to_pressed_suppresses_its_release) {
+    setup_gesture(800, 1);
+    emit_down(0);
+    emit_up(20);
+    fake_clock_set(100);
+    button_input_set_active_high(0, true);
+    gesture_fsm_resync(0);
+    poll_at(1000);
+    emit_up(1000);
+    poll_at(2000);
+    ASSERT_EQ(0, gesture_count);
+    emit_down(2100);
+    emit_up(2120);
+    poll_at(2500);
+    ASSERT_EQ(1, gesture_count);
+    ASSERT_EQ(GESTURE_N_CLICK, gesture_log[0].type);
+}
+
 int main(void) {
     RUN_TEST(single_click);
     RUN_TEST(double_click);
@@ -191,5 +229,7 @@ int main(void) {
     RUN_TEST(zero_hold_disables_hold);
     RUN_TEST(boot_press_release_is_suppressed);
     RUN_TEST(hold_wins_at_exact_release_time);
+    RUN_TEST(resync_ends_hold_and_drops_stale_press);
+    RUN_TEST(resync_to_pressed_suppresses_its_release);
     return test_runner_failures == 0 ? 0 : 1;
 }
