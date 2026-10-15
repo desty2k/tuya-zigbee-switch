@@ -48,13 +48,14 @@ TEST(feature_tokens_parse_only_when_the_feature_is_compiled) {
     ASSERT_FEATURE_TOKEN("M;T;XA0A1u;", FEATURE_COVER);
     ASSERT_FEATURE_TOKEN("M;T;BTA5;", FEATURE_BATTERY);
     ASSERT_FEATURE_TOKEN("M;T;EBC2C3D2;", FEATURE_METER);
+    ASSERT_FEATURE_TOKEN("M;T;K0:25;", FEATURE_INTERLOCK);
 }
 
 TEST(core_tokens_parse_in_every_build) {
     device_composition_t composition;
 
     ASSERT_EQ(CONFIG_PARSE_OK,
-              parse("M;T;SLP;D12;G400;K0:25;BA0u;LC2i;ID3;i43627;M;",
+              parse("M;T;SLP;D12;G400;BA0u;LC2i;ID3;i43627;M;",
                     &composition));
     ASSERT_EQ(1, composition.button_count);
     ASSERT_EQ(2, composition.indicator_count);

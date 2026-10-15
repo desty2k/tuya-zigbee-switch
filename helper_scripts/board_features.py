@@ -2,7 +2,9 @@
 """Per-board firmware features from device_db.yaml.
 
 A board's features are its explicit `features` list, or, when the field is
-absent, the features its config tokens need. The token classification mirrors
+absent, the features its config tokens need. `interlock` is added to every
+board that can use it: one with a cover, the probe, or a config string with a
+`K` token or more than one relay, so `K` can be added by rewriting the config. The token classification mirrors
 src/device_config/config_parser.c: a token belongs to a feature when the code
 it instantiates is compiled only with that feature (src/features.mk).
 
@@ -43,8 +45,10 @@ def token_feature(token):
     """Return (known, feature) for one pinout token; feature None is core."""
     if token == "SLP" or token == "M":
         return True, None
-    if token[:1] in ("D", "G", "i", "K"):
+    if token[:1] in ("D", "G", "i"):
         return True, None
+    if token[:1] == "K":
+        return True, "interlock"
     if token.startswith("BT"):
         return True, "battery"
     if token[:1] in ("B", "L", "I"):
@@ -81,16 +85,29 @@ def derived_features(board):
     return features
 
 
+def needs_interlock(board, features):
+    if features & {"cover", "probe"}:
+        return True
+    for text in config_strings(board):
+        tokens = config_tokens(text)
+        relays = sum(1 for token in tokens if token[:1] == "R")
+        if relays > 1 or any(token[:1] == "K" for token in tokens):
+            return True
+    return False
+
+
 def board_features(board, order):
     explicit = board.get("features")
     features = set(explicit) if explicit is not None else derived_features(board)
+    if needs_interlock(board, features):
+        features.add("interlock")
     return [feature for feature in order if feature in features]
 
 
 # Features a probe image may carry next to `probe`: enough to test discovered
 # buttons and relays from a config string written over Zigbee. Motor relays of
 # a cover device are tested as plain relays in a `K` interlock group.
-PROBE_COMPANION_FEATURES = {"relay", "switch"}
+PROBE_COMPANION_FEATURES = {"relay", "switch", "interlock"}
 
 
 def check_probe_board(name, board, features):

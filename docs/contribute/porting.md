@@ -117,7 +117,7 @@ Additional options:
 
 When a device cannot be opened, its pins are found with the GPIO probe image
 running on the device itself. A probe board in `device_db.yaml` has `probe` in
-its `features`, optionally with `relay` and `switch` (no other feature), its
+its `features`, optionally with `relay` and `switch` (no other feature; `interlock` is added for it), its
 own `firmware_image_type`, and the stock `stock_manufacturer_id` /
 `stock_image_type` read from that exact device. Its config string holds the
 manufacturer and model fields and the pins found so far; every pin the config

@@ -75,7 +75,7 @@ def test_probe_board_is_a_unique_telink_probe_image_with_relay_and_switch() -> N
     db = yaml.safe_load((ROOT / "device_db.yaml").read_text())
     board = db[PROBE_BOARD]
     order = board_features.known_features()
-    assert board_features.board_features(board, order) == ["relay", "switch", "probe"]
+    assert board_features.board_features(board, order) == ["relay", "switch", "probe", "interlock"]
     assert board_features.check_board(PROBE_BOARD, board, order) == ([], [])
     assert (board["stock_manufacturer_id"], board["stock_image_type"]) == (4417, 54179)
     assert board["build"] in (False, "no")
@@ -105,6 +105,20 @@ def test_probe_board_variants_are_accepted(change: dict) -> None:
     db = yaml.safe_load((ROOT / "device_db.yaml").read_text())
     board = {**db[PROBE_BOARD], **change}
     assert board_features.check_board(PROBE_BOARD, board, board_features.known_features()) == ([], [])
+
+
+@pytest.mark.parametrize("board, interlock", [
+    ({"config_str": "m;t;SA0u;RA1;"}, False),
+    ({"config_str": "m;t;SA0u;RA1;", "features": ["relay", "switch", "meter"]}, False),
+    ({"config_str": "m;t;RA0;RA1;", "features": ["relay"]}, True),
+    ({"config_str": "m;t;RA0;", "alt_config_str": ["m;t;RA0;RA1;"]}, True),
+    ({"config_str": "m;t;RA0;K01;"}, True),
+    ({"config_str": "m;t;CA0A1;"}, True),
+])
+def test_interlock_is_added_to_boards_that_can_use_it(board: dict, interlock: bool) -> None:
+    order = board_features.known_features()
+    assert ("interlock" in board_features.board_features(board, order)) == interlock
+    assert board_features.check_board("BOARD", board, order)[0] == []
 
 
 def test_discovery_helper_decodes_probe_attributes_and_proposes_a_config() -> None:

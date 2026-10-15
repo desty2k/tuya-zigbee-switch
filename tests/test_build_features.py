@@ -1,7 +1,7 @@
 """Config tokens for features a firmware image does not contain.
 
 `stub_switch_only` is built with FEATURES="relay switch", the feature set of
-the BSEED wall switches; `stub_device` contains every feature.
+a single-relay board; `stub_device` contains every feature.
 """
 
 import pytest
@@ -17,6 +17,7 @@ from management_protocol_consts import (
 from zcl_consts import (
     ZCL_ATTR_BASIC_MODEL_ID,
     ZCL_ATTR_ONOFF,
+    ZCL_ATTR_ONOFF_INTERLOCK_GROUP,
     ZCL_CLUSTER_BASIC,
     ZCL_CLUSTER_ON_OFF,
 )
@@ -38,6 +39,7 @@ EXCLUDED_FEATURE_CONFIGS = [
     "M;CoverSwitch;XA0A1u;RB0;",
     "M;Battery;BTA5;SA0u;",
     "M;LateCover;SA0u;RB2;CB0B1;",
+    "M;Interlock;SA0u;RB2;RB3;K03;",
 ]
 
 
@@ -59,6 +61,26 @@ def test_switch_only_image_runs_the_ts0726_4gang_config() -> None:
         device.step_time(10)
         assert device.read_zigbee_attr(8, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF) == "1"
         assert device.get_gpio("C3", refresh=True) is True
+
+
+def test_image_without_interlock_keeps_relays_ungrouped() -> None:
+    with StubProc(cmd=SWITCH_ONLY_CMD, device_config="M;Relay;SA0u;RB0;") as proc:
+        device = Device(proc)
+        # The relay follows the switch endpoint.
+        assert device.read_zigbee_attr(
+            2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF_INTERLOCK_GROUP
+        ) == "0"
+        assert not proc.exec(
+            f"zcl_write 2 0x{ZCL_CLUSTER_ON_OFF:04X} "
+            f"0x{ZCL_ATTR_ONOFF_INTERLOCK_GROUP:04X} 1"
+        ).ok
+        assert proc.exec(
+            f"zcl_write 2 0x{ZCL_CLUSTER_ON_OFF:04X} "
+            f"0x{ZCL_ATTR_ONOFF_INTERLOCK_GROUP:04X} 0"
+        ).ok
+        device.zcl_relay_on(2)
+        device.step_time(10)
+        assert device.zcl_relay_get(2) == "1"
 
 
 @pytest.mark.parametrize("config", EXCLUDED_FEATURE_CONFIGS)

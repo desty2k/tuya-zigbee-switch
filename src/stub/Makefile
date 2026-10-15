@@ -7,11 +7,11 @@ BINARY             := $(BUILD_DIR)/stub_device
 CONFIG ?= X;Y;BA0u;LA1;SA2u;RA3;IA4;
 
 # The default stub contains every feature but the probe; build_switch_only
-# builds the relay + switch image of a wall switch board and build_probe the
-# image of a GPIO probe board (probe + relay + switch).
+# builds the relay + switch image of a single-relay board, without interlock,
+# and build_probe the image of a GPIO probe board.
 include ../features.mk
 SWITCH_ONLY_FEATURES := relay switch
-PROBE_FEATURES := probe relay switch
+PROBE_FEATURES := probe relay switch interlock
 
 NVM_MIGRATIONS_VERSION := $(shell cat ../../NVM_MIGRATIONS_VERSION)
 ifeq ($(NVM_MIGRATIONS_VERSION),)
@@ -67,7 +67,6 @@ SOURCES := \
 	$(SRC_DIR)/base_components/indicator_feedback.c \
 	$(SRC_DIR)/base_components/relay_driver.c \
 	$(SRC_DIR)/base_components/relay_controller.c \
-	$(SRC_DIR)/base_components/interlock.c \
 	$(SRC_DIR)/base_components/gpio_edge_queue.c \
 	$(SRC_DIR)/base_components/timer_service.c \
 	$(SRC_DIR)/base_components/button_dispatcher.c \
