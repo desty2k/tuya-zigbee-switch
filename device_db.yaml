@@ -3187,7 +3187,7 @@ COVER_BSEED_TS130F_VSJ5O7DM:
   tuya_module: null
   mcu_family: Telink
   mcu: TLSR8258
-  config_str: vsj5o7dm;TS130F-BS-CVR;LB4;XB6A1u;CD3C0;M;
+  config_str: vsj5o7dm;TS130F-BS-CVR;LB4;XB6A1A0u;CD3C0;IC3;IB5;M;
   alt_config_str: null
   old_manufacturer_names: null
   old_zb_models: null
@@ -3196,7 +3196,7 @@ COVER_BSEED_TS130F_VSJ5O7DM:
   firmware_image_type: 47119
   build: yes
   status: in_progress
-  info: Pins found with COVER_BSEED_TS130F_PROBE; the status LED slot drives the backlight (B4, high = on); stop button A0, direction LEDs C3/B5 and red LED D2 not wired yet
+  info: Pins found with COVER_BSEED_TS130F_PROBE; the status LED slot drives the backlight (B4, high = on); red LED D2 unused
   threads: null
   store: null
 OUTLET_BSEED_TS011F_PM_DRZLXJNE:
