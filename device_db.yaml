@@ -3172,6 +3172,33 @@ COVER_BSEED_TS130F_PROBE:
   info: GPIO probe image with the relay and switch features; buttons up B6, stop A0, down A1; relays up D3, down C0 (interlocked, 500 ms); LEDs up C3, down B5, status D2; built on demand (docs/contribute/porting.md)
   threads: null
   store: null
+COVER_BSEED_TS130F_VSJ5O7DM:
+  human_name: BSEED shutter switch (vsj5o7dm)
+  category: cover
+  power: mains
+  neutral: required
+  output: relay
+  device_type: router
+  stock_model_name: TS130F
+  stock_manufacturer_name: _TZ3000_vsj5o7dm
+  stock_converter_manufacturer: Tuya
+  stock_converter_model: TS130F
+  override_z2m_device: null
+  tuya_module: null
+  mcu_family: Telink
+  mcu: TLSR8258
+  config_str: vsj5o7dm;TS130F-BS-CVR;LB4;XB6A1u;CD3C0;M;
+  alt_config_str: null
+  old_manufacturer_names: null
+  old_zb_models: null
+  stock_manufacturer_id: 4417
+  stock_image_type: 54179
+  firmware_image_type: 47119
+  build: yes
+  status: in_progress
+  info: Pins found with COVER_BSEED_TS130F_PROBE; the status LED slot drives the backlight (B4, high = on); stop button A0, direction LEDs C3/B5 and red LED D2 not wired yet
+  threads: null
+  store: null
 OUTLET_BSEED_TS011F_PM_DRZLXJNE:
   human_name: BSEED PM outlet (drzlxjne)
   category: outlet
