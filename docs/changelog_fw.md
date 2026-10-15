@@ -10,6 +10,14 @@ Please describe what you are working on, under ## Upcoming
 
 ## Upcoming
 
+## v2.0.0-rc.1
+
+First release of the BSEED-focused fork as its own product line. It does not
+keep the settings of upstream or 1.x firmware: updating from them resets the
+device's settings, while network membership, binds and groups survive.
+Settings survive updates between 2.x releases. OTA file versions follow
+`docs/contribute/release.md`, so every 2.x build is newer than any 1.x build.
+
 ### Devices
 
 - **Hommyn 2-gang L-only relay module** (`_TZ3000_0e6uvexf`, `MODULE_HOMMYN_TS0012`)

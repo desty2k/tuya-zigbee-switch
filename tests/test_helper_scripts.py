@@ -179,3 +179,50 @@ def test_discovery_helper_reads_one_attribute_per_request() -> None:
     for name in ("status", "pins", "classes", "levels", "watch"):
         assert probe.read(name) == values[name]
     assert requests and all(len(attributes) == 1 for attributes in requests)
+
+
+import firmware_version  # noqa: E402
+
+
+@pytest.mark.parametrize(
+    "text, build, expected",
+    [
+        ("2.0.0-rc.1", 0, 0x20000100),
+        ("2.0.0-rc.1", 3, 0x20000103),
+        ("2.0.0-rc.2", 0, 0x20000200),
+        ("2.0.0", 0, 0x2000FF00),
+        ("2.0.1-rc.1", 0, 0x20010100),
+        ("2.1.0", 0, 0x2100FF00),
+    ],
+)
+def test_file_version_encoding(text, build, expected):
+    assert firmware_version.file_version(firmware_version.parse(text), build) == expected
+
+
+def test_file_versions_order_releases_candidates_and_development_builds():
+    order = [("1.1.2", 0), ("2.0.0-rc.1", 0), ("2.0.0-rc.1", 7), ("2.0.0-rc.2", 0), ("2.0.0", 0), ("2.0.0", 1), ("2.0.1-rc.1", 0)]
+    values = [firmware_version.file_version(firmware_version.parse(t), b) for t, b in order]
+    assert values == sorted(values) and len(set(values)) == len(values)
+    # Every 2.x build is newer than the fork's 1.1.2 builds (0x1102_30xx).
+    assert values[1] > 0x110230FF
+
+
+@pytest.mark.parametrize("text", ["2.0", "2.0.0-rc", "2.0.0-rc.0", "2.0.0-rc.255", "10.0.0", "2.10.0", "2.0.256", "2.0.0-beta.1", "v2.0.0"])
+def test_invalid_versions_are_rejected(text):
+    with pytest.raises(ValueError):
+        firmware_version.parse(text)
+
+
+@pytest.mark.parametrize("build", [-1, 256])
+def test_build_number_out_of_range_is_rejected(build):
+    with pytest.raises(ValueError):
+        firmware_version.file_version(firmware_version.parse("2.0.0"), build)
+
+
+def test_version_string_fits_the_basic_sw_build_id():
+    assert firmware_version.version_str("2.0.0-rc.1\n", "56fa5bb4") == "2.0.0-rc.1-56fa5"
+    assert firmware_version.version_str("2.0.0", "") == "2.0.0"
+
+
+def test_repository_version_file_is_valid():
+    firmware_version.parse((ROOT / "VERSION").read_text())

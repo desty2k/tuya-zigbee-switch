@@ -23,31 +23,18 @@ help:
 	@echo "  BOARD=MOES_3_GANG_SWITCH DEVICE_TYPE=router make build"
 	@echo ""
 
-# Parse version from VERSION file
-VERSION_FILE_CONTENT := $(shell cat VERSION 2>/dev/null || echo "1.0.0")
-
-# Split semantic version
-VERSION_PARTS := $(subst ., ,$(VERSION_FILE_CONTENT))
-VERSION_MAJOR := $(word 1,$(VERSION_PARTS))
-VERSION_MINOR := $(word 2,$(VERSION_PARTS))
-VERSION_PATCH := $(word 3,$(VERSION_PARTS))
-
-# Get git info
-GIT_HASH   := $(shell git rev-parse --short HEAD 2>/dev/null || echo "")
-
-# Limites to 16 characters
-VERSION_STR := $(shell echo "$(VERSION_FILE_CONTENT)-$(GIT_HASH)" | cut -c1-16)
-
-# Zigbee file version 4 bytes are:
-# APP_RELEASE, APP_BUILD, STACK_RELEASE, STACK_BUILD
-# We encode MAJOR.MINOR -> APP_RELEASE (in BCD format)
-# PATCH -> APP_BUILD
-# and STACK_RELEASE fixed to 0x30,
-# STACK_BUILD is depth from main branch, to allow easy updating during feature development
-STACK_BUILD := $(shell git rev-list --count origin/main..HEAD 2>/dev/null || echo "0")
-VERSION_PATCH_HEX := $(shell printf "%02d" $(VERSION_PATCH))
-STACK_BUILD_HEX := $(shell printf "%02X" $(STACK_BUILD))
-FILE_VERSION = 0x$(VERSION_MAJOR)$(VERSION_MINOR)$(VERSION_PATCH_HEX)30$(STACK_BUILD_HEX)
+# Version string and OTA file version from the VERSION file
+# (helper_scripts/firmware_version.py documents the encoding). BUILD_NUMBER
+# 1-255 orders development builds between two published ones; published builds
+# use 0.
+BUILD_NUMBER ?= 0
+GIT_HASH := $(shell git rev-parse --short HEAD 2>/dev/null || echo "")
+FIRMWARE_VERSION_CMD := python3 helper_scripts/firmware_version.py --version-file VERSION --build $(BUILD_NUMBER) --git-hash "$(GIT_HASH)"
+VERSION_STR := $(shell $(FIRMWARE_VERSION_CMD) version-str)
+FILE_VERSION := $(shell $(FIRMWARE_VERSION_CMD) file-version)
+ifeq ($(FILE_VERSION),)
+$(error VERSION or BUILD_NUMBER is invalid: $(shell $(FIRMWARE_VERSION_CMD) file-version 2>&1))
+endif
 
 NVM_MIGRATIONS_VERSION := $(shell cat NVM_MIGRATIONS_VERSION)
 ifeq ($(NVM_MIGRATIONS_VERSION),)
