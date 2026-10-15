@@ -15,7 +15,8 @@
 /*
  * A pin is a port letter followed by a decimal index of 0..15 ("C2"); the
  * characters after it belong to the token (pull suffix, second pin). The HAL
- * converts the name to its platform pin id and rejects pins the chip lacks.
+ * converts the name to its platform pin id and rejects indices above 15 and
+ * pins the chip lacks.
  */
 static bool parse_pin(const char *text, const char **end, hal_gpio_pin_t *pin) {
     char           name[4];
@@ -35,9 +36,6 @@ static bool parse_pin(const char *text, const char **end, hal_gpio_pin_t *pin) {
         length++;
     }
     name[length] = '\0';
-    if (length == 3 && (name[1] - '0') * 10 + (name[2] - '0') > 15) {
-        return false;
-    }
     parsed = hal_gpio_parse_pin(name);
     if (parsed == HAL_INVALID_PIN) {
         return false;
