@@ -10962,7 +10962,15 @@ const definitions = [
             }),
             romasku.buttonEvents(["switch", ]),
             // Voltage, current, power and energy of the whole device (endpoint 1).
-            electricityMeter(),
+            // Every reading is refreshed at least every 5 minutes. Forced
+            // `change` values are raw wire units: current in mA, power in W.
+            // 20 mA stays above the BL0937 reading noise (about 10 mA).
+            electricityMeter({
+                voltage: {max: "5_MINUTES"},
+                current: {max: "5_MINUTES", change: 20},
+                power: {max: "5_MINUTES", change: 2},
+                energy: {max: "5_MINUTES"},
+            }),
             ...romasku.meterCalibration(),
             deviceEndpoints({ endpoints: {"switch": 1, "relay": 2, } }),
             ...romasku.managementClusters(),
