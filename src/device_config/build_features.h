@@ -12,7 +12,8 @@
 
 #if !defined(FEATURE_RELAY) || !defined(FEATURE_SWITCH) ||  \
     !defined(FEATURE_COVER) || !defined(FEATURE_BATTERY) || \
-    !defined(FEATURE_METER) || !defined(FEATURE_PROBE)
+    !defined(FEATURE_METER) || !defined(FEATURE_PROBE) ||   \
+    !defined(FEATURE_INTERLOCK)
 #error "FEATURE_* must be set by the build (src/features.mk)"
 #endif
 

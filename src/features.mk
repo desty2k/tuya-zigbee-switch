@@ -6,18 +6,28 @@
 # config parser rejects its tokens with CONFIG_PARSE_FEATURE_MISSING.
 # Keep ALL_FEATURES in step with the `features` enum in device_db.schema.json.
 #
+# `interlock` is relay interlock: `K` groups and the relay pair of each cover.
+# helper_scripts/board_features.py adds it to every board that can use it.
+#
 # `probe` is the GPIO probe image for discovering the pins of a device that
 # cannot be opened (docs/contribute/porting.md). It is Telink-only, never in
 # DEFAULT_FEATURES, and the platform makefiles add its HAL source.
 
-ALL_FEATURES := relay switch cover battery meter probe
-DEFAULT_FEATURES := relay switch cover battery meter
+ALL_FEATURES := relay switch cover battery meter probe interlock
+DEFAULT_FEATURES := relay switch cover battery meter interlock
 FEATURES ?= $(DEFAULT_FEATURES)
 
 # The meter counters and the probe use the same TLSR8258 GPIO-to-RISC sources.
 ifneq ($(filter meter,$(FEATURES)),)
 ifneq ($(filter probe,$(FEATURES)),)
 $(error Features meter and probe cannot share an image)
+endif
+endif
+
+# Cover motor relays are always interlocked.
+ifneq ($(filter cover,$(FEATURES)),)
+ifeq ($(filter interlock,$(FEATURES)),)
+$(error Feature cover needs feature interlock)
 endif
 endif
 
@@ -39,6 +49,7 @@ FEATURE_SOURCES_meter := \
 	zigbee/electrical_measurement_cluster.c \
 	zigbee/metering_cluster.c \
 	zigbee/meter_calibration_cluster.c
+FEATURE_SOURCES_interlock := base_components/interlock.c
 FEATURE_SOURCES_probe := base_components/gpio_probe_service.c zigbee/gpio_probe_cluster.c
 
 FEATURE_SOURCES := $(foreach feature,$(FEATURES),$(FEATURE_SOURCES_$(feature)))
@@ -52,6 +63,7 @@ feature_defines_for = \
 	FEATURE_COVER=$(if $(filter cover,$(1)),1,0) \
 	FEATURE_BATTERY=$(if $(filter battery,$(1)),1,0) \
 	FEATURE_METER=$(if $(filter meter,$(1)),1,0) \
-	FEATURE_PROBE=$(if $(filter probe,$(1)),1,0)
+	FEATURE_PROBE=$(if $(filter probe,$(1)),1,0) \
+	FEATURE_INTERLOCK=$(if $(filter interlock,$(1)),1,0)
 
 FEATURE_DEFINES := $(call feature_defines_for,$(FEATURES))

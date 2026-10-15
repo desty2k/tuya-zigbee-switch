@@ -171,7 +171,6 @@ COMMON_SOURCES := \
 	$(SRC_DIR)/base_components/network_indicator.c \
 	$(SRC_DIR)/base_components/relay_driver.c \
 	$(SRC_DIR)/base_components/relay_controller.c \
-	$(SRC_DIR)/base_components/interlock.c \
 	$(SRC_DIR)/device_config/config_nv.c \
 	$(SRC_DIR)/device_config/device_config_service.c \
 	$(SRC_DIR)/device_config/reset.c \

@@ -190,6 +190,9 @@ static bool token_feature_compiled(const char *token) {
     case 'E':
         return FEATURE_METER;
 
+    case 'K':
+        return FEATURE_INTERLOCK;
+
     default:
         return true;
     }

@@ -264,7 +264,7 @@ $(UNIT_PARSER_SWITCH_ONLY_TEST): $(UNIT_PARSER_FEATURE_SOURCES) | $(UNIT_BUILD_D
 	$(CC) $(UNIT_BASE_CFLAGS) $(call unit_feature_defines,relay switch) $^ -o $@
 
 $(UNIT_PARSER_COVER_BATTERY_TEST): $(UNIT_PARSER_FEATURE_SOURCES) | $(UNIT_BUILD_DIR)
-	$(CC) $(UNIT_BASE_CFLAGS) $(call unit_feature_defines,cover battery) $^ -o $@
+	$(CC) $(UNIT_BASE_CFLAGS) $(call unit_feature_defines,cover battery interlock) $^ -o $@
 
 unit_tests: $(UNIT_QUEUE_TEST) $(UNIT_TIMER_TEST) $(UNIT_BUTTON_TEST) \
 		$(UNIT_DEBOUNCE_FUZZ) $(UNIT_GESTURE_TEST) $(UNIT_RELAY_TEST) \

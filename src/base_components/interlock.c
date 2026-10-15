@@ -4,6 +4,10 @@
 #include "hal/timer.h"
 #include <stddef.h>
 
+/* The Silabs project lists every source; without the feature interlock.h
+ * supplies the ungrouped behaviour inline. */
+#if FEATURE_INTERLOCK
+
 static interlock_group_t interlock_groups[INTERLOCK_MAX_GROUPS];
 static uint8_t           interlock_group_count;
 static uint8_t           interlock_relay_groups[RELAY_CONTROLLER_MAX_RELAYS];
@@ -193,3 +197,5 @@ void interlock_note_off(uint8_t relay_id) {
         group->has_last_off = true;
     }
 }
+
+#endif
