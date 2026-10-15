@@ -28,11 +28,10 @@ static bool gesture_held(const child_lock_gesture_t *gesture) {
             button_input_is_down(gesture->second));
 }
 
+/* track_gestures cancels the timer on any release of the armed gesture, so
+ * the gesture is still held here. */
 static void hold_elapsed(void *arg) {
     (void)arg;
-    if (armed_gesture >= gesture_count || !gesture_held(&gestures[armed_gesture])) {
-        return;
-    }
     locked = !locked;
     indicator_feedback_request_blinks(indicator, locked ? CHILD_LOCK_BLINKS_LOCK :
                                       CHILD_LOCK_BLINKS_UNLOCK);

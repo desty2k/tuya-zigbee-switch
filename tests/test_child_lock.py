@@ -20,6 +20,8 @@ from zcl_consts import (
     ZCL_CLUSTER_ON_OFF,
     ZCL_CLUSTER_WINDOW_COVERING,
     ZCL_CMD_ONOFF_TOGGLE,
+    ZCL_COVER_SWITCH_MODE_IMMEDIATE,
+    ZCL_ONOFF_CONFIGURATION_RELAY_MODE_RISE,
     ZCL_WINDOW_COVERING_MOVING_CLOSING,
     ZCL_WINDOW_COVERING_MOVING_OPENING,
     ZCL_WINDOW_COVERING_MOVING_STOPPED,
@@ -163,6 +165,19 @@ def test_cover_locked_buttons_do_nothing_and_blink_once(shutter: Device):
     assert moving(shutter) == ZCL_WINDOW_COVERING_MOVING_STOPPED
     assert (led(shutter, "D3"), led(shutter, "C0")) == (0, 0)
     assert bound_commands(shutter) == []
+
+
+def test_cover_locked_press_does_not_act_in_immediate_mode(shutter: Device):
+    shutter.zcl_cover_switch_set_local_mode(SHUTTER_SWITCH_EP, ZCL_COVER_SWITCH_MODE_IMMEDIATE)
+    shutter.zcl_cover_switch_set_binded_mode(SHUTTER_SWITCH_EP, ZCL_COVER_SWITCH_MODE_IMMEDIATE)
+    write_lock(shutter, 1)
+    shutter.clear_events()
+
+    shutter.press_button("B6")
+    shutter.step_time(MINIMUM_SWITCH_TIME_MS)
+    assert moving(shutter) == ZCL_WINDOW_COVERING_MOVING_STOPPED
+    assert bound_commands(shutter) == []
+    shutter.release_button("B6")
 
 
 def test_cover_unlocked_buttons_send_bound_commands(shutter: Device):
@@ -315,6 +330,16 @@ def test_locked_switch_buttons_do_nothing(two_gang: Device):
     assert relays(two_gang) == ("0", "0")
     assert bound_commands(two_gang) == []
     assert led_switched_on(two_gang, "C1") == 3
+
+
+def test_locked_switch_press_does_not_act_in_rise_mode(two_gang: Device):
+    two_gang.zcl_switch_relay_mode_set(1, ZCL_ONOFF_CONFIGURATION_RELAY_MODE_RISE)
+    write_lock(two_gang, 1)
+
+    two_gang.press_button("A0")
+    two_gang.step_time(MINIMUM_SWITCH_TIME_MS)
+    assert relays(two_gang) == ("0", "0")
+    two_gang.release_button("A0")
 
 
 def test_locked_switch_relays_follow_zigbee(two_gang: Device):
