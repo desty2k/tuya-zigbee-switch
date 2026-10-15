@@ -2,6 +2,13 @@
 
 #define GPIO_EDGE_QUEUE_MASK    (GPIO_EDGE_QUEUE_SIZE - 1)
 
+/*
+ * One producer (interrupt) and one consumer (main loop) on a single core:
+ * the item copy must not be reordered past the index that hands the slot
+ * over. Only the indexes are volatile, so a compiler barrier orders the two.
+ */
+#define GPIO_EDGE_QUEUE_BARRIER()    __asm__ volatile ("" ::: "memory")
+
 void gpio_edge_queue_init(gpio_edge_queue_t *queue) {
     queue->head    = 0;
     queue->tail    = 0;
@@ -18,6 +25,7 @@ bool gpio_edge_queue_push(gpio_edge_queue_t *queue,
     }
 
     queue->items[head & GPIO_EDGE_QUEUE_MASK] = *edge;
+    GPIO_EDGE_QUEUE_BARRIER();
     queue->head = (uint8_t)(head + 1);
     return true;
 }
@@ -28,8 +36,9 @@ bool gpio_edge_queue_pop(gpio_edge_queue_t *queue, hal_gpio_edge_t *out) {
     if (tail == queue->head) {
         return false;
     }
-
-    *out        = queue->items[tail & GPIO_EDGE_QUEUE_MASK];
+    GPIO_EDGE_QUEUE_BARRIER();
+    *out = queue->items[tail & GPIO_EDGE_QUEUE_MASK];
+    GPIO_EDGE_QUEUE_BARRIER();
     queue->tail = (uint8_t)(tail + 1);
     return true;
 }
