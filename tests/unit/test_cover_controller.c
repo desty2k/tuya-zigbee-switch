@@ -69,6 +69,7 @@ static void boot_controller(uint32_t safety_ms) {
     cover_controller_init();
     ASSERT_EQ(0, cover_controller_add(&(cover_controller_config_t){
         .open_relay_id = 0, .close_relay_id = 1, .manual_max_run_ms = safety_ms,
+        .nvm_item = NV_ITEM_COVER_STATE(0),
     }));
 }
 

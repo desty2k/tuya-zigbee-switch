@@ -1,7 +1,6 @@
 #include "meter_service.h"
 
 #include "base_components/timer_service.h"
-#include "device_config/nvm_items.h"
 #include "hal/nvm.h"
 #include "hal/timer.h"
 #include <limits.h>
@@ -141,10 +140,6 @@ static void scale_sample(meter_service_instance_t *service, meter_sample_t *samp
     }
 }
 
-static uint8_t nvm_item(uint8_t meter_id) {
-    return NV_ITEM_METER_STATE(meter_id);
-}
-
 static bool persist_record(const meter_service_instance_t *service,
                            const meter_calibration_t *runtime_calibration,
                            uint8_t runtime_calibration_active,
@@ -157,22 +152,20 @@ static bool persist_record(const meter_service_instance_t *service,
         .accumulated_energy_uwh = accumulated_energy_uwh,
         .energy_remainder_ppm   = energy_remainder_ppm,
     };
-    uint8_t meter_id = (uint8_t)(service - meter_services);
 
-    return hal_nvm_write(nvm_item(meter_id), sizeof(record),
+    return hal_nvm_write(service->config.nvm_item, sizeof(record),
                          (uint8_t *)&record) == HAL_NVM_SUCCESS;
 }
 
 static void restore_record(meter_service_instance_t *service) {
     meter_service_record_t record;
-    uint8_t meter_id = (uint8_t)(service - meter_services);
 
-    if (hal_nvm_read(nvm_item(meter_id), sizeof(record), (uint8_t *)&record) !=
+    if (hal_nvm_read(service->config.nvm_item, sizeof(record), (uint8_t *)&record) !=
         HAL_NVM_SUCCESS ||
         record.version != METER_SERVICE_RECORD_VERSION ||
         (record.runtime_calibration_active &&
          !calibration_is_valid(&record.calibration))) {
-        hal_nvm_delete(nvm_item(meter_id));
+        hal_nvm_delete(service->config.nvm_item);
         return;
     }
     service->snapshot.runtime_calibration_active =

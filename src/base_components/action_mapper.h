@@ -20,9 +20,12 @@ void action_mapper_set_sinks(const action_mapper_sinks_t *sinks);
 
 /**
  * Make a button factory-reset the device: on hold when hold_reset, otherwise
- * on a multi-click of at least g_multi_press_reset_count (0 disables).
+ * on a multi-click of at least the multi-press reset count.
  */
 bool action_mapper_add_reset_button(uint8_t button_id, bool hold_reset);
+
+/** Clicks that factory-reset a non-onboard button; 0 disables, default 10. */
+void action_mapper_set_multi_press_reset_count(uint8_t count);
 
 relay_result_t action_mapper_relay_request(uint8_t relay_id,
                                            relay_request_type_t type,

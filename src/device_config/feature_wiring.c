@@ -5,6 +5,7 @@
 #include "device_config/capability_state.h"
 #include "device_config/config_parser.h"
 #include "device_config/device_config_service.h"
+#include "device_config/nvm_items.h"
 #include "base_components/action_mapper.h"
 #include "base_components/battery.h"
 #include "base_components/button_input.h"
@@ -347,6 +348,7 @@ static feature_wiring_result_t wire_covers(const device_composition_t *c) {
             .open_relay_id     = c->covers[i].open_relay_id,
             .close_relay_id    = c->covers[i].close_relay_id,
             .manual_max_run_ms = COVER_DEFAULT_MANUAL_MAX_RUN_MS,
+            .nvm_item          = NV_ITEM_COVER_STATE(i),
         };
         if (!interlock_add_group(g, DEVICE_COMPOSITION_DEFAULT_DEAD_TIME_MS) ||
             !interlock_set_relay_group(c->covers[i].open_relay_id, g) ||

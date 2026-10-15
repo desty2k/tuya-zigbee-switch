@@ -46,6 +46,7 @@ typedef struct {
     uint16_t default_closed_deadzone_bp;
     uint16_t default_open_deadzone_bp;
     uint16_t default_overrun_ms;
+    uint8_t  nvm_item; /* NVM item holding this cover's state record */
 } cover_controller_config_t;
 
 typedef struct {

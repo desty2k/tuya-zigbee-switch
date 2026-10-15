@@ -6,7 +6,6 @@
 #include <stdint.h>
 
 uint8_t allow_simultaneous_latching_pulses;
-uint8_t g_multi_press_reset_count;
 
 static gesture_sink_t registered_gesture_sink;
 static uint8_t        factory_resets;
@@ -51,7 +50,7 @@ static void reset_mapper(void) {
     ASSERT_EQ(0, relay_ctrl_add(&persistent_driver, &config));
     factory_resets = 0;
     cover_calls = 0;
-    g_multi_press_reset_count = 10;
+    action_mapper_set_multi_press_reset_count(10);
     action_mapper_init();
     ASSERT_TRUE(registered_gesture_sink != NULL);
     action_mapper_set_sinks(&(action_mapper_sinks_t){ .cover = cover_sink });
@@ -88,7 +87,7 @@ TEST(other_buttons_reset_on_multi_press_threshold) {
     ASSERT_EQ(0, factory_resets);
     gesture(2, GESTURE_N_CLICK, 10);
     ASSERT_EQ(1, factory_resets);
-    g_multi_press_reset_count = 0;
+    action_mapper_set_multi_press_reset_count(0);
     gesture(2, GESTURE_N_CLICK, 10);
     ASSERT_EQ(1, factory_resets);
 }

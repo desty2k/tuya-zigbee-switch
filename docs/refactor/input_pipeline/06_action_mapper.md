@@ -20,7 +20,7 @@ trigger from `action_mapper_add_reset_button`:
 | Button | Reset trigger |
 | --- | --- |
 | onboard (`B`) | `HOLD_START` |
-| any other | `N_CLICK(count)` with `count >= g_multi_press_reset_count` (0 disables) |
+| any other | `N_CLICK(count)` with `count >=` the multi-press reset count |
 
 A matching gesture calls `hal_factory_reset()`. Delayed reboots use
 `schedule_reboot()` in `src/device_config/reset.c`.
@@ -148,27 +148,16 @@ the existing `local_mode` / `binded_mode` matrix (`IMMEDIATE`, `SHORT_PRESS`,
 `LONG_PRESS`, `HYBRID`). The long-press duration attribute writes `hold_ms` for
 both buttons of the endpoint.
 
-## Gesture mapping table
+## Gesture mapping
 
-`action_mapper` holds a static table built during wiring. Lookup key is
-`(button_id, gesture_type, count)`.
+`action_mapper` keeps one reset trigger per button, set during wiring (see
+[Action types](#action-types)). The multi-press reset count is Device Config
+attribute `0x0011` (default 10, `0` disables), handed over with
+`action_mapper_set_multi_press_reset_count()`. Every gesture is also published
+as a Zigbee button event by the button event cluster.
 
-| Key | Action |
-| --- | --- |
-| on-board button (`B` token), `HOLD_START`, `hold_ms = 2000` | `SYSTEM_ACTION_FACTORY_RESET` |
-| any switch button (`S` token) or cover switch button (`X` token), `N_CLICK(n)` with `reset_count != 0` and `n >= reset_count` | `SYSTEM_ACTION_FACTORY_RESET` |
-| any button, `HOLD_START` / `HOLD_END` / `N_CLICK(n)` | `ACTION_ZB_BUTTON_EVENT` |
-
-`reset_count` is the existing global `g_multi_press_reset_count`
-(Basic cluster attribute `0xff02`, default 10, `0` disables). The mapper never
-hardcodes "2 clicks = X"; every mapping is a table entry.
-
-Rules for the mapper:
-
-- It contains no timing logic; timing belongs to `gesture_fsm`.
-- It performs no hardware access; it submits `relay_request_t`, binding commands,
-  Zigbee events or system actions.
-- Unmapped gestures are still published as Zigbee events.
+The mapper contains no timing logic (timing belongs to `gesture_fsm`) and no
+pin access.
 
 ## Relation between immediate actions and N-click
 

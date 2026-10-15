@@ -16,4 +16,12 @@
 #define ZCL_CLUSTER_COVER_SWITCH_CONFIG       0xFC01u
 #define ZCL_CLUSTER_BUTTON_EVENT              0xFC02u
 
+/*
+ * The fork-private management clusters (ZCL_CLUSTER_DEVICE_CONFIG 0xFC10,
+ * ZCL_CLUSTER_DEVICE_DIAGNOSTICS 0xFC11), their attributes and the
+ * manufacturer code are generated from helper_scripts/management_protocol.json,
+ * which also generates the converter constants.
+ */
+#include "management_protocol.h"
+
 #endif

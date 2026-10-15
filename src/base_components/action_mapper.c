@@ -1,6 +1,5 @@
 #include "action_mapper.h"
 
-#include "device_config/device_params_nv.h"
 #include "hal/system.h"
 #include <stddef.h>
 
@@ -11,6 +10,8 @@ typedef enum {
 } reset_trigger_t;
 
 static uint8_t reset_triggers[BUTTON_INPUT_MAX];
+/* Kept across action_mapper_init(): set from NVM before the graph is wired. */
+static uint8_t multi_press_reset_count = 10;
 static action_mapper_sinks_t action_sinks;
 
 static bool action_mapper_is_reset(const gesture_event_t *event) {
@@ -21,8 +22,8 @@ static bool action_mapper_is_reset(const gesture_event_t *event) {
     }
     return event->type == GESTURE_N_CLICK &&
            trigger == RESET_TRIGGER_MULTI_PRESS &&
-           g_multi_press_reset_count != 0 &&
-           event->count >= g_multi_press_reset_count;
+           multi_press_reset_count != 0 &&
+           event->count >= multi_press_reset_count;
 }
 
 static void action_mapper_gesture(const gesture_event_t *event, void *context) {
@@ -43,6 +44,10 @@ void action_mapper_init(void) {
 
 void action_mapper_set_sinks(const action_mapper_sinks_t *sinks) {
     action_sinks = sinks == NULL ? (action_mapper_sinks_t){ 0 } : *sinks;
+}
+
+void action_mapper_set_multi_press_reset_count(uint8_t count) {
+    multi_press_reset_count = count;
 }
 
 bool action_mapper_add_reset_button(uint8_t button_id, bool hold_reset) {

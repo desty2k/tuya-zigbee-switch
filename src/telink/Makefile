@@ -174,7 +174,6 @@ COMMON_SOURCES := \
 	$(SRC_DIR)/base_components/interlock.c \
 	$(SRC_DIR)/device_config/config_nv.c \
 	$(SRC_DIR)/device_config/device_config_service.c \
-	$(SRC_DIR)/device_config/device_params_nv.c \
 	$(SRC_DIR)/device_config/reset.c \
 	$(SRC_DIR)/device_config/feature_wiring.c \
 	$(SRC_DIR)/device_config/config_parser.c \

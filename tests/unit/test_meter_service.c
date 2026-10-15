@@ -63,6 +63,7 @@ static meter_service_config_t valid_config(meter_fake_driver_t *driver) {
         .sample_interval_ms = 10,
         .checkpoint_interval_ms = 100,
         .checkpoint_energy_uwh = 100,
+        .nvm_item = NV_ITEM_METER_STATE(0),
     };
 }
 
