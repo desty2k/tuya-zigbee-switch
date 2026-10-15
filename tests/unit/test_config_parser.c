@@ -31,6 +31,8 @@ TEST(parses_every_legacy_token_without_mutating_input) {
     ASSERT_EQ(0, strcmp("TS0726", composition.model));
     ASSERT_TRUE(composition.simultaneous_latching_pulses);
     ASSERT_TRUE(composition.momentary_switches);
+    ASSERT_TRUE(composition.has_image_type);
+    ASSERT_EQ(43627, composition.image_type);
     ASSERT_EQ(4, composition.button_count);
     ASSERT_EQ(3, composition.relay_count);
     ASSERT_EQ(2, composition.indicator_count);
@@ -56,6 +58,7 @@ TEST(debounce_defaults_to_25_ms_without_d_token) {
               config_parser_parse("Tuya;TS0726;SA0u;BA2d;", &composition));
     ASSERT_EQ(25, composition.buttons[0].debounce_ms);
     ASSERT_EQ(25, composition.buttons[1].debounce_ms);
+    ASSERT_TRUE(!composition.has_image_type);
 }
 
 TEST(interlock_dead_time_defaults_without_duration) {

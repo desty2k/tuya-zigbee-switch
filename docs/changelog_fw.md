@@ -13,6 +13,7 @@ Please describe what you are working on, under ## Upcoming
 - Telink: a cluster-specific command to a cluster without commands (power configuration, multistate input, on/off switch configuration, the fork-private clusters) is answered with an unsupported-command status; it reset the device.
 - A switch whose relay index points at a relay endpoint drives that endpoint's relay when a cover is defined before the relays in the device config; it drove the cover's open relay.
 - Telink: attribute reports from the fork-private clusters carry the fork's manufacturer code, as on Silabs.
+- Telink: the `i<image_type>` config token sets the OTA image type again; it was parsed and ignored.
 
 ## v2.0.0-rc.2
 

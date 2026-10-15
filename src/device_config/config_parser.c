@@ -200,7 +200,6 @@ static config_parse_result_t parse_token(const char *token,
                                          uint16_t *gap_ms) {
     const char *   end;
     hal_gpio_pin_t pin;
-    uint16_t       value;
 
     if (!token_feature_compiled(token)) {
         return CONFIG_PARSE_FEATURE_MISSING;
@@ -220,9 +219,10 @@ static config_parse_result_t parse_token(const char *token,
     } else if (strcmp(token, "M") == 0) {
         out->momentary_switches = true;
     } else if (token[0] == 'i') {
-        if (!parse_uint16(token + 1, &value)) {
+        if (!parse_uint16(token + 1, &out->image_type)) {
             return CONFIG_PARSE_SYNTAX;
         }
+        out->has_image_type = true;
     } else if (token[0] == 'K') {
         uint16_t mask;
         uint16_t dead_time_ms = DEVICE_COMPOSITION_DEFAULT_DEAD_TIME_MS;

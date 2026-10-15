@@ -54,11 +54,12 @@ typedef struct {
     device_cover_switch_config_t cover_switches[DEVICE_COMPOSITION_MAX_COVER_SWITCHES];
     uint8_t                      relay_endpoint_ids[DEVICE_COMPOSITION_MAX_RELAYS];
     hal_gpio_pin_t               battery_pin;
+    uint16_t                     image_type; // OTA image type of the `i` token
     uint8_t                      relay_count, relay_endpoint_count, button_count, indicator_count,
                                  interlock_count;
     uint8_t                      cover_count, meter_count, switch_count, cover_switch_count,
                                  endpoint_count;
-    bool                         simultaneous_latching_pulses, momentary_switches;
+    bool                         simultaneous_latching_pulses, momentary_switches, has_image_type;
 } device_composition_t;
 
 config_parse_result_t device_composition_validate(
