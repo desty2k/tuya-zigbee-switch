@@ -160,6 +160,9 @@ def main():
 
     segments = load_image(args.elf)
     functions, insns, order = parse_disassembly(lines)
+    # An empty or foreign disassembly would otherwise pass with nothing checked.
+    if not functions or not insns:
+        sys.exit(f'{args.elf}: no tc32 instructions parsed from the disassembly')
     total, bad, unresolved = scan(segments, functions, insns, order)
     for name, addr in unresolved:
         print(f'{args.elf}: table base not traced for dispatch at {addr:#x} in {name}',
