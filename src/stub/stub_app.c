@@ -26,12 +26,6 @@
 #include "zigbee/relay_cluster.h"
 #include "zigbee/switch_cluster.h"
 
-// externs from your codebase
-extern led_t          leds[5];
-extern uint8_t        leds_cnt;
-extern uint8_t        buttons_cnt;
-extern relay_driver_t relay_drivers[10];
-extern uint8_t        relays_cnt;
 
 static device_config_str_t g_stub_config = {
     .size = 0, .data = "Stub;Stub;SA0u;SA1u;SA2u;SA3u;RB0;RB1;RC0;RC1;"

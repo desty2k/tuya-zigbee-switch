@@ -2,7 +2,9 @@
 #define FEATURE_WIRING_H_
 
 #include "base_components/battery.h"
+#include "base_components/led.h"
 #include "base_components/network_indicator.h"
+#include "base_components/relay_driver.h"
 #include "device_config/device_composition.h"
 #include "hal/zigbee.h"
 
@@ -23,6 +25,11 @@ extern network_indicator_t network_indicator;
 extern hal_zigbee_endpoint endpoints[DEVICE_COMPOSITION_MAX_ENDPOINTS];
 extern uint8_t             allow_simultaneous_latching_pulses;
 extern battery_t           battery;
+extern led_t          leds[DEVICE_COMPOSITION_MAX_INDICATORS];
+extern uint8_t        leds_cnt;
+extern uint8_t        buttons_cnt;
+extern relay_driver_t relay_drivers[DEVICE_COMPOSITION_MAX_RELAYS];
+extern uint8_t        relays_cnt;
 
 void parse_config(void);
 void feature_wiring_build_recovery(void);

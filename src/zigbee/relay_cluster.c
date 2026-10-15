@@ -9,6 +9,9 @@
 #include "hal/printf_selector.h"
 #include <string.h>
 
+#define RELAY_ON_OFF_ATTRIBUTES \
+        (sizeof(((zigbee_relay_cluster *)0)->attr_infos) / sizeof(hal_zigbee_attribute))
+
 static hal_zigbee_cmd_result_t relay_cluster_on_off_command(
     const hal_zigbee_incoming_command_t *command);
 static hal_zigbee_cmd_result_t relay_cluster_level_command(
@@ -125,9 +128,11 @@ void relay_cluster_add_to_endpoint(zigbee_relay_cluster *cluster,
     }
 
     hal_zigbee_cluster on_off_cluster = {
-        .cluster_id          = ZCL_CLUSTER_ON_OFF,
-        .role                = HAL_ZIGBEE_ROLE_SERVER,
-        .attribute_count     = cluster->indicator_led != NULL ? 6 : 4,
+        .cluster_id      = ZCL_CLUSTER_ON_OFF,
+        .role            = HAL_ZIGBEE_ROLE_SERVER,
+        .attribute_count = cluster->indicator_led != NULL ?
+                           RELAY_ON_OFF_ATTRIBUTES :
+                           RELAY_ON_OFF_ATTRIBUTES - RELAY_CLUSTER_INDICATOR_ATTRIBUTES,
         .attributes          = cluster->attr_infos,
         .cmd_callback        = relay_cluster_on_off_command,
         .attr_write_callback = relay_cluster_attr_write,
