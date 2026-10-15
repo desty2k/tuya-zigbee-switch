@@ -49,10 +49,9 @@ static status_t attr_write_result_to_status(hal_zigbee_cmd_result_t result) {
 #if FEATURE_PROBE
 
 /*
- * zcl_cmdHandler() calls the command parser of a registered cluster without
- * a NULL check. The GPIO probe takes commands on the diagnostics cluster, so
- * probe images route them to the cluster's callback. Other images register
- * no parser and must not receive cluster commands for these clusters.
+ * The GPIO probe takes commands on the diagnostics cluster, so probe images
+ * route private-cluster commands to the cluster's callback. Other images
+ * register no parser; the patched zcl_cmdHandler() then rejects the command.
  */
 static status_t private_cluster_cmd_handler(zclIncoming_t *message) {
     if (message->clusterAppCb == NULL) {

@@ -201,6 +201,10 @@ $(PATCHED_ZCL_SOURCE): $(SDK_PATH)/zigbee/zcl/zcl.c $(PATCHED_ZCL_PATCH)
 		in_handler && /^}/ { exit } \
 		END { exit !ok }' $(PATCHED_ZCL_WORK)/zigbee/zcl/zcl.c || \
 		{ echo "error: $(PATCHED_ZCL_PATCH) did not install the frame check before the command switch of zcl_foundationCmdHandler"; exit 1; }
+	@awk '/if \(pCluster->cmdHandlerFunc == NULL\)/ { guarded = 1 } \
+		/pCluster->cmdHandlerFunc\(&inMsg\)/ { calls++; if (!guarded) bad = 1 } \
+		END { exit bad || calls != 1 }' $(PATCHED_ZCL_WORK)/zigbee/zcl/zcl.c || \
+		{ echo "error: $(PATCHED_ZCL_PATCH) did not guard the cluster command dispatch against a NULL parser"; exit 1; }
 	@test "$$(grep -c 'zcl_incoming_write = pCmd;' $(PATCHED_ZCL_WORK)/zigbee/zcl/zcl.c)" = 3 || \
 		{ echo "error: $(PATCHED_ZCL_PATCH) did not wrap every write handler"; exit 1; }
 	@mv $(PATCHED_ZCL_WORK)/zigbee/zcl/zcl.c $@
