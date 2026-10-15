@@ -10833,6 +10833,8 @@ const definitions = [
             romasku.bindedMode("switch_binded_mode", "switch"),
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
+            romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
+            romasku.relayIndicator("relay_indicator", "relay"),
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -10854,6 +10856,14 @@ const definitions = [
                 change: 1,
             });
 
+            await endpoint2.configureReporting("genOnOff", [
+                {
+                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                },
+            ]);
 
 
         },
