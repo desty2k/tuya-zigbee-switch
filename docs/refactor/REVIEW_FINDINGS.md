@@ -996,13 +996,14 @@ retention limit (pre-existing).
 | 2026-10-14 | 2 D | `fix/wave2-d-cover` merge | H6, L5, cover cutoff-timer retry (stop + `ACTION_DENIED` when unarmable), cover-switch long press persisted (`NVM_MIGRATIONS_VERSION` 10, converting step), M6 confirmed by tests; H7 firmware keeps ZCL lift % (0 = open), unknown = 0xFF (Z2M drops values > 100); review PASS WITH NITS, nits fixed (`7b2254e6`) | merged |
 | 2026-10-14 | 2 C | `4da53063` | C9 (config `K` authoritative, writes limited to config groups, relay records reset when endpoint→relay map or K membership changes; fingerprint NVM item 101), M1, M3, M4, M5 (inching in `relay_controller` for every ON source, timed-on capped by inching), L7 (`K` default dead time 200 ms), latching coil retry, joining a group while a peer is on switches the joiner off; review PASS WITH NITS, nits + size cuts fixed; `make tests` 370 passed, unit 0 failures, 0 warnings; sk8 OTA: GIRIER TS130F 1G 200146 / 2G 200162 (≈550 under 200704), 4-gang 192690 | merged |
 | 2026-10-14 | 2 P | `feat/wave2-p-probe` @ `05c97753` | probe service, TLSR8258 HAL, 0xFC11 probe commands, board `OUTLET_BSEED_TS011F_PROBE` (image type 47116, `build: no`), index guard for stock image types, discovery helper; pulse safety mutation-checked by implementer and reviewer; probe OTA 190866 (9838 under 200704); review: firmware safe, deliverable FAIL (section 12 step 2) | pushed, unmerged |
+| 2026-10-15 | fix pins | `c9706ef5` | blocker from section 12 step 1: parser takes pin ids from `hal_gpio_parse_pin` (Telink `port<<8 \| 1<<n`, Silabs `port<<8 \| n`, invalid `0xFFFF`), private `<<4` encoding deleted; stub uses the Telink-like encoding (163 of 370 tests failed against the old parser); SDK-free pin headers with compile-time checks against the SDKs and host unit tests; Telink `size_t` clash fixed (`27e20e35`); review: merge, mutation-checked; `make tests` 370 passed; sk8 OTA: GIRIER 1G 200306 / 2G 200322 (≈400 under 200704), 4-gang 192866; Silabs ZS2S_TS0001 and MOES_TS0011 build (known `-Wformat`/`noreturn` warnings only), closing the wave 2 C/D Silabs debt | merged |
+| 2026-10-15 | 2 P | `d95120b1` | follow-ups: `check-publishable` refuses probe boards in `board/build`/`update-indexes` (fails closed) and the index generator refuses probe entries; discovery helper reads one attribute per request; `paho-mqtt` in `requirements.txt`; stub transistor-base relay model, 10 kΩ pull-up kept (1 MΩ makes every transistor-driven relay pin read driven low; mutation-checked); docs (main-loop pulse cutoff, leaving the probe image); claimed pins converted with `hal_gpio_probe_id_from_pin`; review fixes by integrator; `make tests` 394 passed; probe OTA 191314, non-probe sizes unchanged; no index holds a probe entry | merged |
 
-## 12. Next steps (current as of wave 2 C/D merge)
+## 12. Next steps (current as of the wave 2 P merge)
 
-Waves 0, 1, 1.5 and wave 2 C and D are merged into `refactor/input-pipeline`.
-Wave 2 P is pushed unmerged on `feat/wave2-p-probe`. Nothing has been flashed.
-The OTA index still lists the old `538f75d3` TS0726 build; the owner does not
-install it. **No integration build may be flashed until step 1 below is done.**
+Waves 0, 1, 1.5 and 2 (C, D, P) and the pin-encoding fix are merged into
+`refactor/input-pipeline`. Nothing has been flashed. The OTA index still lists
+the old `538f75d3` TS0726 build; the owner does not install it.
 
 ### Process rules (learned during waves 0–2)
 
@@ -1023,62 +1024,26 @@ install it. **No integration build may be flashed until step 1 below is done.**
 - Push only to the fork remote `desty2k`, never to `origin` (upstream).
 - The owner's usage budget is limited: keep briefs short, avoid extra agents.
 
-### 1. Blocker — config pins never reach the right GPIO (found in wave 2 P, verified)
+### 1. Done: pin encoding (section 11, 2026-10-15)
 
-- **Where:** `src/device_config/config_parser.c:15-30` (`parse_pin`) stores a
-  pin as `(port - 'A') << 4 | index`. Nothing converts it before
-  `feature_wiring` passes it to the HAL. The HAL encodings differ:
-  Telink `hal_gpio_parse_pin` (`src/telink/hal/gpio.c:140-180`) returns
-  `GPIO_GROUPx | BIT(n)` (port << 8 | 1 << n); Silabs returns
-  `port << 8 | index`. `main` called `hal_gpio_parse_pin`.
-- **Effect:** on Telink every configured pin is wrong (`RC2` = 0x22 drives
-  PA1 and PA5); on Silabs every pin outside port A is wrong. Relays, buttons,
-  LEDs would hit random pins on real hardware. The stub accepts the parser's
-  encoding, so no test caught it.
-- **Fix:** the parser gets pins from the HAL (`hal_gpio_parse_pin`, which is
-  the cross-platform contract), or a single HAL conversion is applied in one
-  place; delete the private encoding. Make the stub encoding differ from the
-  parser's naive one (e.g. Telink-like) so a missing conversion fails tests;
-  add a test per platform encoding (native unit test against the Telink and
-  Silabs `hal_gpio_parse_pin` logic). Check the probe's claimed-pin exclusion
-  (wave 2 P, `port << 8 | index` portable ids) uses the same conversion.
-- Then rebuild 4-gang and GIRIER on sk8 and record sizes.
+Remaining nits for wave 3: Telink accepts E4..E7 (TLSR8258 SDK defines
+PE0..PE3) and Silabs accepts every index 0..15 on ports A..D, more than MG21
+has; `src/telink/hal/gpio.c` comment says 4 ports (there are 5); the parser's
+`> 15` check duplicates the HAL's.
 
-### 2. Wave 2 P follow-ups (branch `feat/wave2-p-probe`, then merge)
+### 2. Done: wave 2 P follow-ups (section 11, 2026-10-15)
 
-Review verdict: firmware safe (pulse rules mutation-checked), deliverable FAIL:
-1. **Index leak (medium):** `docs/contribute/porting.md` tells the owner to run
-   `BOARD=OUTLET_BSEED_TS011F_PROBE make board/build`, which runs
-   `update-indexes` (`board.mk:117,185-194`) and adds a `from_tuya` probe entry
-   (54179, version 0xFFFFFFFF, `_TZ3210_drzlxjne`) to
-   `zigbee2mqtt/ota/index_router.json`. Every owner outlet would be offered
-   the probe. Make `update-indexes` refuse probe boards and document
-   `board/build-firmware board/generate-ota-files` plus a local-only index.
-2. **Reply too large (medium):** `probe_discovery.py:159-163` reads all six
-   probe attributes at once (~167 B reply, no fragmentation). Read one or two
-   at a time.
-3. **Pull test strength (medium, design):** the 10 kΩ pull-up
-   (`src/telink/hal/gpio_probe.c:68`) makes a transistor-driven relay pin
-   read DRIVEN_LOW (pulse refused) and may click the relay. Use
-   `HAL_GPIO_PULL_UP_1M` for classification; make the stub discovery test
-   model a transistor-base relay pin, not a floating one.
-4. **Docs (low):** state that the pulse cutoff timer runs from the main loop
-   (watchdog is the backstop); record probe size in
-   `docs/refactor/capabilities/STATE.md` (`.zigbee` 190866 B).
-5. **Converter (high, moves to wave 2b E):** no Z2M converter for the probe
-   exists; the helper needs a `probe` state key and 0xFC11 commands 0x00–0x05
-   (table in the P branch's `management_protocol.json`), model
-   `TS011F-probe` / `_TZ3210_drzlxjne`, capability bit 1. `paho-mqtt` is not
-   in `requirements.txt`.
-6. Telink cluster-specific commands to 0xFC10/0xFC11, on/off-config and
-   multistate call a NULL handler in non-probe images (fixed for probe only;
-   68 B on the 4-gang). Fix everywhere if size allows (GIRIER headroom ≈550 B).
+Open: the probe Z2M converter (wave 2b E); Telink cluster-specific commands to
+0xFC10/0xFC11, on/off-config and multistate call a NULL handler in non-probe
+images (fixed for probe only; 68 B, GIRIER headroom now ≈400 B); helper
+`probe_discovery.py` can see a stale `probe.<name>` merged from Z2M's cached
+state and prints a raw traceback when the broker is unreachable. Owner
+decision: the probe never pulses driven-low pins (relays behind a base
+resistor ≤ 4.7 kΩ are found by elimination, not by pulsing).
 
 ### 3. Verification debt
 
-- Silabs builds not run for waves 2 C and D (`NVM_MIGRATIONS_VERSION` 10 in
-  `silabs_config.h`, shared code changes). Build ZS2S_TS0001 and MOES_TS0011.
-- GIRIER TS130F headroom is ≈550 B; any further cover/relay code needs size
+- GIRIER TS130F headroom is ≈400 B; any further cover/relay code needs size
   cuts first.
 
 ### 4. Wave 2b — E: integrations (after steps 1 and 2)
