@@ -521,12 +521,16 @@ const romasku = {
                         if (part.length > 9 || (part.length == 9 && part[8] != 'i')) {
                             throw new Error(`Meter ${part} is invalid. Use EB<CF><CF1><SEL>[i]`);
                         }
+                    } else if (part[0] == 'K') {
+                        if (!/^K[0-9A-Fa-f]{1,4}(:\d+)?$/.test(part)) {
+                            throw new Error(`Interlock ${part} is invalid. Use K<hex relay mask>[:<ms>], e.g. K03:500`);
+                        }
                     } else if(part[0] == 'M') {
                         ;
                     } else if(part[0] == 'i') {
                         ; // TODO: write validation
                     } else {
-                        throw new Error(`Invalid entry ${part}. Should start with one of B, BT, C, D, E, I, L, M, R, S, SLP, X, i`);
+                        throw new Error(`Invalid entry ${part}. Should start with one of B, BT, C, D, E, I, K, L, M, R, S, SLP, X, i`);
                     }
                 }
             },
@@ -10935,15 +10939,137 @@ const definitions = [
         vendor: "Tuya-custom",
         description: "GPIO probe for pin discovery (helper_scripts/probe_discovery.py)",
         extend: [
+            deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
+                ID: 0xFC02,
+                manufacturerCode: managementProtocol.manufacturerCode,
+                attributes: {
+                    buttonState: {name: "buttonState", ID: 0x0000, type: Zcl.DataType.ENUM8},
+                    lastEventSeq: {name: "lastEventSeq", ID: 0x0001, type: Zcl.DataType.UINT16},
+                    multiClickGap: {name: "multiClickGap", ID: 0x0002, type: Zcl.DataType.UINT16, write: true},
+                    debounceMs: {name: "debounceMs", ID: 0x0003, type: Zcl.DataType.UINT16, write: true},
+                },
+                commands: {},
+                commandsResponse: {
+                    buttonEvent: {
+                        name: "buttonEvent",
+                        ID: 0x00,
+                        parameters: [
+                            {name: "seq", type: Zcl.DataType.UINT16},
+                            {name: "pressId", type: Zcl.DataType.UINT16},
+                            {name: "eventType", type: Zcl.DataType.UINT8},
+                            {name: "count", type: Zcl.DataType.UINT8},
+                            {name: "durationMs", type: Zcl.DataType.UINT16},
+                        ],
+                    },
+                },
+            }),
+            romasku.buttonEvents(["switch_left", "switch_middle", "switch_right", ]),
+            deviceEndpoints({ endpoints: {"switch_left": 1, "switch_middle": 2, "switch_right": 3, "relay_left": 4, "relay_right": 5, } }),
             ...romasku.managementClusters(true),
-            romasku.deviceConfig("device_config"),
-            ...romasku.deviceConfigState(),
+            romasku.deviceConfig("device_config", "switch_left"),
+            romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.probe(),
+            romasku.statusLedMode("status_led_mode", "switch_left"),
+            onOff({ endpointNames: ["relay_left", "relay_right"] }),
+            romasku.pressAction("switch_left_press_action", "switch_left"),
+            ...romasku.buttonTiming("switch_left"),
+            romasku.switchMode("switch_left_mode", "switch_left"),
+            romasku.switchAction("switch_left_action_mode", "switch_left"),
+            romasku.relayMode("switch_left_relay_mode", "switch_left"),
+            romasku.relayIndex("switch_left_relay_index", "switch_left", 2),
+            romasku.bindedMode("switch_left_binded_mode", "switch_left"),
+            romasku.longPressDuration("switch_left_long_press_duration", "switch_left"),
+            romasku.levelMoveRate("switch_left_level_move_rate", "switch_left"),
+            romasku.pressAction("switch_middle_press_action", "switch_middle"),
+            ...romasku.buttonTiming("switch_middle"),
+            romasku.switchMode("switch_middle_mode", "switch_middle"),
+            romasku.switchAction("switch_middle_action_mode", "switch_middle"),
+            romasku.relayMode("switch_middle_relay_mode", "switch_middle"),
+            romasku.relayIndex("switch_middle_relay_index", "switch_middle", 2),
+            romasku.bindedMode("switch_middle_binded_mode", "switch_middle"),
+            romasku.longPressDuration("switch_middle_long_press_duration", "switch_middle"),
+            romasku.levelMoveRate("switch_middle_level_move_rate", "switch_middle"),
+            romasku.pressAction("switch_right_press_action", "switch_right"),
+            ...romasku.buttonTiming("switch_right"),
+            romasku.switchMode("switch_right_mode", "switch_right"),
+            romasku.switchAction("switch_right_action_mode", "switch_right"),
+            romasku.relayMode("switch_right_relay_mode", "switch_right"),
+            romasku.relayIndex("switch_right_relay_index", "switch_right", 2),
+            romasku.bindedMode("switch_right_binded_mode", "switch_right"),
+            romasku.longPressDuration("switch_right_long_press_duration", "switch_right"),
+            romasku.levelMoveRate("switch_right_level_move_rate", "switch_right"),
+            romasku.relayIndicatorMode("relay_left_indicator_mode", "relay_left"),
+            romasku.relayIndicator("relay_left_indicator", "relay_left"),
+            romasku.relayIndicatorMode("relay_right_indicator_mode", "relay_right"),
+            romasku.relayIndicator("relay_right_indicator", "relay_right"),
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+            // switch action:
+            await endpoint1.configureReporting("genMultistateInput", [
+                {
+                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                },
+            ]);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+            // switch action:
+            await endpoint2.configureReporting("genMultistateInput", [
+                {
+                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                },
+            ]);
+            const endpoint3 = device.getEndpoint(3);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+            // switch action:
+            await endpoint3.configureReporting("genMultistateInput", [
+                {
+                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                },
+            ]);
+            const endpoint4 = device.getEndpoint(4);
+            await reporting.onOff(endpoint4, {
+                min: 0,
+                max: constants.repInterval.MAX,
+                change: 1,
+            });
+            const endpoint5 = device.getEndpoint(5);
+            await reporting.onOff(endpoint5, {
+                min: 0,
+                max: constants.repInterval.MAX,
+                change: 1,
+            });
 
+            await endpoint4.configureReporting("genOnOff", [
+                {
+                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                },
+            ]);
+            await endpoint5.configureReporting("genOnOff", [
+                {
+                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                },
+            ]);
 
 
         },
