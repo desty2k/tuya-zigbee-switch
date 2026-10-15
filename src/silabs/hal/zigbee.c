@@ -285,21 +285,21 @@ sl_zigbee_af_status_t sl_zigbee_af_external_attribute_write_cb(
 
     if (candidate_len == 0) return SL_ZIGBEE_ZCL_STATUS_INVALID_VALUE;
 
-    /* HAL write contract (hal/zigbee.h): VALIDATE, COMMIT, then the copy. */
-    if (cluster->attr_write_callback != NULL) {
-        sl_zigbee_af_status_t status = attr_write_result_to_status(
-            cluster->attr_write_callback(endpoint, attr->attribute_id, buffer,
-                                         candidate_len, HAL_ZIGBEE_ATTR_VALIDATE));
-
-        if (status != SL_ZIGBEE_ZCL_STATUS_SUCCESS) return status;
-
-        status = attr_write_result_to_status(
-            cluster->attr_write_callback(endpoint, attr->attribute_id, buffer,
-                                         candidate_len, HAL_ZIGBEE_ATTR_COMMIT));
-        if (status != SL_ZIGBEE_ZCL_STATUS_SUCCESS) return status;
+    /* HAL write contract (hal/zigbee.h): VALIDATE, then COMMIT, which stores
+     * the value; only a cluster without a callback gets the copy. */
+    if (cluster->attr_write_callback == NULL) {
+        memmove(attr->value, buffer, candidate_len);
+        return SL_ZIGBEE_ZCL_STATUS_SUCCESS;
     }
-    memmove(attr->value, buffer, candidate_len);
-    return SL_ZIGBEE_ZCL_STATUS_SUCCESS;
+    sl_zigbee_af_status_t status = attr_write_result_to_status(
+        cluster->attr_write_callback(endpoint, attr->attribute_id, buffer,
+                                     candidate_len, HAL_ZIGBEE_ATTR_VALIDATE));
+
+    if (status != SL_ZIGBEE_ZCL_STATUS_SUCCESS) return status;
+
+    return attr_write_result_to_status(
+        cluster->attr_write_callback(endpoint, attr->attribute_id, buffer,
+                                     candidate_len, HAL_ZIGBEE_ATTR_COMMIT));
 }
 
 static bool network_steering_in_progress = false;
