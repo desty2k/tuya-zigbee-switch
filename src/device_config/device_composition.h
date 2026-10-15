@@ -45,8 +45,11 @@ typedef enum { DEVICE_METER_BL0937 = 1 }                               device_me
 typedef struct { device_meter_ic_t ic; hal_gpio_pin_t cf_pin; hal_gpio_pin_t cf1_pin;
                  hal_gpio_pin_t    sel_pin; bool sel_high_selects_voltage; }
 device_meter_config_t;
-typedef struct { uint8_t button_id; uint8_t relay_id; }               device_switch_config_t;
-typedef struct { uint8_t open_button_id; uint8_t close_button_id; }   device_cover_switch_config_t;
+typedef struct { uint8_t button_id; uint8_t relay_id; } device_switch_config_t;
+/* stop_button_id is DEVICE_COMPOSITION_NO_BUTTON when the switch has no stop button. */
+#define DEVICE_COMPOSITION_NO_BUTTON    0xFFu
+typedef struct { uint8_t open_button_id; uint8_t close_button_id; uint8_t stop_button_id; }
+device_cover_switch_config_t;
 typedef struct {
     char                         manufacturer[32]; char model[32];
     device_button_config_t       buttons[DEVICE_COMPOSITION_MAX_BUTTONS];

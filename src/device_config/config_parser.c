@@ -131,40 +131,45 @@ static bool parse_button_token(const char *token, device_composition_t *out,
     return true;
 }
 
+/* X<open><close>[<stop>]<pull>: the optional stop pin stops the cover. */
 static bool parse_cover_switch_token(const char *token,
                                      device_composition_t *out,
                                      uint16_t debounce_ms, uint16_t gap_ms) {
     const char *    end;
-    hal_gpio_pin_t  open_pin;
-    hal_gpio_pin_t  close_pin;
+    hal_gpio_pin_t  pins[3];
+    uint8_t         pin_count = 2;
     hal_gpio_pull_t pull;
     device_cover_switch_config_t *cover_switch;
+    uint8_t *ids[3];
 
     if (out->cover_switch_count >= DEVICE_COMPOSITION_MAX_COVER_SWITCHES ||
-        out->button_count + 2 > DEVICE_COMPOSITION_MAX_BUTTONS ||
-        !parse_pin(token + 1, &end, &open_pin) ||
-        !parse_pin(end, &end, &close_pin) || !parse_pull(end, &pull)) {
+        !parse_pin(token + 1, &end, &pins[0]) ||
+        !parse_pin(end, &end, &pins[1])) {
+        return false;
+    }
+    if (parse_pin(end, &end, &pins[2])) {
+        pin_count = 3;
+    }
+    if (!parse_pull(end, &pull) ||
+        out->button_count + pin_count > DEVICE_COMPOSITION_MAX_BUTTONS) {
         return false;
     }
     cover_switch = &out->cover_switches[out->cover_switch_count++];
-    cover_switch->open_button_id  = out->button_count++;
-    cover_switch->close_button_id = out->button_count++;
-    out->buttons[cover_switch->open_button_id] = (device_button_config_t){
-        .pin                = open_pin,
-        .pull               = pull,
-        .debounce_ms        = debounce_ms,
-        .hold_ms            = 800,
-        .multi_click_gap_ms = gap_ms,
-        .role               = DEVICE_BUTTON_COVER_SWITCH,
-    };
-    out->buttons[cover_switch->close_button_id] = (device_button_config_t){
-        .pin                = close_pin,
-        .pull               = pull,
-        .debounce_ms        = debounce_ms,
-        .hold_ms            = 800,
-        .multi_click_gap_ms = gap_ms,
-        .role               = DEVICE_BUTTON_COVER_SWITCH,
-    };
+    cover_switch->stop_button_id = DEVICE_COMPOSITION_NO_BUTTON;
+    ids[0] = &cover_switch->open_button_id;
+    ids[1] = &cover_switch->close_button_id;
+    ids[2] = &cover_switch->stop_button_id;
+    for (uint8_t i = 0; i < pin_count; i++) {
+        *ids[i] = out->button_count;
+        out->buttons[out->button_count++] = (device_button_config_t){
+            .pin                = pins[i],
+            .pull               = pull,
+            .debounce_ms        = debounce_ms,
+            .hold_ms            = 800,
+            .multi_click_gap_ms = gap_ms,
+            .role               = DEVICE_BUTTON_COVER_SWITCH,
+        };
+    }
     return true;
 }
 

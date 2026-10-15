@@ -117,7 +117,9 @@ config_parse_result_t device_composition_validate(
         if (composition->cover_switches[i].open_button_id >= composition->button_count ||
             composition->cover_switches[i].close_button_id >= composition->button_count ||
             composition->cover_switches[i].open_button_id ==
-            composition->cover_switches[i].close_button_id) {
+            composition->cover_switches[i].close_button_id ||
+            (composition->cover_switches[i].stop_button_id != DEVICE_COMPOSITION_NO_BUTTON &&
+             composition->cover_switches[i].stop_button_id >= composition->button_count)) {
             return CONFIG_PARSE_REFERENCE;
         }
     }
