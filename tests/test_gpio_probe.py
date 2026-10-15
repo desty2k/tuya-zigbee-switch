@@ -15,6 +15,7 @@ from management_protocol_consts import (
     GPIO_PROBE_CLASS_DRIVEN_HIGH,
     GPIO_PROBE_CLASS_DRIVEN_LOW,
     GPIO_PROBE_CLASS_FLOATING,
+    GPIO_PROBE_DRIVEN_LOW_PULSE_MAX_MS,
     GPIO_PROBE_PULL_UP,
     GPIO_PROBE_PULL_NONE,
     GPIO_PROBE_PULL_PHASE_MS,
@@ -24,6 +25,8 @@ from management_protocol_consts import (
     GPIO_PROBE_STATUS_NOT_ARMED,
     GPIO_PROBE_STATUS_NOT_FLOATING,
     GPIO_PROBE_STATUS_OK,
+    GPIO_PROBE_STATUS_RANGE,
+    GPIO_PROBE_STATUS_VERIFY_FAILED,
     GPIO_PROBE_WATCH_OVER_RATE,
     ZCL_ATTR_DIAGNOSTICS_CAPABILITIES,
     ZCL_ATTR_DIAGNOSTICS_PROBE_CLASSES,
@@ -190,12 +193,13 @@ def test_discovery_procedure_finds_meter_button_and_relay_pins() -> None:
         probe.step(100)
         assert_untouched(probe, ["A0"])
 
-        # Each pulse needs a fresh arm; outputs are never driven.
+        # Each pulse needs a fresh arm; driven-high and active pins are never driven.
         assert probe.pulse("A0", 1, 100) == "ACTION_DENIED"
         assert probe.status() == GPIO_PROBE_STATUS_NOT_ARMED
-        assert probe.arm("C2") == "ACTION_DENIED"
+        assert probe.arm("D2") == "ACTION_DENIED"
         assert probe.status() == GPIO_PROBE_STATUS_NOT_FLOATING
         assert probe.arm("C3") == "ACTION_DENIED"
+        assert probe.status() == GPIO_PROBE_STATUS_NOT_FLOATING
         for pin in ("C2", "C3", "D2"):
             assert probe.info(pin)["drives"] == 0
 
@@ -222,17 +226,90 @@ def test_transistor_base_relay_pin_is_pulse_eligible_under_the_10k_pull_up() -> 
         assert (info["relay_on"], info["output"], info["contention"]) == (0, 0, 0)
 
 
-def test_low_resistance_transistor_base_reads_driven_low() -> None:
+def test_low_resistance_transistor_base_reads_driven_low_and_takes_a_short_high_pulse() -> None:
     # A 1 kOhm base resistor clamps the pin near V_BE under any internal
-    # pull-up: driven low, so the probe never drives it.
+    # pull-up: driven low. A short level-1 pulse still pulls the relay in.
     with probe_session() as proc:
         probe = Probe(Device(proc))
         probe.model("A0", "base", "1000", "50")
         assert probe.pull_test(["A0"]) == "PROCESSED"
         assert probe.classes()["A0"] == GPIO_PROBE_CLASS_DRIVEN_LOW
-        assert probe.arm("A0") == "ACTION_DENIED"
-        assert probe.status() == GPIO_PROBE_STATUS_NOT_FLOATING
-        assert probe.info("A0")["drives"] == 0
+        assert probe.arm("A0") == "PROCESSED"
+        assert probe.pulse("A0", 1, GPIO_PROBE_DRIVEN_LOW_PULSE_MAX_MS) == "PROCESSED"
+        assert probe.info("A0")["relay_on"] == 1
+        probe.step(GPIO_PROBE_DRIVEN_LOW_PULSE_MAX_MS)
+        info = probe.info("A0")
+        assert (info["relay_on"], info["output"], info["output_level"], info["pull"]) == (0, 0, 0, 0)
+
+
+def test_driven_low_pin_pulse_is_limited_to_a_short_high_level() -> None:
+    with probe_session() as proc:
+        probe = Probe(Device(proc))
+        probe.model("C2", "low")              # BL0937 CF, idle without load
+        assert probe.pull_test(["C2"]) == "PROCESSED"
+        assert probe.classes()["C2"] == GPIO_PROBE_CLASS_DRIVEN_LOW
+
+        assert probe.arm("C2") == "PROCESSED"
+        assert probe.pulse("C2", 1, GPIO_PROBE_DRIVEN_LOW_PULSE_MAX_MS + 1) == "INVALID_VALUE"
+        assert probe.status() == GPIO_PROBE_STATUS_RANGE
+        assert probe.arm("C2") == "PROCESSED"
+        assert probe.pulse("C2", 0, 20) == "INVALID_VALUE"
+        assert probe.status() == GPIO_PROBE_STATUS_RANGE
+        assert probe.pulse("C2", 1, 20) == "ACTION_DENIED"
+        assert probe.status() == GPIO_PROBE_STATUS_NOT_ARMED
+        assert probe.info("C2")["drives"] == 0
+
+        assert probe.arm("C2") == "PROCESSED"
+        assert probe.pulse("C2", 1, GPIO_PROBE_DRIVEN_LOW_PULSE_MAX_MS) == "PROCESSED"
+        info = probe.info("C2")
+        assert (info["drives"], info["output"], info["output_level"]) == (1, 1, 1)
+        probe.step(GPIO_PROBE_DRIVEN_LOW_PULSE_MAX_MS)
+        info = probe.info("C2")
+        assert (info["output"], info["output_level"], info["pull"]) == (0, 0, 0)
+        assert int(probe.attr(ZCL_ATTR_DIAGNOSTICS_PROBE_STATE)) == 0
+
+
+def test_driven_low_pulse_is_refused_when_the_pin_no_longer_reads_driven_low() -> None:
+    with probe_session() as proc:
+        probe = Probe(Device(proc))
+        probe.model("C2", "low")
+        assert probe.pull_test(["C2"]) == "PROCESSED"
+        assert probe.arm("C2") == "PROCESSED"
+        probe.model("C2", "float")
+        assert probe.pulse("C2", 1, 20) == "ACTION_DENIED"
+        assert probe.status() == GPIO_PROBE_STATUS_VERIFY_FAILED
+        assert probe.classes()["C2"] == GPIO_PROBE_CLASS_FLOATING
+        info = probe.info("C2")
+        assert (info["drives"], info["output"], info["pull"]) == (0, 0, 0)
+
+
+def test_driven_high_and_active_pins_are_never_pulsed() -> None:
+    with probe_session() as proc:
+        probe = Probe(Device(proc))
+        probe.model("D2", "high")
+        probe.model("C3", "train", "1000", "500")
+        assert probe.pull_test(["D2", "C3"]) == "PROCESSED"
+        assert probe.classes()["D2"] == GPIO_PROBE_CLASS_DRIVEN_HIGH
+        assert probe.classes()["C3"] == GPIO_PROBE_CLASS_ACTIVE
+        for pin in ("D2", "C3"):
+            assert probe.arm(pin) == "ACTION_DENIED"
+            assert probe.status() == GPIO_PROBE_STATUS_NOT_FLOATING
+            assert probe.pulse(pin, 1, 20) == "ACTION_DENIED"
+            assert probe.status() == GPIO_PROBE_STATUS_NOT_ARMED
+            assert probe.info(pin)["drives"] == 0
+
+
+def test_released_pin_is_an_input_with_its_output_latch_cleared() -> None:
+    with probe_session() as proc:
+        probe = Probe(Device(proc))
+        assert probe.pull_test(["A0"]) == "PROCESSED"
+        assert probe.arm("A0") == "PROCESSED"
+        assert probe.pulse("A0", 1, 100) == "PROCESSED"
+        probe.step(100)
+        info = probe.info("A0")
+        assert (info["output"], info["output_level"], info["pull"]) == (0, 0, 0)
+        assert probe.pull_test(["A0"]) == "PROCESSED"
+        assert probe.classes()["A0"] == GPIO_PROBE_CLASS_FLOATING
 
 
 def test_rate_ceiling_flags_a_fast_pin() -> None:

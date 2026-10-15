@@ -81,6 +81,7 @@
           "WATCH_MAX_S": 300,
           "PULSE_MIN_MS": 1,
           "PULSE_MAX_MS": 500,
+          "DRIVEN_LOW_PULSE_MAX_MS": 50,
           "RATE_CEILING_HZ": 20000,
           "ARM_TIMEOUT_MS": 30000,
           "PULL_PHASE_MS": 25
