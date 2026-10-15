@@ -5090,55 +5090,13 @@
     ]
   },
   {
-    "fileName": "tlc_switch-1.1.2-538f75d3.zigbee",
-    "fileVersion": 285356061,
-    "fileSize": 198338,
-    "url": "https://github.com/desty2k/tuya-zigbee-switch/raw/refs/heads/refactor/input-pipeline/bin/router/SWITCH_BSEED_TS0726_3GANG/tlc_switch-1.1.2-538f75d3.zigbee",
-    "imageType": 45577,
-    "manufacturerCode": 4417,
-    "sha512": "e7270cd24ea9588bf2685141588c595da5c9e76c7a06705ffd17c636d82f92b363de38938ba17037c555bcdf9849f0a8ae005ff914a128990f2e470b4b96f706",
-    "otaHeaderString": "Telink OTA Image\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
-    "manufacturerName": [
-      "_TZ3002_iedhxgyi",
-      "iedhxgyi"
-    ]
-  },
-  {
-    "fileName": "tlc_switch-1.1.2-538f75d3-from_tuya.zigbee",
-    "fileVersion": 4294967295,
-    "fileSize": 198338,
-    "url": "https://github.com/desty2k/tuya-zigbee-switch/raw/refs/heads/refactor/input-pipeline/bin/router/SWITCH_BSEED_TS0726_3GANG/tlc_switch-1.1.2-538f75d3-from_tuya.zigbee",
-    "imageType": 54179,
-    "manufacturerCode": 4417,
-    "sha512": "4316eaed5beac268c069d68bac1b309ff05775a92555fd3cce2470ca512000501f597e24f0a3248a1f35716888a0457308c6de86c12084e03e0e21a25c4e82c2",
-    "otaHeaderString": "Telink OTA Image\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
-    "manufacturerName": [
-      "_TZ3002_iedhxgyi",
-      "iedhxgyi"
-    ]
-  },
-  {
-    "fileName": "tlc_switch-1.1.2-538f75d3.zigbee",
-    "fileVersion": 285356061,
-    "fileSize": 200482,
-    "url": "https://github.com/desty2k/tuya-zigbee-switch/raw/refs/heads/refactor/input-pipeline/bin/router/SWITCH_BSEED_TS0726_4GANG/tlc_switch-1.1.2-538f75d3.zigbee",
+    "fileName": "tlc_switch-2.0.0-rc.1-a4663.zigbee",
+    "fileVersion": 536871168,
+    "fileSize": 192882,
+    "url": "https://github.com/desty2k/tuya-zigbee-switch/raw/bbe7976b985281f2782a38afcde57dd9059935ef/bin/router/SWITCH_BSEED_TS0726_4GANG/tlc_switch-2.0.0-rc.1-a4663.zigbee",
     "imageType": 43627,
     "manufacturerCode": 4417,
-    "sha512": "5e347c3d044462affec9b71d98fb7eaf25abc5e4da64631f0da00bcc740108d3a207729865e017e0454d0bad31934b5b209975e255b3cfe2dfc0f66c4e1d2cb0",
-    "otaHeaderString": "Telink OTA Image\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
-    "manufacturerName": [
-      "_TZ3002_pzao9ls1",
-      "pzao9ls1"
-    ]
-  },
-  {
-    "fileName": "tlc_switch-1.1.2-538f75d3-from_tuya.zigbee",
-    "fileVersion": 4294967295,
-    "fileSize": 200482,
-    "url": "https://github.com/desty2k/tuya-zigbee-switch/raw/refs/heads/refactor/input-pipeline/bin/router/SWITCH_BSEED_TS0726_4GANG/tlc_switch-1.1.2-538f75d3-from_tuya.zigbee",
-    "imageType": 54179,
-    "manufacturerCode": 4417,
-    "sha512": "38be4f46ac8d0f7b13cf4661fca087caeaf68363d6487b15b8f21888de6719d649fd6a41c0602578ae7ca13d58b2fd92102b6b1fbfa3bb2fa9cff563c36b9ae6",
+    "sha512": "2352a99c656b9d7d47882292995e09337a3c7c7a558362b79c27213e71011c89197a0855cd6fa9e48f06604f78e9fe0ef68a84db45df189bf291d9bbbff96097",
     "otaHeaderString": "Telink OTA Image\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
     "manufacturerName": [
       "_TZ3002_pzao9ls1",
