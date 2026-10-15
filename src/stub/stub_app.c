@@ -142,7 +142,8 @@ void stub_app_print_help(void) {
     puts("  task_fail <count>                     - Reject task schedules");
     puts("  input_diag                            - Input scheduling counters");
 #if FEATURE_PROBE
-    puts("  probe_pin <pin> float|high|low|train <period_us> <high_us>");
+    puts(
+        "  probe_pin <pin> float|high|low|train <period_us> <high_us>|base <base_ohm> <pull_in_ua>");
     puts("                                        - Electrical model of a probe pin");
     puts("  probe_pin_info <pin>                  - Probe pin model state");
 #endif

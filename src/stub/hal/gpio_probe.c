@@ -22,9 +22,15 @@ static const hal_gpio_probe_id_t probe_pins[] = {
     HAL_GPIO_PROBE_ID(3, 6), HAL_GPIO_PROBE_ID(3, 7),
 };
 
-#define PROBE_PIN_COUNT        (sizeof(probe_pins) / sizeof(probe_pins[0]))
-#define STUB_PROBE_COUNTERS    2
-#define STUB_PROBE_NO_PIN      0xFFu
+#define PROBE_PIN_COUNT         (sizeof(probe_pins) / sizeof(probe_pins[0]))
+#define STUB_PROBE_COUNTERS     2
+#define STUB_PROBE_NO_PIN       0xFFu
+
+#define MODEL_VDD_MV            3300u
+#define MODEL_VBE_MV            600u
+#define MODEL_VIH_MV            (MODEL_VDD_MV * 7u / 10u)
+#define MODEL_PULL_UP_OHM       10000u
+#define MODEL_PULL_UP_1M_OHM    1000000u
 
 typedef struct {
     stub_probe_source_t source;
@@ -39,6 +45,10 @@ typedef struct {
     uint8_t             level;      // level at the last model update
     uint32_t            drives;
     uint32_t            contention;
+    uint32_t            base_ohm;
+    uint32_t            pull_in_ua;
+    uint8_t             relay_on;
+    uint32_t            relay_pull_ins;
 } model_pin_t;
 
 typedef struct {
@@ -70,8 +80,43 @@ static uint8_t train_level(const model_pin_t *pin, uint64_t at_us) {
     return ((at_us - pin->origin_us) % pin->period_us) < pin->high_us;
 }
 
+/* Base current into the relay driver, in microamps. */
+static uint32_t base_current_ua(const model_pin_t *pin) {
+    uint32_t pull_ohm;
+
+    if (pin->output_enabled) {
+        return pin->output_level ?
+               (MODEL_VDD_MV - MODEL_VBE_MV) * 1000u / pin->base_ohm : 0;
+    }
+    if (pin->pull == HAL_GPIO_PULL_UP) {
+        pull_ohm = MODEL_PULL_UP_OHM;
+    } else if (pin->pull == HAL_GPIO_PULL_UP_1M) {
+        pull_ohm = MODEL_PULL_UP_1M_OHM;
+    } else {
+        return 0;
+    }
+    return (uint32_t)((uint64_t)(MODEL_VDD_MV - MODEL_VBE_MV) * 1000u /
+                      (pull_ohm + pin->base_ohm));
+}
+
+static uint8_t base_level(const model_pin_t *pin) {
+    uint64_t pin_mv;
+
+    if (pin->output_enabled) {
+        return pin->output_level;
+    }
+    if (pin->pull != HAL_GPIO_PULL_UP && pin->pull != HAL_GPIO_PULL_UP_1M) {
+        return 0;
+    }
+    pin_mv = MODEL_VBE_MV + (uint64_t)base_current_ua(pin) * pin->base_ohm / 1000u;
+    return pin_mv >= MODEL_VIH_MV;
+}
+
 static uint8_t resolve_level(const model_pin_t *pin) {
     switch (pin->source) {
+    case STUB_PROBE_SOURCE_BASE:
+        return base_level(pin);
+
     case STUB_PROBE_SOURCE_DRIVEN:
         return pin->external_level;
 
@@ -122,6 +167,14 @@ static void update_pin(uint8_t index) {
 
     if (pin->source == STUB_PROBE_SOURCE_FLOATING) {
         pin->node_level = level;
+    }
+    if (pin->source == STUB_PROBE_SOURCE_BASE) {
+        uint8_t relay_on = base_current_ua(pin) >= pin->pull_in_ua;
+
+        if (relay_on && !pin->relay_on) {
+            pin->relay_pull_ins++;
+        }
+        pin->relay_on = relay_on;
     }
     if (!pin->level && level) {
         count_edges(index, 1, now_us);
@@ -208,7 +261,8 @@ void hal_gpio_probe_drive(hal_gpio_probe_id_t id, uint8_t level) {
         return;
     }
     pins[index].drives++;
-    if (pins[index].source != STUB_PROBE_SOURCE_FLOATING) {
+    if (pins[index].source != STUB_PROBE_SOURCE_FLOATING &&
+        pins[index].source != STUB_PROBE_SOURCE_BASE) {
         pins[index].contention++;
     }
     pins[index].output_enabled = 1;
@@ -324,6 +378,23 @@ bool stub_gpio_probe_set_train(hal_gpio_probe_id_t id, uint32_t period_us,
     return true;
 }
 
+bool stub_gpio_probe_set_base(hal_gpio_probe_id_t id, uint32_t base_ohm,
+                              uint32_t pull_in_ua) {
+    model_pin_t *pin;
+
+    if (base_ohm == 0 || pull_in_ua == 0) {
+        return false;
+    }
+    pin = set_source(id, STUB_PROBE_SOURCE_BASE);
+    if (pin == NULL) {
+        return false;
+    }
+    pin->base_ohm   = base_ohm;
+    pin->pull_in_ua = pull_in_ua;
+    update_pin((uint8_t)(pin - pins));
+    return true;
+}
+
 bool stub_gpio_probe_info(hal_gpio_probe_id_t id, stub_probe_pin_info_t *out) {
     int8_t index = pin_index(id);
 
@@ -339,6 +410,8 @@ bool stub_gpio_probe_info(hal_gpio_probe_id_t id, stub_probe_pin_info_t *out) {
         .pull           = pins[index].pull,
         .drives         = pins[index].drives,
         .contention     = pins[index].contention,
+        .relay_on       = pins[index].relay_on,
+        .relay_pull_ins = pins[index].relay_pull_ins,
     };
     return true;
 }

@@ -892,11 +892,15 @@ static int cmd_input_diag(int argc, char **argv) {
 }
 
 #if FEATURE_PROBE
-/* probe_pin <pin> float | high | low | train <period_us> <high_us> */
+
+/*
+ * probe_pin <pin> float | high | low | train <period_us> <high_us>
+ *                 | base <base_ohm> <pull_in_ua>
+ */
 static int cmd_probe_pin(int argc, char **argv) {
     hal_gpio_probe_id_t id;
-    unsigned long long  period_us;
-    unsigned long long  high_us;
+    unsigned long long  first;
+    unsigned long long  second;
     bool ok = false;
 
     if (argc < 3 || !stub_gpio_probe_parse(argv[1], &id)) {
@@ -910,9 +914,13 @@ static int cmd_probe_pin(int argc, char **argv) {
     } else if (argc == 3 && strcmp(argv[2], "low") == 0) {
         ok = stub_gpio_probe_set_driven(id, 0);
     } else if (argc == 5 && strcmp(argv[2], "train") == 0 &&
-               parse_ulong_arg(argv[3], UINT32_MAX, &period_us) == 0 &&
-               parse_ulong_arg(argv[4], UINT32_MAX, &high_us) == 0) {
-        ok = stub_gpio_probe_set_train(id, (uint32_t)period_us, (uint32_t)high_us);
+               parse_ulong_arg(argv[3], UINT32_MAX, &first) == 0 &&
+               parse_ulong_arg(argv[4], UINT32_MAX, &second) == 0) {
+        ok = stub_gpio_probe_set_train(id, (uint32_t)first, (uint32_t)second);
+    } else if (argc == 5 && strcmp(argv[2], "base") == 0 &&
+               parse_ulong_arg(argv[3], UINT32_MAX, &first) == 0 &&
+               parse_ulong_arg(argv[4], UINT32_MAX, &second) == 0) {
+        ok = stub_gpio_probe_set_base(id, (uint32_t)first, (uint32_t)second);
     }
     if (!ok) {
         io_res_err("usage");
@@ -932,8 +940,9 @@ static int cmd_probe_pin_info(int argc, char **argv) {
         return -1;
     }
     io_res_ok("pin=%s level=%u output=%u output_level=%u pull=%u drives=%u "
-              "contention=%u", argv[1], info.level, info.output_enabled,
-              info.output_level, info.pull, info.drives, info.contention);
+              "contention=%u relay_on=%u relay_pull_ins=%u", argv[1], info.level,
+              info.output_enabled, info.output_level, info.pull, info.drives,
+              info.contention, info.relay_on, info.relay_pull_ins);
     return 0;
 }
 

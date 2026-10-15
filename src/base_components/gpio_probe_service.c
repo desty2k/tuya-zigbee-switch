@@ -154,6 +154,13 @@ static void pull_sample(void) {
     }
 }
 
+/*
+ * The pull-up is the strong 10 kOhm one. A pin that loads to ground, such as
+ * a relay transistor base behind a series resistor, reads lower under a
+ * weaker pull: the 1 MOhm pull-up leaves every such base at V_BE, driven low
+ * and never pulsed, while 10 kOhm lifts a base resistor of about 20 kOhm and
+ * up above V_IH (it may pull the relay in during the up phases).
+ */
 static void pull_enter_phase(uint8_t phase, uint32_t now) {
     hal_gpio_pull_t pull = (phase & 1u) == 0 ? HAL_GPIO_PULL_UP : HAL_GPIO_PULL_DOWN;
 

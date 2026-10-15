@@ -200,6 +200,41 @@ def test_discovery_procedure_finds_meter_button_and_relay_pins() -> None:
             assert probe.info(pin)["drives"] == 0
 
 
+def test_transistor_base_relay_pin_is_pulse_eligible_under_the_10k_pull_up() -> None:
+    # NPN relay driver, 22 kOhm series base resistor, pulls in from 50 uA base
+    # current. The 10 kOhm pull-up lifts the pin above V_IH, so it classifies
+    # floating; a 1 MOhm pull-up would leave it at V_BE, reading low under both
+    # pulls (driven low, pulse refused).
+    with probe_session() as proc:
+        probe = Probe(Device(proc))
+        probe.model("A0", "base", "22000", "50")
+        assert probe.pull_test(["A0"]) == "PROCESSED"
+        assert probe.classes()["A0"] == GPIO_PROBE_CLASS_FLOATING
+        # Each pull-up phase lets the relay pull in; nothing is plugged in.
+        assert probe.info("A0")["relay_pull_ins"] == 2
+        assert probe.info("A0")["relay_on"] == 0
+
+        assert probe.arm("A0") == "PROCESSED"
+        assert probe.pulse("A0", 1, 100) == "PROCESSED"
+        assert probe.info("A0")["relay_on"] == 1
+        probe.step(100)
+        info = probe.info("A0")
+        assert (info["relay_on"], info["output"], info["contention"]) == (0, 0, 0)
+
+
+def test_low_resistance_transistor_base_reads_driven_low() -> None:
+    # A 1 kOhm base resistor clamps the pin near V_BE under any internal
+    # pull-up: driven low, so the probe never drives it.
+    with probe_session() as proc:
+        probe = Probe(Device(proc))
+        probe.model("A0", "base", "1000", "50")
+        assert probe.pull_test(["A0"]) == "PROCESSED"
+        assert probe.classes()["A0"] == GPIO_PROBE_CLASS_DRIVEN_LOW
+        assert probe.arm("A0") == "ACTION_DENIED"
+        assert probe.status() == GPIO_PROBE_STATUS_NOT_FLOATING
+        assert probe.info("A0")["drives"] == 0
+
+
 def test_rate_ceiling_flags_a_fast_pin() -> None:
     with probe_session() as proc:
         probe = Probe(Device(proc))
