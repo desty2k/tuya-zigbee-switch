@@ -477,20 +477,21 @@ static hal_zigbee_cmd_result_t stub_write_phase(
         record->candidate_len, phase);
 }
 
-/* VALIDATE, COMMIT, then copy into storage: the order of the patched Telink
- * SDK, where zcl_setAttrVal runs after the pre-write hook returns. */
+/* VALIDATE, then COMMIT, which stores the value; only a cluster without a
+ * callback gets the copy. The patched Telink SDK skips zcl_setAttrVal the
+ * same way when the pre-write hook reports the value stored. */
 static hal_zigbee_cmd_result_t stub_write_apply(uint8_t endpoint,
                                                 const stub_write_record_t *record) {
+    if (record->cluster->attr_write_callback == NULL) {
+        memcpy(record->attribute->value, record->candidate, record->candidate_len);
+        return HAL_ZIGBEE_CMD_PROCESSED;
+    }
     hal_zigbee_cmd_result_t result =
         stub_write_phase(endpoint, record, HAL_ZIGBEE_ATTR_VALIDATE);
 
     if (result != HAL_ZIGBEE_CMD_PROCESSED) return result;
 
-    result = stub_write_phase(endpoint, record, HAL_ZIGBEE_ATTR_COMMIT);
-    if (result != HAL_ZIGBEE_CMD_PROCESSED) return result;
-
-    memcpy(record->attribute->value, record->candidate, record->candidate_len);
-    return HAL_ZIGBEE_CMD_PROCESSED;
+    return stub_write_phase(endpoint, record, HAL_ZIGBEE_ATTR_COMMIT);
 }
 
 hal_zigbee_cmd_result_t stub_simulate_zigbee_attribute_write(

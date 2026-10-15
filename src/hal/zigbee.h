@@ -70,14 +70,16 @@ typedef enum {
  *
  * 1. VALIDATE: the callback checks `candidate` and must not change any state.
  *    A result other than HAL_ZIGBEE_CMD_PROCESSED rejects the write.
- * 2. COMMIT: the callback applies `candidate` (copies it into the cluster
- *    field, applies and persists it). It is the only place that applies the
- *    value. At this point the attribute storage still holds the previous
- *    value, so the callback must take the new value from `candidate`, never
- *    from the storage. A result other than HAL_ZIGBEE_CMD_PROCESSED rejects
- *    the write; the callback must then leave its state unchanged.
- * 3. After a successful COMMIT the HAL copies `candidate` into the attribute
- *    storage. Without a callback, the HAL copies after its own checks.
+ * 2. COMMIT: the callback applies `candidate`: it stores the value in the
+ *    attribute storage (the cluster field), applies and persists it. It is
+ *    the only place that applies and stores the value, and it may store a
+ *    value other than `candidate` when the cluster derives the attribute
+ *    from other state (the relay indicator state outside manual mode).
+ *    A result other than HAL_ZIGBEE_CMD_PROCESSED rejects the write; the
+ *    callback must then leave its state unchanged.
+ * 3. The HAL never copies `candidate` over the storage of a cluster with a
+ *    callback, so what COMMIT stored is what reads and reports return.
+ *    Without a callback, the HAL copies `candidate` after its own checks.
  *
  * `candidate` holds the ZCL encoding (little-endian). `candidate_len` is its
  * encoded size: the type size for fixed-size types, length prefix plus data

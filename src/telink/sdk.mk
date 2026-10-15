@@ -198,6 +198,9 @@ $(PATCHED_ZCL_SOURCE): $(SDK_PATH)/zigbee/zcl/zcl.c $(PATCHED_ZCL_PATCH)
 	@grep -q 'hal_zigbee_telink_pre_write(zcl_incoming_write' \
 		$(PATCHED_ZCL_WORK)/zigbee/zcl/zcl.c || \
 		{ echo "error: $(PATCHED_ZCL_PATCH) did not install the write hook"; exit 1; }
+	@grep -q 'if (preStatus != ZCL_STA_SUCCESS || stored) {' \
+		$(PATCHED_ZCL_WORK)/zigbee/zcl/zcl.c || \
+		{ echo "error: $(PATCHED_ZCL_PATCH) did not skip zcl_setAttrVal for values the write hook stored"; exit 1; }
 	@awk '/^_CODE_ZCL_ status_t zcl_foundationCmdHandler\(/ { in_handler = 1 } \
 		in_handler && /if \(!hal_zigbee_telink_foundation_frame_ok\(pCmd\)\)/ { checked = 1 } \
 		in_handler && /switch \(pCmd->hdr\.cmd\)/ { ok = checked; exit } \

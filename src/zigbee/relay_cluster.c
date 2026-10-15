@@ -303,10 +303,11 @@ static void relay_cluster_on_write_attr(zigbee_relay_cluster *cluster,
         interlock_set_relay_group(cluster->relay_id,
                                   cluster->interlock_group);
     }
-    if (attribute_id == ZCL_ATTR_ONOFF_INDICATOR_STATE) {
-        sync_indicator_led(cluster);
-    }
-    if (cluster->indicator_led_mode != ZCL_ONOFF_INDICATOR_MODE_MANUAL) {
+
+    /* Entering manual mode shows the stored state; outside manual mode a
+    * written state is replaced by the relay-derived one and reported. */
+    if (attribute_id == ZCL_ATTR_ONOFF_INDICATOR_MODE ||
+        attribute_id == ZCL_ATTR_ONOFF_INDICATOR_STATE) {
         sync_indicator_led(cluster);
     }
 

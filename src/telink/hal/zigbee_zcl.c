@@ -226,18 +226,21 @@ static void zcl_foundation_hook(zclIncoming_t *message) {
 
 /*
  * Called by the patched zcl_attrWrite() before its own checks and before
- * zcl_setAttrVal() copies the record into the attribute storage, which gives
- * the HAL write contract of hal/zigbee.h: VALIDATE, COMMIT, then the copy.
+ * zcl_setAttrVal() copies the record into the attribute storage. It gives the
+ * HAL write contract of hal/zigbee.h: VALIDATE, then COMMIT, which stores the
+ * value itself; `*stored` then tells zcl_attrWrite() to skip zcl_setAttrVal(),
+ * which would overwrite a value COMMIT derived (the relay indicator state).
  * `enable` is false in the first pass of Write Attributes Undivided, which
  * only validates; the second pass writes each record with `enable` true.
  */
 status_t hal_zigbee_telink_pre_write(zclIncoming_t *message, u8 endpoint,
                                      u16 cluster_id, zclWriteRec_t *record,
-                                     bool enable) {
+                                     bool enable, bool *stored) {
     hal_zigbee_cluster *  cluster;
     hal_zigbee_attribute *attribute;
     uint16_t candidate_len;
 
+    *stored = false;
     if (message == NULL || record == NULL) {
         return ZCL_STA_UNSUPPORTED_ATTRIBUTE;
     }
@@ -277,6 +280,7 @@ status_t hal_zigbee_telink_pre_write(zclIncoming_t *message, u8 endpoint,
 
     if (!enable) return ZCL_STA_SUCCESS;
 
+    *stored = true;
     return attr_write_result_to_status(cluster->attr_write_callback(
                                            endpoint, attribute->attribute_id, record->attrData,
                                            candidate_len,
