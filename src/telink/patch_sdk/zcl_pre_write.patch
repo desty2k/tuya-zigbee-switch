@@ -1,28 +1,31 @@
 --- a/zigbee/zcl/zcl.c
 +++ b/zigbee/zcl/zcl.c
-@@ -540,8 +540,18 @@
+@@ -540,8 +540,21 @@
   *
   * @return  ZCL Status
   */
-+/* Write command being handled; the application's pre-write hook sees it. */
++/* Write command being handled; the application's pre-write hook sees it.
++ * A hook that stored the value itself sets `stored`, and zcl_setAttrVal()
++ * is skipped so it cannot overwrite what the application stored. */
 +static zclIncoming_t *zcl_incoming_write;
-+_CODE_ZCL_ status_t hal_zigbee_telink_pre_write(zclIncoming_t *pInHdlrMsg, u8 endpoint, u16 clusterId, zclWriteRec_t *pWriteRec, bool enable);
++_CODE_ZCL_ status_t hal_zigbee_telink_pre_write(zclIncoming_t *pInHdlrMsg, u8 endpoint, u16 clusterId, zclWriteRec_t *pWriteRec, bool enable, bool *stored);
 +_CODE_ZCL_ bool hal_zigbee_telink_foundation_frame_ok(zclIncoming_t *pInHdlrMsg);
  _CODE_ZCL_ status_t zcl_attrWrite(u8 endpoint, u16 clusterId, zclWriteRec_t *pWriteRec, bool enable)
  {
 +    if (zcl_incoming_write) {
-+        status_t preStatus = hal_zigbee_telink_pre_write(zcl_incoming_write, endpoint, clusterId, pWriteRec, enable);
-+        if (preStatus != ZCL_STA_SUCCESS) {
++        bool stored = FALSE;
++        status_t preStatus = hal_zigbee_telink_pre_write(zcl_incoming_write, endpoint, clusterId, pWriteRec, enable, &stored);
++        if (preStatus != ZCL_STA_SUCCESS || stored) {
 +            return preStatus;
 +        }
 +    }
      zclAttrInfo_t *pAttrEntry = zcl_findAttribute(endpoint, clusterId, pWriteRec->attrID);
      if (!pAttrEntry) {
          /* Not found */
-@@ -686,6 +696,10 @@
+@@ -686,6 +699,10 @@
  {
      u8 status = ZCL_STA_SUCCESS;
-
+ 
 +    /* The zcl_parseIn* parsers trust record lengths; check them first. */
 +    if (!hal_zigbee_telink_foundation_frame_ok(pCmd)) {
 +        return ZCL_STA_MALFORMED_COMMAND;
@@ -30,7 +33,7 @@
      switch (pCmd->hdr.cmd) {
  #ifdef ZCL_READ
      case ZCL_CMD_READ:
-@@ -697,16 +711,22 @@
+@@ -697,16 +714,22 @@
  #endif
  #ifdef ZCL_WRITE
      case ZCL_CMD_WRITE:
@@ -53,10 +56,10 @@
          break;
  #endif
  #ifdef ZCL_REPORT
-@@ -853,7 +873,15 @@
+@@ -853,7 +876,15 @@
                  inMsg.addrInfo.dstEp = pApsdeInd->indInfo.dst_ep;
                  inMsg.addrInfo.seqNum = inMsg.hdr.seqNum;
-
+ 
 -                status = pCluster->cmdHandlerFunc(&inMsg);
 +                /* Clusters registered without a command parser (power
 +                 * configuration, multistate input, on/off switch
@@ -70,9 +73,9 @@
              }
          }
      }
-@@ -1731,8 +1759,6 @@
+@@ -1731,8 +1762,6 @@
                  pBuf += reportChangeLen;
-
+ 
                  dataLen += reportChangeLen;
 -            } else {
 -                pBuf++;

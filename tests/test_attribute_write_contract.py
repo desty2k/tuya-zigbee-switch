@@ -1,8 +1,8 @@
 """Attribute writes follow the HAL write contract (src/hal/zigbee.h).
 
-The stub runs VALIDATE, then COMMIT, then copies the candidate into the
-attribute storage, the order of the patched Telink SDK. A COMMIT callback
-that reads the storage instead of the candidate applies the previous value.
+The stub runs VALIDATE, then COMMIT, in which the cluster stores the value;
+like the patched Telink SDK, it copies the candidate itself only for a
+cluster without a write callback, so a value COMMIT derived stays stored.
 """
 
 from client import StubProc

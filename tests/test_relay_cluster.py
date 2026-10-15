@@ -354,3 +354,84 @@ def test_relay_cluster_startup_attr(
 
         assert device.zcl_relay_get(endpoint) == ("1" if after_state else "0")
         assert device.get_gpio("B0") == after_state
+
+
+OUTLET_CONFIG = "X;Y;SB4u;RB5;IC4;M;"  # TS011F outlet: relay on endpoint 2, LED C4
+
+
+def _indicator(device: Device) -> str:
+    return device.read_zigbee_attr(2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF_INDICATOR_STATE)
+
+
+@pytest.mark.parametrize(
+    "mode, expected",
+    [(ZCL_ONOFF_INDICATOR_MODE_SAME, "0"), (ZCL_ONOFF_INDICATOR_MODE_OPPOSITE, "1")],
+)
+def test_indicator_state_write_outside_manual_is_overridden_and_reported(
+    mode: int, expected: str
+) -> None:
+    with StubProc(device_config=OUTLET_CONFIG) as proc:
+        device = Device(proc)
+        device.write_zigbee_attr(2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF_INDICATOR_MODE, mode)
+        device.clear_events()
+        written = "0" if expected == "1" else "1"
+        device.write_zigbee_attr(2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF_INDICATOR_STATE, written)
+        device.wait_for_attr_change(2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF_INDICATOR_STATE)
+        assert _indicator(device) == expected
+        assert device.get_gpio("C4", refresh=True) is (expected == "1")
+
+
+def test_entering_manual_mode_shows_the_stored_indicator_state() -> None:
+    """Hardware sequence: same mode, relay off, write state 1, then manual."""
+    with StubProc(device_config=OUTLET_CONFIG) as proc:
+        device = Device(proc)
+        device.write_zigbee_attr(
+            2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF_INDICATOR_MODE, ZCL_ONOFF_INDICATOR_MODE_SAME
+        )
+        device.zcl_relay_off(2)
+        device.write_zigbee_attr(2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF_INDICATOR_STATE, "1")
+        device.write_zigbee_attr(
+            2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF_INDICATOR_MODE, ZCL_ONOFF_INDICATOR_MODE_MANUAL
+        )
+        assert device.read_zigbee_attr(2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF) == "0"
+        assert device.read_zigbee_attr(
+            2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF_INDICATOR_MODE
+        ) == str(ZCL_ONOFF_INDICATOR_MODE_MANUAL)
+        assert _indicator(device) == "0"
+        assert not device.get_gpio("C4", refresh=True)
+
+
+def test_entering_manual_mode_applies_the_state_written_in_manual() -> None:
+    with StubProc(device_config=OUTLET_CONFIG) as proc:
+        device = Device(proc)
+        device.write_zigbee_attr(
+            2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF_INDICATOR_MODE, ZCL_ONOFF_INDICATOR_MODE_MANUAL
+        )
+        device.write_zigbee_attr(2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF_INDICATOR_STATE, "1")
+        device.write_zigbee_attr(
+            2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF_INDICATOR_MODE, ZCL_ONOFF_INDICATOR_MODE_SAME
+        )
+        assert _indicator(device) == "0"
+        assert not device.get_gpio("C4", refresh=True)
+        device.write_zigbee_attr(
+            2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF_INDICATOR_MODE, ZCL_ONOFF_INDICATOR_MODE_MANUAL
+        )
+        device.write_zigbee_attr(2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF_INDICATOR_STATE, "1")
+        assert _indicator(device) == "1"
+        assert device.get_gpio("C4", refresh=True)
+
+
+def test_undivided_manual_mode_and_state_write_lights_the_led() -> None:
+    with StubProc(device_config=OUTLET_CONFIG) as proc:
+        device = Device(proc)
+        device.write_zigbee_attr(
+            2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF_INDICATOR_MODE, ZCL_ONOFF_INDICATOR_MODE_SAME
+        )
+        res = proc.exec(
+            f"zcl_write_undivided 2 0x{ZCL_CLUSTER_ON_OFF:04X} "
+            f"0x{ZCL_ATTR_ONOFF_INDICATOR_MODE:04X}={ZCL_ONOFF_INDICATOR_MODE_MANUAL:02x} "
+            f"0x{ZCL_ATTR_ONOFF_INDICATOR_STATE:04X}=01"
+        )
+        assert res.ok, res.payload
+        assert _indicator(device) == "1"
+        assert device.get_gpio("C4", refresh=True)

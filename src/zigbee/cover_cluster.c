@@ -131,7 +131,7 @@ static hal_zigbee_cmd_result_t cover_cluster_attr_write(
         cover_cluster_sync(cluster, false);
 
         /* VALIDATE checked the value; COMMIT fails only when the controller
-         * cannot persist it, and then the HAL leaves the storage unchanged. */
+         * cannot persist it, and then the sync above restores the controller's value. */
         return result == COVER_RESULT_APPLIED || result == COVER_RESULT_UNCHANGED ?
                HAL_ZIGBEE_CMD_PROCESSED : HAL_ZIGBEE_INVALID_VALUE;
     }
