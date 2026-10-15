@@ -20,7 +20,6 @@ typedef struct {
 static watched_pin_t          watched_pins[MAX_WATCHED_PINS];
 static hal_gpio_edge_sink_t   edge_sink;
 static hal_gpio_diagnostics_t diagnostics;
-static uint32_t      edge_seq;
 static bool          is_isr_initialized;
 static volatile bool gpio_dispatch_pending;
 
@@ -72,7 +71,6 @@ static bool capture_snapshot(uint8_t *snapshot, uint8_t flags) {
             .level        = level,
             .flags        = flags,
             .timestamp_ms = now,
-            .seq          = edge_seq++,
         };
         watched_pins[i].last_level = level;
         diagnostics.gpio_edges_captured++;
@@ -199,18 +197,6 @@ void hal_gpio_watch_pin(hal_gpio_pin_t gpio_pin) {
                      : GPIO_RISING_EDGE);
     drv_gpio_irq_en((u32)gpio_pin);
     drv_restore_irq(irq_state);
-}
-
-void hal_gpio_unwatch_pin(hal_gpio_pin_t gpio_pin) {
-    for (uint8_t i = 0; i < MAX_WATCHED_PINS; i++) {
-        if (watched_pins[i].pin == gpio_pin) {
-            u32 irq_state = drv_disable_irq();
-            drv_gpio_irq_dis((u32)gpio_pin);
-            watched_pins[i].pin = HAL_INVALID_PIN;
-            drv_restore_irq(irq_state);
-            return;
-        }
-    }
 }
 
 hal_gpio_diagnostics_t hal_gpio_get_diagnostics(void) {

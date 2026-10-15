@@ -43,7 +43,6 @@ typedef struct {
 static int_slot_t             s_slots[MAX_INT_LINES]; // 16 EXTI lines total
 static hal_gpio_edge_sink_t   edge_sink;
 static hal_gpio_diagnostics_t diagnostics;
-static uint32_t edge_seq;
 
 static int32_t alloc_int_slot(void) {
     for (uint8_t i = 0; i < 16; i++) {
@@ -54,12 +53,6 @@ static int32_t alloc_int_slot(void) {
         }
     }
     return LINE_MISSING;
-}
-
-static void free_int_slot(int32_t slot_no) {
-    if (slot_no < MAX_INT_LINES) {
-        memset(&s_slots[slot_no], 0, sizeof(s_slots[slot_no]));
-    }
 }
 
 static void _dispatch_regular(uint8_t intNo, void *ctx) {
@@ -74,7 +67,6 @@ static void _dispatch_regular(uint8_t intNo, void *ctx) {
                 .pin          = slot->hal_pin,
                 .level        = level,
                 .timestamp_ms = hal_millis(),
-                .seq          = edge_seq++,
             };
 
             slot->last_level = level;
@@ -180,18 +172,6 @@ void hal_gpio_watch_pin(hal_gpio_pin_t gpio_pin) {
         (sl_gpio_irq_callback_t)_dispatch_regular, slot);
     printf("hal_gpio_watch_pin: exti line %ld status %lu\r\n", slot->line,
            (unsigned long)status);
-}
-
-void hal_gpio_unwatch_pin(hal_gpio_pin_t gpio_pin) {
-    printf("hal_gpio_unwatch_pin pin %02X\r\n", gpio_pin);
-
-    for (uint8_t i = 0; i < MAX_INT_LINES; i++) {
-        if (s_slots[i].in_use && s_slots[i].hal_pin == gpio_pin) {
-            sl_gpio_deconfigure_external_interrupt(s_slots[i].line);
-            free_int_slot(i);
-            return;
-        }
-    }
 }
 
 hal_gpio_diagnostics_t hal_gpio_get_diagnostics(void) {

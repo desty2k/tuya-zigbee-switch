@@ -11,25 +11,19 @@ Neither router touches hardware directly. Both emit actions.
 
 ## Action types
 
-```c
-typedef enum {
-    ACTION_NONE = 0,
-    ACTION_RELAY,          // relay_request_t
-    ACTION_BIND_ONOFF,     // On/Off command to bindings
-    ACTION_BIND_LEVEL,     // Level Move / Stop to bindings
-    ACTION_ZB_BUTTON_EVENT,
-    ACTION_SYSTEM,         // system_action_t
-} action_type_t;
+Switch and cover-switch clusters act on their own gestures and submit relay
+requests (`action_mapper_relay_request`) or cover commands
+(`action_mapper_cover_action`, delivered to the cover sink). The gesture
+router itself only maps factory-reset gestures: every button gets one reset
+trigger from `action_mapper_add_reset_button`:
 
-typedef enum {
-    SYSTEM_ACTION_FACTORY_RESET,
-    SYSTEM_ACTION_REBOOT,
-} system_action_t;
-```
+| Button | Reset trigger |
+| --- | --- |
+| onboard (`B`) | `HOLD_START` |
+| any other | `N_CLICK(count)` with `count >= g_multi_press_reset_count` (0 disables) |
 
-`system_action_execute(system_action_t action, uint16_t delay_ms)` lives in
-`src/device_config/system_action.c` and is the only path to `hal_factory_reset()`
-and `hal_system_reset()` from feature code.
+A matching gesture calls `hal_factory_reset()`. Delayed reboots use
+`schedule_reboot()` in `src/device_config/reset.c`.
 
 ## Switch endpoint behaviour (unchanged semantics)
 

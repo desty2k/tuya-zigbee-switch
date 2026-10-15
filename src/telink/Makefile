@@ -176,7 +176,6 @@ COMMON_SOURCES := \
 	$(SRC_DIR)/device_config/device_config_service.c \
 	$(SRC_DIR)/device_config/device_params_nv.c \
 	$(SRC_DIR)/device_config/reset.c \
-	$(SRC_DIR)/device_config/system_action.c \
 	$(SRC_DIR)/device_config/feature_wiring.c \
 	$(SRC_DIR)/device_config/config_parser.c \
 	$(SRC_DIR)/device_config/device_composition.c \

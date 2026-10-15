@@ -46,7 +46,6 @@ source:
 - {path: ../../device_config/capability_state.c}
 - {path: ../../device_config/capability_state.h}
 - {path: ../../base_components/timer_service.h}
-- {path: ../../device_config/system_action.c}
 - {path: ../../device_config/feature_wiring.c}
 - {path: ../../base_components/battery.c}
 - {path: ../../base_components/led.c}

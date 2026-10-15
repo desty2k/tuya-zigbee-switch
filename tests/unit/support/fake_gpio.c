@@ -15,13 +15,11 @@ typedef struct {
 static fake_gpio_pin_t       fake_gpio_pins[FAKE_GPIO_PIN_MAX];
 static hal_gpio_edge_sink_t  fake_gpio_sink;
 static hal_gpio_diagnostics_t fake_gpio_diagnostics;
-static uint32_t fake_gpio_seq;
 
 void fake_gpio_reset(void) {
     memset(fake_gpio_pins, 0, sizeof(fake_gpio_pins));
     memset(&fake_gpio_diagnostics, 0, sizeof(fake_gpio_diagnostics));
     fake_gpio_sink = NULL;
-    fake_gpio_seq  = 0;
 }
 
 void fake_gpio_set_input(hal_gpio_pin_t pin, uint8_t level) {
@@ -52,7 +50,6 @@ void fake_gpio_inject_edge_flags(hal_gpio_pin_t pin, uint8_t level,
             .level        = level != 0,
             .flags        = flags,
             .timestamp_ms = timestamp_ms,
-            .seq          = fake_gpio_seq++,
         };
         fake_gpio_sink(&edge);
     }
@@ -84,12 +81,6 @@ void hal_gpio_set_edge_sink(hal_gpio_edge_sink_t sink) {
 void hal_gpio_watch_pin(hal_gpio_pin_t pin) {
     if (pin < FAKE_GPIO_PIN_MAX) {
         fake_gpio_pins[pin].watched = true;
-    }
-}
-
-void hal_gpio_unwatch_pin(hal_gpio_pin_t pin) {
-    if (pin < FAKE_GPIO_PIN_MAX) {
-        fake_gpio_pins[pin].watched = false;
     }
 }
 

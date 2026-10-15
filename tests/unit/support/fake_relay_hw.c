@@ -74,10 +74,6 @@ void hal_gpio_watch_pin(hal_gpio_pin_t pin) {
     (void)pin;
 }
 
-void hal_gpio_unwatch_pin(hal_gpio_pin_t pin) {
-    (void)pin;
-}
-
 hal_gpio_diagnostics_t hal_gpio_get_diagnostics(void) {
     hal_gpio_diagnostics_t diagnostics = { 0 };
 

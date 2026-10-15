@@ -95,7 +95,6 @@ static void button_input_resync(uint32_t now) {
             .level        = hal_gpio_read(button_configs[button_id].pin),
             .flags        = HAL_GPIO_EDGE_DEFERRED,
             .timestamp_ms = now,
-            .seq          =                                            0,
         };
 
         button_input_process_edge(&edge);

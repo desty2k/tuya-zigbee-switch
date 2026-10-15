@@ -5,7 +5,6 @@
 #include "device_config/capability_state.h"
 #include "device_config/config_parser.h"
 #include "device_config/device_config_service.h"
-#include "device_config/system_action.h"
 #include "base_components/action_mapper.h"
 #include "base_components/battery.h"
 #include "base_components/button_input.h"
@@ -156,12 +155,6 @@ static void apply_status_led_mode(void *context,
 
     indicator->manual_state_when_connected = mode != DEVICE_CONFIG_LED_OFF;
     network_indicator_from_manual_state(indicator);
-}
-
-static void action_mapper_system_sink(void *context, uint8_t action,
-                                      uint16_t delay_ms) {
-    (void)context;
-    system_action_execute((system_action_t)action, delay_ms);
 }
 
 static void network_changed(hal_zigbee_network_status_t s) {
@@ -643,7 +636,6 @@ void feature_wiring_start(void) {
 #if FEATURE_COVER
         .cover = cover_controller_action,
 #endif
-        .system = action_mapper_system_sink,
     });
     button_event_cluster_register_gestures();
 

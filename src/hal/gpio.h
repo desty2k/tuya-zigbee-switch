@@ -19,7 +19,6 @@ typedef struct {
     uint8_t        level;
     uint8_t        flags;        // HAL_GPIO_EDGE_* bits
     uint32_t       timestamp_ms; // time the new level was first observed
-    uint32_t       seq;
 } hal_gpio_edge_t;
 
 typedef void (*hal_gpio_edge_sink_t)(const hal_gpio_edge_t *edge);
@@ -84,9 +83,6 @@ void hal_gpio_set_edge_sink(hal_gpio_edge_sink_t sink);
 
 /** Begin capturing transitions on a pin without emitting its initial level. */
 void hal_gpio_watch_pin(hal_gpio_pin_t gpio_pin);
-
-/** Stop capturing transitions on a pin. */
-void hal_gpio_unwatch_pin(hal_gpio_pin_t gpio_pin);
 
 /** Process GPIO IRQ work deferred to normal application context. */
 void hal_gpio_process_pending(void);
