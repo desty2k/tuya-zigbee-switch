@@ -7,6 +7,7 @@ const {
     binary,
     windowCovering,
     deviceAddCustomCluster,
+    electricityMeter,
 } = require("zigbee-herdsman-converters/lib/modernExtend");
 const {assertString, postfixWithEndpointName} = require("zigbee-herdsman-converters/lib/utils");
 const reporting = require("zigbee-herdsman-converters/lib/reporting");
@@ -255,6 +256,53 @@ const romasku = {
                     entityCategory: "diagnostic",
                 }),
             ),
+    // Meter Calibration (0xFC12) on the meter's endpoint 1: gains in ppm
+    // (1000000 = 100 %) over the board's BL0937 scale, and Reset Energy.
+    meterCalibration: () => [
+        deviceAddCustomCluster("manuSpecificMeterCalibration", {
+            name: "manuSpecificMeterCalibration",
+            ID: 0xFC12,
+            manufacturerCode: managementProtocol.manufacturerCode,
+            attributes: {
+                voltageGainPpm: {name: "voltageGainPpm", ID: 0x0000, type: Zcl.DataType.UINT32, write: true},
+                currentGainPpm: {name: "currentGainPpm", ID: 0x0001, type: Zcl.DataType.UINT32, write: true},
+                powerGainPpm: {name: "powerGainPpm", ID: 0x0002, type: Zcl.DataType.UINT32, write: true},
+            },
+            commands: {
+                resetEnergy: {name: "resetEnergy", ID: 0x00, parameters: []},
+            },
+            commandsResponse: {},
+        }),
+        ...[["voltage_calibration", "voltageGainPpm", "voltage"],
+            ["current_calibration", "currentGainPpm", "current"],
+            ["power_calibration", "powerGainPpm", "power and energy"]].map(([name, attribute, quantity]) =>
+            numeric({
+                name,
+                cluster: "manuSpecificMeterCalibration",
+                attribute,
+                description: `Calibration of the ${quantity} reading: reference value / reading * current setting`,
+                valueMin: 50,
+                valueMax: 150,
+                valueStep: 0.01,
+                scale: 10000,
+                unit: "%",
+                entityCategory: "config",
+            }),
+        ),
+        {
+            toZigbee: [
+                {
+                    key: ["reset_energy"],
+                    convertSet: async (entity, key, value, meta) => {
+                        await meta.device.getEndpoint(1).command("manuSpecificMeterCalibration", "resetEnergy", {},
+                            {manufacturerCode: managementProtocol.manufacturerCode});
+                    },
+                },
+            ],
+            exposes: [e.enum("reset_energy", ea.SET, ["reset"]).withDescription("Reset the energy counter to 0").withCategory("config")],
+            isModernExtend: true,
+        },
+    ],
     switchAction: (name, endpointName) =>
         enumLookup({
             name,
@@ -465,12 +513,20 @@ const romasku = {
                         validatePin(part.slice(3,5));
                     } else if (part[0] == 'L' || part[0] == 'R' || part[0] == 'I') {
                         validatePin(part.slice(1,3));
+                    } else if (part[0] == 'E') {
+                        if (part[1] != 'B') throw new Error(`Meter ${part} is invalid. Use EB<CF><CF1><SEL>[i]`);
+                        validatePin(part.slice(2,4));
+                        validatePin(part.slice(4,6));
+                        validatePin(part.slice(6,8));
+                        if (part.length > 9 || (part.length == 9 && part[8] != 'i')) {
+                            throw new Error(`Meter ${part} is invalid. Use EB<CF><CF1><SEL>[i]`);
+                        }
                     } else if(part[0] == 'M') {
                         ;
                     } else if(part[0] == 'i') {
                         ; // TODO: write validation
                     } else {
-                        throw new Error(`Invalid entry ${part}. Should start with one of B, BT, C, D, I, L, M, R, S, SLP, X, i`);
+                        throw new Error(`Invalid entry ${part}. Should start with one of B, BT, C, D, E, I, L, M, R, S, SLP, X, i`);
                     }
                 }
             },
@@ -10839,6 +10895,95 @@ const definitions = [
             romasku.relayIndicator("relay_indicator", "relay"),
         ],
         meta: { multiEndpoint: true },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+            // switch action:
+            await endpoint1.configureReporting("genMultistateInput", [
+                {
+                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                },
+            ]);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.onOff(endpoint2, {
+                min: 0,
+                max: constants.repInterval.MAX,
+                change: 1,
+            });
+
+            await endpoint2.configureReporting("genOnOff", [
+                {
+                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                },
+            ]);
+
+
+        },
+        ota: true,
+    },
+    {
+        zigbeeModel: [
+            "TS011F-BS-PM-3",
+        ],
+        model: "TS011F_plug_1",
+        vendor: "Tuya-custom",
+        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        extend: [
+            deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
+                ID: 0xFC02,
+                manufacturerCode: managementProtocol.manufacturerCode,
+                attributes: {
+                    buttonState: {name: "buttonState", ID: 0x0000, type: Zcl.DataType.ENUM8},
+                    lastEventSeq: {name: "lastEventSeq", ID: 0x0001, type: Zcl.DataType.UINT16},
+                    multiClickGap: {name: "multiClickGap", ID: 0x0002, type: Zcl.DataType.UINT16, write: true},
+                    debounceMs: {name: "debounceMs", ID: 0x0003, type: Zcl.DataType.UINT16, write: true},
+                },
+                commands: {},
+                commandsResponse: {
+                    buttonEvent: {
+                        name: "buttonEvent",
+                        ID: 0x00,
+                        parameters: [
+                            {name: "seq", type: Zcl.DataType.UINT16},
+                            {name: "pressId", type: Zcl.DataType.UINT16},
+                            {name: "eventType", type: Zcl.DataType.UINT8},
+                            {name: "count", type: Zcl.DataType.UINT8},
+                            {name: "durationMs", type: Zcl.DataType.UINT16},
+                        ],
+                    },
+                },
+            }),
+            romasku.buttonEvents(["switch", ]),
+            // Voltage, current, power and energy of the whole device (endpoint 1).
+            electricityMeter(),
+            ...romasku.meterCalibration(),
+            deviceEndpoints({ endpoints: {"switch": 1, "relay": 2, } }),
+            ...romasku.managementClusters(),
+            romasku.deviceConfig("device_config", "switch"),
+            romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            ...romasku.deviceConfigState("switch"),
+            ...romasku.diagnosticCounters(),
+            onOff({ endpointNames: ["relay"] }),
+            romasku.pressAction("switch_press_action", "switch"),
+            ...romasku.buttonTiming("switch"),
+            romasku.switchMode("switch_mode", "switch"),
+            romasku.switchAction("switch_action_mode", "switch"),
+            romasku.relayMode("switch_relay_mode", "switch"),
+            romasku.relayIndex("switch_relay_index", "switch", 1),
+            romasku.bindedMode("switch_binded_mode", "switch"),
+            romasku.longPressDuration("switch_long_press_duration", "switch"),
+            romasku.levelMoveRate("switch_level_move_rate", "switch"),
+            romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
+            romasku.relayIndicator("relay_indicator", "relay"),
+        ],
+        meta: { multiEndpoint: true, multiEndpointSkip: ["voltage", "current", "power", "energy"] },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);

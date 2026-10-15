@@ -56344,6 +56344,668 @@
       ]
     }
   ],
+  "drzlxjne": [
+    {
+      "description": "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+      "modelNames": [
+        "TS011F-BS-PM-3"
+      ],
+      "options": {
+        "endpointName": {
+          "1": "switch",
+          "2": "relay"
+        }
+      }
+    },
+    {
+      "modelNames": [
+        "TS011F-BS-PM-3"
+      ],
+      "exposes": [
+        "multiPressResetCount",
+        "deviceConfigStatus",
+        "deviceConfigLastError",
+        "uptimeMs",
+        "gpioEdges",
+        "gpioDropped",
+        "gpioRearmHits",
+        "buttonEvents",
+        "gestures",
+        "zbSubmitted",
+        "zbDropped",
+        "zbExpired",
+        "zbSendFailed",
+        "zbHighWater",
+        "networkTransitions",
+        "networkLosses",
+        "networkJoins",
+        "announces",
+        "announceFailures",
+        "steering",
+        "descriptorFailures"
+      ],
+      "options": {
+        "customAttributes": {
+          "multiPressResetCount": {
+            "type": "value",
+            "clusterId": 64528,
+            "attributeId": 17,
+            "dataType": 32,
+            "manufacturerCode": 6699,
+            "action": true
+          },
+          "deviceConfigStatus": {
+            "type": "enum",
+            "clusterId": 64528,
+            "attributeId": 3,
+            "dataType": 48,
+            "manufacturerCode": 6699
+          },
+          "deviceConfigLastError": {
+            "type": "enum",
+            "clusterId": 64528,
+            "attributeId": 4,
+            "dataType": 48,
+            "manufacturerCode": 6699
+          },
+          "uptimeMs": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 0,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "gpioEdges": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 16,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "gpioDropped": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 17,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "gpioRearmHits": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 18,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "buttonEvents": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 32,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "gestures": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 33,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "zbSubmitted": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 48,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "zbDropped": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 49,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "zbExpired": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 50,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "zbSendFailed": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 51,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "zbHighWater": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 52,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "networkTransitions": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 64,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "networkLosses": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 65,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "networkJoins": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 66,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "announces": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 67,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "announceFailures": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 68,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "steering": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 69,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "descriptorFailures": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 80,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          }
+        },
+        "multiPressResetCount": {
+          "type": "number",
+          "min": 0,
+          "max": 255
+        },
+        "deviceConfigStatus": {
+          "enum": [
+            "ready",
+            "reboot_pending",
+            "error"
+          ]
+        },
+        "deviceConfigLastError": {
+          "enum": [
+            "none",
+            "argument",
+            "parse",
+            "resource",
+            "nvm",
+            "pending",
+            "unsupported",
+            "overflow",
+            "feature_missing"
+          ]
+        },
+        "uptimeMs": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "gpioEdges": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "gpioDropped": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "gpioRearmHits": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "buttonEvents": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "gestures": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "zbSubmitted": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "zbDropped": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "zbExpired": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "zbSendFailed": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "zbHighWater": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "networkTransitions": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "networkLosses": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "networkJoins": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "announces": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "announceFailures": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "steering": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "descriptorFailures": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        }
+      },
+      "endpointId": 1
+    },
+    {
+      "modelNames": [
+        "TS011F-BS-PM-3"
+      ],
+      "properties": [
+        "energy",
+        "voltage",
+        "current",
+        "power"
+      ],
+      "reportings": [
+        "energy",
+        "voltage",
+        "current",
+        "power"
+      ],
+      "exposes": [
+        "energy",
+        "voltage",
+        "current",
+        "power",
+        "voltageCalibration",
+        "currentCalibration",
+        "powerCalibration"
+      ],
+      "options": {
+        "customAttributes": {
+          "voltageCalibration": {
+            "type": "value",
+            "clusterId": 64530,
+            "attributeId": 0,
+            "dataType": 35,
+            "manufacturerCode": 6699,
+            "action": true,
+            "divider": 10000
+          },
+          "currentCalibration": {
+            "type": "value",
+            "clusterId": 64530,
+            "attributeId": 1,
+            "dataType": 35,
+            "manufacturerCode": 6699,
+            "action": true,
+            "divider": 10000
+          },
+          "powerCalibration": {
+            "type": "value",
+            "clusterId": 64530,
+            "attributeId": 2,
+            "dataType": 35,
+            "manufacturerCode": 6699,
+            "action": true,
+            "divider": 10000
+          }
+        },
+        "voltageCalibration": {
+          "type": "number",
+          "min": 50,
+          "max": 150,
+          "step": 0.01,
+          "unit": "%"
+        },
+        "currentCalibration": {
+          "type": "number",
+          "min": 50,
+          "max": 150,
+          "step": 0.01,
+          "unit": "%"
+        },
+        "powerCalibration": {
+          "type": "number",
+          "min": 50,
+          "max": 150,
+          "step": 0.01,
+          "unit": "%"
+        }
+      },
+      "endpointId": 1
+    },
+    {
+      "modelNames": [
+        "TS011F-BS-PM-3"
+      ],
+      "properties": [
+        "status",
+        "powerOnStatus"
+      ],
+      "actions": [
+        "status",
+        "powerOnStatus"
+      ],
+      "bindings": [
+        "status"
+      ],
+      "reportings": [
+        "status"
+      ],
+      "exposes": [
+        "switch",
+        "powerOnStatus"
+      ],
+      "options": {
+        "powerOnStatus": {
+          "enum": [
+            "off",
+            "on",
+            "toggle",
+            "previous"
+          ]
+        }
+      },
+      "endpointId": [
+        2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS011F-BS-PM-3"
+      ],
+      "exposes": [
+        "pressAction",
+        "switchMode",
+        "switchAction",
+        "relayMode",
+        "relayIndex",
+        "bindedMode",
+        "longPressDuration",
+        "levelMoveRate",
+        "buttonState",
+        "multiClickGap",
+        "debounce"
+      ],
+      "options": {
+        "customAttributes": {
+          "buttonState": {
+            "type": "enum",
+            "clusterId": 64514,
+            "attributeId": 0,
+            "dataType": 48,
+            "manufacturerCode": 6699,
+            "binding": true,
+            "reporting": {
+              "minInterval": 0,
+              "maxInterval": 255,
+              "valueChange": 1
+            }
+          },
+          "multiClickGap": {
+            "type": "value",
+            "clusterId": 64514,
+            "attributeId": 2,
+            "dataType": 33,
+            "manufacturerCode": 6699,
+            "action": true
+          },
+          "debounce": {
+            "type": "value",
+            "clusterId": 64514,
+            "attributeId": 3,
+            "dataType": 33,
+            "manufacturerCode": 6699,
+            "action": true
+          },
+          "switchAction": {
+            "type": "enum",
+            "clusterId": 7,
+            "attributeId": 16,
+            "dataType": 48,
+            "action": true
+          },
+          "switchMode": {
+            "type": "enum",
+            "clusterId": 7,
+            "attributeId": 65280,
+            "dataType": 48,
+            "action": true
+          },
+          "relayMode": {
+            "type": "enum",
+            "clusterId": 7,
+            "attributeId": 65281,
+            "dataType": 48,
+            "action": true
+          },
+          "relayIndex": {
+            "type": "enum",
+            "clusterId": 7,
+            "attributeId": 65282,
+            "dataType": 32,
+            "action": true
+          },
+          "longPressDuration": {
+            "type": "value",
+            "clusterId": 7,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "levelMoveRate": {
+            "type": "value",
+            "clusterId": 7,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          },
+          "bindedMode": {
+            "type": "enum",
+            "clusterId": 7,
+            "attributeId": 65285,
+            "dataType": 48,
+            "action": true
+          },
+          "pressAction": {
+            "type": "enum",
+            "clusterId": 18,
+            "attributeId": 85,
+            "dataType": 33,
+            "binding": true,
+            "reporting": {
+              "minInterval": 0,
+              "maxInterval": 255,
+              "valueChange": 1
+            }
+          }
+        },
+        "buttonState": {
+          "enum": [
+            "released",
+            "pressed"
+          ]
+        },
+        "multiClickGap": {
+          "type": "number",
+          "min": 100,
+          "max": 2000
+        },
+        "debounce": {
+          "type": "number",
+          "min": 1,
+          "max": 200
+        },
+        "switchAction": {
+          "type": "select",
+          "enum": [
+            "on_off",
+            "off_on",
+            "toggle_simple",
+            "toggle_smart_sync",
+            "toggle_smart_opposite"
+          ]
+        },
+        "switchMode": {
+          "type": "select",
+          "enum": [
+            "toggle",
+            "momentary",
+            "momentary_nc"
+          ]
+        },
+        "relayMode": {
+          "type": "select",
+          "enum": [
+            "detached",
+            "press_start",
+            "long_press",
+            "short_press"
+          ]
+        },
+        "relayIndex": {
+          "type": "select",
+          "enum": {
+            "1": "relay_1"
+          }
+        },
+        "longPressDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 5000
+        },
+        "levelMoveRate": {
+          "type": "number",
+          "min": 1,
+          "max": 255
+        },
+        "bindedMode": {
+          "type": "select",
+          "enum": {
+            "1": "press_start",
+            "2": "long_press",
+            "3": "short_press"
+          }
+        },
+        "pressAction": {
+          "enum": [
+            "released",
+            "press",
+            "long_press",
+            "position_on",
+            "position_off"
+          ]
+        }
+      },
+      "endpointId": [
+        1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS011F-BS-PM-3"
+      ],
+      "exposes": [
+        "relayIndicatorMode",
+        "relayIndicator"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayIndicatorMode": {
+            "type": "enum",
+            "clusterId": 6,
+            "attributeId": 65281,
+            "dataType": 48,
+            "action": true
+          },
+          "relayIndicator": {
+            "type": "bool",
+            "clusterId": 6,
+            "attributeId": 65282,
+            "dataType": 16,
+            "action": true,
+            "reporting": {
+              "minInterval": 0,
+              "maxInterval": 255,
+              "valueChange": 1
+            }
+          }
+        },
+        "relayIndicatorMode": {
+          "type": "select",
+          "enum": [
+            "same",
+            "opposite",
+            "manual"
+          ]
+        },
+        "relayIndicator": {
+          "type": "toggle"
+        }
+      },
+      "endpointId": [
+        2
+      ]
+    }
+  ],
   "bep7ccew": [
     {
       "description": "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",

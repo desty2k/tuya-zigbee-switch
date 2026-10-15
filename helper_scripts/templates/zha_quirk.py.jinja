@@ -145,6 +145,23 @@ class DeviceDiagnosticsCluster(CustomCluster):
     AttributeDefs = management_attribute_defs(DEVICE_DIAGNOSTICS_ATTRIBUTES)
 
 
+class MeterCalibrationCluster(CustomCluster):
+    """Meter calibration gains in ppm (1000000 = 1.0) and Reset Energy."""
+
+    cluster_id = 0xFC12
+    name = "Meter Calibration"
+    ep_attribute = "meter_calibration"
+    manufacturer_id_override = MANAGEMENT_PROTOCOL["manufacturer_code"]
+
+    class AttributeDefs(foundation.BaseAttributeDefs):
+        voltage_gain_ppm: Final = ZCLAttributeDef(id=0x0000, type=t.uint32_t, access="rw", is_manufacturer_specific=True)
+        current_gain_ppm: Final = ZCLAttributeDef(id=0x0001, type=t.uint32_t, access="rw", is_manufacturer_specific=True)
+        power_gain_ppm: Final = ZCLAttributeDef(id=0x0002, type=t.uint32_t, access="rw", is_manufacturer_specific=True)
+
+    class ServerCommandDefs(foundation.BaseCommandDefs):
+        reset_energy: Final = ZCLCommandDef(id=0x00, schema={}, is_manufacturer_specific=True)
+
+
 class ButtonState(t.enum8):
     Released = 0x00
     Pressed = 0x01
@@ -469,9 +486,12 @@ for config in CONFIGS:
     cover_switch_cnt = 0
     cover_cnt = 0
     has_dedicated_net_led = False
+    has_meter = False
     for peripheral in peripherals:
         if peripheral == "SLP":
             continue
+        if peripheral[0] == 'E':
+            has_meter = True
         if peripheral[0] == "R":
             relay_cnt += 1
         if peripheral[0] == 'S':
@@ -833,6 +853,34 @@ for config in CONFIGS:
             endpoint_id=1,
             entity_type=EntityType.DIAGNOSTIC,
             initially_disabled=True,
+        )
+
+    if has_meter:
+        # Electrical Measurement and Metering are standard clusters ZHA
+        # exposes from the device descriptor; calibration is fork-private.
+        builder = builder.adds(MeterCalibrationCluster, endpoint_id=1)
+        for attribute, quantity in (("voltage_gain_ppm", "Voltage"), ("current_gain_ppm", "Current"),
+                                    ("power_gain_ppm", "Power")):
+            builder = builder.number(
+                attribute,
+                MeterCalibrationCluster.cluster_id,
+                translation_key=attribute,
+                fallback_name=f"{quantity} calibration",
+                min_value=50,
+                max_value=150,
+                step=0.01,
+                multiplier=0.0001,
+                unit="%",
+                endpoint_id=1,
+                entity_type=EntityType.CONFIG,
+            )
+        builder = builder.command_button(
+            MeterCalibrationCluster.ServerCommandDefs.reset_energy.name,
+            MeterCalibrationCluster.cluster_id,
+            translation_key="reset_energy",
+            fallback_name="Reset energy",
+            endpoint_id=1,
+            entity_type=EntityType.CONFIG,
         )
 
     if has_dedicated_net_led:

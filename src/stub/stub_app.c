@@ -219,6 +219,24 @@ const char *stub_app_attribute_value_to_string(hal_zigbee_attribute *attr,
             buf[0] = '\0';
         }
         break;
+    case ZCL_DATA_TYPE_INT16:
+        if (attr->size >= 2) {
+            int16_t val = (int16_t)(attr->value[0] | (attr->value[1] << 8));
+            snprintf(buf, bufsize, "%d", val);
+        } else {
+            buf[0] = '\0';
+        }
+        break;
+    case ZCL_DATA_TYPE_UINT24:
+    case ZCL_DATA_TYPE_UINT48: {
+        unsigned long long val = 0;
+
+        for (int i = attr->size - 1; i >= 0; i--) {
+            val = (val << 8) | attr->value[i];
+        }
+        snprintf(buf, bufsize, "%llu", val);
+        break;
+    }
     case ZCL_DATA_TYPE_OCTET_STR: {
         size_t  n   = 0;
         uint8_t len = attr->size >= 1 ? attr->value[0] : 0;

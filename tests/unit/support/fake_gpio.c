@@ -106,3 +106,8 @@ hal_gpio_pull_t hal_gpio_parse_pull(const char *text) {
     }
     return HAL_GPIO_PULL_INVALID;
 }
+
+/* The stub counter backend reads pulse-generator gate levels through this. */
+uint8_t stub_gpio_get_output(hal_gpio_pin_t pin) {
+    return hal_gpio_read(pin);
+}

@@ -38,10 +38,15 @@ typedef struct { hal_gpio_pin_t on_pin; hal_gpio_pin_t off_pin;
 typedef struct { hal_gpio_pin_t pin; bool on_high; bool dedicated; }   device_indicator_config_t;
 typedef struct { uint16_t relay_mask; uint16_t dead_time_ms; }         device_interlock_config_t;
 typedef struct { uint8_t open_relay_id; uint8_t close_relay_id; }      device_cover_config_t;
-typedef struct { hal_gpio_pin_t counter_pins[2]; uint8_t counter_count; }
+typedef enum { DEVICE_METER_BL0937 = 1 }                               device_meter_ic_t;
+
+/* Pulse meter (`E` token): CF and CF1 take one counter route each; SEL is a
+ * meter-owned output. */
+typedef struct { device_meter_ic_t ic; hal_gpio_pin_t cf_pin; hal_gpio_pin_t cf1_pin;
+                 hal_gpio_pin_t    sel_pin; bool sel_high_selects_voltage; }
 device_meter_config_t;
-typedef struct { uint8_t button_id; uint8_t relay_id; }                device_switch_config_t;
-typedef struct { uint8_t open_button_id; uint8_t close_button_id; }    device_cover_switch_config_t;
+typedef struct { uint8_t button_id; uint8_t relay_id; }               device_switch_config_t;
+typedef struct { uint8_t open_button_id; uint8_t close_button_id; }   device_cover_switch_config_t;
 typedef struct {
     char                         manufacturer[32]; char model[32];
     device_button_config_t       buttons[DEVICE_COMPOSITION_MAX_BUTTONS];

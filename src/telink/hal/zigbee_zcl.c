@@ -51,12 +51,13 @@ static status_t attr_write_result_to_status(hal_zigbee_cmd_result_t result) {
     return ZCL_STA_UNSUPPORTED_ATTRIBUTE;
 }
 
-#if FEATURE_PROBE
+#if FEATURE_PROBE || FEATURE_METER
 
 /*
- * The GPIO probe takes commands on the diagnostics cluster, so probe images
- * route private-cluster commands to the cluster's callback. Other images
- * register no parser; the patched zcl_cmdHandler() then rejects the command.
+ * The GPIO probe takes commands on the diagnostics cluster and the meter
+ * takes Reset Energy on Meter Calibration, so those images route
+ * private-cluster commands to the cluster's callback. Other images register
+ * no parser; the patched zcl_cmdHandler() then rejects the command.
  */
 static status_t private_cluster_cmd_handler(zclIncoming_t *message) {
     if (message->clusterAppCb == NULL) {
@@ -146,6 +147,14 @@ static cluster_registerFunc_t get_register_func_by_cluster_id(u16 cluster_id) {
     if (cluster_id == ZCL_CLUSTER_GEN_POLL_CONTROL) {
         return zcl_pollCtrl_register;
     }
+#if FEATURE_METER
+    if (cluster_id == ZCL_CLUSTER_MS_ELECTRICAL_MEASUREMENT) {
+        return zcl_electricalMeasure_register;
+    }
+    if (cluster_id == ZCL_CLUSTER_SE_METERING) {
+        return zcl_metering_register;
+    }
+#endif
     return NULL;
 }
 

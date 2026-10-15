@@ -1,4 +1,5 @@
 #include "device_config/device_composition.h"
+#include "device_config/build_features.h"
 
 #include "hal/gpio_counter.h"
 
@@ -20,7 +21,7 @@ enum {
     DEVICE_COMPOSITION_MAX_PINS =
         DEVICE_COMPOSITION_MAX_BUTTONS + DEVICE_COMPOSITION_MAX_RELAYS * 2 +
         DEVICE_COMPOSITION_MAX_INDICATORS + 1 +
-        DEVICE_COMPOSITION_MAX_METERS * 2,
+        DEVICE_COMPOSITION_MAX_METERS * 3,
 };
 
 static bool pin_is_reused(hal_gpio_pin_t pin, uint8_t *used_count,
@@ -34,6 +35,23 @@ static bool pin_is_reused(hal_gpio_pin_t pin, uint8_t *used_count,
     (*used_count)++;
     return false;
 }
+
+#if FEATURE_METER
+
+/* Indicator pins stay out of the reuse check above; a meter pin must not be one. */
+static bool meter_pin_drives_indicator(const device_composition_t *composition,
+                                       const device_meter_config_t *meter) {
+    for (uint8_t i = 0; i < composition->indicator_count; i++) {
+        hal_gpio_pin_t pin = composition->indicators[i].pin;
+
+        if (pin == meter->cf_pin || pin == meter->cf1_pin || pin == meter->sel_pin) {
+            return true;
+        }
+    }
+    return false;
+}
+
+#endif
 
 static uint8_t endpoint_count(const device_composition_t *composition) {
     uint8_t count = (uint8_t)(composition->switch_count +
@@ -53,7 +71,8 @@ config_parse_result_t device_composition_validate(
         return CONFIG_PARSE_LIMIT;
     }
     if (composition->endpoint_count != endpoint_count(composition) ||
-        composition->endpoint_count > DEVICE_COMPOSITION_MAX_ENDPOINTS) {
+        composition->endpoint_count > DEVICE_COMPOSITION_MAX_ENDPOINTS ||
+        composition->meter_count > composition->endpoint_count) {
         return CONFIG_PARSE_RESOURCE;
     }
     for (uint8_t i = 0; i < composition->button_count; i++) {
@@ -126,28 +145,38 @@ config_parse_result_t device_composition_validate(
             }
         }
     }
+#if FEATURE_METER
     {
         uint8_t counter_slot = 0;
 
         for (uint8_t i = 0; i < composition->meter_count; i++) {
-            const device_meter_config_t *meter = &composition->meters[i];
+            const device_meter_config_t *meter      = &composition->meters[i];
+            const hal_gpio_pin_t         counted[2] = { meter->cf_pin, meter->cf1_pin };
 
-            if (meter->counter_count == 0 || meter->counter_count > 2) {
+            if (meter->ic != DEVICE_METER_BL0937 || meter->sel_pin == HAL_INVALID_PIN) {
                 return CONFIG_PARSE_REFERENCE;
             }
-            for (uint8_t j = 0; j < meter->counter_count; j++) {
+            for (uint8_t j = 0; j < 2; j++) {
                 if (counter_slot >= hal_gpio_counter_capacity() ||
-                    meter->counter_pins[j] == HAL_INVALID_PIN ||
-                    !hal_gpio_counter_can_route(counter_slot, meter->counter_pins[j])) {
+                    counted[j] == HAL_INVALID_PIN ||
+                    !hal_gpio_counter_can_route(counter_slot, counted[j])) {
                     return CONFIG_PARSE_RESOURCE;
-                }
-                if (pin_is_reused(meter->counter_pins[j], &used_count, used_pins)) {
-                    return CONFIG_PARSE_PIN_CONFLICT;
                 }
                 counter_slot++;
             }
+            if (pin_is_reused(meter->cf_pin, &used_count, used_pins) ||
+                pin_is_reused(meter->cf1_pin, &used_count, used_pins) ||
+                pin_is_reused(meter->sel_pin, &used_count, used_pins) ||
+                meter_pin_drives_indicator(composition, meter)) {
+                return CONFIG_PARSE_PIN_CONFLICT;
+            }
         }
     }
+#else
+    if (composition->meter_count != 0) {
+        return CONFIG_PARSE_FEATURE_MISSING;
+    }
+#endif
     return CONFIG_PARSE_OK;
 }
 

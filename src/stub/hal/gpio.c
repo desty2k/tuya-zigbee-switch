@@ -49,6 +49,7 @@ void hal_gpio_init(hal_gpio_pin_t gpio_pin, uint8_t is_input,
 
 void hal_gpio_set(hal_gpio_pin_t gpio_pin) {
     ensure_valid_output_pin(gpio_pin);
+    stub_gpio_counter_advance();
 
     gpio_pins[gpio_pin].value = 1;
     write_count++;
@@ -58,6 +59,7 @@ void hal_gpio_set(hal_gpio_pin_t gpio_pin) {
 
 void hal_gpio_clear(hal_gpio_pin_t gpio_pin) {
     ensure_valid_output_pin(gpio_pin);
+    stub_gpio_counter_advance();
 
     gpio_pins[gpio_pin].value = 0;
     write_count++;

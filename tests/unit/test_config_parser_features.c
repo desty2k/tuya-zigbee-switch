@@ -47,6 +47,7 @@ TEST(feature_tokens_parse_only_when_the_feature_is_compiled) {
     ASSERT_FEATURE_TOKEN("M;T;CA0A1;", FEATURE_COVER);
     ASSERT_FEATURE_TOKEN("M;T;XA0A1u;", FEATURE_COVER);
     ASSERT_FEATURE_TOKEN("M;T;BTA5;", FEATURE_BATTERY);
+    ASSERT_FEATURE_TOKEN("M;T;EBC2C3D2;", FEATURE_METER);
 }
 
 TEST(core_tokens_parse_in_every_build) {
