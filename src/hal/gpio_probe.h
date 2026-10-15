@@ -46,7 +46,8 @@ uint8_t hal_gpio_probe_pins(const hal_gpio_probe_id_t **ids);
 uint8_t hal_gpio_probe_read(hal_gpio_probe_id_t id);
 
 /**
- * Make a pin an input with the given pull and its output driver off. Returns
+ * Make a pin an input with the given pull, its output driver off and its
+ * output latch at 0, so no level from an earlier drive persists. Returns
  * once the level has settled under the new pull (Telink: 100 kOhm pull-down
  * against the pin capacitance, a few microseconds).
  */

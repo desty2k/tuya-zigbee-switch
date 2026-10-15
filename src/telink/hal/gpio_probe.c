@@ -146,10 +146,16 @@ uint8_t hal_gpio_probe_read(hal_gpio_probe_id_t id) {
     return gpio_read(native_pin(id)) ? 1 : 0;
 }
 
+/*
+ * The output latch is cleared after the driver is off. On the TLSR8258 a PA
+ * or PD pad whose latch holds 1 keeps reading 1 with its output disabled and
+ * the 100 kOhm pull-down applied; PB and PC pads follow the pull.
+ */
 void hal_gpio_probe_input(hal_gpio_probe_id_t id, hal_gpio_pull_t pull) {
     GPIO_PinTypeDef pin = native_pin(id);
 
     gpio_set_output_en(pin, 0);
+    gpio_write(pin, 0);
     gpio_set_func(pin, AS_GPIO);
     gpio_set_input_en(pin, 1);
     gpio_setup_up_down_resistor(pin, native_pull(pull));
