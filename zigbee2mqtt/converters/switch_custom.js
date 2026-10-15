@@ -10783,6 +10783,83 @@ const definitions = [
     },
     {
         zigbeeModel: [
+            "TS011F-probe",
+        ],
+        model: "TS011F-probe",
+        vendor: "Tuya-custom",
+        description: "GPIO probe for pin discovery (helper_scripts/probe_discovery.py)",
+        extend: [
+            deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
+                ID: 0xFC02,
+                manufacturerCode: managementProtocol.manufacturerCode,
+                attributes: {
+                    buttonState: {name: "buttonState", ID: 0x0000, type: Zcl.DataType.ENUM8},
+                    lastEventSeq: {name: "lastEventSeq", ID: 0x0001, type: Zcl.DataType.UINT16},
+                    multiClickGap: {name: "multiClickGap", ID: 0x0002, type: Zcl.DataType.UINT16, write: true},
+                    debounceMs: {name: "debounceMs", ID: 0x0003, type: Zcl.DataType.UINT16, write: true},
+                },
+                commands: {},
+                commandsResponse: {
+                    buttonEvent: {
+                        name: "buttonEvent",
+                        ID: 0x00,
+                        parameters: [
+                            {name: "seq", type: Zcl.DataType.UINT16},
+                            {name: "pressId", type: Zcl.DataType.UINT16},
+                            {name: "eventType", type: Zcl.DataType.UINT8},
+                            {name: "count", type: Zcl.DataType.UINT8},
+                            {name: "durationMs", type: Zcl.DataType.UINT16},
+                        ],
+                    },
+                },
+            }),
+            romasku.buttonEvents(["switch", ]),
+            deviceEndpoints({ endpoints: {"switch": 1, "relay": 2, } }),
+            ...romasku.managementClusters(true),
+            romasku.deviceConfig("device_config", "switch"),
+            romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            ...romasku.deviceConfigState("switch"),
+            ...romasku.diagnosticCounters(),
+            romasku.probe(),
+            onOff({ endpointNames: ["relay"] }),
+            romasku.pressAction("switch_press_action", "switch"),
+            ...romasku.buttonTiming("switch"),
+            romasku.switchMode("switch_mode", "switch"),
+            romasku.switchAction("switch_action_mode", "switch"),
+            romasku.relayMode("switch_relay_mode", "switch"),
+            romasku.relayIndex("switch_relay_index", "switch", 1),
+            romasku.bindedMode("switch_binded_mode", "switch"),
+            romasku.longPressDuration("switch_long_press_duration", "switch"),
+            romasku.levelMoveRate("switch_level_move_rate", "switch"),
+        ],
+        meta: { multiEndpoint: true },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+            // switch action:
+            await endpoint1.configureReporting("genMultistateInput", [
+                {
+                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                },
+            ]);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.onOff(endpoint2, {
+                min: 0,
+                max: constants.repInterval.MAX,
+                change: 1,
+            });
+
+
+
+        },
+        ota: true,
+    },
+    {
+        zigbeeModel: [
             "TS011F-MG",
         ],
         model: "MG-GPO01",
@@ -22919,20 +22996,6 @@ const definitions = [
 
 
         },
-        ota: true,
-    },
-    {
-        zigbeeModel: ["TS011F-probe"],
-        model: "TS011F-probe",
-        vendor: "Tuya-custom",
-        description: "GPIO probe for pin discovery, not a working device (helper_scripts/probe_discovery.py)",
-        extend: [
-            ...romasku.managementClusters(true),
-            romasku.deviceConfig("device_config"),
-            ...romasku.deviceConfigState(),
-            ...romasku.diagnosticCounters(),
-            romasku.probe(),
-        ],
         ota: true,
     },
 ];
