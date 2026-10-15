@@ -115,13 +115,30 @@ Additional options:
 ## GPIO probe (devices that cannot be opened)
 
 When a device cannot be opened, its pins are found with the GPIO probe image
-running on the device itself. A probe board in `device_db.yaml` has
-`features: [probe]`, a config string with only the manufacturer and model
-fields (it claims no pins), its own `firmware_image_type`, and the stock
-`stock_manufacturer_id` / `stock_image_type` read from that exact device.
-Example: `OUTLET_BSEED_TS011F_PROBE` for TS011F `_TZ3210_drzlxjne`.
-`make tools/check_device_features` enforces the probe rules (only feature,
-Telink router, no pins). The board has `build: no`, and a probe image is never
+running on the device itself. A probe board in `device_db.yaml` has `probe` in
+its `features`, optionally with `relay` and `switch` (no other feature), its
+own `firmware_image_type`, and the stock `stock_manufacturer_id` /
+`stock_image_type` read from that exact device. Its config string holds the
+manufacturer and model fields and the pins found so far; every pin the config
+claims is driven by its feature and left out of the probe.
+Example: `OUTLET_BSEED_TS011F_PROBE` for TS011F `_TZ3210_drzlxjne`, with
+`features: [probe, relay, switch]` and the button and relay found on hardware
+(`SB4u;RB5;`).
+
+With `relay` and `switch` in the image, a candidate config string is tested
+on the device without reflashing: write it to the Device Config `text`
+attribute (cluster `0xFC10`), the device reboots into it, its buttons and
+relays work through the usual endpoints, and the probe keeps working on every
+pin the config does not claim. A config with a token for a feature the image
+lacks boots the recovery graph, which disables the probe; write a config
+without that token to get it back. When probing a cover device, configure its
+two motor relays as plain relays in one interlock group (`RA0;RA1;K03;`, with
+the default 200 ms dead time) so the two directions are never energised
+together.
+
+`make tools/check_device_features` enforces the probe rules (`probe` with at
+most `relay` and `switch`, Telink router). The board has `build: no`, and a
+probe image is never
 added to the repository OTA indexes (`zigbee2mqtt/ota/`): Zigbee2MQTT installs
 read those indexes, and the probe's `from_tuya` entry would be offered to every
 stock device with that manufacturer name. `make board/build` and
@@ -165,7 +182,7 @@ defined in `helper_scripts/management_protocol.json`):
 
 | Step | Effect |
 | --- | --- |
-| Boot | No pin is touched; nothing is persisted |
+| Boot | No probeable pin is touched; nothing is persisted |
 | Snapshot | Reads every probeable pin without changing its mode |
 | Pull test | Pull-up (10 kΩ), pull-down (100 kΩ), twice, 25 ms each; classifies each pin *floating*, *driven high*, *driven low* or *active*; ends with no pull. A relay driven through a transistor with a base resistor of about 20 kΩ or more classifies *floating* and may click during the pull-up phases; one with a low base resistor (a few kΩ) reads *driven low* |
 | Watch | Counts rising edges on up to 2 pins for 1–300 s: count, min/max interval, last level; a pin above 20 kHz is stopped and flagged |
@@ -179,8 +196,9 @@ probeable.
 Procedure, with `helper_scripts/probe_discovery.py <friendly name>` driving
 Zigbee2MQTT over MQTT (needs `paho-mqtt` from `requirements.txt` and the fork
 converter `zigbee2mqtt/converters/switch_custom.js`, which carries the probe
-board as model `TS011F-probe` although the board is `build: no`; it publishes
-the probe attributes under the `probe` state key with octet strings in hex).
+board as model `TS011F-probe` although the board is `build: no`; it exposes the
+endpoints of the board's config string and publishes the probe attributes
+under the `probe` state key with octet strings in hex).
 It reads one probe attribute per request, so no Read Attributes response needs
 APS fragmentation:
 

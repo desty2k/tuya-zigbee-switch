@@ -1,7 +1,9 @@
-"""GPIO probe over the Device Diagnostics cluster, on the probe-only stub.
+"""GPIO probe over the Device Diagnostics cluster, on the probe stub.
 
-`stub_probe` is built with FEATURES="probe", the feature set of a probe
-board. Pin electrical behaviour comes from the stub model
+`stub_probe` is built with FEATURES="probe relay switch", the feature set of
+the probe board, so a config string written over Zigbee can drive the pins
+already found while the probe covers the rest. Pin electrical behaviour comes
+from the stub model
 (src/stub/hal/gpio_probe.h): floating, externally driven and pulse-train pins.
 """
 
@@ -28,6 +30,7 @@ from management_protocol_consts import (
     GPIO_PROBE_STATUS_RANGE,
     GPIO_PROBE_STATUS_VERIFY_FAILED,
     GPIO_PROBE_WATCH_OVER_RATE,
+    ZCL_ATTR_DEVICE_CONFIG_TEXT,
     ZCL_ATTR_DIAGNOSTICS_CAPABILITIES,
     ZCL_ATTR_DIAGNOSTICS_PROBE_CLASSES,
     ZCL_ATTR_DIAGNOSTICS_PROBE_LEVELS,
@@ -35,6 +38,7 @@ from management_protocol_consts import (
     ZCL_ATTR_DIAGNOSTICS_PROBE_STATE,
     ZCL_ATTR_DIAGNOSTICS_PROBE_STATUS,
     ZCL_ATTR_DIAGNOSTICS_PROBE_WATCH,
+    ZCL_CLUSTER_DEVICE_CONFIG,
     ZCL_CLUSTER_DEVICE_DIAGNOSTICS,
     ZCL_CMD_DIAGNOSTICS_PROBE_ARM,
     ZCL_CMD_DIAGNOSTICS_PROBE_PULL_TEST,
@@ -47,6 +51,8 @@ from zcl_consts import ZCL_ATTR_BASIC_MODEL_ID, ZCL_CLUSTER_BASIC
 
 PROBE_CMD = ["./build/stub/stub_probe"]
 PROBE_CONFIG = "_TZ3210_drzlxjne;TS011F-probe;"
+# Button B4 (active low, pull-up) and relay B5 found on the TS011F outlet.
+OUTLET_CONFIG = PROBE_CONFIG + "SB4u;RB5;"
 TLSR8258_PROBE_PINS = [f"{port}{index}" for port in "ABCD" for index in range(8)
                        if (port, index) != ("A", 7)]
 
@@ -345,8 +351,81 @@ def test_pins_of_configured_features_are_not_probeable() -> None:
         assert probe.status() == GPIO_PROBE_STATUS_BAD_PIN
 
 
+def test_config_written_over_zigbee_drives_its_pins_and_probe_keeps_the_rest() -> None:
+    with probe_session() as proc:
+        device = Device(proc)
+        device.write_zigbee_attr(1, ZCL_CLUSTER_DEVICE_CONFIG,
+                                 ZCL_ATTR_DEVICE_CONFIG_TEXT, OUTLET_CONFIG)
+        proc.send("step_time 300")
+        assert proc.wait_for_exit(1.0)
+
+    with StubProc(cmd=PROBE_CMD) as proc:
+        device = Device(proc)
+        probe = Probe(device)
+        assert device.read_zigbee_attr(1, ZCL_CLUSTER_DEVICE_CONFIG,
+                                       ZCL_ATTR_DEVICE_CONFIG_TEXT) == OUTLET_CONFIG
+
+        # Endpoint 1 is the switch, endpoint 2 the relay.
+        device.zcl_relay_on(2)
+        assert device.get_gpio("B5", refresh=True)
+        device.zcl_relay_off(2)
+        assert not device.get_gpio("B5", refresh=True)
+        device.press_button("B4")              # toggle switch mode: each edge toggles
+        assert device.zcl_relay_get(2) == "1"
+        assert device.get_gpio("B5", refresh=True)
+
+        pins = probe.pins()
+        assert "B4" not in pins and "B5" not in pins
+        assert len(pins) == len(TLSR8258_PROBE_PINS) - 2
+        for pin in ("B4", "B5"):
+            assert probe.arm(pin) == "INVALID_VALUE"
+            assert probe.status() == GPIO_PROBE_STATUS_BAD_PIN
+            assert probe.pulse(pin, 1, 10) == "INVALID_VALUE"
+            assert probe.status() == GPIO_PROBE_STATUS_BAD_PIN
+        assert probe.pull_test(["B5"]) == "INVALID_VALUE"
+        assert probe.status() == GPIO_PROBE_STATUS_BAD_PIN
+        payload = struct.pack("<HB", 2, 1) + struct.pack("<HB", pin_id("B4"), GPIO_PROBE_PULL_UP)
+        assert probe.command(ZCL_CMD_DIAGNOSTICS_PROBE_WATCH, payload) == "INVALID_VALUE"
+        assert probe.status() == GPIO_PROBE_STATUS_BAD_PIN
+
+        # A full pull test and a watch leave the configured pins alone.
+        probe.model("C3", "train", "1000", "500")
+        assert probe.pull_test() == "PROCESSED"
+        assert probe.classes()["C3"] == GPIO_PROBE_CLASS_ACTIVE
+        payload = struct.pack("<HB", 2, 1) + struct.pack("<HB", pin_id("C3"), GPIO_PROBE_PULL_NONE)
+        assert probe.command(ZCL_CMD_DIAGNOSTICS_PROBE_WATCH, payload) == "PROCESSED"
+        probe.step(2000)
+        _, records = probe.watch()
+        assert records["C3"][0] == 2000
+        for pin in ("B4", "B5"):
+            info = probe.info(pin)
+            assert (info["output"], info["pull"], info["drives"]) == (0, 0, 0), pin
+        assert device.zcl_relay_get(2) == "1"
+        assert device.get_gpio("B5", refresh=True)
+
+
+def test_motor_relays_of_a_probed_cover_stay_interlocked() -> None:
+    # A cover device is probed with its motor relays as plain relays in one
+    # `K` group, so Zigbee never energises both directions at once.
+    with probe_session(PROBE_CONFIG + "RA0;RA1;K03;") as proc:
+        device = Device(proc)
+        probe = Probe(device)
+        device.zcl_relay_on(1)
+        assert device.get_gpio("A0", refresh=True)
+        device.zcl_relay_on(2)
+        assert not device.get_gpio("A0", refresh=True)
+        assert not device.get_gpio("A1", refresh=True)
+        device.step_time(200)
+        assert device.zcl_relay_get(1) == "0"
+        assert device.zcl_relay_get(2) == "1"
+        assert device.get_gpio("A1", refresh=True)
+        assert "A0" not in probe.pins() and "A1" not in probe.pins()
+        assert probe.arm("A1") == "INVALID_VALUE"
+
+
 def test_recovery_graph_disables_the_probe() -> None:
-    with probe_session("M;P;RC3;") as proc:
+    # A cover token needs a feature the probe image lacks.
+    with probe_session("M;P;CC3C4;") as proc:
         probe = Probe(Device(proc))
         assert probe.device.read_zigbee_attr(
             1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_MODEL_ID) == "recovery"

@@ -6,8 +6,9 @@ absent, the features its config tokens need. The token classification mirrors
 src/device_config/config_parser.c: a token belongs to a feature when the code
 it instantiates is compiled only with that feature (src/features.mk).
 
-The `probe` feature builds a GPIO probe image: it must be the board's only
-feature, on a Telink router, with a config that claims no pins.
+The `probe` feature builds a GPIO probe image on a Telink router. A probe
+board may add the relay and switch features, so a config string written over
+Zigbee can drive the pins already found while the probe covers the rest.
 
   board_features.py check            validate every board, exit 1 on errors
   board_features.py features BOARD   print BOARD's features, exit 1 if invalid
@@ -84,18 +85,22 @@ def board_features(board, order):
     return [feature for feature in order if feature in features]
 
 
+# Features a probe image may carry next to `probe`: enough to test discovered
+# buttons and relays from a config string written over Zigbee. Motor relays of
+# a cover device are tested as plain relays in a `K` interlock group.
+PROBE_COMPANION_FEATURES = {"relay", "switch"}
+
+
 def check_probe_board(name, board, features):
     errors = []
-    if features != {"probe"}:
-        errors.append(f"{name}: feature 'probe' must be the only feature, "
-                      f"not {sorted(features)}")
+    extra = features - {"probe"} - PROBE_COMPANION_FEATURES
+    if extra:
+        errors.append(f"{name}: feature 'probe' allows only "
+                      f"{sorted(PROBE_COMPANION_FEATURES)} next to it, not {sorted(extra)}")
     if board.get("mcu_family") != "Telink":
         errors.append(f"{name}: feature 'probe' has a Telink HAL only")
     if board.get("device_type") != "router":
         errors.append(f"{name}: a probe board must be a router")
-    for text in config_strings(board):
-        if config_tokens(text):
-            errors.append(f"{name}: a probe board config must claim no pins: '{text}'")
     return errors
 
 

@@ -71,11 +71,11 @@ def test_probe_stock_entry_is_filtered_to_its_outlet(tmp_path: Path) -> None:
     assert entry["manufacturerName"] == ["_TZ3210_drzlxjne"]
 
 
-def test_probe_board_is_a_unique_probe_only_telink_image() -> None:
+def test_probe_board_is_a_unique_telink_probe_image_with_relay_and_switch() -> None:
     db = yaml.safe_load((ROOT / "device_db.yaml").read_text())
     board = db[PROBE_BOARD]
     order = board_features.known_features()
-    assert board_features.board_features(board, order) == ["probe"]
+    assert board_features.board_features(board, order) == ["relay", "switch", "probe"]
     assert board_features.check_board(PROBE_BOARD, board, order) == ([], [])
     assert (board["stock_manufacturer_id"], board["stock_image_type"]) == (4417, 54179)
     assert board["build"] in (False, "no")
@@ -84,16 +84,27 @@ def test_probe_board_is_a_unique_probe_only_telink_image() -> None:
 
 
 @pytest.mark.parametrize("change, message", [
-    ({"features": ["probe", "relay"]}, "only feature"),
+    ({"features": ["probe", "relay", "cover"]}, "allows only"),
+    ({"features": ["probe", "meter"]}, "allows only"),
     ({"mcu_family": "Silabs"}, "Telink"),
     ({"device_type": "end_device"}, "router"),
-    ({"config_str": "_TZ3210_drzlxjne;TS011F-probe;LC2;"}, "claim no pins"),
+    ({"features": ["probe"]}, "needs feature 'relay'"),
 ])
 def test_probe_board_rules(change: dict, message: str) -> None:
     db = yaml.safe_load((ROOT / "device_db.yaml").read_text())
     board = {**db[PROBE_BOARD], **change}
     errors, _ = board_features.check_board(PROBE_BOARD, board, board_features.known_features())
     assert any(message in error for error in errors), errors
+
+
+@pytest.mark.parametrize("change", [
+    {"features": ["probe"], "config_str": "_TZ3210_drzlxjne;TS011F-probe;"},
+    {"features": ["probe", "relay"], "config_str": "_TZ3210_drzlxjne;TS011F-probe;RA0;RA1;K03;"},
+])
+def test_probe_board_variants_are_accepted(change: dict) -> None:
+    db = yaml.safe_load((ROOT / "device_db.yaml").read_text())
+    board = {**db[PROBE_BOARD], **change}
+    assert board_features.check_board(PROBE_BOARD, board, board_features.known_features()) == ([], [])
 
 
 def test_discovery_helper_decodes_probe_attributes_and_proposes_a_config() -> None:

@@ -13,6 +13,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import yaml
 
 from client import StubProc
 
@@ -23,7 +24,8 @@ HAL_ATTR_WRITE = 1 << 1
 # Endpoints: switch 1, relay 2 (with indicator), cover switch 3, cover 4.
 FULL_CONFIG = "M;Parity;SA2u;RB2;IC5;XA0A1u;CB0B1;BTA5;"
 PROBE_CMD = ["./build/stub/stub_probe"]
-PROBE_CONFIG = "_TZ3210_drzlxjne;TS011F-probe;"
+PROBE_BOARD = "OUTLET_BSEED_TS011F_PROBE"
+PROBE_CONFIG = yaml.safe_load((ROOT / "device_db.yaml").read_text())[PROBE_BOARD]["config_str"]
 
 Z2M_TYPES = {"BOOLEAN": 0x10, "BITMAP8": 0x18, "BITMAP32": 0x1B, "UINT8": 0x20, "UINT16": 0x21,
              "UINT32": 0x23, "ENUM8": 0x30, "OCTET_STR": 0x41, "LONG_CHAR_STR": 0x44}
@@ -223,13 +225,28 @@ def test_probe_board_has_a_z2m_converter_matching_the_discovery_helper() -> None
     import probe_discovery
 
     text = generate("make_z2m_custom_converters.py")
-    assert 'zigbeeModel: ["TS011F-probe"]' in text
-    assert "romasku.probe()," in text
+    start = text.index('        zigbeeModel: [\n            "TS011F-probe",\n        ],')
+    definition = text[start:text.index("\n    },\n", start)]
+    assert "romasku.probe()," in definition
+    assert "...romasku.managementClusters(true)," in definition
+    # The board's config (button B4, relay B5) is exposed next to the probe.
+    assert 'deviceEndpoints({ endpoints: {"switch": 1, "relay": 2, } }),' in definition
+    assert 'onOff({ endpointNames: ["relay"] }),' in definition
+    assert 'romasku.buttonEvents(["switch", ]),' in definition
     fragment = text[text.index("    probe: {\n        capabilityBit:"):]
     names = [name for name, *_ in z2m_attribute_lines(fragment[:fragment.index("        commands:")])]
     published = {re.sub(r"[A-Z]", lambda m: "_" + m[0].lower(), name).removeprefix("probe_") for name in names}
     assert published == set(probe_discovery.ATTRIBUTES)
     commands = dict(re.findall(r"^\s+(\w+): \{name: \"\w+\", ID: (0x[0-9A-F]{2})", fragment, re.MULTILINE))
     assert {int(cmd_id, 16) for cmd_id in commands.values()} == set(probe_discovery.COMMANDS.values())
+    # Every cluster the definition uses is registered by the probe image.
+    probe_firmware = firmware_descriptor(PROBE_CMD, PROBE_CONFIG)
+    used = {0x0006, 0x0007, 0x0012, 0xFC02} | {cluster["id"] for cluster in PROTOCOL["clusters"]}
+    assert used <= probe_firmware.keys()
+    # References are collected from the whole converter; the relay indicator
+    # attributes (0xFF01, 0xFF02) exist only with an `I` token, which the board lacks.
+    refs = {ref for ref in z2m_references(text)
+            if ref[0] in used and (ref[0], ref[1]) not in {(0x0006, 0xFF01), (0x0006, 0xFF02)}}
+    assert mismatches(refs, probe_firmware) == []
     assert "TS011F-probe" not in generate("make_zha_quirk.py")
     assert "TS011F-probe" not in generate("make_homed_extension.py")

@@ -103,7 +103,7 @@ endif
 # Main target - builds firmware and generates all OTA files
 build: check-publishable drop-old-files build-firmware generate-ota-files update-indexes
 
-# A probe image is not a working firmware, and its from_tuya entry matches
+# A probe image is a discovery tool, not a release, and its from_tuya entry matches
 # every stock device with the probe board's manufacturer name: it must never
 # reach the repository OTA indexes, which Zigbee2MQTT installs read directly.
 # Probe boards are built with board/build-firmware board/generate-ota-files
