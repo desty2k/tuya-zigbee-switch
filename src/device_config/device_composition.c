@@ -1,4 +1,5 @@
 #include "device_config/device_composition.h"
+#include "device_config/build_features.h"
 
 #include "hal/gpio_counter.h"
 
@@ -35,6 +36,8 @@ static bool pin_is_reused(hal_gpio_pin_t pin, uint8_t *used_count,
     return false;
 }
 
+#if FEATURE_METER
+
 /* Indicator pins stay out of the reuse check above; a meter pin must not be one. */
 static bool meter_pin_drives_indicator(const device_composition_t *composition,
                                        const device_meter_config_t *meter) {
@@ -47,6 +50,8 @@ static bool meter_pin_drives_indicator(const device_composition_t *composition,
     }
     return false;
 }
+
+#endif
 
 static uint8_t endpoint_count(const device_composition_t *composition) {
     uint8_t count = (uint8_t)(composition->switch_count +
@@ -140,6 +145,7 @@ config_parse_result_t device_composition_validate(
             }
         }
     }
+#if FEATURE_METER
     {
         uint8_t counter_slot = 0;
 
@@ -166,6 +172,11 @@ config_parse_result_t device_composition_validate(
             }
         }
     }
+#else
+    if (composition->meter_count != 0) {
+        return CONFIG_PARSE_FEATURE_MISSING;
+    }
+#endif
     return CONFIG_PARSE_OK;
 }
 

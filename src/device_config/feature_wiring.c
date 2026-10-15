@@ -112,8 +112,8 @@ static zigbee_electrical_measurement_cluster
     electrical_measurement_clusters[DEVICE_COMPOSITION_MAX_METERS];
 static zigbee_metering_cluster          metering_clusters[DEVICE_COMPOSITION_MAX_METERS];
 static zigbee_meter_calibration_cluster meter_calibration_clusters[DEVICE_COMPOSITION_MAX_METERS];
-#endif
 static uint8_t meters_cnt;
+#endif
 
 #define NETWORK_INDICATOR_SLOTS                           \
         (sizeof(((network_indicator_t *)0)->indicators) / \
@@ -284,9 +284,11 @@ static void endpoint_slots(const device_composition_t *c) {
         } else if (i < covers_end) {
             slots += COVER_CLUSTERS;
         }
+#if FEATURE_METER
         if (i < meters_cnt) {
             slots += METER_CLUSTERS;
         }
+#endif
         endpoints[i].endpoint         = i + 1;
         endpoints[i].profile_id       = ZCL_HA_PROFILE;
         endpoints[i].device_id        = WIRED_ENDPOINT_DEVICE_ID;
@@ -504,8 +506,10 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
     relay_clusters_cnt        = c->relay_endpoint_count;
     cover_switch_clusters_cnt = c->cover_switch_count;
     cover_clusters_cnt        = c->cover_count;
-    meters_cnt                = c->meter_count;
-    interlocks_cnt            = c->interlock_count;
+#if FEATURE_METER
+    meters_cnt = c->meter_count;
+#endif
+    interlocks_cnt = c->interlock_count;
     memcpy(interlocks, c->interlocks, c->interlock_count * sizeof(*interlocks));
     allow_simultaneous_latching_pulses = c->simultaneous_latching_pulses;
     battery.pin = c->battery_pin;
@@ -787,7 +791,9 @@ static void stop_wired_features(void) {
     button_input_init();
     gesture_fsm_init();
     action_mapper_init();
-    meters_cnt                = 0;
+#if FEATURE_METER
+    meters_cnt = 0;
+#endif
     relays_cnt                = 0;
     buttons_cnt               = 0;
     switch_clusters_cnt       = 0;

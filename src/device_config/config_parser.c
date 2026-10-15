@@ -316,6 +316,7 @@ static config_parse_result_t parse_token(const char *token,
             .on_pin  = close_pin,
             .off_pin = HAL_INVALID_PIN,
         };
+#if FEATURE_METER
     } else if (token[0] == 'E') {
         device_meter_config_t *meter;
 
@@ -334,6 +335,7 @@ static config_parse_result_t parse_token(const char *token,
         meter->ic = DEVICE_METER_BL0937;
         meter->sel_high_selects_voltage = *end == '\0';
         out->meter_count++;
+#endif
     } else {
         return CONFIG_PARSE_SYNTAX;
     }
