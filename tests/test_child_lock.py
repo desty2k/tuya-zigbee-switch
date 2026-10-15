@@ -147,6 +147,16 @@ def test_cover_release_before_3s_does_not_lock(shutter: Device):
     assert led_switched_on(shutter, "D2") == 0
 
 
+def test_cover_repress_restarts_the_3s_hold(shutter: Device):
+    hold(shutter, ("B6", "A1"), PAIR_HOLD_MS - 500)
+    shutter.press_button("B6")
+    shutter.press_button("A1")
+    shutter.step_time(1000)
+    assert lock_state(shutter) == "0"
+    shutter.step_time(PAIR_HOLD_MS - 1000)
+    assert lock_state(shutter) == "1"
+
+
 def test_cover_short_open_and_close_press_still_stops(shutter: Device):
     shutter.click_button("B6")
     shutter.step_time(MINIMUM_SWITCH_TIME_MS)
