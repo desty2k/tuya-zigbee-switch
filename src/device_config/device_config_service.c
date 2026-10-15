@@ -6,8 +6,10 @@
 #include "device_config/nvm_items.h"
 #include "device_config/reset.h"
 #include "base_components/action_mapper.h"
+#include "base_components/child_lock.h"
 #include "base_components/gesture_fsm.h"
 #include "hal/nvm.h"
+#include "hal/system.h"
 #include <string.h>
 
 typedef struct {
@@ -22,6 +24,9 @@ static device_config_service_record_t    record;
 static device_config_service_state_t     state;
 static device_config_led_mode_provider_t led_mode_provider;
 static void *led_mode_provider_context;
+static device_config_change_listener_t change_listener;
+
+static bool store_child_lock_from_gesture(void *context, bool locked);
 
 static void update_state(device_config_status_t status,
                          device_config_error_t error) {
@@ -33,6 +38,7 @@ static void update_state(device_config_status_t status,
     state.error             = error;
     state.led_mode          = (device_config_led_mode_t)record.led_mode;
     state.multi_press_reset = record.multi_press_reset;
+    state.child_lock        = child_lock_is_on();
 }
 
 static device_config_error_t parse_error(config_parse_result_t result) {
@@ -62,6 +68,12 @@ void device_config_service_init(void) {
         record.config_len = strlen(record.config);
     }
     action_mapper_set_multi_press_reset_count(record.multi_press_reset);
+
+    uint8_t locked;
+
+    child_lock_set(hal_nvm_read(NV_ITEM_CHILD_LOCK, sizeof(locked), &locked) ==
+                   HAL_NVM_SUCCESS && locked == 1);
+    child_lock_set_store(store_child_lock_from_gesture, NULL);
     update_state(DEVICE_CONFIG_STATUS_READY, DEVICE_CONFIG_ERROR_NONE);
 }
 
@@ -175,6 +187,56 @@ device_config_error_t device_config_service_set_multi_press_reset(uint8_t count)
     action_mapper_set_multi_press_reset_count(count);
     update_state(state.status, DEVICE_CONFIG_ERROR_NONE);
     return DEVICE_CONFIG_ERROR_NONE;
+}
+
+static void notify_change(void) {
+    if (change_listener != NULL) {
+        change_listener();
+    }
+}
+
+/* Writes the lock first: memory and storage only change together. */
+static bool store_child_lock(uint8_t locked) {
+    if (hal_nvm_write(NV_ITEM_CHILD_LOCK, sizeof(locked), &locked) != HAL_NVM_SUCCESS) {
+        update_state(state.status, DEVICE_CONFIG_ERROR_NVM);
+        return false;
+    }
+    child_lock_set(locked == 1);
+    return true;
+}
+
+/* A lock gesture keeps LastError on success: no request was made. */
+static bool store_child_lock_from_gesture(void *context, bool locked) {
+    bool stored;
+
+    (void)context;
+    stored = store_child_lock(locked ? 1 : 0);
+    if (stored) {
+        update_state(state.status, state.error);
+    }
+    notify_change();
+    return stored;
+}
+
+device_config_error_t device_config_service_set_child_lock(uint8_t locked) {
+    if (locked > 1) return DEVICE_CONFIG_ERROR_ARGUMENT;
+
+    if (!store_child_lock(locked)) return DEVICE_CONFIG_ERROR_NVM;
+
+    update_state(state.status, DEVICE_CONFIG_ERROR_NONE);
+    return DEVICE_CONFIG_ERROR_NONE;
+}
+
+void device_config_service_set_change_listener(device_config_change_listener_t listener) {
+    change_listener = listener;
+}
+
+void device_config_service_factory_reset(void) {
+    hal_nvm_delete(NV_ITEM_CHILD_LOCK);
+    child_lock_set(false);
+    update_state(state.status, state.error);
+    notify_change();
+    hal_factory_reset();
 }
 
 void device_config_service_set_error(device_config_error_t error) {

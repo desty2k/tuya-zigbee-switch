@@ -23,6 +23,18 @@ static void sync_cluster(void) {
     instance->error             = state->error;
     instance->led_mode          = state->led_mode;
     instance->multi_press_reset = state->multi_press_reset;
+    instance->child_lock        = state->child_lock;
+}
+
+/* Converters read the lock instead of configuring a report for it (the
+ * Telink reporting table is full on 4-gang boards); the change is still
+ * flagged for a report configured by hand. */
+static void service_changed(void) {
+    sync_cluster();
+    if (instance != NULL) {
+        hal_zigbee_notify_attribute_changed(instance->endpoint, ZCL_CLUSTER_DEVICE_CONFIG,
+                                            ZCL_ATTR_DEVICE_CONFIG_CHILD_LOCK);
+    }
 }
 
 static hal_zigbee_cmd_result_t attr_write(uint8_t endpoint,
@@ -69,6 +81,13 @@ static hal_zigbee_cmd_result_t attr_write(uint8_t endpoint,
         if (phase == HAL_ZIGBEE_ATTR_VALIDATE) return HAL_ZIGBEE_CMD_PROCESSED;
 
         result = device_config_service_set_multi_press_reset(candidate[0]);
+    } else if (attribute_id == ZCL_ATTR_DEVICE_CONFIG_CHILD_LOCK) {
+        if (candidate == NULL || candidate_len != sizeof(instance->child_lock) ||
+            candidate[0] > 1) return HAL_ZIGBEE_INVALID_VALUE;
+
+        if (phase == HAL_ZIGBEE_ATTR_VALIDATE) return HAL_ZIGBEE_CMD_PROCESSED;
+
+        result = device_config_service_set_child_lock(candidate[0]);
     } else {
         return HAL_ZIGBEE_CMD_SKIPPED;
     }
@@ -89,8 +108,10 @@ void device_config_cluster_add_to_endpoint(zigbee_device_config_cluster_t *clust
                                               endpoint->cluster_capacity, 1)) {
         return;
     }
-    instance = cluster;
+    instance          = cluster;
+    cluster->endpoint = endpoint->endpoint;
     sync_cluster();
+    device_config_service_set_change_listener(service_changed);
     SETUP_ATTR(0, ZCL_ATTR_DEVICE_CONFIG_SCHEMA_VERSION, ZCL_DATA_TYPE_UINT16,
                HAL_ATTR_READ, cluster->schema_version);
     SETUP_ATTR(1, ZCL_ATTR_DEVICE_CONFIG_REVISION, ZCL_DATA_TYPE_UINT32,
@@ -105,11 +126,13 @@ void device_config_cluster_add_to_endpoint(zigbee_device_config_cluster_t *clust
                HAL_ATTR_READ | HAL_ATTR_WRITE, cluster->led_mode);
     SETUP_ATTR(6, ZCL_ATTR_DEVICE_CONFIG_MULTI_PRESS_RESET, ZCL_DATA_TYPE_UINT8,
                HAL_ATTR_READ | HAL_ATTR_WRITE, cluster->multi_press_reset);
+    SETUP_ATTR(7, ZCL_ATTR_DEVICE_CONFIG_CHILD_LOCK, ZCL_DATA_TYPE_BOOLEAN,
+               HAL_ATTR_READ | HAL_ATTR_WRITE | HAL_ATTR_REPORT, cluster->child_lock);
     hal_zigbee_cluster endpoint_cluster = {
         .cluster_id        = ZCL_CLUSTER_DEVICE_CONFIG,
         .manufacturer_code = ZIGBEE_MANAGEMENT_MANUFACTURER_CODE,
         .role                = HAL_ZIGBEE_ROLE_SERVER,
-        .attribute_count     =                                   7,
+        .attribute_count     =                                   8,
         .attributes          = cluster->attr_infos,
         .attr_write_callback = attr_write,
     };

@@ -65,6 +65,7 @@ SOURCES := \
 	$(SRC_DIR)/stub/machine_io.c \
 	$(SRC_DIR)/base_components/led.c \
 	$(SRC_DIR)/base_components/indicator_feedback.c \
+	$(SRC_DIR)/base_components/child_lock.c \
 	$(SRC_DIR)/base_components/relay_driver.c \
 	$(SRC_DIR)/base_components/relay_controller.c \
 	$(SRC_DIR)/base_components/gpio_edge_queue.c \

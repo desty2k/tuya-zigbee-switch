@@ -30,7 +30,11 @@ static void action_mapper_gesture(const gesture_event_t *event, void *context) {
     (void)context;
     if (event->button_id < BUTTON_INPUT_MAX &&
         action_mapper_is_reset(event)) {
-        hal_factory_reset();
+        if (action_sinks.factory_reset != NULL) {
+            action_sinks.factory_reset();
+        } else {
+            hal_factory_reset();
+        }
     }
 }
 

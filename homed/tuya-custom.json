@@ -44,6 +44,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -196,6 +197,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -319,6 +328,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -613,6 +625,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -765,6 +778,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -888,6 +909,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -1182,6 +1206,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -1334,6 +1359,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -1457,6 +1490,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -1751,6 +1787,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -1903,6 +1940,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -2026,6 +2071,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -2314,6 +2362,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -2466,6 +2515,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -2589,6 +2646,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -2870,6 +2930,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -3022,6 +3083,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -3145,6 +3214,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -3429,6 +3501,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -3581,6 +3654,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -3704,6 +3785,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -3986,6 +4070,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -4138,6 +4223,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -4261,6 +4354,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -4586,6 +4682,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -4738,6 +4835,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -4861,6 +4966,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -5188,6 +5296,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -5340,6 +5449,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -5463,6 +5580,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -5746,6 +5866,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -5898,6 +6019,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -6021,6 +6150,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -6307,6 +6439,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -6459,6 +6592,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -6582,6 +6723,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -6873,6 +7017,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -7025,6 +7170,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -7148,6 +7301,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -7440,6 +7596,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -7592,6 +7749,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -7715,6 +7880,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -8004,6 +8172,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -8156,6 +8325,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -8279,6 +8456,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -8573,6 +8753,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -8725,6 +8906,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -8848,6 +9037,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -9147,6 +9339,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -9299,6 +9492,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -9422,6 +9623,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -9718,6 +9922,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -9870,6 +10075,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -9993,6 +10206,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -10284,6 +10500,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -10436,6 +10653,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -10559,6 +10784,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -10847,6 +11075,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -10999,6 +11228,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -11122,6 +11359,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -11403,6 +11643,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -11555,6 +11796,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -11678,6 +11927,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -11963,6 +12215,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -12115,6 +12368,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -12238,6 +12499,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -12524,6 +12788,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -12676,6 +12941,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -12799,6 +13072,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -13085,6 +13361,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -13237,6 +13514,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -13360,6 +13645,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -13647,6 +13935,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -13799,6 +14088,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -13922,6 +14219,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -14206,6 +14506,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -14358,6 +14659,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -14481,6 +14790,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -14763,6 +15075,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -14915,6 +15228,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -15038,6 +15359,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -15319,6 +15643,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -15471,6 +15796,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -15594,6 +15927,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -15878,6 +16214,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -16030,6 +16367,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -16153,6 +16498,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -16435,6 +16783,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -16587,6 +16936,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -16710,6 +17067,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -16994,6 +17354,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -17146,6 +17507,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -17269,6 +17638,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -17556,6 +17928,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -17708,6 +18081,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -17831,6 +18212,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -18118,6 +18502,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -18270,6 +18655,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -18393,6 +18786,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -18674,6 +19070,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -18826,6 +19223,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -18949,6 +19354,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -19231,6 +19639,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -19383,6 +19792,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -19506,6 +19923,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -19785,6 +20205,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -19937,6 +20358,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -20060,6 +20489,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -20343,6 +20775,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -20495,6 +20928,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -20618,6 +21059,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -20902,6 +21346,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -21054,6 +21499,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -21177,6 +21630,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -21520,6 +21976,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -21672,6 +22129,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -21795,6 +22260,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -22139,6 +22607,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -22291,6 +22760,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -22414,6 +22891,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -22693,6 +23173,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -22845,6 +23326,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -22968,6 +23457,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -23245,6 +23737,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -23397,6 +23890,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -23520,6 +24021,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -23799,6 +24303,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -23951,6 +24456,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -24074,6 +24587,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -24353,6 +24869,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -24505,6 +25022,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -24628,6 +25153,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -24909,6 +25437,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -25061,6 +25590,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -25184,6 +25721,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -25468,6 +26008,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -25620,6 +26161,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -25743,6 +26292,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -26025,6 +26577,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -26177,6 +26730,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -26300,6 +26861,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -26585,6 +27149,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -26737,6 +27302,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -26860,6 +27433,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -27153,6 +27729,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -27305,6 +27882,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -27428,6 +28013,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -27716,6 +28304,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -27868,6 +28457,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -27991,6 +28588,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -28270,6 +28870,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -28422,6 +29023,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -28545,6 +29154,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -28824,6 +29436,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -28976,6 +29589,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -29099,6 +29720,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -29380,6 +30004,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -29532,6 +30157,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -29655,6 +30288,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -29940,7 +30576,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -30091,6 +30728,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -30207,6 +30852,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -30484,6 +31132,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -30636,6 +31285,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -30759,6 +31416,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -31040,6 +31700,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -31192,6 +31853,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -31315,6 +31984,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -31601,6 +32273,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -31753,6 +32426,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -31876,6 +32557,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -32167,6 +32851,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -32319,6 +33004,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -32442,6 +33135,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -32730,6 +33426,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -32882,6 +33579,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -33005,6 +33710,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -33284,6 +33992,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -33436,6 +34145,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -33559,6 +34276,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -33838,6 +34558,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -33990,6 +34711,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -34113,6 +34842,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -34392,6 +35124,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -34544,6 +35277,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -34667,6 +35408,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -34948,6 +35692,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -35100,6 +35845,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -35223,6 +35976,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -35509,6 +36265,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -35661,6 +36418,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -35784,6 +36549,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -36069,6 +36837,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -36221,6 +36990,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -36344,6 +37121,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -36623,6 +37403,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -36775,6 +37556,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -36898,6 +37687,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -37181,6 +37973,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -37333,6 +38126,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -37456,6 +38257,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -37746,6 +38550,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -37898,6 +38703,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -38021,6 +38834,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -38313,6 +39129,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -38465,6 +39282,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -38588,6 +39413,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -38873,6 +39701,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -39025,6 +39854,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -39148,6 +39985,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -39425,6 +40265,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -39577,6 +40418,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -39700,6 +40549,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -39977,6 +40829,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -40129,6 +40982,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -40252,6 +41113,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -40531,6 +41395,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -40683,6 +41548,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -40806,6 +41679,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -41085,6 +41961,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -41237,6 +42114,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -41360,6 +42245,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -41637,6 +42525,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -41789,6 +42678,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -41912,6 +42809,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -42197,6 +43097,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -42349,6 +43250,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -42472,6 +43381,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -42764,6 +43676,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -42916,6 +43829,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -43039,6 +43960,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -43326,6 +44250,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -43478,6 +44403,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -43601,6 +44534,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -43880,6 +44816,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -44032,6 +44969,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -44155,6 +45100,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -44436,6 +45384,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -44588,6 +45537,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -44711,6 +45668,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -44997,6 +45957,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -45149,6 +46110,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -45272,6 +46241,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -45557,6 +46529,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -45709,6 +46682,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -45832,6 +46813,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -46113,6 +47097,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -46265,6 +47250,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -46388,6 +47381,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -46670,6 +47666,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -46822,6 +47819,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -46945,6 +47950,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -47226,6 +48234,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -47378,6 +48387,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -47501,6 +48518,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -47783,6 +48803,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -47935,6 +48956,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -48058,6 +49087,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -48403,6 +49435,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -48555,6 +49588,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -48678,6 +49719,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -48963,6 +50007,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -49115,6 +50160,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -49238,6 +50291,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -49519,6 +50575,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -49671,6 +50728,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -49794,6 +50859,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -50078,6 +51146,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -50230,6 +51299,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -50353,6 +51430,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -50635,6 +51715,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -50787,6 +51868,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -50910,6 +51999,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -51189,6 +52281,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -51341,6 +52434,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -51464,6 +52565,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -51743,6 +52847,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -51895,6 +53000,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -52018,6 +53131,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -52303,6 +53419,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -52455,6 +53572,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -52578,6 +53703,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -52868,6 +53996,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -53020,6 +54149,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -53143,6 +54280,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -53427,6 +54567,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -53579,6 +54720,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -53702,6 +54851,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -53983,6 +55135,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -54135,6 +55288,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -54258,6 +55419,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -54583,6 +55747,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -54735,6 +55900,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -54858,6 +56031,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -55183,6 +56359,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -55335,6 +56512,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -55458,6 +56643,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -55783,6 +56971,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -55935,6 +57124,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -56058,6 +57255,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -56383,6 +57583,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -56535,6 +57736,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -56658,6 +57867,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -56824,53 +58036,6 @@
       },
       "endpointId": [
         1
-      ]
-    },
-    {
-      "modelNames": [
-        "TS130F-BS-CVR"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        1,
-        2
       ]
     },
     {
@@ -57045,7 +58210,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -57196,6 +58362,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -57312,6 +58486,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -57710,6 +58887,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -57862,6 +59040,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -57985,6 +59171,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -58313,7 +59502,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -58464,6 +59654,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -58580,6 +59778,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -58896,7 +60097,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -59047,6 +60249,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -59163,6 +60373,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -59479,7 +60692,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -59630,6 +60844,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -59746,6 +60968,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -60062,7 +61287,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -60213,6 +61439,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -60329,6 +61563,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -60645,7 +61882,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -60796,6 +62034,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -60912,6 +62158,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -61230,7 +62479,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -61381,6 +62631,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -61497,6 +62755,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -61692,55 +62953,6 @@
         3,
         4
       ]
-    },
-    {
-      "modelNames": [
-        "TS0044-HOB"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        5,
-        6,
-        7,
-        8
-      ]
     }
   ],
   "ZG-101ZL": [
@@ -61780,7 +62992,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -61931,6 +63144,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -62047,6 +63268,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -62238,52 +63462,6 @@
       },
       "endpointId": [
         1
-      ]
-    },
-    {
-      "modelNames": [
-        "TS0001-HB"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        2
       ]
     }
   ],
@@ -62324,7 +63502,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -62475,6 +63654,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -62591,6 +63778,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -62782,52 +63972,6 @@
       },
       "endpointId": [
         1
-      ]
-    },
-    {
-      "modelNames": [
-        "TS0041-IH"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        2
       ]
     }
   ],
@@ -62872,6 +64016,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -63024,6 +64169,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -63147,6 +64300,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -63392,7 +64548,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -63543,6 +64700,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -63659,6 +64824,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -63854,55 +65022,6 @@
         3,
         4
       ]
-    },
-    {
-      "modelNames": [
-        "TS0046-IH"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        5,
-        6,
-        7,
-        8
-      ]
     }
   ],
   "rco1yzb1": [
@@ -63942,7 +65061,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -64093,6 +65213,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -64209,6 +65337,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -64400,52 +65531,6 @@
       },
       "endpointId": [
         1
-      ]
-    },
-    {
-      "modelNames": [
-        "TS004F-LIDL"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        2
       ]
     }
   ],
@@ -64486,7 +65571,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -64637,6 +65723,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -64753,6 +65847,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -64944,52 +66041,6 @@
       },
       "endpointId": [
         1
-      ]
-    },
-    {
-      "modelNames": [
-        "TS0041-MA"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        2
       ]
     }
   ],
@@ -65031,7 +66082,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -65182,6 +66234,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -65298,6 +66358,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -65491,53 +66554,6 @@
         1,
         2
       ]
-    },
-    {
-      "modelNames": [
-        "TS0042-MA"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        3,
-        4
-      ]
     }
   ],
   "gbm10jnj": [
@@ -65579,7 +66595,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -65730,6 +66747,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -65846,6 +66871,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -66039,54 +67067,6 @@
         1,
         2,
         3
-      ]
-    },
-    {
-      "modelNames": [
-        "TS0043-MA"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        4,
-        5,
-        6
       ]
     }
   ],
@@ -66130,7 +67110,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -66281,6 +67262,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -66397,6 +67386,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -66591,55 +67583,6 @@
         2,
         3,
         4
-      ]
-    },
-    {
-      "modelNames": [
-        "TS0044-MA"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        5,
-        6,
-        7,
-        8
       ]
     }
   ],
@@ -66683,7 +67626,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -66834,6 +67778,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -66950,6 +67902,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -67145,55 +68100,6 @@
         3,
         4
       ]
-    },
-    {
-      "modelNames": [
-        "TS0044-MOES"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        5,
-        6,
-        7,
-        8
-      ]
     }
   ],
   "mrpevh8p": [
@@ -67233,7 +68139,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -67384,6 +68291,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -67500,6 +68415,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -67691,52 +68609,6 @@
       },
       "endpointId": [
         1
-      ]
-    },
-    {
-      "modelNames": [
-        "TS0041-TB"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        2
       ]
     }
   ],
@@ -67777,7 +68649,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -67928,6 +68801,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -68044,6 +68925,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -68235,52 +69119,6 @@
       },
       "endpointId": [
         1
-      ]
-    },
-    {
-      "modelNames": [
-        "TS0041-TB2"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        2
       ]
     }
   ],
@@ -68321,7 +69159,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -68472,6 +69311,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -68588,6 +69435,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -68779,52 +69629,6 @@
       },
       "endpointId": [
         1
-      ]
-    },
-    {
-      "modelNames": [
-        "TS0041-MOES"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        2
       ]
     }
   ],
@@ -68866,7 +69670,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -69017,6 +69822,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -69133,6 +69946,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -69325,53 +70141,6 @@
       "endpointId": [
         1,
         2
-      ]
-    },
-    {
-      "modelNames": [
-        "TS0042-MOES"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        3,
-        4
       ]
     }
   ],
@@ -69414,7 +70183,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -69565,6 +70335,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -69681,6 +70459,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -69874,54 +70655,6 @@
         1,
         2,
         3
-      ]
-    },
-    {
-      "modelNames": [
-        "TS0043-MOES"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        4,
-        5,
-        6
       ]
     }
   ],
@@ -69964,7 +70697,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -70115,6 +70849,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -70231,6 +70973,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -70424,54 +71169,6 @@
         1,
         2,
         3
-      ]
-    },
-    {
-      "modelNames": [
-        "TS0043-MB"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        4,
-        5,
-        6
       ]
     }
   ],
@@ -70515,7 +71212,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -70666,6 +71364,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -70782,6 +71488,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -70977,55 +71686,6 @@
         3,
         4
       ]
-    },
-    {
-      "modelNames": [
-        "TS0044-TUYA"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        5,
-        6,
-        7,
-        8
-      ]
     }
   ],
   "TELINK": [
@@ -71066,7 +71726,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -71217,6 +71878,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -71333,6 +72002,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -71526,53 +72198,6 @@
         1,
         2
       ]
-    },
-    {
-      "modelNames": [
-        "TLSR82xx-2G"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        3,
-        4
-      ]
     }
   ],
   "ja5osu5g": [
@@ -71612,7 +72237,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -71763,6 +72389,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -71879,6 +72513,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -72071,52 +72708,6 @@
       "endpointId": [
         1
       ]
-    },
-    {
-      "modelNames": [
-        "TS004F-Loginovo"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        2
-      ]
     }
   ],
   "xabckq1v": [
@@ -72159,7 +72750,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -72310,6 +72902,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -72426,6 +73026,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -72621,55 +73224,6 @@
         3,
         4
       ]
-    },
-    {
-      "modelNames": [
-        "TS004F-TUYA"
-      ],
-      "exposes": [
-        "relayIndicatorMode",
-        "relayIndicator"
-      ],
-      "options": {
-        "customAttributes": {
-          "relayIndicatorMode": {
-            "type": "enum",
-            "clusterId": 6,
-            "attributeId": 65281,
-            "dataType": 48,
-            "action": true
-          },
-          "relayIndicator": {
-            "type": "bool",
-            "clusterId": 6,
-            "attributeId": 65282,
-            "dataType": 16,
-            "action": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
-          }
-        },
-        "relayIndicatorMode": {
-          "type": "select",
-          "enum": [
-            "same",
-            "opposite",
-            "manual"
-          ]
-        },
-        "relayIndicator": {
-          "type": "toggle"
-        }
-      },
-      "endpointId": [
-        5,
-        6,
-        7,
-        8
-      ]
     }
   ],
   "w1tcofu8": [
@@ -72711,6 +73265,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -72863,6 +73418,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -72986,6 +73549,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -73267,6 +73833,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -73419,6 +73986,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -73542,6 +74117,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -73830,6 +74408,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -73982,6 +74561,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -74105,6 +74692,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -74398,6 +74988,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -74550,6 +75141,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -74673,6 +75272,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -74963,6 +75565,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -75115,6 +75718,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -75238,6 +75849,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -75570,6 +76184,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -75722,6 +76337,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -75845,6 +76468,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -76183,6 +76809,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -76335,6 +76962,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -76458,6 +77093,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -76745,6 +77383,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -76897,6 +77536,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -77020,6 +77667,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -77351,6 +78001,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -77503,6 +78154,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -77626,6 +78285,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -77967,6 +78629,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -78119,6 +78782,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -78242,6 +78913,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -78578,6 +79252,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -78730,6 +79405,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -78853,6 +79536,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -79134,6 +79820,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -79286,6 +79973,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -79409,6 +80104,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -79697,6 +80395,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -79849,6 +80548,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -79972,6 +80679,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -80267,6 +80977,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -80419,6 +81130,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -80542,6 +81261,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -80832,6 +81554,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -80984,6 +81707,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -81107,6 +81838,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -81432,6 +82166,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -81584,6 +82319,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -81707,6 +82450,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -82034,6 +82780,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -82186,6 +82933,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -82309,6 +83064,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -82639,6 +83397,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -82791,6 +83550,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -82914,6 +83681,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -83242,6 +84012,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -83394,6 +84165,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -83517,6 +84296,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -83846,6 +84628,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -83998,6 +84781,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -84121,6 +84912,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -84455,6 +85249,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -84607,6 +85402,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -84730,6 +85533,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -85063,6 +85869,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -85215,6 +86022,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -85338,6 +86153,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -85671,6 +86489,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -85823,6 +86642,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -85946,6 +86773,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -86273,6 +87103,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -86425,6 +87256,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -86548,6 +87387,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -86881,6 +87723,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -87033,6 +87876,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -87156,6 +88007,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -87497,6 +88351,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -87649,6 +88504,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -87772,6 +88635,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -88112,6 +88978,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -88264,6 +89131,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -88387,6 +89262,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -88714,6 +89592,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -88866,6 +89745,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -88989,6 +89876,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -89322,6 +90212,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -89474,6 +90365,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -89597,6 +90496,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -89935,7 +90837,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -90086,6 +90989,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -90202,6 +91113,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -90530,7 +91444,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -90681,6 +91596,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -90797,6 +91720,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -91114,6 +92040,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -91266,6 +92193,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -91389,6 +92324,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -91670,6 +92608,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -91822,6 +92761,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -91945,6 +92892,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -92231,6 +93181,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -92383,6 +93334,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -92506,6 +93465,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -92791,6 +93753,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -92943,6 +93906,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -93066,6 +94037,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -93347,6 +94321,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -93499,6 +94474,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -93622,6 +94605,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -93908,6 +94894,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -94060,6 +95047,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -94183,6 +95178,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -94469,7 +95467,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -94620,6 +95619,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -94736,6 +95743,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -95060,7 +96070,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -95211,6 +96222,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -95327,6 +96346,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -95657,7 +96679,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -95808,6 +96831,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -95924,6 +96955,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -96253,6 +97287,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -96405,6 +97440,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -96528,6 +97571,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -96868,7 +97914,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -97019,6 +98066,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -97135,6 +98190,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -97453,7 +98511,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -97604,6 +98663,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -97720,6 +98787,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -98044,7 +99114,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -98195,6 +99266,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -98311,6 +99390,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -98635,7 +99717,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -98786,6 +99869,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -98902,6 +99993,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -99220,7 +100314,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -99371,6 +100466,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -99487,6 +100590,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -99811,7 +100917,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -99962,6 +101069,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -100078,6 +101193,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -100403,6 +101521,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -100555,6 +101674,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -100678,6 +101805,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -101005,6 +102135,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -101157,6 +102288,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -101280,6 +102419,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -101611,6 +102753,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -101763,6 +102906,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -101886,6 +103037,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -102221,6 +103375,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -102373,6 +103528,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -102496,6 +103659,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -102835,6 +104001,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -102987,6 +104154,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -103110,6 +104285,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -103448,7 +104626,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -103599,6 +104778,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -103715,6 +104902,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -104038,7 +105228,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -104189,6 +105380,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -104305,6 +105504,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -104634,7 +105836,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -104785,6 +105988,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -104901,6 +106112,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -105234,7 +106448,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -105385,6 +106600,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -105501,6 +106724,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -105835,7 +107061,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -105986,6 +107213,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -106102,6 +107337,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -106434,7 +107672,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -106585,6 +107824,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -106701,6 +107948,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -107026,6 +108276,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -107178,6 +108429,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -107301,6 +108560,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -107628,6 +108890,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -107780,6 +109043,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -107903,6 +109174,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -108234,6 +109508,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -108386,6 +109661,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -108509,6 +109792,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -108841,6 +110127,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -108993,6 +110280,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -109116,6 +110411,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -109452,6 +110750,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -109604,6 +110903,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -109727,6 +111034,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -110059,7 +111369,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -110210,6 +111521,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -110326,6 +111645,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -110642,7 +111964,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -110793,6 +112116,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -110909,6 +112240,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -111223,7 +112557,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -111374,6 +112709,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -111490,6 +112833,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -111808,7 +113154,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -111959,6 +113306,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -112075,6 +113430,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -112399,7 +113757,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -112550,6 +113909,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -112666,6 +114033,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -112994,7 +114364,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -113145,6 +114516,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -113261,6 +114640,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -113591,7 +114973,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -113742,6 +115125,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -113858,6 +115249,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -114187,6 +115581,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -114339,6 +115734,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -114462,6 +115865,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -114747,6 +116153,7 @@
         "announceFailures",
         "steering",
         "descriptorFailures",
+        "childLock",
         "statusLedMode"
       ],
       "options": {
@@ -114899,6 +116306,14 @@
             "dataType": 35,
             "manufacturerCode": 6699
           },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
           "statusLedMode": {
             "type": "enum",
             "clusterId": 64528,
@@ -115022,6 +116437,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         },
         "statusLedMode": {
           "type": "select",
@@ -115313,7 +116731,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -115464,6 +116883,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -115580,6 +117007,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -115903,7 +117333,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -116054,6 +117485,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -116170,6 +117609,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1
@@ -116488,7 +117930,8 @@
         "announces",
         "announceFailures",
         "steering",
-        "descriptorFailures"
+        "descriptorFailures",
+        "childLock"
       ],
       "options": {
         "customAttributes": {
@@ -116639,6 +118082,14 @@
             "attributeId": 80,
             "dataType": 35,
             "manufacturerCode": 6699
+          },
+          "childLock": {
+            "type": "bool",
+            "clusterId": 64528,
+            "attributeId": 18,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -116755,6 +118206,9 @@
           "type": "number",
           "min": 0,
           "max": 4294967295
+        },
+        "childLock": {
+          "type": "toggle"
         }
       },
       "endpointId": 1

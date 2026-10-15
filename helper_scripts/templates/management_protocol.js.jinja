@@ -11,6 +11,7 @@ const managementProtocol = {
             lastError: {name: "lastError", ID: 0x0004, type: Zcl.DataType.ENUM8},
             statusLedMode: {name: "statusLedMode", ID: 0x0010, type: Zcl.DataType.ENUM8, write: true},
             multiPressReset: {name: "multiPressReset", ID: 0x0011, type: Zcl.DataType.UINT8, write: true},
+            childLock: {name: "childLock", ID: 0x0012, type: Zcl.DataType.BOOLEAN, write: true},
         },
         enums: {
             status: ['ready', 'reboot_pending', 'error'],

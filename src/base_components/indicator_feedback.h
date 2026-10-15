@@ -16,6 +16,11 @@ void indicator_feedback_init(indicator_feedback_t *feedback, led_t *led);
 void indicator_feedback_set_base_state(indicator_feedback_t *feedback,
                                        bool on);
 void indicator_feedback_request_press(indicator_feedback_t *feedback);
+
+/** Blinks `count` times (250 ms on, 250 ms off), replacing any running press
+ * or click-count blink, then returns to the base state. */
+void indicator_feedback_request_blinks(indicator_feedback_t *feedback,
+                                       uint8_t count);
 void indicator_feedback_request_click_count(indicator_feedback_t *feedback,
                                             uint8_t count);
 void indicator_feedback_network_connected(indicator_feedback_t *feedback);

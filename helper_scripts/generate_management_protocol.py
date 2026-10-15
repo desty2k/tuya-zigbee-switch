@@ -30,11 +30,11 @@ C_ENUMS = {
 }
 
 # ZCL data type ids, by the herdsman `Zcl.DataType` names used in the JSON.
-ZCL_TYPE_IDS = {"BITMAP8": 0x18, "BITMAP32": 0x1B, "UINT8": 0x20, "UINT16": 0x21,
+ZCL_TYPE_IDS = {"BOOLEAN": 0x10, "BITMAP8": 0x18, "BITMAP32": 0x1B, "UINT8": 0x20, "UINT16": 0x21,
                 "UINT32": 0x23, "ENUM8": 0x30, "OCTET_STR": 0x41, "LONG_CHAR_STR": 0x44}
 
 # zigpy types for the same names.
-ZIGPY_TYPES = {"BITMAP8": "t.bitmap8", "BITMAP32": "t.bitmap32", "UINT8": "t.uint8_t",
+ZIGPY_TYPES = {"BOOLEAN": "t.Bool", "BITMAP8": "t.bitmap8", "BITMAP32": "t.bitmap32", "UINT8": "t.uint8_t",
                "UINT16": "t.uint16_t", "UINT32": "t.uint32_t", "ENUM8": "t.enum8",
                "OCTET_STR": "t.LVBytes", "LONG_CHAR_STR": "t.LongCharacterString"}
 
