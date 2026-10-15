@@ -3,6 +3,7 @@
 
 #include "hal/gpio.h"
 #include "hal/zigbee.h"
+#include <stdbool.h>
 #include <stdint.h>
 
 // GPIO stub functions
@@ -28,6 +29,9 @@ void stub_tasks_poll(void);
 void stub_tasks_pause(void);
 void stub_tasks_resume(void);
 uint32_t stub_tasks_active_count(void);
+
+/** Earliest virtual time (ms) at which a scheduled task is due; false if none. */
+bool stub_tasks_next_due(uint64_t *due);
 
 /** Make the next count hal_tasks_schedule() calls fail like a full pool. */
 void stub_tasks_reject_next(uint32_t count);

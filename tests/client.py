@@ -141,6 +141,14 @@ class StubProc:
                 result[token] = ""
         return result
 
+    def send(self, cmd: str) -> None:
+        """Write a command without awaiting its response, for commands
+        during which the firmware may reset and exit."""
+        if not self.proc or not self.proc.stdin:
+            raise RuntimeError("Process not running")
+        self.proc.stdin.write(cmd + "\n")
+        self.proc.stdin.flush()
+
     def exec(self, cmd: str, timeout: float = 1.0) -> CmdResult:
         if not self.proc or not self.proc.stdin:
             raise RuntimeError("Process not running")

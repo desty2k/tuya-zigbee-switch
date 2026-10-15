@@ -162,7 +162,9 @@ def test_leaves_on_onboard_button_long_press() -> None:
         device.press_button("A0")
         device.step_time(3000)
 
-        assert device.status()["joined"] != str(HAL_ZIGBEE_NETWORK_JOINING)
+        # The main loop restarts steering as soon as the device has left.
+        assert any(event.kind == "zcl_leave_network" for event in device._events)
+        assert device.status()["joined"] == str(HAL_ZIGBEE_NETWORK_JOINING)
 
 
 def test_announces_after_join() -> None:

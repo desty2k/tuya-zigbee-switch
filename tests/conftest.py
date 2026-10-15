@@ -175,11 +175,11 @@ class Device:
         pin: str,
     ) -> None:
         self.set_gpio(pin, 0)  # Low is pressed
-        self.step_time(DEBOUNCE_MS + 2)
+        self.step_time(DEBOUNCE_MS)
 
     def release_button(self, pin: str) -> None:
         self.set_gpio(pin, 1)  # High is released
-        self.step_time(DEBOUNCE_MS + 2)
+        self.step_time(DEBOUNCE_MS)
 
     def click_button(self, pin: str) -> None:
         self.press_button(pin)

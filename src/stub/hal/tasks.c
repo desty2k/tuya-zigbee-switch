@@ -60,6 +60,19 @@ void stub_tasks_poll(void) {
     } while (tasks_executed > 0);
 }
 
+bool stub_tasks_next_due(uint64_t *due) {
+    bool found = false;
+
+    for (int i = 0; i < MAX_TASKS; i++) {
+        if (tasks[i].active &&
+            (!found || tasks[i].scheduled_time < *due)) {
+            *due  = tasks[i].scheduled_time;
+            found = true;
+        }
+    }
+    return found;
+}
+
 void stub_tasks_pause(void) {
     tasks_paused = 1;
 }

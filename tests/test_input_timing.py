@@ -12,20 +12,39 @@ ONBOARD_HOLD_MS = 2000
 WRAP_AT_MS = {"telink": 268_436, "native": 2**32}
 
 
-def step_fine(device: Device, ms: int, chunk: int = 10) -> None:
-    """step_time runs due tasks only at the end of a step; keep steps short so
-    timers fire in deadline order."""
-    while ms > 0:
-        device.step_time(min(chunk, ms))
-        ms -= chunk
-
-
 def gestures(device: Device) -> list[dict[str, str]]:
     return [event.payload for event in device._events if event.kind == "gesture"]
 
 
 def button_events(device: Device) -> list[dict[str, str]]:
     return [event.payload for event in device._events if event.kind == "btn_event"]
+
+
+def test_step_time_fires_each_task_at_its_due_time() -> None:
+    """One long step runs every timer at its deadline, in deadline order."""
+    with StubProc(device_config="A;B;BA0u;") as proc:
+        device = Device(proc)
+        device.time_set(10_000)
+        device.clear_events()
+        device.set_gpio("A0", 0)
+        device.step_time(ONBOARD_HOLD_MS + 1000)
+        device.set_gpio("A0", 1)
+        device.step_time(1000)
+
+        # The debounce worker commits 25 ms after each edge; the hold timer
+        # fires 2000 ms after the press edge, both inside one step.
+        timeline = [
+            (e.payload["type"], int(e.payload["now"]))
+            for e in device._events
+            if e.kind in ("btn_event", "gesture")
+        ]
+        assert timeline == [
+            ("DOWN", 10_025),
+            ("HOLD_START", 10_000 + ONBOARD_HOLD_MS),
+            ("HOLD_END", 13_025),
+            ("UP", 13_025),
+        ]
+        assert device.millis() == 14_000
 
 
 def test_native_time_model_wraps_at_2_pow_32() -> None:
@@ -87,9 +106,9 @@ def test_short_press_across_millis_wrap_is_a_click(model: str) -> None:
         device.time_set(WRAP_AT_MS[model] - 5)
         device.clear_events()
         device.set_gpio("A0", 0)
-        step_fine(device, 50)
+        device.step_time(50)
         device.set_gpio("A0", 1)
-        step_fine(device, ONBOARD_HOLD_MS + 500)
+        device.step_time(ONBOARD_HOLD_MS + 500)
 
         assert [e["type"] for e in button_events(device)] == ["DOWN", "UP"]
         assert not [g for g in gestures(device) if g["type"].startswith("HOLD")]
@@ -104,10 +123,10 @@ def test_hold_across_millis_wrap_fires_after_hold_time(model: str) -> None:
         device.time_set(WRAP_AT_MS[model] - 5)
         device.clear_events()
         device.set_gpio("A0", 0)
-        step_fine(device, ONBOARD_HOLD_MS - 100)
+        device.step_time(ONBOARD_HOLD_MS - 100)
         assert not [g for g in gestures(device) if g["type"] == "HOLD_START"]
 
-        step_fine(device, 200)
+        device.step_time(200)
         assert [g for g in gestures(device) if g["type"] == "HOLD_START"]
 
 
@@ -128,12 +147,12 @@ def test_edge_queue_overflow_converges_to_released() -> None:
     with StubProc(device_config="A;B;SA0u;") as proc:
         device = Device(proc)
         device.set_gpio("A0", 0)
-        step_fine(device, 60)
+        device.step_time(60)
         assert [e["type"] for e in button_events(device)] == ["DOWN"]
 
         # From pressed, 33 toggles: 32 fit (ending pressed), the release is dropped.
         device.pin_burst("A0", 33)
-        step_fine(device, 200)
+        device.step_time(200)
 
         assert device.counters()["gpio_edges_dropped"] == 1
         assert [e["type"] for e in button_events(device)] == ["DOWN", "UP"]
@@ -145,7 +164,7 @@ def test_glitch_observed_late_is_not_a_press() -> None:
         device = Device(proc)
         device.set_gpio("A0", 0)
         device.pin_late("A0", 1, 60)
-        step_fine(device, 500)
+        device.step_time(500)
 
         assert button_events(device) == []
         assert not gestures(device)
@@ -157,9 +176,9 @@ def test_press_observed_late_still_commits_its_release() -> None:
     with StubProc(device_config="A;B;SA0u;RB1;") as proc:
         device = Device(proc)
         device.set_gpio("A0", 0)
-        step_fine(device, 100)
+        device.step_time(100)
         device.pin_late("A0", 1, 30)
-        step_fine(device, 100)
+        device.step_time(100)
 
         assert [e["type"] for e in button_events(device)] == ["DOWN", "UP"]
 
@@ -170,7 +189,7 @@ def test_rejected_worker_schedule_does_not_kill_input() -> None:
         device = Device(proc)
         device.task_fail(1)
         device.set_gpio("A0", 0)
-        step_fine(device, 100)
+        device.step_time(100)
 
         # No later edge re-triggers the worker: only the retry commits it.
         assert [e["type"] for e in button_events(device)] == ["DOWN"]

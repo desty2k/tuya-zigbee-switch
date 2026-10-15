@@ -39,10 +39,10 @@ static device_config_str_t g_stub_config = {
 
 static void stub_button_event(const button_event_t *event, void *arg) {
     (void)arg;
-    io_evt("btn_event id=%u type=%s seq=%u press_id=%u t=%u",
+    io_evt("btn_event id=%u type=%s seq=%u press_id=%u t=%u now=%u",
            event->button_id,
            event->type == BUTTON_EVENT_DOWN ? "DOWN" : "UP", event->seq,
-           event->press_id, event->timestamp_ms);
+           event->press_id, event->timestamp_ms, hal_millis());
 }
 
 static void stub_gesture_event(const gesture_event_t *event, void *arg) {
@@ -54,9 +54,10 @@ static void stub_gesture_event(const gesture_event_t *event, void *arg) {
     } else if (event->type == GESTURE_HOLD_END) {
         type = "HOLD_END";
     }
-    io_evt("gesture id=%u type=%s count=%u duration=%u press_id=%u t=%u",
+    io_evt("gesture id=%u type=%s count=%u duration=%u press_id=%u t=%u "
+           "now=%u",
            event->button_id, type, event->count, event->duration_ms,
-           event->press_id, event->timestamp_ms);
+           event->press_id, event->timestamp_ms, hal_millis());
 }
 
 void stub_app_init(const char *device_conf, bool joined) {
