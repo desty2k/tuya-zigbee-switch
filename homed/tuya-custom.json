@@ -56344,6 +56344,622 @@
       ]
     }
   ],
+  "vsj5o7dm": [
+    {
+      "description": "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+      "modelNames": [
+        "TS130F-BS-CVR"
+      ],
+      "options": {
+        "endpointName": {
+          "1": "cover_switch",
+          "2": "cover"
+        }
+      }
+    },
+    {
+      "modelNames": [
+        "TS130F-BS-CVR"
+      ],
+      "exposes": [
+        "multiPressResetCount",
+        "deviceConfigStatus",
+        "deviceConfigLastError",
+        "uptimeMs",
+        "gpioEdges",
+        "gpioDropped",
+        "gpioRearmHits",
+        "buttonEvents",
+        "gestures",
+        "zbSubmitted",
+        "zbDropped",
+        "zbExpired",
+        "zbSendFailed",
+        "zbHighWater",
+        "networkTransitions",
+        "networkLosses",
+        "networkJoins",
+        "announces",
+        "announceFailures",
+        "steering",
+        "descriptorFailures",
+        "statusLedMode"
+      ],
+      "options": {
+        "customAttributes": {
+          "multiPressResetCount": {
+            "type": "value",
+            "clusterId": 64528,
+            "attributeId": 17,
+            "dataType": 32,
+            "manufacturerCode": 6699,
+            "action": true
+          },
+          "deviceConfigStatus": {
+            "type": "enum",
+            "clusterId": 64528,
+            "attributeId": 3,
+            "dataType": 48,
+            "manufacturerCode": 6699
+          },
+          "deviceConfigLastError": {
+            "type": "enum",
+            "clusterId": 64528,
+            "attributeId": 4,
+            "dataType": 48,
+            "manufacturerCode": 6699
+          },
+          "uptimeMs": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 0,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "gpioEdges": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 16,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "gpioDropped": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 17,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "gpioRearmHits": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 18,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "buttonEvents": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 32,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "gestures": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 33,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "zbSubmitted": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 48,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "zbDropped": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 49,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "zbExpired": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 50,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "zbSendFailed": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 51,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "zbHighWater": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 52,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "networkTransitions": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 64,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "networkLosses": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 65,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "networkJoins": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 66,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "announces": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 67,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "announceFailures": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 68,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "steering": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 69,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "descriptorFailures": {
+            "type": "value",
+            "clusterId": 64529,
+            "attributeId": 80,
+            "dataType": 35,
+            "manufacturerCode": 6699
+          },
+          "statusLedMode": {
+            "type": "enum",
+            "clusterId": 64528,
+            "attributeId": 16,
+            "dataType": 48,
+            "manufacturerCode": 6699,
+            "action": true
+          }
+        },
+        "multiPressResetCount": {
+          "type": "number",
+          "min": 0,
+          "max": 255
+        },
+        "deviceConfigStatus": {
+          "enum": [
+            "ready",
+            "reboot_pending",
+            "error"
+          ]
+        },
+        "deviceConfigLastError": {
+          "enum": [
+            "none",
+            "argument",
+            "parse",
+            "resource",
+            "nvm",
+            "pending",
+            "unsupported",
+            "overflow",
+            "feature_missing"
+          ]
+        },
+        "uptimeMs": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "gpioEdges": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "gpioDropped": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "gpioRearmHits": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "buttonEvents": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "gestures": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "zbSubmitted": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "zbDropped": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "zbExpired": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "zbSendFailed": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "zbHighWater": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "networkTransitions": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "networkLosses": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "networkJoins": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "announces": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "announceFailures": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "steering": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "descriptorFailures": {
+          "type": "number",
+          "min": 0,
+          "max": 4294967295
+        },
+        "statusLedMode": {
+          "type": "select",
+          "enum": [
+            "network",
+            "off",
+            "on"
+          ]
+        }
+      },
+      "endpointId": 1
+    },
+    {
+      "modelNames": [
+        "TS130F-BS-CVR"
+      ],
+      "exposes": [
+        "buttonState",
+        "multiClickGap",
+        "debounce",
+        "coverSwitchType",
+        "coverIndex",
+        "coverSwitchReversal",
+        "coverLocalMode",
+        "coverBindedMode",
+        "longPressDuration"
+      ],
+      "options": {
+        "customAttributes": {
+          "buttonState": {
+            "type": "enum",
+            "clusterId": 64514,
+            "attributeId": 0,
+            "dataType": 48,
+            "manufacturerCode": 6699,
+            "binding": true,
+            "reporting": {
+              "minInterval": 0,
+              "maxInterval": 255,
+              "valueChange": 1
+            }
+          },
+          "multiClickGap": {
+            "type": "value",
+            "clusterId": 64514,
+            "attributeId": 2,
+            "dataType": 33,
+            "manufacturerCode": 6699,
+            "action": true
+          },
+          "debounce": {
+            "type": "value",
+            "clusterId": 64514,
+            "attributeId": 3,
+            "dataType": 33,
+            "manufacturerCode": 6699,
+            "action": true
+          },
+          "coverSwitchType": {
+            "type": "enum",
+            "clusterId": 64513,
+            "attributeId": 0,
+            "dataType": 48,
+            "manufacturerCode": 6699,
+            "action": true
+          },
+          "coverIndex": {
+            "type": "enum",
+            "clusterId": 64513,
+            "attributeId": 1,
+            "dataType": 32,
+            "manufacturerCode": 6699,
+            "action": true
+          },
+          "coverSwitchReversal": {
+            "type": "bool",
+            "clusterId": 64513,
+            "attributeId": 2,
+            "dataType": 16,
+            "manufacturerCode": 6699,
+            "action": true
+          },
+          "coverLocalMode": {
+            "type": "enum",
+            "clusterId": 64513,
+            "attributeId": 3,
+            "dataType": 48,
+            "manufacturerCode": 6699,
+            "action": true
+          },
+          "coverBindedMode": {
+            "type": "enum",
+            "clusterId": 64513,
+            "attributeId": 4,
+            "dataType": 48,
+            "manufacturerCode": 6699,
+            "action": true
+          },
+          "longPressDuration": {
+            "type": "value",
+            "clusterId": 64513,
+            "attributeId": 5,
+            "dataType": 33,
+            "manufacturerCode": 6699,
+            "action": true
+          }
+        },
+        "buttonState": {
+          "enum": [
+            "released",
+            "pressed"
+          ]
+        },
+        "multiClickGap": {
+          "type": "number",
+          "min": 100,
+          "max": 2000
+        },
+        "debounce": {
+          "type": "number",
+          "min": 1,
+          "max": 200
+        },
+        "coverSwitchType": {
+          "type": "select",
+          "enum": [
+            "toggle",
+            "momentary"
+          ]
+        },
+        "coverIndex": {
+          "type": "select",
+          "enum": [
+            "detached",
+            "cover_1"
+          ]
+        },
+        "coverSwitchReversal": {
+          "type": "toggle"
+        },
+        "coverLocalMode": {
+          "type": "select",
+          "enum": [
+            "immediate",
+            "short_press",
+            "long_press",
+            "hybrid"
+          ]
+        },
+        "coverBindedMode": {
+          "type": "select",
+          "enum": [
+            "immediate",
+            "short_press",
+            "long_press",
+            "hybrid"
+          ]
+        },
+        "longPressDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 5000
+        }
+      },
+      "endpointId": [
+        1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS130F-BS-CVR"
+      ],
+      "properties": [
+        "coverPosition"
+      ],
+      "actions": [
+        "coverStatus",
+        "coverPosition"
+      ],
+      "bindings": [
+        "cover"
+      ],
+      "reportings": [
+        "coverPosition"
+      ],
+      "exposes": [
+        "cover",
+        "coverMoving",
+        "coverMotorReversal",
+        "coverOpenTime",
+        "coverCloseTime",
+        "coverClosedDeadzone",
+        "coverOpenDeadzone",
+        "coverOverrun"
+      ],
+      "options": {
+        "customAttributes": {
+          "coverMoving": {
+            "type": "enum",
+            "clusterId": 258,
+            "attributeId": 65280,
+            "dataType": 48,
+            "binding": true,
+            "reporting": {
+              "minInterval": 0,
+              "maxInterval": 255,
+              "valueChange": 1
+            }
+          },
+          "coverMotorReversal": {
+            "type": "value",
+            "clusterId": 258,
+            "attributeId": 65281,
+            "dataType": 16,
+            "action": true
+          },
+          "coverOpenTime": {
+            "type": "value",
+            "clusterId": 258,
+            "attributeId": 65282,
+            "dataType": 35,
+            "action": true
+          },
+          "coverCloseTime": {
+            "type": "value",
+            "clusterId": 258,
+            "attributeId": 65283,
+            "dataType": 35,
+            "action": true
+          },
+          "coverClosedDeadzone": {
+            "type": "value",
+            "clusterId": 258,
+            "attributeId": 65284,
+            "dataType": 33,
+            "action": true,
+            "divider": 100
+          },
+          "coverOpenDeadzone": {
+            "type": "value",
+            "clusterId": 258,
+            "attributeId": 65285,
+            "dataType": 33,
+            "action": true,
+            "divider": 100
+          },
+          "coverOverrun": {
+            "type": "value",
+            "clusterId": 258,
+            "attributeId": 65286,
+            "dataType": 33,
+            "action": true
+          }
+        },
+        "coverMoving": {
+          "enum": [
+            "stopped",
+            "opening",
+            "closing"
+          ]
+        },
+        "coverMotorReversal": {
+          "type": "toggle"
+        },
+        "coverOpenTime": {
+          "type": "number",
+          "min": 0,
+          "max": 429496,
+          "unit": "ms"
+        },
+        "coverCloseTime": {
+          "type": "number",
+          "min": 0,
+          "max": 429496,
+          "unit": "ms"
+        },
+        "coverClosedDeadzone": {
+          "type": "number",
+          "min": 0,
+          "max": 99.99,
+          "step": 0.01,
+          "unit": "%"
+        },
+        "coverOpenDeadzone": {
+          "type": "number",
+          "min": 0,
+          "max": 99.99,
+          "step": 0.01,
+          "unit": "%"
+        },
+        "coverOverrun": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        }
+      },
+      "endpointId": [
+        2
+      ]
+    }
+  ],
   "drzlxjne": [
     {
       "description": "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",

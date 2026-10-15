@@ -11077,6 +11077,124 @@ const definitions = [
     },
     {
         zigbeeModel: [
+            "TS130F-BS-CVR",
+        ],
+        model: "TS130F",
+        vendor: "Tuya-custom",
+        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        extend: [
+            deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
+                ID: 0xFC02,
+                manufacturerCode: managementProtocol.manufacturerCode,
+                attributes: {
+                    buttonState: {name: "buttonState", ID: 0x0000, type: Zcl.DataType.ENUM8},
+                    lastEventSeq: {name: "lastEventSeq", ID: 0x0001, type: Zcl.DataType.UINT16},
+                    multiClickGap: {name: "multiClickGap", ID: 0x0002, type: Zcl.DataType.UINT16, write: true},
+                    debounceMs: {name: "debounceMs", ID: 0x0003, type: Zcl.DataType.UINT16, write: true},
+                },
+                commands: {},
+                commandsResponse: {
+                    buttonEvent: {
+                        name: "buttonEvent",
+                        ID: 0x00,
+                        parameters: [
+                            {name: "seq", type: Zcl.DataType.UINT16},
+                            {name: "pressId", type: Zcl.DataType.UINT16},
+                            {name: "eventType", type: Zcl.DataType.UINT8},
+                            {name: "count", type: Zcl.DataType.UINT8},
+                            {name: "durationMs", type: Zcl.DataType.UINT16},
+                        ],
+                    },
+                },
+            }),
+            romasku.buttonEvents(["cover_switch", ]),
+            deviceAddCustomCluster("manuSpecificTuyaCoverSwitchConfig", {
+                name: "manuSpecificTuyaCoverSwitchConfig",
+                ID: 0xFC01,
+                manufacturerCode: managementProtocol.manufacturerCode,
+                attributes: {
+                    switchType: {name: "switchType", ID: 0x0000, type: Zcl.DataType.ENUM8, write: true},
+                    coverIndex: {name: "coverIndex", ID: 0x0001, type: Zcl.DataType.UINT8, write: true},
+                    reversal: {name: "reversal", ID: 0x0002, type: Zcl.DataType.BOOLEAN, write: true},
+                    localMode: {name: "localMode", ID: 0x0003, type: Zcl.DataType.ENUM8, write: true},
+                    bindedMode: {name: "bindedMode", ID: 0x0004, type: Zcl.DataType.ENUM8, write: true},
+                    longPressDuration: {name: "longPressDuration", ID: 0x0005, type: Zcl.DataType.UINT16, write: true},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            deviceAddCustomCluster("closuresWindowCovering", {
+                name: "closuresWindowCovering",
+                ID: 0x0102,
+                attributes: {
+                    moving: {name: "moving", ID: 0xff00, type: Zcl.DataType.ENUM8},
+                    motorReversal: {name: "motorReversal", ID: 0xff01, type: Zcl.DataType.BOOLEAN, write: true},
+                    openTime: {name: "openTime", ID: 0xff02, type: Zcl.DataType.UINT32, write: true},
+                    closeTime: {name: "closeTime", ID: 0xff03, type: Zcl.DataType.UINT32, write: true},
+                    closedDeadzone: {name: "closedDeadzone", ID: 0xff04, type: Zcl.DataType.UINT16, write: true},
+                    openDeadzone: {name: "openDeadzone", ID: 0xff05, type: Zcl.DataType.UINT16, write: true},
+                    overrun: {name: "overrun", ID: 0xff06, type: Zcl.DataType.UINT16, write: true},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            deviceEndpoints({ endpoints: {"cover_switch": 1, "cover": 2, } }),
+            ...romasku.managementClusters(),
+            romasku.deviceConfig("device_config", "cover_switch"),
+            romasku.multiPressResetCount("multi_press_reset_count", "cover_switch"),
+            ...romasku.deviceConfigState("cover_switch"),
+            ...romasku.diagnosticCounters(),
+            romasku.statusLedMode("status_led_mode", "cover_switch"),
+            // The device reports ZCL lift % (0 = open) and 0xFF while the position
+            // is unknown, which windowCovering ignores.
+            windowCovering({
+                controls: ["lift"],
+                configureReporting: false,
+                endpointNames: ["cover"]
+            }),
+            romasku.coverMoving("cover_moving", "cover"),
+            romasku.coverMotorReversal("cover_motor_reversal", "cover"),
+            ...romasku.coverSettings("cover"),
+            romasku.coverSwitchPressAction("cover_switch_press_action", "cover_switch"),
+            ...romasku.buttonTiming("cover_switch"),
+            romasku.coverSwitchType("cover_switch_type", "cover_switch"),
+            romasku.coverSwitchInvert("cover_switch_invert", "cover_switch"),
+            romasku.coverSwitchCoverIndex("cover_switch_cover_index", "cover_switch", 1),
+            romasku.coverSwitchLocalMode("cover_switch_local_mode", "cover_switch"),
+            romasku.coverSwitchBindedMode("cover_switch_binded_mode", "cover_switch"),
+            romasku.coverSwitchLongPressDuration("cover_switch_long_press_duration", "cover_switch"),
+        ],
+        meta: { multiEndpoint: true },
+        configure: async (device, coordinatorEndpoint, logger) => {
+
+
+            const coverSwitch1 = device.getEndpoint(1);
+            await reporting.bind(coverSwitch1, coordinatorEndpoint, ["genMultistateInput"]);
+            await coverSwitch1.configureReporting("genMultistateInput", [
+                {
+                    attribute: "presentValue",
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                },
+            ]);
+
+            const cover1 = device.getEndpoint(2);
+            await reporting.bind(cover1, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await cover1.configureReporting("closuresWindowCovering", [
+                {
+                    attribute: "moving",
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                },
+            ]);
+        },
+        ota: true,
+    },
+    {
+        zigbeeModel: [
             "TS011F-BS-PM-3",
         ],
         model: "TS011F_plug_1",
