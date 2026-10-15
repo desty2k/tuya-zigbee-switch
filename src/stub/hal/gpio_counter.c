@@ -1,6 +1,7 @@
 #include "hal/gpio_counter.h"
 #include "hal/timer.h"
 #include "stub/hal/gpio_counter.h"
+#include "stub/hal/stub.h"
 
 #include <string.h>
 
@@ -62,7 +63,7 @@ uint8_t hal_gpio_counter_capacity(void) {
 }
 
 bool hal_gpio_counter_can_route(uint8_t slot, hal_gpio_pin_t pin) {
-    return slot < STUB_GPIO_COUNTER_MAX && pin != HAL_INVALID_PIN && pin < 256;
+    return slot < STUB_GPIO_COUNTER_MAX && pin != HAL_INVALID_PIN && pin < STUB_GPIO_PIN_LIMIT;
 }
 
 void stub_gpio_counter_capture_edge(hal_gpio_pin_t pin, uint8_t previous_level,

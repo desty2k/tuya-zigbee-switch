@@ -100,13 +100,6 @@ hal_gpio_diagnostics_t hal_gpio_get_diagnostics(void) {
     return fake_gpio_diagnostics;
 }
 
-hal_gpio_pin_t hal_gpio_parse_pin(const char *text) {
-    if (text == NULL || text[0] < 'A' || text[0] > 'Z') {
-        return HAL_INVALID_PIN;
-    }
-    return (hal_gpio_pin_t)(((text[0] - 'A') << 4) | atoi(&text[1]));
-}
-
 hal_gpio_pull_t hal_gpio_parse_pull(const char *text) {
     if (text == NULL) {
         return HAL_GPIO_PULL_INVALID;

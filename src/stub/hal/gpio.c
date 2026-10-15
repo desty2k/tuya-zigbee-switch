@@ -1,4 +1,5 @@
 #include "hal/gpio.h"
+#include "hal/gpio_pin_text.h"
 #include "hal/timer.h"
 #include "stub/machine_io.h"
 #include "stub/hal/gpio_counter.h"
@@ -8,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_GPIO_PINS    256
+#define MAX_GPIO_PINS    STUB_GPIO_PIN_LIMIT
 #define MAX_CALLBACKS    32
 
 typedef struct {
@@ -98,27 +99,21 @@ hal_gpio_diagnostics_t hal_gpio_get_diagnostics(void) {
     return diagnostics;
 }
 
+/*
+ * Telink's encoding (port << 8 | 1 << index, index 0..7) over ports A..Z. A
+ * pin's id differs from any plain port/index packing of the same pin, so code
+ * that derives pin ids without this function drives the wrong pins in tests.
+ */
 hal_gpio_pin_t hal_gpio_parse_pin(const char *s) {
-    if (!s) {
-        io_log("GPIO", "Error: NULL string passed to hal_parse_gpio_pin");
+    uint8_t port;
+    uint8_t index;
+
+    if (!hal_gpio_pin_text_split(s, &port, &index) || index > 7) {
+        io_log("GPIO", "Error: Invalid GPIO pin: '%s'", s ? s : "(null)");
         return HAL_INVALID_PIN;
     }
 
-    // Simple parsing: expect format like "PA5" or "PB10"
-    if (strlen(s) < 2) {
-        io_log("GPIO", "Error: Invalid GPIO pin format: '%s'", s);
-        return HAL_INVALID_PIN;
-    }
-
-    char port = s[0];
-    int  pin  = atoi(&s[1]);
-
-    if (port < 'A' || port > 'Z' || pin < 0 || pin > 15) {
-        io_log("GPIO", "Error: Invalid GPIO pin format: '%s'", s);
-        return HAL_INVALID_PIN;
-    }
-
-    hal_gpio_pin_t res = ((port - 'A') << 4) | pin;
+    hal_gpio_pin_t res = (hal_gpio_pin_t)(((uint16_t)port << 8) | (1U << index));
     io_log("GPIO", "Parsed GPIO pin '%s' as %d", s, res);
     return res;
 }
