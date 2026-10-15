@@ -6,7 +6,6 @@
 #include "hal/timer.h"
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h>
 
 #define MAX_WATCHED_PINS    16
 #define MAX_REARM_TRIES     50
@@ -47,9 +46,11 @@ static uint8_t snapshot_level(const uint8_t *snapshot, hal_gpio_pin_t pin) {
     return (snapshot[pin_port(pin)] & pin_mask(pin)) ? 1 : 0;
 }
 
+/* The SDK's gpio_read_all() stops at port D; port E is read the same way. */
 static void read_snapshot(uint8_t *snapshot) {
-    memset(snapshot, 0, GPIO_PORT_COUNT);
-    drv_gpio_read_all(snapshot);
+    for (uint8_t port = 0; port < GPIO_PORT_COUNT; port++) {
+        snapshot[port] = reg_gpio_in((uint32_t)port << 8);
+    }
 }
 
 static bool capture_snapshot(uint8_t *snapshot, uint8_t flags) {
