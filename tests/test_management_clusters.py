@@ -166,6 +166,18 @@ def test_multi_press_reset_is_limited_by_gesture_capacity() -> None:
 
 
 def test_diagnostics_snapshot_updates_without_persistence(device: Device) -> None:
-    device.step_time(42)
+    device.step_time(1000)
     assert int(device.read_zigbee_attr(1, ZCL_CLUSTER_DEVICE_DIAGNOSTICS,
-                                       ZCL_ATTR_DIAGNOSTICS_UPTIME_MS)) >= 42
+                                       ZCL_ATTR_DIAGNOSTICS_UPTIME_MS)) >= 1000
+
+
+def test_diagnostics_refresh_once_per_second(device: Device) -> None:
+    device.step_time(1000)
+    first = int(device.read_zigbee_attr(1, ZCL_CLUSTER_DEVICE_DIAGNOSTICS,
+                                        ZCL_ATTR_DIAGNOSTICS_UPTIME_MS))
+    device.step_time(400)
+    assert int(device.read_zigbee_attr(1, ZCL_CLUSTER_DEVICE_DIAGNOSTICS,
+                                       ZCL_ATTR_DIAGNOSTICS_UPTIME_MS)) == first
+    device.step_time(600)
+    assert int(device.read_zigbee_attr(1, ZCL_CLUSTER_DEVICE_DIAGNOSTICS,
+                                       ZCL_ATTR_DIAGNOSTICS_UPTIME_MS)) >= first + 1000

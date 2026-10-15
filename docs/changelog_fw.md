@@ -10,6 +10,12 @@ Please describe what you are working on, under ## Upcoming
 
 ## Upcoming
 
+- Telink: a cluster-specific command to a cluster without commands (power configuration, multistate input, on/off switch configuration, the fork-private clusters) is answered with an unsupported-command status; it reset the device.
+- A switch whose relay index points at a relay endpoint drives that endpoint's relay when a cover is defined before the relays in the device config; it drove the cover's open relay.
+- Telink: attribute reports from the fork-private clusters carry the fork's manufacturer code, as on Silabs.
+- Telink: the `i<image_type>` config token sets the OTA image type again; it was parsed and ignored.
+- Device Diagnostics (`0xFC11`) values refresh once per second instead of on every main-loop pass, and uptime is no longer reportable.
+
 ## v2.0.0-rc.2
 
 - Fixes rc.1 resetting on relay changes, button actions, rejoins and most incoming ZCL commands other than Read Attributes: the Telink compiler miscompiled switch statements at `-Os`; all Telink objects now build without jump tables and the link fails if a malformed table dispatch appears.

@@ -29,12 +29,14 @@ TEST(telink_pins_are_sdk_gpio_pin_values) {
     ASSERT_EQ(0x204, telink_gpio_pin_from_text("C2"));
     ASSERT_EQ(0x180, telink_gpio_pin_from_text("B7"));
     ASSERT_EQ(0x308, telink_gpio_pin_from_text("D3"));
-    ASSERT_EQ(0x480, telink_gpio_pin_from_text("E7"));
+    ASSERT_EQ(0x408, telink_gpio_pin_from_text("E3"));
 }
 
 TEST(telink_rejects_pins_the_chip_lacks) {
     ASSERT_EQ(HAL_INVALID_PIN, telink_gpio_pin_from_text("A8"));
     ASSERT_EQ(HAL_INVALID_PIN, telink_gpio_pin_from_text("C15"));
+    ASSERT_EQ(HAL_INVALID_PIN, telink_gpio_pin_from_text("E4"));
+    ASSERT_EQ(HAL_INVALID_PIN, telink_gpio_pin_from_text("E7"));
     ASSERT_EQ(HAL_INVALID_PIN, telink_gpio_pin_from_text("F0"));
     ASSERT_EQ(HAL_INVALID_PIN, telink_gpio_pin_from_text("C2u"));
     ASSERT_EQ(HAL_INVALID_PIN, telink_gpio_pin_from_text(NULL));

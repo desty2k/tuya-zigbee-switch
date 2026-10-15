@@ -32,9 +32,6 @@ void device_diagnostics_cluster_refresh(void) {
     instance->values[16]            = snapshot->steering_attempts;
     instance->values[17]            = snapshot->descriptor_validation_failures;
     instance->last_descriptor_error = snapshot->last_descriptor_error;
-#if FEATURE_PROBE
-    gpio_probe_cluster_refresh();
-#endif
 }
 
 void device_diagnostics_cluster_init(zigbee_device_diagnostics_cluster_t *cluster) {
@@ -68,7 +65,10 @@ void device_diagnostics_cluster_add_to_endpoint(
     device_diagnostics_cluster_refresh();
     SETUP_ATTR(0, ZCL_ATTR_DIAGNOSTICS_CAPABILITIES, ZCL_DATA_TYPE_BITMAP32,
                HAL_ATTR_READ, cluster->capabilities);
-    for (uint8_t i = 0; i < 18; i++) {
+    // Uptime changes on every refresh, so it is read-only and never reported.
+    SETUP_ATTR(1, ZCL_ATTR_DIAGNOSTICS_UPTIME_MS, ZCL_DATA_TYPE_UINT32, HAL_ATTR_READ,
+               cluster->values[0]);
+    for (uint8_t i = 1; i < 18; i++) {
         SETUP_ATTR_FOR_TABLE(cluster->attr_infos, i + 1, ids[i], ZCL_DATA_TYPE_UINT32,
                              HAL_ATTR_READ | HAL_ATTR_REPORT, cluster->values[i]);
     }

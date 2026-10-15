@@ -15,7 +15,8 @@
 /*
  * A pin is a port letter followed by a decimal index of 0..15 ("C2"); the
  * characters after it belong to the token (pull suffix, second pin). The HAL
- * converts the name to its platform pin id and rejects pins the chip lacks.
+ * converts the name to its platform pin id and rejects indices above 15 and
+ * pins the chip lacks.
  */
 static bool parse_pin(const char *text, const char **end, hal_gpio_pin_t *pin) {
     char           name[4];
@@ -35,10 +36,7 @@ static bool parse_pin(const char *text, const char **end, hal_gpio_pin_t *pin) {
         length++;
     }
     name[length] = '\0';
-    if (length == 3 && (name[1] - '0') * 10 + (name[2] - '0') > 15) {
-        return false;
-    }
-    parsed = hal_gpio_parse_pin(name);
+    parsed       = hal_gpio_parse_pin(name);
     if (parsed == HAL_INVALID_PIN) {
         return false;
     }
@@ -200,7 +198,6 @@ static config_parse_result_t parse_token(const char *token,
                                          uint16_t *gap_ms) {
     const char *   end;
     hal_gpio_pin_t pin;
-    uint16_t       value;
 
     if (!token_feature_compiled(token)) {
         return CONFIG_PARSE_FEATURE_MISSING;
@@ -220,9 +217,10 @@ static config_parse_result_t parse_token(const char *token,
     } else if (strcmp(token, "M") == 0) {
         out->momentary_switches = true;
     } else if (token[0] == 'i') {
-        if (!parse_uint16(token + 1, &value)) {
+        if (!parse_uint16(token + 1, &out->image_type)) {
             return CONFIG_PARSE_SYNTAX;
         }
+        out->has_image_type = true;
     } else if (token[0] == 'K') {
         uint16_t mask;
         uint16_t dead_time_ms = DEVICE_COMPOSITION_DEFAULT_DEAD_TIME_MS;

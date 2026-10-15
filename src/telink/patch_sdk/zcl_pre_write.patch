@@ -53,7 +53,24 @@
          break;
  #endif
  #ifdef ZCL_REPORT
-@@ -1731,8 +1751,6 @@
+@@ -853,7 +873,15 @@
+                 inMsg.addrInfo.dstEp = pApsdeInd->indInfo.dst_ep;
+                 inMsg.addrInfo.seqNum = inMsg.hdr.seqNum;
+
+-                status = pCluster->cmdHandlerFunc(&inMsg);
++                /* Clusters registered without a command parser (power
++                 * configuration, multistate input, on/off switch
++                 * configuration, private clusters) reject cluster commands. */
++                if (pCluster->cmdHandlerFunc == NULL) {
++                    status = inMsg.hdr.frmCtrl.bf.manufSpec ?
++                             ZCL_STA_UNSUP_MANU_CLUSTER_COMMAND : ZCL_STA_UNSUP_CLUSTER_COMMAND;
++                } else {
++                    status = pCluster->cmdHandlerFunc(&inMsg);
++                }
+             }
+         }
+     }
+@@ -1731,8 +1759,6 @@
                  pBuf += reportChangeLen;
 
                  dataLen += reportChangeLen;

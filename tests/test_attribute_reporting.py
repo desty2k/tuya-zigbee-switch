@@ -10,6 +10,10 @@ import pytest
 
 from client import StubProc
 from conftest import Device, RelayButtonPair
+from management_protocol_consts import (
+    ZCL_ATTR_DIAGNOSTICS_UPTIME_MS,
+    ZCL_CLUSTER_DEVICE_DIAGNOSTICS,
+)
 from zcl_consts import (
     ZCL_ATTR_BASIC_MODEL_ID,
     ZCL_ATTR_MULTISTATE_INPUT_PRESENT_VALUE,
@@ -69,6 +73,7 @@ def test_integration_reported_attributes_accept_configure_reporting(
     [
         (1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_MODEL_ID),
         (1, ZCL_CLUSTER_ON_OFF_SWITCH_CONFIG, ZCL_ATTR_ONOFF_CONFIGURATION_SWITCH_MODE),
+        (1, ZCL_CLUSTER_DEVICE_DIAGNOSTICS, ZCL_ATTR_DIAGNOSTICS_UPTIME_MS),
     ],
 )
 def test_configuration_attributes_reject_configure_reporting(

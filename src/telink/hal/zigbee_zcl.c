@@ -25,7 +25,6 @@ static u16 in_clusters[HAL_ZIGBEE_MAX_SERVER_CLUSTERS];
 static u16 out_clusters[HAL_ZIGBEE_MAX_CLIENT_CLUSTERS];
 static zcl_specClusterInfo_t cluster_infos[HAL_ZIGBEE_MAX_CLUSTERS];
 static zclAttrInfo_t         attr_tables[HAL_ZIGBEE_MAX_ATTRIBUTES];
-static hal_zigbee_cluster *  attr_table_clusters[HAL_ZIGBEE_MAX_ATTRIBUTES];
 
 // HAL state tracking
 static hal_zigbee_endpoint *hal_endpoints = NULL;
@@ -33,6 +32,12 @@ static uint8_t hal_endpoints_cnt          = 0;
 static hal_zcl_activity_callback_t zcl_activity_callback = NULL;
 static hal_zigbee_diagnostics_t    diagnostics;
 static cluster_registerFunc_t get_register_func_by_cluster_id(u16 cluster_id);
+
+/*
+ * The SDK register callback gets no cluster id, so register_private_cluster()
+ * reads the id and manufacturer code of the cluster being registered here.
+ */
+static const zcl_specClusterInfo_t *registering_cluster;
 
 static status_t attr_write_result_to_status(hal_zigbee_cmd_result_t result) {
     if (result == HAL_ZIGBEE_CMD_PROCESSED) return ZCL_STA_SUCCESS;
@@ -49,10 +54,9 @@ static status_t attr_write_result_to_status(hal_zigbee_cmd_result_t result) {
 #if FEATURE_PROBE
 
 /*
- * zcl_cmdHandler() calls the command parser of a registered cluster without
- * a NULL check. The GPIO probe takes commands on the diagnostics cluster, so
- * probe images route them to the cluster's callback. Other images register
- * no parser and must not receive cluster commands for these clusters.
+ * The GPIO probe takes commands on the diagnostics cluster, so probe images
+ * route private-cluster commands to the cluster's callback. Other images
+ * register no parser; the patched zcl_cmdHandler() then rejects the command.
  */
 static status_t private_cluster_cmd_handler(zclIncoming_t *message) {
     if (message->clusterAppCb == NULL) {
@@ -67,22 +71,13 @@ static status_t private_cluster_cmd_handler(zclIncoming_t *message) {
 #define PRIVATE_CLUSTER_CMD_HANDLER    NULL
 #endif
 
-static status_t register_private_cluster(u8 endpoint, u16 unused_manu_code,
+static status_t register_private_cluster(u8 endpoint, u16 manu_code,
                                          u8 attr_num,
                                          const zclAttrInfo_t attr_table[],
                                          cluster_forAppCb_t callback) {
-    (void)unused_manu_code;
-    if (attr_table < attr_tables || attr_table >= attr_tables + HAL_ZIGBEE_MAX_ATTRIBUTES)
-        return ZCL_STA_FAILURE;
-
-    hal_zigbee_cluster *cluster = attr_table_clusters[attr_table - attr_tables];
-    if (cluster != NULL && cluster->manufacturer_code != 0) {
-        return zcl_registerCluster(endpoint, cluster->cluster_id,
-                                   cluster->manufacturer_code, attr_num,
-                                   attr_table, PRIVATE_CLUSTER_CMD_HANDLER,
-                                   callback);
-    }
-    return ZCL_STA_FAILURE;
+    return zcl_registerCluster(endpoint, registering_cluster->clusterId,
+                               manu_code, attr_num, attr_table,
+                               PRIVATE_CLUSTER_CMD_HANDLER, callback);
 }
 
 static void record_descriptor_error(hal_zigbee_descriptor_error_t error) {
@@ -305,7 +300,6 @@ bool telink_zigbee_hal_zcl_init(hal_zigbee_endpoint *endpoints,
     zcl_reportingTabInit();
 
     memset(endpoint_descriptors, 0, sizeof(endpoint_descriptors));
-    memset(attr_table_clusters, 0, sizeof(attr_table_clusters));
     hal_endpoints     = endpoints;
     hal_endpoints_cnt = endpoints_cnt;
     af_simple_descriptor_t *endpoint_desc_ptr = endpoint_descriptors;
@@ -350,7 +344,6 @@ bool telink_zigbee_hal_zcl_init(hal_zigbee_endpoint *endpoints,
                                              cmd_callback : NULL;
             for (hal_zigbee_attribute *attr = cluster->attributes;
                  attr < cluster->attributes + cluster->attribute_count; attr++) {
-                attr_table_clusters[attr_table_ptr - attr_tables] = cluster;
                 attr_table_ptr->id     = attr->attribute_id;
                 attr_table_ptr->type   = attr->data_type_id;
                 attr_table_ptr->access = 0;
@@ -377,6 +370,7 @@ bool telink_zigbee_hal_zcl_init(hal_zigbee_endpoint *endpoints,
         // register one by one and treat any refusal as a failed graph.
         for (zcl_specClusterInfo_t *info = endpoint_first_cluster_ptr;
              info < cluster_info_ptr; info++) {
+            registering_cluster = info;
             status_t status = info->clusterRegisterFunc(
                 endpoint->endpoint, info->manuCode, info->attrNum, info->attrTbl,
                 info->clusterAppCb);
@@ -501,8 +495,9 @@ hal_zigbee_send_report_attr(uint8_t endpoint, uint16_t cluster_id,
     TL_SETSTRUCTCONTENT(dstEpInfo, 0);
     dstEpInfo.profileId   = HA_PROFILE_ID;
     dstEpInfo.dstAddrMode = APS_DSTADDR_EP_NOTPRESETNT;
-    zcl_sendReportCmd(endpoint, &dstEpInfo, TRUE, ZCL_FRAME_SERVER_CLIENT_DIR,
-                      cluster_id, attr_id, zcl_type_id, (u8 *)value);
+    zcl_report(endpoint, &dstEpInfo, TRUE, ZCL_FRAME_SERVER_CLIENT_DIR,
+               ZCL_SEQ_NUM, cluster->manufacturer_code, cluster_id, attr_id,
+               zcl_type_id, (u8 *)value);
     return HAL_ZIGBEE_OK;
 }
 

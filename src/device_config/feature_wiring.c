@@ -354,6 +354,9 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
     memcpy(interlocks, c->interlocks, c->interlock_count * sizeof(*interlocks));
     allow_simultaneous_latching_pulses = c->simultaneous_latching_pulses;
     battery.pin = c->battery_pin;
+    if (c->has_image_type) {
+        hal_zigbee_set_image_type(c->image_type);
+    }
     basic_cluster.manuName[0] = strlen(c->manufacturer);
     memcpy(basic_cluster.manuName + 1, c->manufacturer, basic_cluster.manuName[0]);
     basic_cluster.modelId[0] = strlen(c->model);

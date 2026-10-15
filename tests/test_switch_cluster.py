@@ -146,3 +146,20 @@ def test_switch_cluster_attributes_preserved_via_nvm() -> None:
             assert actual_value == expected_value, (
                 f"Attribute {attr_id:04x} not preserved via NVM: expected {expected_value}, got {actual_value}"
             )
+
+
+def test_switch_drives_relay_endpoint_when_cover_relays_come_first() -> None:
+    """relay_index selects a relay endpoint, not the n-th relay of the device.
+
+    The cover token owns relays 0 and 1, so relay endpoint 1 drives relay 2.
+    """
+    with StubProc(device_config="X;Y;CA0A1;SB0u;RB1;") as proc:
+        device = Device(proc)
+        assert device.get_gpio("A0", refresh=True) is False
+        assert device.get_gpio("B1", refresh=True) is False
+
+        device.press_button("B0")
+
+        assert device.get_gpio("B1", refresh=True) is True
+        assert device.get_gpio("A0", refresh=True) is False
+        assert device.get_gpio("A1", refresh=True) is False

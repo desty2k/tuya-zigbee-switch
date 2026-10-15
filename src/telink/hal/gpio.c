@@ -13,11 +13,12 @@
 typedef char telink_gpio_pin_encoding_matches_sdk[
         (GPIO_GROUPA == 0x000 && GPIO_GROUPB == 0x100 && GPIO_GROUPC == 0x200 &&
          GPIO_GROUPD == 0x300 && GPIO_GROUPE == 0x400 &&
-         GPIO_PC2 == 0x204 && GPIO_PB7 == 0x180) ? 1 : -1];
+         GPIO_PC2 == 0x204 && GPIO_PB7 == 0x180 && GPIO_PE3 == 0x408) ? 1 : -1];
 
 // GPIO config tracking for deep retention re-init
 // After deep retention wake, all GPIO SFRs are lost and must be replayed.
-// 32 should cover all GPIOs, as we have 4 ports with 8 pins each.
+// The TLSR8258 has 36 GPIOs (A0..D7, E0..E3); a device config uses far fewer
+// than 32.
 #define MAX_GPIO_CONFIGS    32
 
 

@@ -46,7 +46,7 @@ Zigbee2MQTT exposes `press`, `release`, `hold`, and `hold_release` actions, plus
 Endpoint 1 carries two manufacturer-specific clusters. Every fork-private cluster (`0xFC01`, `0xFC02`, `0xFC10`, `0xFC11`) answers only requests sent with the manufacturer code `0x1A2B` (`helper_scripts/management_protocol.json`); the generated Zigbee2MQTT, ZHA and HOMEd integrations send it.
 
 - **Device Config** (`0xFC10`): the config string (`Text`, writable), its `Status` and `LastError`, the status LED mode (`network`, `off`, `on`) and the multi-press reset count (0 disables it).
-- **Device Diagnostics** (`0xFC11`): read-only `uint32` counters for uptime, GPIO edges captured and dropped, rearm-limit hits, button events and gestures, queued Zigbee button events (submitted, dropped, expired, send failures, high water), network transitions, losses, joins, announces and steering, and descriptor validation failures. They are useful for diagnosing missed input or noisy wiring without a debug probe.
+- **Device Diagnostics** (`0xFC11`): read-only `uint32` counters for uptime, GPIO edges captured and dropped, rearm-limit hits, button events and gestures, queued Zigbee button events (submitted, dropped, expired, send failures, high water), network transitions, losses, joins, announces and steering, and descriptor validation failures. The values refresh once per second; every counter except uptime is reportable. They are useful for diagnosing missed input or noisy wiring without a debug probe.
 
 ## Covers
 

@@ -53,7 +53,6 @@ ZIGBEE_SOURCES := \
 	$(SDK_PATH)/zigbee/mac/mac_pib.c \
 	$(SDK_PATH)/zigbee/zdo/zdp.c \
 	$(SDK_PATH)/zigbee/zcl/zcl_nv.c \
-	$(SDK_PATH)/zigbee/zcl/zcl_reporting.c \
 	$(SDK_PATH)/zigbee/zcl/hvac/zcl_thermostat.c \
 	$(SDK_PATH)/zigbee/zcl/smart_energy/zcl_metering.c \
 	$(SDK_PATH)/zigbee/zcl/smart_energy/zcl_metering_attr.c \
@@ -148,12 +147,16 @@ PATCHED_ZCL_SOURCE := $(BUILD_DIR)/sdk-src/zigbee/zcl/zcl.c
 PATCHED_ZCL_OBJ := $(BUILD_DIR)/sdk/zigbee/zcl/zcl.o
 PATCHED_ZCL_PATCH := $(PROJECT_ROOT)/src/telink/patch_sdk/zcl_pre_write.patch
 
-SDK_OBJS += $(PATCHED_ZCL_OBJ)
+PATCHED_REPORTING_SOURCE := $(BUILD_DIR)/sdk-src/zigbee/zcl/zcl_reporting.c
+PATCHED_REPORTING_OBJ := $(BUILD_DIR)/sdk/zigbee/zcl/zcl_reporting.o
+PATCHED_REPORTING_PATCH := $(PROJECT_ROOT)/src/telink/patch_sdk/zcl_reporting_manu_code.patch
+
+SDK_OBJS += $(PATCHED_ZCL_OBJ) $(PATCHED_REPORTING_OBJ)
 
 # SDK dependency files (only for C files, not assembly)
 SDK_C_SOURCES := $(filter %.c,$(ALL_SDK_SOURCES))
 SDK_DEPS := $(SDK_C_SOURCES:$(SDK_PATH)/%.c=$(BUILD_DIR)/sdk/%.d)
-SDK_DEPS += $(BUILD_DIR)/sdk/zigbee/zcl/zcl.d
+SDK_DEPS += $(BUILD_DIR)/sdk/zigbee/zcl/zcl.d $(BUILD_DIR)/sdk/zigbee/zcl/zcl_reporting.d
 
 # Build all SDK objects
 sdk-build: $(SDK_OBJS)
@@ -201,12 +204,30 @@ $(PATCHED_ZCL_SOURCE): $(SDK_PATH)/zigbee/zcl/zcl.c $(PATCHED_ZCL_PATCH)
 		in_handler && /^}/ { exit } \
 		END { exit !ok }' $(PATCHED_ZCL_WORK)/zigbee/zcl/zcl.c || \
 		{ echo "error: $(PATCHED_ZCL_PATCH) did not install the frame check before the command switch of zcl_foundationCmdHandler"; exit 1; }
+	@awk '/if \(pCluster->cmdHandlerFunc == NULL\)/ { guarded = 1 } \
+		/pCluster->cmdHandlerFunc\(&inMsg\)/ { calls++; if (!guarded) bad = 1 } \
+		END { exit bad || calls != 1 }' $(PATCHED_ZCL_WORK)/zigbee/zcl/zcl.c || \
+		{ echo "error: $(PATCHED_ZCL_PATCH) did not guard the cluster command dispatch against a NULL parser"; exit 1; }
 	@test "$$(grep -c 'zcl_incoming_write = pCmd;' $(PATCHED_ZCL_WORK)/zigbee/zcl/zcl.c)" = 3 || \
 		{ echo "error: $(PATCHED_ZCL_PATCH) did not wrap every write handler"; exit 1; }
 	@mv $(PATCHED_ZCL_WORK)/zigbee/zcl/zcl.c $@
 	@rm -rf $(PATCHED_ZCL_WORK)
 
-$(PATCHED_ZCL_OBJ): $(PATCHED_ZCL_SOURCE)
+# The SDK reporting table sends every report with MANUFACTURER_CODE_NONE; the
+# patch sends the cluster's manufacturer code.
+PATCHED_REPORTING_WORK := $(BUILD_DIR)/sdk-src-reporting-work
+
+$(PATCHED_REPORTING_SOURCE): $(SDK_PATH)/zigbee/zcl/zcl_reporting.c $(PATCHED_REPORTING_PATCH)
+	@rm -rf $(PATCHED_REPORTING_WORK)
+	@mkdir -p $(dir $@) $(PATCHED_REPORTING_WORK)/zigbee/zcl
+	@tr -d '\r' < $< > $(PATCHED_REPORTING_WORK)/zigbee/zcl/zcl_reporting.c
+	@patch --batch --forward -F0 -p1 -d $(PATCHED_REPORTING_WORK) < $(PATCHED_REPORTING_PATCH)
+	@! grep -q 'zcl_sendReportAttrsCmd(' $(PATCHED_REPORTING_WORK)/zigbee/zcl/zcl_reporting.c || \
+		{ echo "error: $(PATCHED_REPORTING_PATCH) left a report without the manufacturer code"; exit 1; }
+	@mv $(PATCHED_REPORTING_WORK)/zigbee/zcl/zcl_reporting.c $@
+	@rm -rf $(PATCHED_REPORTING_WORK)
+
+$(PATCHED_ZCL_OBJ) $(PATCHED_REPORTING_OBJ): $(BUILD_DIR)/sdk/%.o: $(BUILD_DIR)/sdk-src/%.c
 	@echo "Compiling patched SDK $<"
 	@mkdir -p $(dir $@)
 	@$(CC) $(GCC_FLAGS) $(DEVICE_DEFS) $(INCLUDE_PATHS) -c -o $@ $<
