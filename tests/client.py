@@ -54,9 +54,9 @@ class StubProc:
             self.cmd,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            # Inherited: pytest captures the descriptor itself. A forwarding
-            # thread wrote into sys.stderr while pytest swapped it between
-            # phases and died with EBADF.
+            # Inherited: pytest captures the descriptor at OS level. A Python
+            # thread writing into sys.stderr races pytest swapping it between
+            # test phases and fails with EBADF.
             stderr=None,
             text=True,
             bufsize=1,
