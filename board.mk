@@ -114,7 +114,20 @@ OTA_BUILD_ARGS := \
 endif
 
 # Main target - builds firmware and generates all OTA files
-build: drop-old-files build-firmware generate-ota-files update-indexes
+build: check-publishable drop-old-files build-firmware generate-ota-files update-indexes
+
+# A probe image is not a working firmware, and its from_tuya entry matches
+# every stock device with the probe board's manufacturer name: it must never
+# reach the repository OTA indexes, which Zigbee2MQTT installs read directly.
+# Probe boards are built with board/build-firmware board/generate-ota-files
+# and installed from a local index (docs/contribute/porting.md).
+check-publishable:
+ifneq ($(filter probe,$(BOARD_FEATURES)),)
+	@echo "Error: $(BOARD) is a GPIO probe board; it is never added to the OTA indexes." >&2
+	@echo "Build it with: BOARD=$(BOARD) make board/build-firmware board/generate-ota-files" >&2
+	@echo "and install it from a local OTA index (docs/contribute/porting.md)." >&2
+	@exit 1
+endif
 
 # Build the firmware for the specified board
 build-firmware:
@@ -182,7 +195,7 @@ generate-force-ota:
 		OTA_FILE=../../$(FORCE_OTA_FILE)
 
 # Update Zigbee2MQTT index files
-update-indexes:
+update-indexes: check-publishable
 	@python3 $(HELPERS_PATH)/make_z2m_ota_index.py --db_file $(DEVICE_DB_FILE) $(OTA_FILE) $(Z2M_INDEX_FILE) --board $(BOARD)
 ifneq ($(PLATFORM_PREFIX),silabs)  # Silabs platform does not support Tuya migration OTAs
 ifneq ($(FROM_STOCK_MANUFACTURER_ID),null)
@@ -198,5 +211,5 @@ flash_telink: build-firmware
 	@echo "Flashing $(BIN_FILE) to device via $(TLSRPGM_TTY)"
 	$(MAKE) telink/flasher ARGS="-t25 -a 20 --mrst we 0 ../../$(BIN_FILE)"
 
-.PHONY: help build build-firmware drop-old-files generate-ota-files generate-normal-ota generate-tuya-ota generate-force-ota update-indexes clean_z2m_index update_converters update_zha_quirk update_homed_extension update_supported_devices freeze_ota_links
+.PHONY: help build check-publishable build-firmware drop-old-files generate-ota-files generate-normal-ota generate-tuya-ota generate-force-ota update-indexes clean_z2m_index update_converters update_zha_quirk update_homed_extension update_supported_devices freeze_ota_links
 

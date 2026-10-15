@@ -121,9 +121,30 @@ fields (it claims no pins), its own `firmware_image_type`, and the stock
 `stock_manufacturer_id` / `stock_image_type` read from that exact device.
 Example: `OUTLET_BSEED_TS011F_PROBE` for TS011F `_TZ3210_drzlxjne`.
 `make tools/check_device_features` enforces the probe rules (only feature,
-Telink router, no pins). The board has `build: no`, so it is never published
-in the OTA index; build it on demand with
-`BOARD=OUTLET_BSEED_TS011F_PROBE make board/build`.
+Telink router, no pins). The board has `build: no`, and a probe image is never
+added to the repository OTA indexes (`zigbee2mqtt/ota/`): Zigbee2MQTT installs
+read those indexes, and the probe's `from_tuya` entry would be offered to every
+stock device with that manufacturer name. `make board/build` and
+`make board/update-indexes` refuse probe boards, and
+`helper_scripts/make_z2m_ota_index.py` refuses to write one into
+`zigbee2mqtt/ota/`.
+
+Build the images only, then install from a local index that contains nothing
+but the probe entry:
+
+```bash
+BOARD=OUTLET_BSEED_TS011F_PROBE make board/build-firmware board/generate-ota-files
+python3 helper_scripts/make_z2m_ota_index.py --db_file device_db.yaml \
+    --board OUTLET_BSEED_TS011F_PROBE --base-url "$PWD" \
+    bin/router/OUTLET_BSEED_TS011F_PROBE/tlc_switch-<version>-from_tuya.zigbee \
+    /path/outside/repo/probe_index.json
+```
+
+Point Zigbee2MQTT's `ota.zigbee_ota_override_index_location` at that file
+([updating.md]) only for the probe session, update the one expendable device,
+then restore the previous index. The `url` is an absolute path, so the `bin/`
+directory must be readable by Zigbee2MQTT (copy the image and index to its
+data directory otherwise).
 
 > [!WARNING]
 > Conversion from stock is one-way: returning to stock or recovering a bad

@@ -108,6 +108,33 @@ def check_entry(entry: dict, db: dict) -> None:
             "refusing an index entry without a manufacturerName filter")
 
 
+REPO_INDEX_DIR = (Path(__file__).resolve().parent.parent / "zigbee2mqtt" / "ota").resolve()
+
+
+def probe_boards(db: dict) -> set[str]:
+    return {name for name, device in db.items()
+            if isinstance(device, dict) and "probe" in (device.get("features") or [])}
+
+
+def check_publishable(index_file: Path, board: str | None, index_data: list[dict], db: dict) -> None:
+    """Keep GPIO probe images out of the repository indexes.
+
+    Zigbee2MQTT installs read these indexes directly, and a probe's from_tuya
+    entry matches every stock device with the probe board's manufacturer name.
+    A probe image is installed from a local index outside zigbee2mqtt/ota/.
+    """
+    if index_file.resolve().parent != REPO_INDEX_DIR:
+        return
+    probes = probe_boards(db)
+    if board in probes:
+        raise SystemExit(
+            f"{board} is a GPIO probe board; refusing to add it to {index_file}. "
+            "Write a local index outside zigbee2mqtt/ota/ instead (docs/contribute/porting.md)")
+    for entry in index_data:
+        if any(f"/{probe}/" in entry.get("url", "") for probe in probes):
+            raise SystemExit(f"{index_file}: entry {entry['url']} is a GPIO probe image")
+
+
 def get_raw_github_link():
     try:
         branch = subprocess.run(
@@ -185,6 +212,7 @@ if __name__ == "__main__":
     index_data.append(entry)
     for indexed in index_data:
         check_entry(indexed, db)
+    check_publishable(index_file, args.board, index_data, db)
     index_file.write_text(json.dumps(
         index_data,
         indent=2,
