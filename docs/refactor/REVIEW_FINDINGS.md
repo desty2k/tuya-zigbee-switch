@@ -998,6 +998,7 @@ retention limit (pre-existing).
 | 2026-10-14 | 2 P | `feat/wave2-p-probe` @ `05c97753` | probe service, TLSR8258 HAL, 0xFC11 probe commands, board `OUTLET_BSEED_TS011F_PROBE` (image type 47116, `build: no`), index guard for stock image types, discovery helper; pulse safety mutation-checked by implementer and reviewer; probe OTA 190866 (9838 under 200704); review: firmware safe, deliverable FAIL (section 12 step 2) | pushed, unmerged |
 | 2026-10-15 | fix pins | `c9706ef5` | blocker from section 12 step 1: parser takes pin ids from `hal_gpio_parse_pin` (Telink `port<<8 \| 1<<n`, Silabs `port<<8 \| n`, invalid `0xFFFF`), private `<<4` encoding deleted; stub uses the Telink-like encoding (163 of 370 tests failed against the old parser); SDK-free pin headers with compile-time checks against the SDKs and host unit tests; Telink `size_t` clash fixed (`27e20e35`); review: merge, mutation-checked; `make tests` 370 passed; sk8 OTA: GIRIER 1G 200306 / 2G 200322 (≈400 under 200704), 4-gang 192866; Silabs ZS2S_TS0001 and MOES_TS0011 build (known `-Wformat`/`noreturn` warnings only), closing the wave 2 C/D Silabs debt | merged |
 | 2026-10-15 | 2 P | `d95120b1` | follow-ups: `check-publishable` refuses probe boards in `board/build`/`update-indexes` (fails closed) and the index generator refuses probe entries; discovery helper reads one attribute per request; `paho-mqtt` in `requirements.txt`; stub transistor-base relay model, 10 kΩ pull-up kept (1 MΩ makes every transistor-driven relay pin read driven low; mutation-checked); docs (main-loop pulse cutoff, leaving the probe image); claimed pins converted with `hal_gpio_probe_id_from_pin`; review fixes by integrator; `make tests` 394 passed; probe OTA 191314, non-probe sizes unchanged; no index holds a probe entry | merged |
+| 2026-10-15 | 2b E | `8cc252f0` | C5, C6, D3: Z2M/ZHA/HOMEd use 0xFC10/0xFC11 and manufacturer code `0x1A2B` on every fork-private cluster, generated from `management_protocol.json` (`0x1A2B` unassigned in zigbee-herdsman 10.9.3); `coverInverted` removed, cover settings 0xFF02–0xFF06 and cover-switch long press exposed; ZHA clears lift 0xFF; ZHA multistate present value read-only; Z2M probe converter `TS011F-probe`; `tests/test_integration_parity.py` compares every generated attribute with the stub's registered attributes (mutation-checked); outputs regenerated separately; no firmware change; review: merge; `make tests` 401 passed; offline checks only (herdsman-converters 26.108.1, zha-quirks 2.3.0) | merged |
 
 ## 12. Next steps (current as of the wave 2 P merge)
 
@@ -1046,18 +1047,13 @@ resistor ≤ 4.7 kΩ are found by elimination, not by pulsing).
 - GIRIER TS130F headroom is ≈400 B; any further cover/relay code needs size
   cuts first.
 
-### 4. Wave 2b — E: integrations (after steps 1 and 2)
+### 4. Done: wave 2b E (section 11, 2026-10-15)
 
-C5, C6, D3 (confirm `0x1A2B` is not assigned to another vendor, else pick a
-code); Z2M/ZHA/HOMEd templates use 0xFC10/0xFC11 from
-`management_protocol.json`; remove `coverInverted: true` from
-`switch_custom.js.jinja` (firmware sends ZCL lift %, 0 = open, unknown 0xFF);
-add cover attributes OpenTime 0xFF02 / CloseTime 0xFF03 (uint32 ms,
-0–429496), ClosedDeadzone 0xFF04 / OpenDeadzone 0xFF05 (uint16 1/100 %, each
-≤ 9999, sum < 10000), Overrun 0xFF06 (uint16 ms), cover-switch long press
-0x0005 on 0xFC01; check ZHA handling of 0xFF position; probe converter (step
-2.5); template/firmware parity check; regenerate converters and docs in a
-separate commit.
+Open: no live test on Z2M, ZHA or HOMEd; ZHA quirk emits a cleared and an
+updated event for lift 0xFF (possible duplicate, check on live ZHA); HOMEd
+shows lift 0xFF as an out-of-range position; button-event command carries no
+manufacturer code (both integrations decode it). Renamed keys for existing
+users are listed in `docs/changelog_fw.md`.
 
 ### 5. Wave 3 — cleanup
 
