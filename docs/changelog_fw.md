@@ -16,6 +16,7 @@ Please describe what you are working on, under ## Upcoming
 - Telink: attribute reports from the fork-private clusters carry the fork's manufacturer code, as on Silabs.
 - Telink: the `i<image_type>` config token sets the OTA image type again; it was parsed and ignored.
 - Device Diagnostics (`0xFC11`) values refresh once per second instead of on every main-loop pass, and uptime is no longer reportable.
+- Telink release images leave out the debug `printf` calls, which only produce output with `DEBUG=1`.
 - The relay indicator LED and its state attribute always agree: in `same`/`opposite` mode a written indicator state is replaced by the relay-derived one and reported, and switching the indicator mode to `manual` shows the stored state on the LED. A write in another mode left the attribute at the written value while the LED followed the relay.
 
 ## v2.0.0-rc.2
