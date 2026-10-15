@@ -170,9 +170,7 @@ if __name__ == "__main__":
             basic_options[counter] = {"type": "number", "min": 0, "max": 4294967295}
 
         if switch_cnt or cover_switch_cnt:
-            basic_custom_attrs["childLock"] = management_attribute(
-                CONFIG_CLUSTER, "CHILD_LOCK", "bool", binding=True,
-                reporting={"minInterval": 0, "maxInterval": 255, "valueChange": 1})
+            basic_custom_attrs["childLock"] = management_attribute(CONFIG_CLUSTER, "CHILD_LOCK", "bool")
             basic_exposes.append("childLock")
             basic_options["childLock"] = {"type": "toggle"}
 

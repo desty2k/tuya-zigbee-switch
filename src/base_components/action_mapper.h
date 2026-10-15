@@ -12,6 +12,8 @@ typedef void (*action_cover_sink_t)(void *context, uint8_t cover_id,
 typedef struct {
     action_cover_sink_t cover;
     void *              context;
+    /* Factory reset gesture; NULL: hal_factory_reset(). */
+    void (*factory_reset)(void);
 } action_mapper_sinks_t;
 
 /** Forget every reset button and sink; registers the gesture sink. */

@@ -5,8 +5,10 @@
 #include <stddef.h>
 
 typedef struct {
-    uint8_t first;
-    uint8_t second;
+    uint8_t                      first;
+    uint8_t                      second;
+    child_lock_gesture_enabled_t enabled;
+    void *                       context;
 } child_lock_gesture_t;
 
 static bool locked;
@@ -16,28 +18,33 @@ static uint8_t               armed_gesture;
 static app_timer_t           hold_timer;
 static bool                  hold_timer_ready;
 static indicator_feedback_t *indicator;
-static child_lock_observer_t observer;
-static void *                observer_context;
+static child_lock_store_t    store;
+static void *                store_context;
 
 /* Bit n: the current or last press of button n started while locked. */
 static uint16_t blocked_presses;
 
 static bool gesture_held(const child_lock_gesture_t *gesture) {
-    return button_input_is_down(gesture->first) &&
+    return (gesture->enabled == NULL || gesture->enabled(gesture->context)) &&
+           button_input_is_down(gesture->first) &&
            (gesture->second == CHILD_LOCK_NO_BUTTON ||
             button_input_is_down(gesture->second));
 }
 
-/* track_gestures cancels the timer on any release of the armed gesture, so
- * the gesture is still held here. */
+/* Re-checked: the gesture may have been disabled while held. */
 static void hold_elapsed(void *arg) {
     (void)arg;
-    locked = !locked;
+    if (!gesture_held(&gestures[armed_gesture])) {
+        return;
+    }
+    bool next = !locked;
+
+    if (store != NULL && !store(store_context, next)) {
+        return;
+    }
+    locked = next;
     indicator_feedback_request_blinks(indicator, locked ? CHILD_LOCK_BLINKS_LOCK :
                                       CHILD_LOCK_BLINKS_UNLOCK);
-    if (observer != NULL) {
-        observer(observer_context, locked);
-    }
 }
 
 /* One gesture is timed at a time: the first one held keeps the timer until
@@ -78,12 +85,13 @@ void child_lock_register_input(void) {
     button_dispatcher_register(track_gestures, NULL);
 }
 
-bool child_lock_add_gesture(uint8_t first, uint8_t second) {
+bool child_lock_add_gesture(uint8_t first, uint8_t second,
+                            child_lock_gesture_enabled_t enabled, void *context) {
     if (gesture_count >= CHILD_LOCK_GESTURE_MAX || first >= BUTTON_INPUT_MAX ||
         (second != CHILD_LOCK_NO_BUTTON && second >= BUTTON_INPUT_MAX)) {
         return false;
     }
-    gestures[gesture_count++] = (child_lock_gesture_t){ first, second };
+    gestures[gesture_count++] = (child_lock_gesture_t){ first, second, enabled, context };
     return true;
 }
 
@@ -91,9 +99,9 @@ void child_lock_set_indicator(indicator_feedback_t *feedback) {
     indicator = feedback;
 }
 
-void child_lock_set_observer(child_lock_observer_t new_observer, void *context) {
-    observer         = new_observer;
-    observer_context = context;
+void child_lock_set_store(child_lock_store_t new_store, void *context) {
+    store         = new_store;
+    store_context = context;
 }
 
 void child_lock_set(bool on) {

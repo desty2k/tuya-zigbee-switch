@@ -2,7 +2,6 @@
 
 #include "cluster_common.h"
 #include "zcl_types.h"
-#include "base_components/child_lock.h"
 #include "device_config/device_config_service.h"
 #include "management_protocol.h"
 #include <string.h>
@@ -27,10 +26,10 @@ static void sync_cluster(void) {
     instance->child_lock        = state->child_lock;
 }
 
-/* A lock gesture toggled the lock: persist it and report the change. */
-static void child_lock_toggled(void *context, bool locked) {
-    (void)context;
-    (void)device_config_service_set_child_lock(locked ? 1 : 0);
+/* Converters read the lock instead of configuring a report for it (the
+ * Telink reporting table is full on 4-gang boards); the change is still
+ * flagged for a report configured by hand. */
+static void service_changed(void) {
     sync_cluster();
     if (instance != NULL) {
         hal_zigbee_notify_attribute_changed(instance->endpoint, ZCL_CLUSTER_DEVICE_CONFIG,
@@ -112,7 +111,7 @@ void device_config_cluster_add_to_endpoint(zigbee_device_config_cluster_t *clust
     instance          = cluster;
     cluster->endpoint = endpoint->endpoint;
     sync_cluster();
-    child_lock_set_observer(child_lock_toggled, NULL);
+    device_config_service_set_change_listener(service_changed);
     SETUP_ATTR(0, ZCL_ATTR_DEVICE_CONFIG_SCHEMA_VERSION, ZCL_DATA_TYPE_UINT16,
                HAL_ATTR_READ, cluster->schema_version);
     SETUP_ATTR(1, ZCL_ATTR_DEVICE_CONFIG_REVISION, ZCL_DATA_TYPE_UINT32,

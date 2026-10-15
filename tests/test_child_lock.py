@@ -20,7 +20,12 @@ from zcl_consts import (
     ZCL_CLUSTER_ON_OFF,
     ZCL_CLUSTER_WINDOW_COVERING,
     ZCL_CMD_ONOFF_TOGGLE,
+    ZCL_ATTR_DEVICE_CONFIG_STATUS_LED_MODE,
     ZCL_COVER_SWITCH_MODE_IMMEDIATE,
+    ZCL_COVER_SWITCH_TYPE_MOMENTARY,
+    ZCL_COVER_SWITCH_TYPE_TOGGLE,
+    ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_MOMENTARY,
+    ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_TOGGLE,
     ZCL_ONOFF_CONFIGURATION_RELAY_MODE_RISE,
     ZCL_WINDOW_COVERING_MOVING_CLOSING,
     ZCL_WINDOW_COVERING_MOVING_OPENING,
@@ -29,6 +34,7 @@ from zcl_consts import (
 
 # DEVICE_CONFIG LastError value for a config that does not parse.
 DEVICE_CONFIG_ERROR_PARSE = 2
+DEVICE_CONFIG_ERROR_NVM = 4
 PAIR_HOLD_MS = 3000
 SINGLE_HOLD_MS = 10_000
 # Blinks are 250 ms on and 250 ms off; 3 blinks end within 1.5 s.
@@ -76,6 +82,10 @@ def outlet() -> Iterator[Device]:
 
 def lock_state(d: Device) -> str:
     return d.read_zigbee_attr(1, ZCL_CLUSTER_DEVICE_CONFIG, ZCL_ATTR_DEVICE_CONFIG_CHILD_LOCK)
+
+
+def last_error(d: Device) -> str:
+    return d.read_zigbee_attr(1, ZCL_CLUSTER_DEVICE_CONFIG, ZCL_ATTR_DEVICE_CONFIG_LAST_ERROR)
 
 
 def write_lock(d: Device, value: int) -> None:
@@ -450,3 +460,108 @@ def test_inverted_lock_led_is_driven_low_to_blink():
         assert led(d, "C3") == 1
     finally:
         gen.close()
+
+
+# ---------------------------------------------------------------------------
+# Toggle (latching) inputs never lock
+# ---------------------------------------------------------------------------
+
+
+def test_toggle_outlet_switch_held_on_does_not_lock(outlet: Device):
+    """A rocker in toggle mode stays closed while the load is on."""
+    outlet.zcl_switch_mode_set(1, ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_TOGGLE)
+    outlet.press_button("B4")
+    outlet.step_time(SINGLE_HOLD_MS + 2000)
+    assert lock_state(outlet) == "0"
+    assert outlet.zcl_relay_get(OUTLET_RELAY_EP) == "1"
+    outlet.release_button("B4")
+
+    outlet.zcl_switch_mode_set(1, ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_MOMENTARY)
+    hold(outlet, ("B4",), SINGLE_HOLD_MS)
+    assert lock_state(outlet) == "1"
+
+
+def test_toggle_two_gang_both_on_does_not_lock(two_gang: Device):
+    two_gang.zcl_switch_mode_set(1, ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_TOGGLE)
+    hold(two_gang, ("A0", "A1"), PAIR_HOLD_MS + 1000)
+    assert lock_state(two_gang) == "0"
+
+    two_gang.zcl_switch_mode_set(1, ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_MOMENTARY)
+    hold(two_gang, ("A0", "A1"), PAIR_HOLD_MS)
+    assert lock_state(two_gang) == "1"
+
+
+def test_switch_type_changed_to_toggle_during_the_hold_does_not_lock(two_gang: Device):
+    two_gang.press_button("A0")
+    two_gang.press_button("A1")
+    two_gang.step_time(1000)
+    two_gang.zcl_switch_mode_set(2, ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_TOGGLE)
+    two_gang.step_time(PAIR_HOLD_MS)
+    assert lock_state(two_gang) == "0"
+
+
+def test_toggle_cover_switch_does_not_lock(shutter: Device):
+    shutter.zcl_cover_switch_set_switch_type(SHUTTER_SWITCH_EP, ZCL_COVER_SWITCH_TYPE_TOGGLE)
+    hold(shutter, ("B6", "A1"), PAIR_HOLD_MS + 1000)
+    assert lock_state(shutter) == "0"
+
+    shutter.zcl_cover_switch_set_switch_type(SHUTTER_SWITCH_EP, ZCL_COVER_SWITCH_TYPE_MOMENTARY)
+    hold(shutter, ("B6", "A1"), PAIR_HOLD_MS)
+    assert lock_state(shutter) == "1"
+
+
+# ---------------------------------------------------------------------------
+# Factory reset and storage failures
+# ---------------------------------------------------------------------------
+
+
+def test_multi_press_factory_reset_releases_the_lock(outlet: Device):
+    write_lock(outlet, 1)
+    outlet.click_n("B4", 10)
+    outlet.step_time(1000)
+
+    assert lock_state(outlet) == "0"
+    assert not outlet.is_joined()
+    outlet.p.stop()
+    with StubProc() as p:
+        assert lock_state(Device(p)) == "0"
+
+
+def test_failed_store_keeps_the_gesture_from_toggling(shutter: Device):
+    shutter.clear_events()
+    assert shutter.p.exec("nvm_fail 1").ok
+    hold(shutter, ("B6", "A1"), PAIR_HOLD_MS)
+    shutter.step_time(BLINKS_DONE_MS)
+
+    assert lock_state(shutter) == "0"
+    assert led_switched_on(shutter, "D2") == 0
+    assert last_error(shutter) == str(DEVICE_CONFIG_ERROR_NVM)
+    shutter.click_button("B6")
+    shutter.step_time(MINIMUM_SWITCH_TIME_MS)
+    assert moving(shutter) == ZCL_WINDOW_COVERING_MOVING_OPENING
+    shutter.p.stop()
+    with StubProc() as p:
+        assert lock_state(Device(p)) == "0"
+
+
+def test_failed_remote_write_keeps_the_lock(shutter: Device):
+    assert shutter.p.exec("nvm_fail 1").ok
+    res = shutter.p.exec(f"zcl_write 1 0x{ZCL_CLUSTER_DEVICE_CONFIG:04X} "
+                         f"0x{ZCL_ATTR_DEVICE_CONFIG_CHILD_LOCK:04X} 1")
+    assert not res.ok
+    assert lock_state(shutter) == "0"
+    shutter.click_button("B6")
+    shutter.step_time(MINIMUM_SWITCH_TIME_MS)
+    assert moving(shutter) == ZCL_WINDOW_COVERING_MOVING_OPENING
+
+
+def test_gesture_keeps_an_unrelated_last_error(shutter: Device):
+    assert shutter.p.exec("nvm_fail 1").ok
+    res = shutter.p.exec(f"zcl_write 1 0x{ZCL_CLUSTER_DEVICE_CONFIG:04X} "
+                         f"0x{ZCL_ATTR_DEVICE_CONFIG_STATUS_LED_MODE:04X} 1")
+    assert not res.ok
+    assert last_error(shutter) == str(DEVICE_CONFIG_ERROR_NVM)
+
+    hold(shutter, ("B6", "A1"), PAIR_HOLD_MS)
+    assert lock_state(shutter) == "1"
+    assert last_error(shutter) == str(DEVICE_CONFIG_ERROR_NVM)

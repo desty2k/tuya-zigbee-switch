@@ -24,21 +24,28 @@
 #define CHILD_LOCK_BLINKS_UNLOCK     2
 #define CHILD_LOCK_BLINKS_PRESS      1
 
-/* Called when a lock gesture toggles the lock. */
-typedef void (*child_lock_observer_t)(void *context, bool locked);
+/* Persists the state a lock gesture asks for; the lock changes only when it
+ * returns true. */
+typedef bool (*child_lock_store_t)(void *context, bool locked);
 
-/** Forgets every gesture and the indicator; keeps the lock state and observer. */
+/* Whether a gesture may toggle the lock now. A latching input (toggle switch
+ * type) stays down while its load is on, so its gesture must be disabled. */
+typedef bool (*child_lock_gesture_enabled_t)(void *context);
+
+/** Forgets every gesture and the indicator; keeps the lock state and store. */
 void child_lock_reset_wiring(void);
 void child_lock_register_input(void);
 
 /**
  * Holding `first` and `second` together for CHILD_LOCK_PAIR_HOLD_MS, or
  * `first` alone for CHILD_LOCK_SINGLE_HOLD_MS when `second` is
- * CHILD_LOCK_NO_BUTTON, toggles the lock.
+ * CHILD_LOCK_NO_BUTTON, toggles the lock. `enabled` (NULL: always) is
+ * checked when the hold starts and when it elapses.
  */
-bool child_lock_add_gesture(uint8_t first, uint8_t second);
+bool child_lock_add_gesture(uint8_t first, uint8_t second,
+                            child_lock_gesture_enabled_t enabled, void *context);
 void child_lock_set_indicator(indicator_feedback_t *indicator);
-void child_lock_set_observer(child_lock_observer_t observer, void *context);
+void child_lock_set_store(child_lock_store_t store, void *context);
 
 /** Sets the lock without feedback or observer call (remote write, boot). */
 void child_lock_set(bool locked);

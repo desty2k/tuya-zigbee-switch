@@ -50,19 +50,23 @@ Endpoint 1 carries two manufacturer-specific clusters. Every fork-private cluste
 
 ## Child lock
 
-`ChildLock` (`0x0012`, boolean, writable and reportable) on Device Config makes the device ignore its local switch and cover-switch buttons, including a cover's stop button: a press that starts while locked does not switch a relay, move a cover or send a command to bindings. Zigbee commands (On/Off, Window Covering) and attribute writes keep working, and the lock survives reboots, power cuts and OTA updates. The multi-press reset still works while locked, so a locked device can always be re-paired. Button Event (`0xFC02`) reports keep reaching the coordinator.
+`ChildLock` (`0x0012`, boolean, writable) on Device Config makes the device ignore its local switch and cover-switch buttons, including a cover's stop button: a press that starts while locked does not switch a relay, move a cover or send a command to bindings. Zigbee commands (On/Off, Window Covering) and attribute writes keep working, and the lock survives reboots, power cuts and OTA updates. Button Event (`0xFC02`) reports keep reaching the coordinator.
+
+A factory reset releases the lock: the multi-press reset still counts presses while locked, and an onboard button's 2 s hold works as before, so a locked device can always be reset and re-paired.
+
+The integrations read the lock when the device is configured and on request (Zigbee2MQTT `get`); they configure no report for it, because the Telink reporting table has no slot left on 4-gang boards. A lock toggled on the device shows in Zigbee2MQTT, ZHA or HOMEd after the next read.
 
 The lock is also toggled on the device:
 
 | Inputs | Gesture |
 | --- | --- |
-| Cover switch (`X`) | hold open and close together for 3 s; a short press of both still stops the cover |
-| Two or more switch buttons (`S`) | hold the first two switch buttons of the config together for 3 s |
-| One switch button (`S`, e.g. an outlet) | hold it for 10 s |
+| Cover switch (`X`) of type momentary | hold open and close together for 3 s; a short press of both still stops the cover |
+| Two or more switch buttons (`S`), the first two momentary | hold the first two switch buttons of the config together for 3 s |
+| One switch button (`S`, e.g. an outlet), momentary | hold it for 10 s |
 
-Onboard reset buttons (`B`) have no gesture: holding one for 2 s is the factory reset. The presses of a locking gesture act as usual (with the default momentary settings a 3 s or 10 s hold is a long press, so no relay toggles); the presses of an unlocking gesture are ignored. A gesture toggle is reported; a remote write is not echoed on the LED.
+Inputs of type toggle (rocker or latching switches) have no gesture: their contact stays closed while the load is on. Changing the switch type takes effect on the gesture at once. Onboard reset buttons (`B`) have no gesture: holding one for 2 s is the factory reset. The presses of a locking gesture act as usual (with the default momentary settings a 3 s or 10 s hold is a long press, so no relay toggles); the presses of an unlocking gesture are ignored. A gesture toggle is reported; a remote write is not echoed on the LED.
 
-The lock LED blinks 3 times when the lock engages, twice when it is released and once for a press while locked (250 ms on, 250 ms off); otherwise it shows nothing for the lock. It is the `P` LED of the config string, else the status LED (`L`), else the first indicator (`I`). When the `P` pin is also an `L` or `I` LED, or the fallback is used, the blinks are layered over that LED and it returns to its previous state afterwards.
+The lock LED blinks 3 times when the lock engages, twice when it is released and once for a press while locked (250 ms on, 250 ms off); otherwise it shows nothing for the lock. It is the `P` LED of the config string, else the status LED (`L`), else the first indicator (`I`). When the `P` pin is also an `L` or `I` LED, or the fallback is used, the blinks are layered over that LED and it returns to its previous state afterwards. While that LED blinks for the network (not joined, or the commissioning confirmation) it shows no lock blinks; the lock itself still changes.
 
 ## Covers
 

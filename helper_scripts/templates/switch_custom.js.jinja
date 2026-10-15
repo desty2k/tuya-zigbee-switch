@@ -403,8 +403,9 @@ const romasku = {
             entityCategory: "config",
         }),
     // Device-wide child lock on Device Config (endpoint 1). Locally toggled by
-    // holding cover open+close or the first two switch buttons for 3 s, or the
-    // only switch button for 10 s; reported when toggled.
+    // holding cover open+close or the first two momentary switch buttons for
+    // 3 s, or the only one for 10 s. Read on configure and on `get`, not
+    // reported: the Telink reporting table has no slot left on 4-gang boards.
     childLock: (name, endpointName) =>
         binary({
             name,
@@ -415,7 +416,6 @@ const romasku = {
             attribute: "childLock",
             description: "Ignore the local buttons; Zigbee control keeps working",
             access: "ALL",
-            reporting: {min: 0, max: "MAX", change: 1},
             entityCategory: "config",
         }),
     deviceConfig: (name, endpointName) =>
@@ -839,6 +839,9 @@ const definitions = [
         meta: { multiEndpoint: true },
         {% endif %}
         configure: async (device, coordinatorEndpoint, logger) => {
+            {% if device.switchNames or device.coverSwitchNames %}
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
+            {% endif %}
             {% for switchName in device.switchNames %}
             const endpoint{{loop.index}} = device.getEndpoint({{loop.index}});
             await reporting.bind(endpoint{{loop.index}}, coordinatorEndpoint, ["genMultistateInput"]);

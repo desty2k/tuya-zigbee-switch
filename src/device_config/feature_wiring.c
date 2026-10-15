@@ -914,21 +914,46 @@ void feature_wiring_build_recovery(void) {
     hal_register_on_network_status_change_callback(network_changed);
 }
 
-/* Lock gestures: open and close of each cover switch, and the first two
- * switch buttons, or the only one. Onboard buttons have none: their 2 s hold
- * is the factory reset. */
+/* Lock gestures: open and close of each momentary cover switch, and the
+ * first two switch buttons, or the only one, while they are momentary. A
+ * toggle input stays down while its load is on, so it never locks. Onboard
+ * buttons have none: their 2 s hold is the factory reset. */
+#if FEATURE_COVER
+static bool cover_switch_lock_gesture_enabled(void *context) {
+    const zigbee_cover_switch_cluster *cluster = context;
+
+    return cluster->switch_type != ZCL_COVER_SWITCH_TYPE_TOGGLE;
+}
+
+#endif
+#if FEATURE_SWITCH
+static bool switch_lock_gesture_enabled(void *context) {
+    (void)context;
+    for (uint8_t i = 0; i < switch_clusters_cnt && i < 2; i++) {
+        if (switch_clusters[i].mode == ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_TOGGLE) {
+            return false;
+        }
+    }
+    return true;
+}
+
+#endif
+
 static void wire_child_lock_gestures(void) {
 #if FEATURE_COVER
     for (uint8_t i = 0; i < cover_switch_clusters_cnt; i++) {
         (void)child_lock_add_gesture(cover_switch_clusters[i].open_button_id,
-                                     cover_switch_clusters[i].close_button_id);
+                                     cover_switch_clusters[i].close_button_id,
+                                     cover_switch_lock_gesture_enabled, &cover_switch_clusters[i]);
     }
 #endif
 #if FEATURE_SWITCH
     if (switch_clusters_cnt >= 2) {
-        (void)child_lock_add_gesture(switch_clusters[0].button_id, switch_clusters[1].button_id);
+        (void)child_lock_add_gesture(switch_clusters[0].button_id, switch_clusters[1].button_id,
+                                     switch_lock_gesture_enabled, NULL);
     } else if (switch_clusters_cnt == 1) {
-        (void)child_lock_add_gesture(switch_clusters[0].button_id, CHILD_LOCK_NO_BUTTON);
+        (void)child_lock_add_gesture(switch_clusters[0].button_id, CHILD_LOCK_NO_BUTTON,
+                                     switch_lock_gesture_enabled, NULL);
     }
 #endif
 }
@@ -955,6 +980,7 @@ void feature_wiring_start(void) {
 #if FEATURE_COVER
         .cover = cover_controller_action,
 #endif
+        .factory_reset = device_config_service_factory_reset,
     });
     button_event_cluster_register_gestures();
 
