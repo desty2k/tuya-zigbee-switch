@@ -2,7 +2,6 @@
 
 #include "base_components/relay_controller.h"
 #include "base_components/timer_service.h"
-#include "device_config/nvm_items.h"
 #include "hal/nvm.h"
 #include "hal/timer.h"
 #include <stddef.h>
@@ -123,7 +122,7 @@ static bool cover_store(const cover_runtime_t *runtime, bool motion_active) {
         .travel_position_bp = runtime->state.travel_position_bp,
     };
 
-    return hal_nvm_write(NV_ITEM_COVER_STATE(runtime->cover_id), sizeof(record),
+    return hal_nvm_write(runtime->config.nvm_item, sizeof(record),
                          (uint8_t *)&record) == HAL_NVM_SUCCESS;
 }
 
@@ -337,7 +336,7 @@ uint8_t cover_controller_add(const cover_controller_config_t *config) {
     timer_init(&runtime->safety_timer, cover_safety_timeout, runtime);
     timer_init(&runtime->movement_timer, cover_movement_elapsed, runtime);
     timer_init(&runtime->position_timer, cover_position_elapsed, runtime);
-    if (hal_nvm_read(NV_ITEM_COVER_STATE(cover_count), sizeof(record),
+    if (hal_nvm_read(config->nvm_item, sizeof(record),
                      (uint8_t *)&record) == HAL_NVM_SUCCESS &&
         record.version == COVER_STATE_VERSION &&
         record.closed_deadzone_bp < COVER_POSITION_MAX_BP &&

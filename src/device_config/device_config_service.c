@@ -2,10 +2,10 @@
 
 #include "config_nv.h"
 #include "device_config/config_parser.h"
-#include "device_config/device_params_nv.h"
 #include "device_config/feature_wiring.h"
 #include "device_config/nvm_items.h"
 #include "device_config/reset.h"
+#include "base_components/action_mapper.h"
 #include "base_components/gesture_fsm.h"
 #include "hal/nvm.h"
 #include <string.h>
@@ -61,7 +61,7 @@ void device_config_service_init(void) {
                 sizeof(record.config) - 1);
         record.config_len = strlen(record.config);
     }
-    g_multi_press_reset_count = record.multi_press_reset;
+    action_mapper_set_multi_press_reset_count(record.multi_press_reset);
     update_state(DEVICE_CONFIG_STATUS_READY, DEVICE_CONFIG_ERROR_NONE);
 }
 
@@ -172,7 +172,7 @@ device_config_error_t device_config_service_set_multi_press_reset(uint8_t count)
         return DEVICE_CONFIG_ERROR_NVM;
     }
     record = candidate;
-    g_multi_press_reset_count = count;
+    action_mapper_set_multi_press_reset_count(count);
     update_state(state.status, DEVICE_CONFIG_ERROR_NONE);
     return DEVICE_CONFIG_ERROR_NONE;
 }

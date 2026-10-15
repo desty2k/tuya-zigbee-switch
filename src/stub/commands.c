@@ -728,6 +728,38 @@ static int cmd_freeze_time(int argc, char **argv) {
     return 0;
 }
 
+/*
+ * Frozen time advances from one task deadline to the next. The main loop runs
+ * at the start, at every deadline and at the end of the step, so tasks fire
+ * at their due time in deadline order, main-loop work (retries, network
+ * steering) happens between them as it would on a device, and the response
+ * follows every effect of the step.
+ */
+static void step_time_through_tasks(uint64_t step) {
+    uint64_t now    = stub_millis_virtual();
+    uint64_t target = now + step;
+    uint64_t due;
+
+    stub_tasks_resume();
+    if (stub_millis_set(now) != 0) {
+        stub_millis_step(step);
+        return;
+    }
+    for (;;) {
+        stub_app_poll();
+        // A poll runs every task due at `now`, so a later deadline must follow.
+        if (!stub_tasks_next_due(&due) || due > target || due <= now) {
+            break;
+        }
+        stub_millis_set(due);
+        now = due;
+    }
+    if (target > now) {
+        stub_millis_set(target);
+        stub_app_poll();
+    }
+}
+
 static int cmd_step_time(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr, "Usage: step_time <milliseconds>\n");
@@ -741,8 +773,7 @@ static int cmd_step_time(int argc, char **argv) {
         io_res_err("bad_step=%s", argv[1]);
         return -1;
     }
-    stub_millis_step((uint64_t)step);
-    stub_tasks_resume();
+    step_time_through_tasks((uint64_t)step);
     io_res_ok("stepped_ms=%ld", step);
     return 0;
 }

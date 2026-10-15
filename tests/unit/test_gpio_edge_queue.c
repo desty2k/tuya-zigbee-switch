@@ -8,7 +8,6 @@ static hal_gpio_edge_t test_edge(uint32_t value) {
         .pin          = (hal_gpio_pin_t)(value + 1),
         .level        = (uint8_t)(value & 1),
         .timestamp_ms = value * 10,
-        .seq          = value,
     };
 
     return edge;
@@ -18,7 +17,6 @@ static void assert_edge(uint32_t expected, const hal_gpio_edge_t *actual) {
     ASSERT_EQ(expected + 1, actual->pin);
     ASSERT_EQ(expected & 1, actual->level);
     ASSERT_EQ(expected * 10, actual->timestamp_ms);
-    ASSERT_EQ(expected, actual->seq);
 }
 
 TEST(push_pop_fifo_order) {

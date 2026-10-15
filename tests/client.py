@@ -4,7 +4,7 @@ import subprocess
 import sys
 import threading
 from dataclasses import dataclass
-from typing import Callable
+from typing import IO, Callable
 
 _RES_RE = re.compile(r"^RES\s+(OK|ERR)\s*(.*)?$")
 _EVT_RE = re.compile(r"^EVT\s+(\w+)\s*(.*)$")
@@ -41,7 +41,6 @@ class StubProc:
         self._res_q: queue.Queue[CmdResult] = queue.Queue()
         self._evt_q: queue.Queue[Event] = queue.Queue()
         self._reader_thread: threading.Thread | None = None
-        self._stderr_forward_thread: threading.Thread | None = None
         self.on_event: list[Callable[[Event], None]] = []
 
     def __enter__(self) -> "StubProc":
@@ -55,32 +54,47 @@ class StubProc:
             self.cmd,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            # Inherited: pytest captures the descriptor at OS level. A Python
+            # thread writing into sys.stderr races pytest swapping it between
+            # test phases and fails with EBADF.
+            stderr=None,
             text=True,
             bufsize=1,
         )
-        self._reader_thread = threading.Thread(target=self._read_loop, daemon=True)
-        self._reader_thread.start()
-        self._stderr_forward_thread = threading.Thread(
-            target=self._stderr_forward, daemon=True
+        self._reader_thread = threading.Thread(
+            target=self._read_loop, args=(self.proc.stdout,), daemon=True
         )
-        self._stderr_forward_thread.start()
+        self._reader_thread.start()
         # enter machine mode; ignore output but ensure we’re synced
         self.exec("machine on", timeout=2.0)
         return self
 
     def stop(self, kill_after: float = 0.02) -> None:
-        if not self.proc or not self.is_running():
+        """Stop the process and join the reader thread.
+
+        The reader prints into pytest's captured stdout; it must reach EOF
+        and finish before the test that owns the process ends.
+        """
+        if not self.proc:
             return
-        try:
-            self.exec("q", timeout=0.2)
-        except Exception:
-            pass
-        try:
-            self.proc.wait(timeout=kill_after)
-        except subprocess.TimeoutExpired:
-            self.proc.kill()
-            self.proc.wait()
+        if self.is_running():
+            try:
+                self.exec("q", timeout=0.2)
+            except Exception:
+                pass
+            try:
+                self.proc.wait(timeout=kill_after)
+            except subprocess.TimeoutExpired:
+                self.proc.kill()
+                self.proc.wait()
+        if self._reader_thread:
+            self._reader_thread.join()
+        for stream in (self.proc.stdin, self.proc.stdout):
+            if stream:
+                try:
+                    stream.close()
+                except OSError:
+                    pass
         self.proc = None
 
     def is_running(self) -> bool:
@@ -95,16 +109,8 @@ class StubProc:
         except subprocess.TimeoutExpired:
             return False
 
-    def _stderr_forward(self):
-        assert self.proc and self.proc.stderr
-
-        for line in self.proc.stderr:
-            print(line.rstrip(), file=sys.stderr)
-
-    def _read_loop(self) -> None:
-        assert self.proc and self.proc.stdout and self.proc.stderr
-
-        for raw in self.proc.stdout:
+    def _read_loop(self, stream: IO[str]) -> None:
+        for raw in stream:
             line = raw.rstrip("\n")
             print(line.rstrip(), file=sys.stdout)
             if "RES" in line:
@@ -140,6 +146,14 @@ class StubProc:
             else:
                 result[token] = ""
         return result
+
+    def send(self, cmd: str) -> None:
+        """Write a command without awaiting its response, for commands
+        during which the firmware may reset and exit."""
+        if not self.proc or not self.proc.stdin:
+            raise RuntimeError("Process not running")
+        self.proc.stdin.write(cmd + "\n")
+        self.proc.stdin.flush()
 
     def exec(self, cmd: str, timeout: float = 1.0) -> CmdResult:
         if not self.proc or not self.proc.stdin:

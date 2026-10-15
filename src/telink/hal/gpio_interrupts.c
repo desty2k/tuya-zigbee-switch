@@ -4,13 +4,12 @@
 
 #include "hal/gpio.h"
 #include "hal/timer.h"
+#include "telink_gpio_pin.h"
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h>
 
 #define MAX_WATCHED_PINS    16
 #define MAX_REARM_TRIES     50
-#define GPIO_PORT_COUNT     5
 
 typedef struct {
     hal_gpio_pin_t pin;
@@ -20,7 +19,6 @@ typedef struct {
 static watched_pin_t          watched_pins[MAX_WATCHED_PINS];
 static hal_gpio_edge_sink_t   edge_sink;
 static hal_gpio_diagnostics_t diagnostics;
-static uint32_t      edge_seq;
 static bool          is_isr_initialized;
 static volatile bool gpio_dispatch_pending;
 
@@ -48,9 +46,11 @@ static uint8_t snapshot_level(const uint8_t *snapshot, hal_gpio_pin_t pin) {
     return (snapshot[pin_port(pin)] & pin_mask(pin)) ? 1 : 0;
 }
 
+/* Ports A-D only: PE0-PE3 carry the in-package flash SPI and are never claimed. */
 static void read_snapshot(uint8_t *snapshot) {
-    memset(snapshot, 0, GPIO_PORT_COUNT);
-    drv_gpio_read_all(snapshot);
+    for (uint8_t port = 0; port < TELINK_GPIO_PORT_COUNT; port++) {
+        snapshot[port] = reg_gpio_in((uint32_t)port << 8);
+    }
 }
 
 static bool capture_snapshot(uint8_t *snapshot, uint8_t flags) {
@@ -72,7 +72,6 @@ static bool capture_snapshot(uint8_t *snapshot, uint8_t flags) {
             .level        = level,
             .flags        = flags,
             .timestamp_ms = now,
-            .seq          = edge_seq++,
         };
         watched_pins[i].last_level = level;
         diagnostics.gpio_edges_captured++;
@@ -126,7 +125,7 @@ static void set_irq_polarities(const uint8_t *snapshot) {
 }
 
 void hal_gpio_process_pending(void) {
-    uint8_t snapshot[GPIO_PORT_COUNT];
+    uint8_t snapshot[TELINK_GPIO_PORT_COUNT];
     uint8_t tries = 0;
     bool    changed;
 
@@ -149,7 +148,7 @@ void hal_gpio_process_pending(void) {
 }
 
 static void gpio_isr_callback(void) {
-    uint8_t snapshot[GPIO_PORT_COUNT];
+    uint8_t snapshot[TELINK_GPIO_PORT_COUNT];
 
     diagnostics.gpio_irq_count++;
     capture_snapshot(snapshot, 0);
@@ -201,24 +200,12 @@ void hal_gpio_watch_pin(hal_gpio_pin_t gpio_pin) {
     drv_restore_irq(irq_state);
 }
 
-void hal_gpio_unwatch_pin(hal_gpio_pin_t gpio_pin) {
-    for (uint8_t i = 0; i < MAX_WATCHED_PINS; i++) {
-        if (watched_pins[i].pin == gpio_pin) {
-            u32 irq_state = drv_disable_irq();
-            drv_gpio_irq_dis((u32)gpio_pin);
-            watched_pins[i].pin = HAL_INVALID_PIN;
-            drv_restore_irq(irq_state);
-            return;
-        }
-    }
-}
-
 hal_gpio_diagnostics_t hal_gpio_get_diagnostics(void) {
     return diagnostics;
 }
 
 void telink_gpio_reinit_interrupts(void) {
-    uint8_t snapshot[GPIO_PORT_COUNT];
+    uint8_t snapshot[TELINK_GPIO_PORT_COUNT];
 
     is_isr_initialized = false;
     init_isr();

@@ -11,25 +11,19 @@ Neither router touches hardware directly. Both emit actions.
 
 ## Action types
 
-```c
-typedef enum {
-    ACTION_NONE = 0,
-    ACTION_RELAY,          // relay_request_t
-    ACTION_BIND_ONOFF,     // On/Off command to bindings
-    ACTION_BIND_LEVEL,     // Level Move / Stop to bindings
-    ACTION_ZB_BUTTON_EVENT,
-    ACTION_SYSTEM,         // system_action_t
-} action_type_t;
+Switch and cover-switch clusters act on their own gestures and submit relay
+requests (`action_mapper_relay_request`) or cover commands
+(`action_mapper_cover_action`, delivered to the cover sink). The gesture
+router itself only maps factory-reset gestures: every button gets one reset
+trigger from `action_mapper_add_reset_button`:
 
-typedef enum {
-    SYSTEM_ACTION_FACTORY_RESET,
-    SYSTEM_ACTION_REBOOT,
-} system_action_t;
-```
+| Button | Reset trigger |
+| --- | --- |
+| onboard (`B`) | `HOLD_START` |
+| any other | `N_CLICK(count)` with `count >=` the multi-press reset count |
 
-`system_action_execute(system_action_t action, uint16_t delay_ms)` lives in
-`src/device_config/system_action.c` and is the only path to `hal_factory_reset()`
-and `hal_system_reset()` from feature code.
+A matching gesture calls `hal_factory_reset()`. Delayed reboots use
+`schedule_reboot()` in `src/device_config/reset.c`.
 
 ## Switch endpoint behaviour (unchanged semantics)
 
@@ -154,27 +148,16 @@ the existing `local_mode` / `binded_mode` matrix (`IMMEDIATE`, `SHORT_PRESS`,
 `LONG_PRESS`, `HYBRID`). The long-press duration attribute writes `hold_ms` for
 both buttons of the endpoint.
 
-## Gesture mapping table
+## Gesture mapping
 
-`action_mapper` holds a static table built during wiring. Lookup key is
-`(button_id, gesture_type, count)`.
+`action_mapper` keeps one reset trigger per button, set during wiring (see
+[Action types](#action-types)). The multi-press reset count is Device Config
+attribute `0x0011` (default 10, `0` disables), handed over with
+`action_mapper_set_multi_press_reset_count()`. Every gesture is also published
+as a Zigbee button event by the button event cluster.
 
-| Key | Action |
-| --- | --- |
-| on-board button (`B` token), `HOLD_START`, `hold_ms = 2000` | `SYSTEM_ACTION_FACTORY_RESET` |
-| any switch button (`S` token) or cover switch button (`X` token), `N_CLICK(n)` with `reset_count != 0` and `n >= reset_count` | `SYSTEM_ACTION_FACTORY_RESET` |
-| any button, `HOLD_START` / `HOLD_END` / `N_CLICK(n)` | `ACTION_ZB_BUTTON_EVENT` |
-
-`reset_count` is the existing global `g_multi_press_reset_count`
-(Basic cluster attribute `0xff02`, default 10, `0` disables). The mapper never
-hardcodes "2 clicks = X"; every mapping is a table entry.
-
-Rules for the mapper:
-
-- It contains no timing logic; timing belongs to `gesture_fsm`.
-- It performs no hardware access; it submits `relay_request_t`, binding commands,
-  Zigbee events or system actions.
-- Unmapped gestures are still published as Zigbee events.
+The mapper contains no timing logic (timing belongs to `gesture_fsm`) and no
+pin access.
 
 ## Relation between immediate actions and N-click
 

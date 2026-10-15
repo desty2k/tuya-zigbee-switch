@@ -2,11 +2,10 @@
 #define BASE_COMPONENTS_METER_SERVICE_H_
 
 #include "base_components/energy_meter.h"
-#include "device_config/nvm_items.h"
 #include <stdbool.h>
 #include <stdint.h>
 
-#define METER_SERVICE_MAX_INSTANCES      MAX_METERS
+#define METER_SERVICE_MAX_INSTANCES      2
 #define METER_SERVICE_MAX_SUBSCRIBERS    4
 
 typedef enum {
@@ -21,6 +20,7 @@ typedef struct {
     uint32_t            sample_interval_ms;
     uint32_t            checkpoint_interval_ms;
     uint64_t            checkpoint_energy_uwh;
+    uint8_t             nvm_item; /* NVM item holding this meter's record */
 } meter_service_config_t;
 
 typedef struct {

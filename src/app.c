@@ -128,8 +128,8 @@ static void app_track_network_status(hal_zigbee_network_status_t status) {
     } else if (last_network_status == HAL_ZIGBEE_NETWORK_JOINED) {
         network_diagnostics.network_losses++;
     }
-    printf("Network transition %d -> %d at %u ms\r\n", last_network_status,
-           status, network_diagnostics.last_transition_ms);
+    printf("Network transition %d -> %d at %d ms\r\n", (int)last_network_status,
+           (int)status, (int)network_diagnostics.last_transition_ms);
     last_network_status = status;
 }
 

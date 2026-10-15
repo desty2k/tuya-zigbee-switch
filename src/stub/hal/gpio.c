@@ -26,7 +26,6 @@ static hal_gpio_edge_sink_t   edge_sink;
 static hal_gpio_diagnostics_t diagnostics;
 static uint32_t init_count;
 static uint32_t write_count;
-static uint32_t edge_seq;
 
 void ensure_valid_input_pin(hal_gpio_pin_t gpio_pin);
 void ensure_valid_output_pin(hal_gpio_pin_t gpio_pin);
@@ -83,13 +82,6 @@ void hal_gpio_watch_pin(hal_gpio_pin_t gpio_pin) {
     gpio_pins[gpio_pin].last_level = gpio_pins[gpio_pin].value;
     gpio_pins[gpio_pin].watched    = 1;
     io_log("GPIO", "Watching pin %d", gpio_pin);
-}
-
-void hal_gpio_unwatch_pin(hal_gpio_pin_t gpio_pin) {
-    ensure_valid_input_pin(gpio_pin);
-
-    gpio_pins[gpio_pin].watched = 0;
-    io_log("GPIO", "Stopped watching pin %d", gpio_pin);
 }
 
 void hal_gpio_process_pending(void) {
@@ -151,7 +143,6 @@ static void stub_gpio_capture(hal_gpio_pin_t gpio_pin, uint8_t flags) {
         .level        = value,
         .flags        = flags,
         .timestamp_ms = hal_millis(),
-        .seq          = edge_seq++,
     };
 
     gpio_pins[gpio_pin].last_level = value;

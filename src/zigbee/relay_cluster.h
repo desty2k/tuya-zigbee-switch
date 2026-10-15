@@ -7,6 +7,10 @@
 
 #include "hal/zigbee.h"
 
+/* Indicator mode and state: the last attr_infos entries, present only on an
+ * endpoint that has an indicator LED. */
+#define RELAY_CLUSTER_INDICATOR_ATTRIBUTES    2
+
 typedef struct {
     uint8_t               relay_idx;
     uint8_t               endpoint;

@@ -177,6 +177,30 @@ void gesture_fsm_set_multi_click_gap_ms(uint8_t button_id, uint16_t gap_ms) {
     }
 }
 
+void gesture_fsm_resync(uint8_t button_id) {
+    gesture_runtime_t *runtime;
+
+    if (button_id >= BUTTON_INPUT_MAX ||
+        !gesture_runtimes[button_id].configured) {
+        return;
+    }
+    runtime = &gesture_runtimes[button_id];
+    timer_cancel(&runtime->hold_timer);
+    timer_cancel(&runtime->multi_click_timer);
+    if (runtime->hold_active) {
+        uint32_t now = hal_millis();
+
+        gesture_fsm_emit(button_id, GESTURE_HOLD_END, 0,
+                         (uint16_t)(now - runtime->down_at_ms),
+                         runtime->active_press_id, now);
+    }
+    runtime->hold_active = false;
+    runtime->click_count = 0;
+    runtime->button_down = button_input_is_down(button_id);
+    runtime->suppressed  = runtime->button_down;
+    runtime->down_at_ms  = hal_millis();
+}
+
 bool gesture_fsm_hold_active(uint8_t button_id) {
     return button_id < BUTTON_INPUT_MAX &&
            gesture_runtimes[button_id].configured &&

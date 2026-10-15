@@ -7,6 +7,9 @@
 
 void hal_system_reset(void) {
     halReboot();
+    // halReboot() does not return but is not declared noreturn.
+    for (;;) {
+    }
 }
 
 void hal_factory_reset(void) {

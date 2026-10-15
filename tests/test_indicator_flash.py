@@ -128,7 +128,7 @@ def test_network_disconnected_blink_has_priority(indicator_device: Device) -> No
     indicator_device.click_n("A0", 2)
     # The network blink runs 500 ms on / 500 ms off from set_network(0); the
     # double-click confirmation is due one click gap after the last release.
-    now_ms = 2 * 2 * (DEBOUNCE_MS + 2) + 100
+    now_ms = 2 * 2 * DEBOUNCE_MS + 100
     confirm_at = now_ms + 350
     assert 510 < confirm_at < 990
     transitions = []

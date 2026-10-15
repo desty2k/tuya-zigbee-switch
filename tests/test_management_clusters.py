@@ -41,7 +41,7 @@ def test_config_apply_persists_revision_and_schedules_reboot() -> None:
                                        ZCL_ATTR_DEVICE_CONFIG_REVISION) == "1"
         assert device.read_zigbee_attr(1, ZCL_CLUSTER_DEVICE_CONFIG,
                                        ZCL_ATTR_DEVICE_CONFIG_STATUS) == "1"
-        process.exec("step_time 300")
+        process.send("step_time 300")
         assert process.wait_for_exit(1.0)
 
     with StubProc() as process:
@@ -113,7 +113,7 @@ def test_pending_config_rejects_every_candidate_without_replacing_state() -> Non
                                        ZCL_ATTR_DEVICE_CONFIG_REVISION) == "1"
         assert device.read_zigbee_attr(1, ZCL_CLUSTER_DEVICE_CONFIG,
                                        ZCL_ATTR_DEVICE_CONFIG_STATUS) == "1"
-        process.exec("step_time 300")
+        process.send("step_time 300")
         assert process.wait_for_exit(1.0)
 
 
@@ -131,7 +131,7 @@ def test_pending_config_rejects_a_second_valid_write_without_replacing_state() -
                                        ZCL_ATTR_DEVICE_CONFIG_TEXT) == "C;D;"
         assert device.read_zigbee_attr(1, ZCL_CLUSTER_DEVICE_CONFIG,
                                        ZCL_ATTR_DEVICE_CONFIG_REVISION) == "1"
-        process.exec("step_time 300")
+        process.send("step_time 300")
         assert process.wait_for_exit(1.0)
 
 

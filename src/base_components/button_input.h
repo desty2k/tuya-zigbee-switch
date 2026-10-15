@@ -46,6 +46,9 @@ void button_input_init(void);
 /** Schedule input processing requested by a captured GPIO edge. */
 void button_input_process_pending(void);
 uint8_t button_input_add(const button_config_t *config);
+
+/** Re-seed the button's state from the pin under the new polarity, without
+ * emitting events; gesture_fsm_resync() must follow. */
 void button_input_set_active_high(uint8_t button_id, bool active_high);
 void button_input_apply_switch_mode(uint8_t button_id, bool momentary_nc);
 void button_input_set_debounce_ms(uint8_t button_id, uint16_t debounce_ms);
