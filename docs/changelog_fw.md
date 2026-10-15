@@ -6,6 +6,7 @@ _Open the **Outline** (table of contents) from the top right._
 
 Please describe what you are working on, under ## Upcoming
 
+- Telink: attribute reports from the fork-private clusters (`0xFC02`, `0xFC10`, `0xFC11`) carry the fork's manufacturer code, as on Silabs.
 - A switch whose relay index points at a relay endpoint drives that endpoint's relay when a cover is defined before the relays in the device config; it drove the cover's open relay.
 
 ------------------------------------------------------->

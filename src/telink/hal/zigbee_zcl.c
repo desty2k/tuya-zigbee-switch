@@ -500,8 +500,9 @@ hal_zigbee_send_report_attr(uint8_t endpoint, uint16_t cluster_id,
     TL_SETSTRUCTCONTENT(dstEpInfo, 0);
     dstEpInfo.profileId   = HA_PROFILE_ID;
     dstEpInfo.dstAddrMode = APS_DSTADDR_EP_NOTPRESETNT;
-    zcl_sendReportCmd(endpoint, &dstEpInfo, TRUE, ZCL_FRAME_SERVER_CLIENT_DIR,
-                      cluster_id, attr_id, zcl_type_id, (u8 *)value);
+    zcl_report(endpoint, &dstEpInfo, TRUE, ZCL_FRAME_SERVER_CLIENT_DIR,
+               ZCL_SEQ_NUM, cluster->manufacturer_code, cluster_id, attr_id,
+               zcl_type_id, (u8 *)value);
     return HAL_ZIGBEE_OK;
 }
 

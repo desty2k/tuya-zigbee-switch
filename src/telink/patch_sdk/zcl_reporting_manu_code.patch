@@ -1,0 +1,14 @@
+--- a/zigbee/zcl/zcl_reporting.c
++++ b/zigbee/zcl/zcl_reporting.c
+@@ -492,7 +492,10 @@
+             dstEpInfo.dstAddrMode = APS_DSTADDR_EP_NOTPRESETNT;
+             dstEpInfo.profileId = profileID;
+
+-            zcl_sendReportAttrsCmd(endpoint, &dstEpInfo, TRUE, ZCL_FRAME_SERVER_CLIENT_DIR, clusterID, (zclReportCmd_t *)&report);
++            /* A report from a manufacturer-specific cluster carries its code.
++             * zcl_findAttribute() found the cluster above. */
++            zcl_reportAttrs(endpoint, &dstEpInfo, TRUE, ZCL_FRAME_SERVER_CLIENT_DIR, ZCL_SEQ_NUM,
++                            zcl_findCluster(endpoint, clusterID)->manuCode, clusterID, (zclReportCmd_t *)&report);
+         }
+     } while (again);
+ }
