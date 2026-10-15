@@ -66,7 +66,8 @@ void device_diagnostics_cluster_add_to_endpoint(
     SETUP_ATTR(0, ZCL_ATTR_DIAGNOSTICS_CAPABILITIES, ZCL_DATA_TYPE_BITMAP32,
                HAL_ATTR_READ, cluster->capabilities);
     // Uptime changes on every refresh, so it is read-only and never reported.
-    SETUP_ATTR(1, ZCL_ATTR_DIAGNOSTICS_UPTIME_MS, ZCL_DATA_TYPE_UINT32, HAL_ATTR_READ, cluster->values[0]);
+    SETUP_ATTR(1, ZCL_ATTR_DIAGNOSTICS_UPTIME_MS, ZCL_DATA_TYPE_UINT32, HAL_ATTR_READ,
+               cluster->values[0]);
     for (uint8_t i = 1; i < 18; i++) {
         SETUP_ATTR_FOR_TABLE(cluster->attr_infos, i + 1, ids[i], ZCL_DATA_TYPE_UINT32,
                              HAL_ATTR_READ | HAL_ATTR_REPORT, cluster->values[i]);

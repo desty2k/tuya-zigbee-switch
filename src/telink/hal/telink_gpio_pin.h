@@ -10,10 +10,10 @@
  * pins 0..7; port E has only PE0..PE3. gpio.c checks these constants against
  * the SDK at compile time; this header stays SDK-free so host tests can use it.
  */
-#define TELINK_GPIO_PORT_COUNT      5
-#define TELINK_GPIO_PORT_PINS       8
-#define TELINK_GPIO_PORT_E          4
-#define TELINK_GPIO_PORT_E_PINS     4
+#define TELINK_GPIO_PORT_COUNT     5
+#define TELINK_GPIO_PORT_PINS      8
+#define TELINK_GPIO_PORT_E         4
+#define TELINK_GPIO_PORT_E_PINS    4
 
 static inline hal_gpio_pin_t telink_gpio_pin_from_text(const char *s) {
     uint8_t port;

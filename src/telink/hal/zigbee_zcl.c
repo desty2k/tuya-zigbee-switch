@@ -371,7 +371,7 @@ bool telink_zigbee_hal_zcl_init(hal_zigbee_endpoint *endpoints,
         for (zcl_specClusterInfo_t *info = endpoint_first_cluster_ptr;
              info < cluster_info_ptr; info++) {
             registering_cluster = info;
-            status_t status     = info->clusterRegisterFunc(
+            status_t status = info->clusterRegisterFunc(
                 endpoint->endpoint, info->manuCode, info->attrNum, info->attrTbl,
                 info->clusterAppCb);
 

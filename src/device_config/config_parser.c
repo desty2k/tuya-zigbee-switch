@@ -36,7 +36,7 @@ static bool parse_pin(const char *text, const char **end, hal_gpio_pin_t *pin) {
         length++;
     }
     name[length] = '\0';
-    parsed = hal_gpio_parse_pin(name);
+    parsed       = hal_gpio_parse_pin(name);
     if (parsed == HAL_INVALID_PIN) {
         return false;
     }
