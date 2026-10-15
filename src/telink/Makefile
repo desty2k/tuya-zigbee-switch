@@ -56,8 +56,13 @@ endif
 
 
 # Compiler and linker flags
+# -fno-jump-tables: at -Os tc32-gcc 4.5.1 emits switch tables as byte-sized
+# relative offsets but dispatches them as 32-bit absolute addresses, so every
+# table-dispatched switch jumps to a bogus address. The linked image is checked
+# for such tables by helper_scripts/check_tc32_jump_tables.py.
 GCC_FLAGS := \
 	-O2 \
+	-fno-jump-tables \
 	-ffunction-sections \
 	-fdata-sections \
 	-Wall \
@@ -233,6 +238,7 @@ all: $(BIN_FILE) $(LST_FILE)
 $(ELF_FILE): $(ALL_APP_OBJS) sdk-build
 	@echo "Linking $(ELF_FILE)"
 	@$(LD) $(LNK_FLAGS) -T$(LINKER_SCRIPT) $(LIBRARY_PATHS) -o $@ $(ALL_APP_OBJS) $(SDK_OBJS) $(LIBS)
+	@python3 $(PROJECT_ROOT)/helper_scripts/check_tc32_jump_tables.py $@ --objdump $(OBJDUMP) || { rm -f $@; exit 1; }
 
 
 $(LST_FILE): $(ELF_FILE)
