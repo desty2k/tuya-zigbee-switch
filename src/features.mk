@@ -14,6 +14,13 @@ ALL_FEATURES := relay switch cover battery meter probe
 DEFAULT_FEATURES := relay switch cover battery meter
 FEATURES ?= $(DEFAULT_FEATURES)
 
+# The meter counters and the probe use the same TLSR8258 GPIO-to-RISC sources.
+ifneq ($(filter meter,$(FEATURES)),)
+ifneq ($(filter probe,$(FEATURES)),)
+$(error Features meter and probe cannot share an image)
+endif
+endif
+
 UNKNOWN_FEATURES := $(filter-out $(ALL_FEATURES),$(FEATURES))
 ifneq ($(UNKNOWN_FEATURES),)
 $(error Unknown FEATURES: $(UNKNOWN_FEATURES); known: $(ALL_FEATURES))
@@ -26,7 +33,12 @@ FEATURE_SOURCES_cover := \
 	zigbee/cover_cluster.c \
 	zigbee/cover_switch_cluster.c
 FEATURE_SOURCES_battery := base_components/battery.c zigbee/battery_cluster.c
-FEATURE_SOURCES_meter := base_components/meter_service.c
+FEATURE_SOURCES_meter := \
+	base_components/meter_service.c \
+	base_components/energy_measurement/bl0937.c \
+	zigbee/electrical_measurement_cluster.c \
+	zigbee/metering_cluster.c \
+	zigbee/meter_calibration_cluster.c
 FEATURE_SOURCES_probe := base_components/gpio_probe_service.c zigbee/gpio_probe_cluster.c
 
 FEATURE_SOURCES := $(foreach feature,$(FEATURES),$(FEATURE_SOURCES_$(feature)))

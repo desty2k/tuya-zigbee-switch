@@ -55,6 +55,8 @@ def token_feature(token):
         return True, "relay"
     if token[:1] in ("C", "X"):
         return True, "cover"
+    if token[:1] == "E":
+        return True, "meter"
     return False, None
 
 

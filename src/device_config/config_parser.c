@@ -187,6 +187,9 @@ static bool token_feature_compiled(const char *token) {
     case 'X':
         return FEATURE_COVER;
 
+    case 'E':
+        return FEATURE_METER;
+
     default:
         return true;
     }
@@ -313,6 +316,24 @@ static config_parse_result_t parse_token(const char *token,
             .on_pin  = close_pin,
             .off_pin = HAL_INVALID_PIN,
         };
+    } else if (token[0] == 'E') {
+        device_meter_config_t *meter;
+
+        if (out->meter_count >= DEVICE_COMPOSITION_MAX_METERS) {
+            return CONFIG_PARSE_LIMIT;
+        }
+        meter = &out->meters[out->meter_count];
+        // E<ic><CF><CF1><SEL>[i]; IC B is the BL0937, `i` makes SEL low
+        // select voltage.
+        if (token[1] != 'B' || !parse_pin(token + 2, &end, &meter->cf_pin) ||
+            !parse_pin(end, &end, &meter->cf1_pin) ||
+            !parse_pin(end, &end, &meter->sel_pin) ||
+            (*end != '\0' && strcmp(end, "i") != 0)) {
+            return CONFIG_PARSE_SYNTAX;
+        }
+        meter->ic = DEVICE_METER_BL0937;
+        meter->sel_high_selects_voltage = *end == '\0';
+        out->meter_count++;
     } else {
         return CONFIG_PARSE_SYNTAX;
     }

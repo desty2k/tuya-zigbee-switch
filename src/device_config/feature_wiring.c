@@ -18,6 +18,10 @@
 #include "base_components/indicator_feedback.h"
 #include "base_components/interlock.h"
 #include "base_components/led.h"
+#if FEATURE_METER
+#include "base_components/energy_measurement/bl0937.h"
+#include "base_components/meter_service.h"
+#endif
 #include "base_components/network_indicator.h"
 #include "base_components/relay_controller.h"
 #include "base_components/relay_driver.h"
@@ -29,6 +33,11 @@
 #include "zigbee/cover_switch_cluster.h"
 #include "zigbee/device_config_cluster.h"
 #include "zigbee/device_diagnostics_cluster.h"
+#if FEATURE_METER
+#include "zigbee/electrical_measurement_cluster.h"
+#include "zigbee/meter_calibration_cluster.h"
+#include "zigbee/metering_cluster.h"
+#endif
 #include "zigbee/zcl_cluster_defs.h"
 #include "zigbee/zcl_ids.h"
 #include "zigbee/group_cluster.h"
@@ -46,6 +55,12 @@
 #if DEVICE_COMPOSITION_MAX_COVERS > COVER_CONTROLLER_MAX_COVERS
 #error "a parsed cover layout must fit the cover controller"
 #endif
+#if FEATURE_METER && FEATURE_PROBE
+#error "the meter and the GPIO probe share the TLSR8258 GPIO-to-RISC sources"
+#endif
+#if FEATURE_METER && DEVICE_COMPOSITION_MAX_METERS > METER_SERVICE_MAX_INSTANCES
+#error "a parsed meter layout must fit the meter service"
+#endif
 
 /* Switch endpoint defaults until the switch config is loaded from NVM. */
 #define SWITCH_DEFAULT_HOLD_MS            800
@@ -53,6 +68,52 @@
 
 /* Wired endpoints use no standard HA device type. */
 #define WIRED_ENDPOINT_DEVICE_ID          0xffff
+
+#if FEATURE_METER
+
+/*
+ * BL0937 scale of the BSEED TS011F outlet boards (one pulse per second on the
+ * channel equals this much):
+ *
+ * - voltage: 120670 uV/Hz, measured on _TZ3210_drzlxjne (CF1 at 1964 Hz with
+ *   SEL high while the stock firmware reported 237 V);
+ * - current 9050 uA/Hz and power 1063500 uW/Hz: the sibling
+ *   _TZ3000_b28wrpvx, measured against a 734.7 W resistive load (237 V,
+ *   3.10 A; tuya-zigbee-switch PR #491). Its voltage scale (118000 uV/Hz)
+ *   is within 2 % of the drzlxjne measurement, so both boards share the
+ *   divider and shunt.
+ *
+ * The datasheet transfer functions (FCF = 1721506 Vv Vi / Vref^2, FCF1 =
+ * 15397 Vv / Vref and 94638 Vi / Vref) give 924000 uW/Hz from the voltage
+ * and current scales, 13 % below the measured power scale, so a unit needs a
+ * reference-meter calibration (Meter Calibration gains) for better accuracy.
+ */
+#define METER_BL0937_VOLTAGE_UV_PER_HZ      120670u
+#define METER_BL0937_CURRENT_UA_PER_HZ      9050u
+#define METER_BL0937_POWER_UW_PER_HZ        1063500u
+
+#define METER_SAMPLE_INTERVAL_MS            1000u
+
+/*
+ * Energy checkpoints (meter_service.c checkpoint_if_due): at most every 5 min,
+ * after 50 Wh or once an hour with any energy. An abrupt power cut loses at
+ * most max(50 Wh, 5 min of load), i.e. 307 Wh at 3680 W. The worst case of
+ * 288 writes a day of a ~48-byte NV record rolls the 4 KB sectors of the app
+ * NV module about 3.4 times a day: about 6200 erases per sector in ten
+ * years, against the 100000-cycle flash endurance.
+ */
+#define METER_CHECKPOINT_MIN_INTERVAL_MS    (5u * 60u * 1000u)
+#define METER_CHECKPOINT_MAX_INTERVAL_MS    (60u * 60u * 1000u)
+#define METER_CHECKPOINT_ENERGY_UWH         50000000u
+
+static bl0937_t meter_drivers[DEVICE_COMPOSITION_MAX_METERS];
+static uint8_t  meter_ids[DEVICE_COMPOSITION_MAX_METERS];
+static zigbee_electrical_measurement_cluster
+    electrical_measurement_clusters[DEVICE_COMPOSITION_MAX_METERS];
+static zigbee_metering_cluster          metering_clusters[DEVICE_COMPOSITION_MAX_METERS];
+static zigbee_meter_calibration_cluster meter_calibration_clusters[DEVICE_COMPOSITION_MAX_METERS];
+#endif
+static uint8_t meters_cnt;
 
 #define NETWORK_INDICATOR_SLOTS                           \
         (sizeof(((network_indicator_t *)0)->indicators) / \
@@ -126,6 +187,7 @@ enum {
     RELAY_CLUSTERS        = 3, /* OnOff, Level, Groups */
     COVER_SWITCH_CLUSTERS = 4, /* config, WindowCovering client, multistate, button events */
     COVER_CLUSTERS        = 1, /* WindowCovering */
+    METER_CLUSTERS        = 3, /* Electrical Measurement, Metering, Meter Calibration */
 };
 
 #define ATTRIBUTE_COUNT(type, member) \
@@ -155,11 +217,6 @@ static void probe_claim_composition(const device_composition_t *c) {
     }
     for (uint8_t i = 0; i < c->indicator_count; i++) {
         probe_claim(c->indicators[i].pin);
-    }
-    for (uint8_t i = 0; i < c->meter_count; i++) {
-        for (uint8_t j = 0; j < c->meters[i].counter_count; j++) {
-            probe_claim(c->meters[i].counter_pins[j]);
-        }
     }
     probe_claim(c->battery_pin);
 }
@@ -226,6 +283,9 @@ static void endpoint_slots(const device_composition_t *c) {
             slots += COVER_SWITCH_CLUSTERS;
         } else if (i < covers_end) {
             slots += COVER_CLUSTERS;
+        }
+        if (i < meters_cnt) {
+            slots += METER_CLUSTERS;
         }
         endpoints[i].endpoint         = i + 1;
         endpoints[i].profile_id       = ZCL_HA_PROFILE;
@@ -367,6 +427,58 @@ static feature_wiring_result_t wire_covers(const device_composition_t *c) {
 
 #endif
 
+#if FEATURE_METER
+
+/* Meter i reports on endpoint i + 1; validation keeps meters within the
+ * endpoint count. */
+static feature_wiring_result_t wire_meters(const device_composition_t *c) {
+    meter_service_init();
+    for (uint8_t i = 0; i < meters_cnt; i++) {
+        meter_drivers[i].cf_counter  = HAL_GPIO_COUNTER_INVALID_ID;
+        meter_drivers[i].cf1_counter = HAL_GPIO_COUNTER_INVALID_ID;
+        meter_ids[i] = UINT8_MAX;
+    }
+    for (uint8_t i = 0; i < meters_cnt; i++) {
+        const device_meter_config_t *meter  = &c->meters[i];
+        const bl0937_config_t        config = {
+            .cf_pin  = meter->cf_pin,
+            .cf1_pin = meter->cf1_pin,
+            .sel_pin = meter->sel_pin,
+            .sel_high_selects_voltage = meter->sel_high_selects_voltage,
+            .voltage_uv_per_hz        = METER_BL0937_VOLTAGE_UV_PER_HZ,
+            .current_ua_per_hz        = METER_BL0937_CURRENT_UA_PER_HZ,
+            .power_uw_per_hz          = METER_BL0937_POWER_UW_PER_HZ,
+        };
+        meter_service_config_t       service = {
+            .sample_interval_ms         = METER_SAMPLE_INTERVAL_MS,
+            .checkpoint_min_interval_ms = METER_CHECKPOINT_MIN_INTERVAL_MS,
+            .checkpoint_max_interval_ms = METER_CHECKPOINT_MAX_INTERVAL_MS,
+            .checkpoint_energy_uwh      = METER_CHECKPOINT_ENERGY_UWH,
+            .nvm_item                   = NV_ITEM_METER_STATE(i),
+        };
+
+        if (!bl0937_init(&meter_drivers[i], &config)) {
+            return FEATURE_WIRING_INVALID;
+        }
+        service.driver = bl0937_as_meter(&meter_drivers[i]);
+        meter_ids[i]   = meter_service_add(&service);
+        if (meter_ids[i] == UINT8_MAX) {
+            return FEATURE_WIRING_INVALID;
+        }
+    }
+    return FEATURE_WIRING_OK;
+}
+
+static void stop_meters(void) {
+    for (uint8_t i = 0; i < meters_cnt; i++) {
+        meter_service_stop(meter_ids[i]);
+        bl0937_close(&meter_drivers[i]);
+    }
+    meter_service_init();
+}
+
+#endif
+
 feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
     if (feature_wiring_preflight(c) != FEATURE_WIRING_OK) {
         return FEATURE_WIRING_INVALID;
@@ -392,6 +504,7 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
     relay_clusters_cnt        = c->relay_endpoint_count;
     cover_switch_clusters_cnt = c->cover_switch_count;
     cover_clusters_cnt        = c->cover_count;
+    meters_cnt                = c->meter_count;
     interlocks_cnt            = c->interlock_count;
     memcpy(interlocks, c->interlocks, c->interlock_count * sizeof(*interlocks));
     allow_simultaneous_latching_pulses = c->simultaneous_latching_pulses;
@@ -470,6 +583,11 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
         return FEATURE_WIRING_INVALID;
     }
 #endif
+#if FEATURE_METER
+    if (wire_meters(c) != FEATURE_WIRING_OK) {
+        return FEATURE_WIRING_INVALID;
+    }
+#endif
     button_event_cluster_init();
     endpoint_slots(c);
     basic_cluster_add_to_endpoint(&basic_cluster, &endpoints[0]);
@@ -520,6 +638,15 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
                     cover_switch_clusters_cnt + i;
 
         cover_cluster_add_to_endpoint(&cover_clusters[i], &endpoints[e]);
+    }
+#endif
+#if FEATURE_METER
+    for (uint8_t i = 0; i < meters_cnt; i++) {
+        electrical_measurement_cluster_add_to_endpoint(&electrical_measurement_clusters[i],
+                                                       meter_ids[i], &endpoints[i]);
+        metering_cluster_add_to_endpoint(&metering_clusters[i], meter_ids[i], &endpoints[i]);
+        meter_calibration_cluster_add_to_endpoint(&meter_calibration_clusters[i], meter_ids[i],
+                                                  &endpoints[i]);
     }
 #endif
     return hal_zigbee_validate_platform_graph(endpoints, built_endpoint_count()) ==
@@ -612,6 +739,20 @@ void feature_wiring_graph_usage(const device_composition_t *c,
                                            HAL_ZIGBEE_ROLE_SERVER,
                                            ATTRIBUTE_COUNT(zigbee_cover_cluster, attr_infos));
     }
+#if FEATURE_METER
+    for (uint8_t i = 0; i < c->meter_count; i++) {
+        hal_zigbee_graph_usage_add_cluster(
+            usage, ZCL_CLUSTER_ELECTRICAL_MEASUREMENT, HAL_ZIGBEE_ROLE_SERVER,
+            ATTRIBUTE_COUNT(zigbee_electrical_measurement_cluster, attr_infos));
+        hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_METERING, HAL_ZIGBEE_ROLE_SERVER,
+                                           ATTRIBUTE_COUNT(zigbee_metering_cluster,
+                                                           attr_infos));
+        hal_zigbee_graph_usage_add_cluster(usage, ZCL_CLUSTER_METER_CALIBRATION,
+                                           HAL_ZIGBEE_ROLE_SERVER,
+                                           ATTRIBUTE_COUNT(zigbee_meter_calibration_cluster,
+                                                           attr_infos));
+    }
+#endif
 }
 
 feature_wiring_result_t feature_wiring_preflight(const device_composition_t *c) {
@@ -640,9 +781,13 @@ static void stop_wired_features(void) {
 #if FEATURE_COVER
     cover_controller_init();
 #endif
+#if FEATURE_METER
+    stop_meters();
+#endif
     button_input_init();
     gesture_fsm_init();
     action_mapper_init();
+    meters_cnt                = 0;
     relays_cnt                = 0;
     buttons_cnt               = 0;
     switch_clusters_cnt       = 0;
@@ -752,6 +897,11 @@ void feature_wiring_start(void) {
     }
     hal_register_on_network_status_change_callback(network_changed);
     network_changed(hal_zigbee_get_network_status());
+#if FEATURE_METER
+    for (uint8_t i = 0; i < meters_cnt; i++) {
+        meter_service_start(meter_ids[i]);
+    }
+#endif
 #if FEATURE_PROBE
     gpio_probe_service_enable();
 #endif

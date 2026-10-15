@@ -123,6 +123,33 @@
 #define ZCL_ATTR_BUTTON_EVENT_DEBOUNCE_MS                              0x0003u
 #define ZCL_CMD_BUTTON_EVENT                                           0x00u
 
+#define ZCL_ATTR_ELEC_MEAS_MEASUREMENT_TYPE                            0x0000u
+#define ZCL_ATTR_ELEC_MEAS_RMS_VOLTAGE                                 0x0505u
+#define ZCL_ATTR_ELEC_MEAS_RMS_CURRENT                                 0x0508u
+#define ZCL_ATTR_ELEC_MEAS_ACTIVE_POWER                                0x050Bu
+#define ZCL_ATTR_ELEC_MEAS_AC_VOLTAGE_MULTIPLIER                       0x0600u
+#define ZCL_ATTR_ELEC_MEAS_AC_VOLTAGE_DIVISOR                          0x0601u
+#define ZCL_ATTR_ELEC_MEAS_AC_CURRENT_MULTIPLIER                       0x0602u
+#define ZCL_ATTR_ELEC_MEAS_AC_CURRENT_DIVISOR                          0x0603u
+#define ZCL_ATTR_ELEC_MEAS_AC_POWER_MULTIPLIER                         0x0604u
+#define ZCL_ATTR_ELEC_MEAS_AC_POWER_DIVISOR                            0x0605u
+#define ZCL_ELEC_MEAS_TYPE_ACTIVE_AC                                   0x00000001u
+
+#define ZCL_ATTR_METERING_CURRENT_SUMMATION_DELIVERED                  0x0000u
+#define ZCL_ATTR_METERING_STATUS                                       0x0200u
+#define ZCL_ATTR_METERING_UNIT_OF_MEASURE                              0x0300u
+#define ZCL_ATTR_METERING_MULTIPLIER                                   0x0301u
+#define ZCL_ATTR_METERING_DIVISOR                                      0x0302u
+#define ZCL_ATTR_METERING_SUMMATION_FORMATTING                         0x0303u
+#define ZCL_ATTR_METERING_DEVICE_TYPE                                  0x0306u
+#define ZCL_METERING_UNIT_KWH                                          0x00u
+#define ZCL_METERING_DEVICE_TYPE_ELECTRIC                              0x00u
+
+#define ZCL_ATTR_METER_CALIBRATION_VOLTAGE_GAIN                        0x0000u
+#define ZCL_ATTR_METER_CALIBRATION_CURRENT_GAIN                        0x0001u
+#define ZCL_ATTR_METER_CALIBRATION_POWER_GAIN                          0x0002u
+#define ZCL_CMD_METER_CALIBRATION_RESET_ENERGY                         0x00u
+
 #define ZCL_CMD_LEVEL_MOVE_TO_LEVEL_WITH_ON_OFF                        0x04u
 #define ZCL_CMD_LEVEL_MOVE_WITH_ON_OFF                                 0x05u
 #define ZCL_CMD_LEVEL_STOP_WITH_ON_OFF                                 0x07u

@@ -248,19 +248,60 @@ TEST(rejects_unavailable_or_conflicting_meter_counter_routes) {
     composition.endpoint_count = 1;
     composition.meter_count = 1;
     composition.meters[0] = (device_meter_config_t){
-        .counter_pins = { 8, 9 },
-        .counter_count = 2,
+        .ic = DEVICE_METER_BL0937,
+        .cf_pin = 8,
+        .cf1_pin = 9,
+        .sel_pin = 10,
+        .sel_high_selects_voltage = true,
     };
     fake_gpio_counter_reset();
     ASSERT_EQ(CONFIG_PARSE_OK, device_composition_validate(&composition));
     fake_gpio_counter_set_route(1, false);
     ASSERT_EQ(CONFIG_PARSE_RESOURCE, device_composition_validate(&composition));
     fake_gpio_counter_set_route(1, true);
-    composition.meters[0].counter_pins[1] = 8;
+    composition.meters[0].cf1_pin = 8;
     ASSERT_EQ(CONFIG_PARSE_PIN_CONFLICT, device_composition_validate(&composition));
-    composition.meters[0].counter_pins[1] = 9;
+    composition.meters[0].cf1_pin = 9;
+    composition.meters[0].sel_pin = 9;
+    ASSERT_EQ(CONFIG_PARSE_PIN_CONFLICT, device_composition_validate(&composition));
+    composition.meters[0].sel_pin = 10;
     fake_gpio_counter_set_capacity(1);
     ASSERT_EQ(CONFIG_PARSE_RESOURCE, device_composition_validate(&composition));
+    fake_gpio_counter_reset();
+    composition.meter_count = 2;
+    composition.meters[1] = composition.meters[0];
+    ASSERT_EQ(CONFIG_PARSE_RESOURCE, device_composition_validate(&composition));
+}
+
+TEST(parses_the_bl0937_meter_token) {
+    device_composition_t composition;
+
+    fake_gpio_counter_reset();
+    ASSERT_EQ(CONFIG_PARSE_OK,
+              config_parser_parse("drzlxjne;PM;SB4u;RB5;IC4;EBC2C3D2;M;", &composition));
+    ASSERT_EQ(1, composition.meter_count);
+    ASSERT_EQ(DEVICE_METER_BL0937, composition.meters[0].ic);
+    ASSERT_EQ(FAKE_GPIO_PIN('C', 2), composition.meters[0].cf_pin);
+    ASSERT_EQ(FAKE_GPIO_PIN('C', 3), composition.meters[0].cf1_pin);
+    ASSERT_EQ(FAKE_GPIO_PIN('D', 2), composition.meters[0].sel_pin);
+    ASSERT_TRUE(composition.meters[0].sel_high_selects_voltage);
+    ASSERT_EQ(CONFIG_PARSE_OK,
+              config_parser_parse("M;PM;EBC2C3D2i;", &composition));
+    ASSERT_TRUE(!composition.meters[0].sel_high_selects_voltage);
+    ASSERT_EQ(1, composition.endpoint_count);
+    ASSERT_EQ(CONFIG_PARSE_SYNTAX, config_parser_parse("M;PM;EHC2C3D2;", &composition));
+    ASSERT_EQ(CONFIG_PARSE_SYNTAX, config_parser_parse("M;PM;EBC2C3;", &composition));
+    ASSERT_EQ(CONFIG_PARSE_SYNTAX, config_parser_parse("M;PM;EBC2C3D2x;", &composition));
+    /* Meter pins are claimed against buttons, relays and indicators. */
+    ASSERT_EQ(CONFIG_PARSE_PIN_CONFLICT,
+              config_parser_parse("M;PM;SC2u;EBC2C3D2;", &composition));
+    ASSERT_EQ(CONFIG_PARSE_PIN_CONFLICT,
+              config_parser_parse("M;PM;RD2;EBC2C3D2;", &composition));
+    ASSERT_EQ(CONFIG_PARSE_PIN_CONFLICT,
+              config_parser_parse("M;PM;IC3;EBC2C3D2;", &composition));
+    fake_gpio_counter_set_capacity(0);
+    ASSERT_EQ(CONFIG_PARSE_RESOURCE, config_parser_parse("M;PM;EBC2C3D2;", &composition));
+    fake_gpio_counter_reset();
 }
 
 TEST(parser_failure_zeroes_the_output) {
@@ -322,6 +363,7 @@ int main(void) {
     RUN_TEST(rejects_endpoint_and_cluster_capacity_overflow);
     RUN_TEST(rejects_conflicting_pins_and_invalid_references);
     RUN_TEST(rejects_unavailable_or_conflicting_meter_counter_routes);
+    RUN_TEST(parses_the_bl0937_meter_token);
     RUN_TEST(parser_failure_zeroes_the_output);
     RUN_TEST(pins_are_the_hal_pin_ids);
     RUN_TEST(pins_the_hal_rejects_fail_the_parse);

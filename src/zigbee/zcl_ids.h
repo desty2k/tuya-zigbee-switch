@@ -13,8 +13,11 @@
 #define ZCL_CLUSTER_OTA_BOOTLOAD              0x0019u
 #define ZCL_CLUSTER_POLL_CONTROL              0x0020u
 #define ZCL_CLUSTER_WINDOW_COVERING           0x0102u
+#define ZCL_CLUSTER_METERING                  0x0702u
+#define ZCL_CLUSTER_ELECTRICAL_MEASUREMENT    0x0B04u
 #define ZCL_CLUSTER_COVER_SWITCH_CONFIG       0xFC01u
 #define ZCL_CLUSTER_BUTTON_EVENT              0xFC02u
+#define ZCL_CLUSTER_METER_CALIBRATION         0xFC12u
 
 /*
  * The fork-private management clusters (ZCL_CLUSTER_DEVICE_CONFIG 0xFC10,

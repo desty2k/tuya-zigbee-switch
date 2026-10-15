@@ -20,6 +20,7 @@
 #define ZCL_DATA_TYPE_UINT16            0x21u
 #define ZCL_DATA_TYPE_UINT24            0x22u
 #define ZCL_DATA_TYPE_UINT32            0x23u
+#define ZCL_DATA_TYPE_UINT48            0x25u
 #define ZCL_DATA_TYPE_INT8              0x28u
 #define ZCL_DATA_TYPE_INT16             0x29u
 #define ZCL_DATA_TYPE_INT32             0x2Au
