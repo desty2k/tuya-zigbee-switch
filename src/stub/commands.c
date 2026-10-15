@@ -6,6 +6,7 @@
 #include "hal/zigbee.h"
 #include "app.h"
 
+#include "stub/hal/gpio_counter.h"
 #include "stub/hal/stub.h"
 
 #include "stub/stub_app.h"
@@ -644,6 +645,37 @@ static int cmd_read_pin(int argc, char **argv) {
     return 0;
 }
 
+/* pulse_rate <pin> <mHz> [<gate pin> <gate level>]: counter-only pulse train. */
+static int cmd_pulse_rate(int argc, char **argv) {
+    hal_gpio_pin_t pin;
+    hal_gpio_pin_t gate     = HAL_INVALID_PIN;
+    char *         e        = NULL;
+    unsigned long  rate_mhz = argc >= 3 ? strtoul(argv[2], &e, 10) : 0;
+    int            level    = 0;
+
+    if ((argc != 3 && argc != 5) || e == NULL || *argv[2] == '\0' || *e ||
+        rate_mhz > UINT32_MAX) {
+        io_res_err("usage");
+        return -1;
+    }
+    pin = hal_gpio_parse_pin(argv[1]);
+    if (argc == 5) {
+        gate  = hal_gpio_parse_pin(argv[3]);
+        level = atoi(argv[4]);
+    }
+    if (pin == HAL_INVALID_PIN || (argc == 5 && (gate == HAL_INVALID_PIN ||
+                                                 (level != 0 && level != 1)))) {
+        io_res_err("bad_args");
+        return -1;
+    }
+    if (!stub_gpio_counter_set_rate(pin, (uint32_t)rate_mhz, gate, (uint8_t)level)) {
+        io_res_err("no_generator");
+        return -1;
+    }
+    io_res_ok("pin=%u rate_mhz=%lu", pin, rate_mhz);
+    return 0;
+}
+
 static int cmd_zcl_cmd_impl(int argc, char **argv, bool trigger_activity) {
     if (argc < 4) {
         fprintf(stderr, "Usage: zcl_cmd <ep:dec> <cluster:hex> <cmd:hex> "
@@ -1034,6 +1066,7 @@ static const SimpleReplCommand kCmds[] = {
     { "set_pin",                 cmd_pin                     },
     { "pin_edge",                cmd_pin_edge                },
     { "read_pin",                cmd_read_pin                },
+    { "pulse_rate",              cmd_pulse_rate              },
     { "zcl_read",                cmd_zcl_read                },
     { "zcl_write",               cmd_zcl_write               },
     { "zcl_write_raw",           cmd_zcl_write_raw           },
