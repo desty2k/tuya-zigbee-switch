@@ -359,7 +359,11 @@ combinations fail preflight rather than falling back to the button IRQ queue.
 
 Telink TLSR8258 GPIO-trigger timers and available Silabs timer/counter routing
 are platform implementations of the same API. The interface does not promise
-that every MCU can host two arbitrary simultaneous counters.
+that every MCU can host two arbitrary simultaneous counters. On the TLSR8258,
+counter slot n is timer n counting the GPIO-to-RISC source n with CPU
+interrupts masked; the GPIO probe uses the same sources, so the `meter` and
+`probe` features never share an image. Silabs has no counter backend yet and
+rejects every route.
 
 The driver interface is static and tagged by IC type:
 
@@ -432,8 +436,10 @@ Adapters have one backend id and no second state copy:
 
 A standalone meter needs no relay endpoint. Whole-device metering is attached to
 the endpoint selected by `endpoint_config_t` (endpoint 1 by default for BSEED),
-not inferred by `meter_service`. Standard multiplier/divisor attributes perform
-unit conversion; calibration and reset-energy writes call service APIs.
+not inferred by `meter_service`; meter n uses endpoint n. Standard
+multiplier/divisor attributes perform unit conversion; calibration gains and
+Reset Energy live on the fork-private Meter Calibration cluster (`0xFC12`) and
+call service APIs.
 
 Cluster registration and attribute tables must be added to Telink, Silabs and
 stub layers together. Generator templates are edited, then Z2M/ZHA/HOMEd outputs

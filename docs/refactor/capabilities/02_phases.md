@@ -127,11 +127,11 @@ Tests/gate:
 
 ## Phase 5 — meter HAL, driver and service
 
-Generic counter/fake-driver/service code is present and its software validation
-is reported in `STATE.md`. Remaining work is the confirmed IC driver, real
-counter routing, meter construction in `feature_wiring`, target calibration and
-checkpoint endurance/power-loss evidence. Phase 6 is the next executable stage;
-do not infer outlet pins or mark this phase complete to advance the plan.
+The BL0937 driver, Telink counter routes, meter construction in
+`feature_wiring` and the checkpoint policy are implemented for the probe-confirmed
+`_TZ3210_drzlxjne` pins (`STATE.md`, Metering design). Remaining work is
+reference-meter calibration, hardware counting evidence and the measured
+power-cut loss; Silabs has no counter backend.
 
 Scope:
 

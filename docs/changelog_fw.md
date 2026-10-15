@@ -6,6 +6,7 @@ _Open the **Outline** (table of contents) from the top right._
 
 Please describe what you are working on, under ## Upcoming
 
+- Power monitoring for BL0937 outlets: the `EB<CF><CF1><SEL>[i]` config token adds voltage, current and active power (Electrical Measurement `0x0B04`) and energy (Metering `0x0702`) on endpoint 1, plus calibration gains and a Reset Energy command on the fork-private Meter Calibration cluster (`0xFC12`). Energy and calibration survive reboots and OTA. New board `OUTLET_BSEED_TS011F_PM_DRZLXJNE` (TS011F `_TZ3210_drzlxjne`); its default calibration is not yet checked against a reference meter.
 ------------------------------------------------------->
 
 ## Upcoming

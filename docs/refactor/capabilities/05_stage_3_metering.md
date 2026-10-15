@@ -1,10 +1,10 @@
 # 05 — Meter service, hardware and Zigbee adapters
 
-This packet covers phases 5 and 7. Generic Phase 5 counter/fake-driver/service
-code and native tests exist. The next implementation stage is
-[Phase 6 management and GPIO diagnostics](./02_phases.md#phase-6--firmware-cleanup-and-gpio-diagnostics).
-Complete the exact outlet's IC/pin evidence, real counter routes and meter
-construction before closing Phase 5. Phase 7 uses the Phase 6 Zigbee HAL.
+This packet covers phases 5 and 7. The BL0937 driver, Telink counter routes,
+meter construction and the measurement adapters are implemented for
+`OUTLET_BSEED_TS011F_PM_DRZLXJNE`; the decisions are in
+[STATE.md](./STATE.md#metering-design-bl0937-ts011f-drzlxjne). Hardware
+counting, reference-meter calibration and power-cut loss remain open.
 
 The exact outlet must be opened before a real profile or driver choice is
 committed. Probe observations assist continuity tracing and polarity checks;
@@ -37,16 +37,12 @@ Confirmed only for the `_TZ3000_2uollq9d` sibling by the
 | CF1 | C2 |
 | SEL | C1 |
 
-The sibling is hardware-confirmed as BL0937 with this pinout. For
-`drzlxjne`, the same layout is an unconfirmed bench candidate only:
-
-```text
-drzlxjne;TS011F-BS-PM;LC3p;SB5u;RD2;IB4p;EPC0C2C1;M;
-```
-
-Do not put this string in `device_db.yaml`, assume `p` PWM behavior, select
-HLW8012 versus BL0937, copy sibling calibration, or assign a firmware image type
-until the exact PCB is inspected. The official BSEED product class is 16 A with
+The sibling's layout does not apply to `drzlxjne`: the GPIO probe on the
+owner's unit found button B4, relay B5, relay indicator C4 and BL0937 CF C2,
+CF1 C3, SEL D2 (SEL high = voltage), giving
+`drzlxjne;TS011F-BS-PM-3;SB4u;RB5;IC4;EBC2C3D2;M;`. Only the voltage scale
+is measured on this unit; current and power scales come from the sibling.
+The official BSEED product class is 16 A with
 [energy monitoring](https://www.bseed.com/products/bseed-echo-zigbee-eu-standards-socket-with-energy-monitoring-smart-zigbee-electric-socket-work-with-alexa-google-assitant),
 but that is not a pinout or protection calibration source.
 

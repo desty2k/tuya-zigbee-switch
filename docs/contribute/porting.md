@@ -111,6 +111,7 @@ Additional options:
 | **`M`**      | Momentary                    | • Defaults buttons to momentary mode (for devices with built-in switches)         |
 | **`BT<pin>`** | Battery mode                | • Enables battery-powered behavior <br> • Adds battery measurement/reporting using the selected ADC pin |
 | **`SLP`**    | Simultaneous Latching Pulses |  • Enable simultaneous pulses for latching relays (they are disallowed by default)|
+| **`EB<CF><CF1><SEL>`** | BL0937 energy meter | • Needs the `meter` feature (Telink: 2 hardware counters; not with `probe`) <br> • `CF` active power pulses, `CF1` voltage/current pulses, `SEL` output choosing CF1's quantity <br> • SEL high selects voltage; append `i` when SEL low selects voltage, e.g. `EBC2C3D2i` <br> • Meter n reports Electrical Measurement, Metering and Meter Calibration on endpoint n |
 
 ## GPIO probe (devices that cannot be opened)
 

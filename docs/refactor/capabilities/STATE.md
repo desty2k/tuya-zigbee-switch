@@ -8,7 +8,7 @@ and [02_phases.md](./02_phases.md).
 - Design baseline: `505b82c3`
 - Created: 2026-09-01
 - Reviewed: 2026-09-07
-- Current position: **Phase 5 is hardware-gated; Phase 6.1 and 6.2 are in progress**
+- Current position: **Phase 5 and 7 software for the BL0937 outlet is implemented (reference-meter calibration open); Phase 6.1 and 6.2 are in progress**
 
 ## Phases
 
@@ -18,10 +18,10 @@ and [02_phases.md](./02_phases.md).
 | 2 | Capability-safe relay and action contracts | done | domain contracts, owner-record migrations, native contracts, and switch/relay regressions verified in `tuya-telink-build` |
 | 3 | Cover domain extraction | done | controller unit tests + cover regressions |
 | 4 | Cover position and calibration | done | native/stub tests verified; TS130F hardware remains blocked on pin evidence |
-| 5 | Meter HAL, driver and service | in progress | generic software validation reported; real driver, counter routes, wiring, calibration and endurance need exact outlet evidence |
+| 5 | Meter HAL, driver and service | in progress | BL0937 driver, Telink timer0/1 counters, wiring and checkpoint policy implemented and stub/native tested; reference-meter calibration and measured power-cut loss open |
 | 6 | Firmware cleanup and GPIO diagnostics | in progress | management core and recovery graph implemented; HAL completion, resource/cutoff evidence and coordinator validation remain open |
-| 7 | Zigbee measurement adapters | not started | Phase 6 HAL + Phase 5 service; conversion/stub tests + reference-meter capture |
-| 8 | Overload and indicator relations | not started | protection/priority tests + trip hardware test |
+| 7 | Zigbee measurement adapters | in progress | Electrical Measurement, Metering and Meter Calibration (`0xFC12`) on Telink/stub with conversion and stub tests; coordinator capture against a reference meter open; Silabs has no counter backend |
+| 8 | Overload and indicator relations | not started | protection/priority tests + trip hardware test; the meter never switches a relay until then |
 | 9 | BSEED profiles and release gate | blocked | exact outlet/cover profiles and all hardware evidence |
 
 Statuses: `not started`, `in progress`, `in review`, `done`, `blocked`.
@@ -71,7 +71,7 @@ remain usable when optional diagnostics are unsupported or resource-exhausted.
 | Local actions | bounded typed mapper records dispatch relay, cover, binding, button-event, and system intents through injected sinks; adapters retain Zigbee frame encoding |
 | Persistence | owner-record IDs start at 40; current source still contains version-5 record conversion; Phase 6.2 removes conversion-only paths and uses explicit clearing for changed layouts |
 | Cover | `cover_controller` owns calibrated position, target, safety, settings and NVM; adapter exposes GOTO and calibrated attributes |
-| Metering | `gpio_counter.h`, stub capture, fake driver and meter service exist; both target counter backends return zero capacity/unsupported routes; no real driver or meter construction in `feature_wiring` |
+| Metering | `E` token → `bl0937` driver → `meter_service` (1 s samples) → Electrical Measurement/Metering/Meter Calibration on endpoint n; Telink counts with timer0/1 (meter images only); Silabs rejects counter routes; stub has gated virtual-time pulse generators |
 | Meter persistence | NVM version 8, meter-owned item range starting at 90, clearing step and native checkpoint/calibration/overflow tests exist |
 | Basic | identity-only standard attributes; management configuration, reset state and diagnostics have dedicated clusters |
 | Diagnostics | `diagnostics_service` owns the core snapshot consumed by the Device Diagnostics cluster |
@@ -83,8 +83,25 @@ remain usable when optional diagnostics are unsupported or resource-exhausted.
 | Management topology/integrations | EP1 has Basic, Device Config, Device Diagnostics and OTA in normal and recovery graphs; source integration templates and generated outputs still need the management-protocol conversion |
 | Device schema | flat metadata plus `config_str`; no capability/profile objects |
 | TS0726 target | key `SWITCH_BSEED_TS0726_4GANG`, TLSR8258 router, image type `43627`, eight endpoints |
-| Exact outlet fingerprint | `_TZ3210_drzlxjne` only as the probe board `OUTLET_BSEED_TS011F_PROBE` (`features: [probe, relay, switch]`, `SB4u;RB5;IC4;M;` from hardware; BL0937 CF C2, CF1 C3, SEL D2); no outlet profile |
+| Exact outlet fingerprint | `_TZ3210_drzlxjne`: probe board `OUTLET_BSEED_TS011F_PROBE` and production board `OUTLET_BSEED_TS011F_PM_DRZLXJNE` (`features: [relay, switch, meter]`, `SB4u;RB5;IC4;EBC2C3D2;M;`, image type `47117`, `build: yes`, `in_progress`) |
 | Exact cover fingerprint | `_TZ3000_vsj5o7dm` absent from `device_db.yaml` |
+
+## Metering design (BL0937, TS011F drzlxjne)
+
+Decisions of the first meter implementation (2026-10-15):
+
+| Topic | Decision |
+| --- | --- |
+| Config token | `E<ic><CF><CF1><SEL>[i]`; IC `B` = BL0937; `i` when SEL low selects voltage. CF/CF1/SEL are claimed against buttons, relays, indicators and the battery pin; CF and CF1 take one counter route each; meter n needs endpoint n |
+| Counters | Telink: counter slot n = timer n in GPIO trigger mode on GPIO-to-RISC source n, read without stop/reset; source and timer CPU interrupts masked. The probe uses the same sources, so `meter` and `probe` never share an image (`src/features.mk`, `#error` in `feature_wiring.c`, `board_features.py` probe companions) |
+| Sampling | `meter_service` polls the driver every 1 s. CF counts continuously; power is the rate over a window closing at ≥ 50 pulses or 10 s (≤ 2 % counting error). CF1: SEL to voltage, discard 1 s, count 1 s; SEL to current, discard 1 s, window as for power. Cycle 4–13 s |
+| Conversion | value = pulses × scale ÷ window ms with scale per Hz: 120670 µV/Hz, 9050 µA/Hz, 1063500 µW/Hz; energy = pulses × 1063500 µJ ÷ 3600 with the remainder carried. Counts above 20 pulses/ms are discarded as faults. Service gains (ppm, 0.5–1.5) apply on top. All 64-bit products/quotients use `fixed_math.h` (the TC32 image links without libgcc) |
+| Wire units | RMSVoltage 0.1 V, RMSCurrent mA, ActivePower W (0.1 W would end at 3276.7 W, below 3680 W), CurrentSummationDelivered Wh (divisor 1000 → kWh). Unmeasured values stay at the ZCL invalid value |
+| Calibration | Meter Calibration `0xFC12` (manufacturer code 0x1A2B): voltage/current/power gain ppm, writable 500000–1500000, persisted in the meter record with the energy; Reset Energy command `0x00`. Integrations show gains in % |
+| Energy persistence | Checkpoint only after energy changed, never within 5 min of the last write, then at ≥ 50 Wh or after 1 h. Loss on power cut ≤ max(50 Wh, 5 min × load) = 307 Wh at 3680 W. Worst case 288 writes/day of a ~48-byte NV item ≈ 3.4 app-module sector rolls/day ≈ 6200 erases per sector in 10 years (100000-cycle flash) |
+| Reporting | Adapters notify on every change of a projected value; thresholds and intervals are the coordinator's reporting configuration (Zigbee2MQTT `electricityMeter` defaults) |
+| Overload | Not implemented: no auto-trip, the meter never switches a relay (Phase 8) |
+| Reuse | Telink timer setup, BL0937 math, cluster ids/units adapted from romasku/tuya-zigbee-switch PR #491 (from HobboRobin/tuya-zigbee-switch-with-metering 8b8cc49); its read-and-reset sampling, driver-owned energy, cluster-owned NVM and relay switching were not taken |
 
 ## Target hardware characterization
 
@@ -128,9 +145,9 @@ calibration-time attributes, but no public GPIO trace.
 [x] src/base_components/cover_controller.*
 [x] src/hal/gpio_counter.h + stub implementation; Telink/Silabs reject unsupported profiles
 [x] src/base_components/energy_meter.h
-[ ] src/base_components/energy_measurement/<confirmed-driver>.*
+[x] src/base_components/energy_measurement/bl0937.*
 [x] src/base_components/meter_service.*
-[ ] meter construction and claimed driver pins in feature_wiring
+[x] meter construction and claimed driver pins in feature_wiring (composition claims; no gpio_manager yet)
 [ ] src/device_config/device_config_service.*
 [ ] src/base_components/diagnostics_service.*
 [ ] src/base_components/gpio_manager.*
@@ -144,8 +161,9 @@ calibration-time attributes, but no public GPIO trace.
 [ ] Basic identity-only and removal of global attribute dispatcher/record translators
 [ ] src/base_components/overload_controller.*
 [x] src/zigbee/cover_cluster.*               thin adapter
-[ ] src/zigbee/electrical_measurement_cluster.*
-[ ] src/zigbee/metering_cluster.*
+[x] src/zigbee/electrical_measurement_cluster.*
+[x] src/zigbee/metering_cluster.*
+[x] src/zigbee/meter_calibration_cluster.* (0xFC12)
 [ ] Telink/Silabs/stub cluster registration
 [x] capability NVM item ids and meter clearing step
 [ ] management owner records/version step and incompatible-record reset tests
@@ -198,13 +216,13 @@ calibration-time attributes, but no public GPIO trace.
 
 | Item | Required resolution |
 | --- | --- |
-| TS011F meter IC and signal interface | verify marking and candidate C0/C2/C1 signals before Phase 5 driver selection |
-| TS011F counter routing | prove selected Telink/Silabs peripheral resources at target build and bench |
-| Hardware calibration defaults | reference-meter measurements across representative voltage/load points |
-| Energy checkpoint constants | platform endurance calculation plus measured maximum loss on abrupt power cut |
+| TS011F meter IC and signal interface | BL0937 pulse outputs confirmed by probe (CF C2, CF1 C3, SEL D2, SEL high = voltage); IC marking not photographed (unit cannot be opened) |
+| TS011F counter routing | Telink timer0/1 GPIO-trigger routes build for TLSR8258; counts on hardware unverified (no install yet); Silabs unsupported |
+| Hardware calibration defaults | voltage scale from the drzlxjne probe (1964 Hz ≈ 237 V); current/power scales from the b28wrpvx sibling (PR #491); compare against a reference meter at no load and three resistive loads, then set the scales or document per-unit gains |
+| Energy checkpoint constants | endurance calculation done (see Metering design); measured loss on abrupt power cut open |
 | TS130F relay/button/indicator pins | board tracing and safe low-voltage validation before mains/motor test |
 | TS130F travel/overrun defaults | hardware calibration; runtime values remain user writable within bounds |
-| Fail-open/fail-closed meter-loss policy | set explicitly in the characterized outlet profile |
+| Fail-open/fail-closed meter-loss policy | set with the Phase 8 overload controller; the meter has no relay authority now |
 | Management manufacturer code and schema path | select the project protocol constant and metadata source in Phase 6.1; do not infer a stock OTA allocation |
 | Small-target resource budgets | select actual lowest-resource supported builds and record baseline, allowed deltas and headroom in 6.1; verify core-only/input/output variants where supported |
 | Probe capability maps | prove per-MCU/package/module reservations, optional board restrictions and supported input/IRQ/output modes |
@@ -231,6 +249,7 @@ Detailed evidence, candidate configurations and acceptance procedures are in
 | 2026-09-09 | 6.1–6.2 software follow-up | uncommitted | `tuya-telink-build` | `make -B unit_tests` passed; `make tests` passed (273); the management-cluster suite passed (5), including rejected NVM persistence; the management metadata generator/check passed; formatting was run twice; and `BOARD=SWITCH_BSEED_TS0726_4GANG DEVICE_TYPE=router make board/build` passed at 199472 text / 645 data / 39294 bss. | `helper_scripts/management_protocol.json` now generates and checks C, Silabs XML, test constants and integration-template fragments. Exact cluster/attribute lookup is covered in native tests and reporting rejects undeclared/non-reportable attributes. Packet captures, Silabs SDK build/runtime metadata verification, resource/capability-off measurements, cutoff proof and coordinator evidence remain open. |
 | 2026-09-11 | 6.1–6.2 software follow-up | uncommitted | `tuya-telink-build` | `make stub/build`, `make -B unit_tests`, `make tests` (278), and `make tools/check_management_protocol` passed; formatting ran twice with no further source change and `git diff --check` passed. `BOARD=SWITCH_BSEED_TS0726_4GANG DEVICE_TYPE=router make board/build` passed at 199760 text / 645 data / 39302 bss and compiled the tracked Telink ZCL overlay. Inspection of the resulting patched SDK source verified incoming-write context clearing on parse and response-allocation early returns in ordinary, no-response and undivided write handlers. | Stub and Telink software evidence remains current. Telink packet fixtures, backend-parity fixtures, Silabs build/runtime verification, generated integration behavior, resource/capability-off measurements and all external acceptance remain open. The installed Silabs SLC project generator did not produce `zigbee.Makefile`, so `make silabs/build` could not start compilation. |
 | 2026-10-15 | 6.4 GPIO probe | `05c97753` | `OUTLET_BSEED_TS011F_PROBE` | Probe OTA image (`.zigbee`) measured at 190866 B, before the index-guard, attribute-read and pull-test review fixes. | Probe image builds for TLSR8258; not flashed, no runtime evidence. |
+| 2026-10-15 | 5/7 meter | `feat/bl0937-meter` | `OUTLET_BSEED_TS011F_PM_DRZLXJNE` (sk8) | `make tests` 460 passed, `make unit_tests` passed, check_device_features 0 errors; Telink `.zigbee` 200546 B (158 B under the 200704 B bootloader-layout slot); `MODULE_GIRIER_TS130F_1GANG` 199858 B and `SWITCH_BSEED_TS0726_4GANG` 192370 B, both below the integration baseline (199954 B, 192482 B) | Builds; not flashed, no hardware or coordinator evidence. |
 | 2026-10-15 | 6.4 GPIO probe | `28640782` | `OUTLET_BSEED_TS011F_PROBE` | Probe OTA image (`.zigbee`) 191314 B after the review fixes and the HAL pin encoding; non-probe images unchanged in size. | Probe image builds for TLSR8258; not flashed, no runtime evidence. |
 
 Large compiler logs, UART logs and packet captures stay outside `docs/`. Record a
