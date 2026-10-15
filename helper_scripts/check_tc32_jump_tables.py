@@ -11,11 +11,20 @@ absolute 32-bit load:
     tmov    pc, rX
 
 A byte table read this way yields a non-code address and the CPU faults or
-resets. This script finds every "tloadr rX,[rT,rI]; tmov pc,rX" dispatch in
-the image, traces rT back to its literal-pool load (through register copies),
-reads the table entries for each case index up to the preceding bounds check,
-and requires each entry to be the address of an instruction inside the same
-function. A dispatch whose table base cannot be traced also fails the check.
+resets. This script classifies every indirect jump in the image ("tmov pc,rN"
+and "tjex rN" other than "tjex lr") by the instruction that last wrote rN,
+following register copies back to the start of the function:
+
+- a "tjex rN" that is itself the target of a call or branch is a libgcc-style
+  call trampoline (the caller loaded a function pointer); it is not checked;
+- a "tpop {..., rN}" makes the jump a function return;
+- a register-indexed "tloadr rN,[rT,rI]" makes it a table dispatch: rT is
+  traced back to its literal-pool load (through register copies), the table
+  entries are read for each case index up to the preceding bounds check, and
+  each entry must be the address of an instruction inside the same function.
+
+Any other indirect jump, and any dispatch whose table base cannot be traced,
+fails the check, so a dispatch shape this script does not know cannot pass.
 
 Usage: check_tc32_jump_tables.py IMAGE.elf [--objdump PATH | --disassembly FILE]
 Exit status: 0 when every table is valid, 1 when a malformed table is found.
@@ -34,7 +43,8 @@ MAX_LOOKBACK = 8
 
 
 def load_image(path):
-    raw = open(path, 'rb').read()
+    with open(path, 'rb') as f:
+        raw = f.read()
     if raw[:4] != b'\x7fELF' or raw[4] != 1:
         sys.exit(f'{path}: not an ELF32 file')
     shoff, = struct.unpack_from('<I', raw, 0x20)
@@ -81,6 +91,48 @@ def function_bounds(functions, start):
     return start, 1 << 32
 
 
+REGISTER = r'(?:r\d+|sl|fp|ip)'
+# Ops whose first operand is not a destination register.
+NON_WRITING_OPS = ('tcmp', 'tcmn', 'ttst', 'tstorer', 'tstorem', 'tpush', 'tj', 'tnop')
+
+
+def writes(op, args, register):
+    """Whether the instruction writes `register`."""
+    if op.startswith(('tpop', 'tloadm')):
+        return re.search(r'[{ ,]' + register + r'[},]', args) is not None
+    if op.startswith(NON_WRITING_OPS):
+        return False
+    return args.startswith(register + ',')
+
+
+def register_source(insns, order, index, register, start):
+    """Order index of the instruction that last wrote `register` before
+    order[index], following register copies; None when not found."""
+    for i in range(index - 1, -1, -1):
+        addr = order[i]
+        if addr < start:
+            return None
+        op, args, _, _ = insns[addr]
+        if not writes(op, args, register):
+            continue
+        m = re.match(r'\w+, (' + REGISTER + r')$', args)
+        if op == 'tmov' and m:
+            register = m[1]
+            continue
+        return i
+    return None
+
+
+def branch_targets(insns, order):
+    targets = set()
+    for addr in order:
+        op, args, _, _ = insns[addr]
+        m = re.match(r'([0-9a-f]+) <', args)
+        if op.startswith('tj') and m:
+            targets.add(int(m[1], 16))
+    return targets
+
+
 def case_bound(insns, order, index):
     """Highest case index from the nearest preceding `tcmp rN, #K`, else 0."""
     for addr in reversed(order[max(0, index - MAX_LOOKBACK):index]):
@@ -102,7 +154,7 @@ def table_literal(insns, order, index, register, start):
         m = LITERAL_RE.search(raw)
         if op == 'tloadr' and m:
             return int(m[1], 16)
-        m = re.match(r'\w+, (r\d+|sl|fp|ip)$', args)
+        m = re.match(r'\w+, (' + REGISTER + r')$', args)
         if op == 'tmov' and m:
             register = m[1]
             continue
@@ -110,28 +162,40 @@ def table_literal(insns, order, index, register, start):
     return None
 
 
+def indirect_jump_register(op, args):
+    m = re.match(r'pc, (' + REGISTER + r')$', args) if op == 'tmov' else None
+    if op == 'tjex':
+        m = re.match(r'(' + REGISTER + r')$', args)
+    return m[1] if m else None
+
+
 def scan(segments, functions, insns, order):
     bad = []
     unresolved = []
     total = 0
+    targets = branch_targets(insns, order)
     for i, addr in enumerate(order):
         op, args, _, func = insns[addr]
-        m = re.match(r'pc, (r\d+)$', args)
-        if op != 'tmov' or not m or i < 1:
+        register = indirect_jump_register(op, args)
+        if register is None or (op == 'tjex' and addr in targets):
             continue
-        lop, largs, _, _ = insns[order[i - 1]]
-        lm = re.match(r'(r\d+), \[(r\d+), (r\d+)\]$', largs)
-        if lop != 'tloadr' or not lm or lm[1] != m[1]:
-            continue
-        total += 1
         start, end = function_bounds(functions, func[0]) if func else (0, 1 << 32)
         name = func[1] if func else '?'
-        literal = table_literal(insns, order, i - 1, lm[2], start)
+        source = register_source(insns, order, i, register, start)
+        sop, sargs = insns[order[source]][:2] if source is not None else ('', '')
+        if sop.startswith('tpop'):
+            continue
+        total += 1
+        lm = re.match(r'(' + REGISTER + r'), \[(' + REGISTER + r'), (' + REGISTER + r')\]$',
+                      sargs)
+        literal = None
+        if sop == 'tloadr' and lm:
+            literal = table_literal(insns, order, source, lm[2], start)
         if literal is None:
             unresolved.append((name, addr))
             continue
         table = read_word(segments, literal)
-        for case in range(case_bound(insns, order, i) + 1):
+        for case in range(case_bound(insns, order, source + 1) + 1):
             entry = read_word(segments, table + 4 * case) if table is not None else None
             target = None if entry is None else entry & ~1
             if target is None or target not in insns or not start <= target < end:
@@ -165,8 +229,8 @@ def main():
         sys.exit(f'{args.elf}: no tc32 instructions parsed from the disassembly')
     total, bad, unresolved = scan(segments, functions, insns, order)
     for name, addr in unresolved:
-        print(f'{args.elf}: table base not traced for dispatch at {addr:#x} in {name}',
-              file=sys.stderr)
+        print(f'{args.elf}: indirect jump at {addr:#x} in {name} is neither a '
+              'return, a call trampoline nor a traced table dispatch', file=sys.stderr)
     for name, addr, table, case, entry in bad:
         entry_text = 'unreadable' if entry is None else f'{entry:#010x}'
         table_text = 'unreadable' if table is None else f'{table:#x}'
