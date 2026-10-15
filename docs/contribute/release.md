@@ -29,5 +29,9 @@ the build.
    instead of the branch, review the index diff, and commit it separately.
    Only boards meant for this release may gain entries; keep `from_tuya`
    entries out unless stock devices are meant to be converted.
-5. Tag the image commit `v<version>` and push the branch and the tag to the
+5. Before pushing the index, install the image on one device you can watch and
+   check: a local button press toggles its relay, a Zigbee2MQTT setting write
+   takes effect, and the device stays up for 10 minutes and after a rejoin.
+   The host stub cannot catch compiler or SDK faults.
+6. Tag the image commit `v<version>` and push the branch and the tag to the
    fork.

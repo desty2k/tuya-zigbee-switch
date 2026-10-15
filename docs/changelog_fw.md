@@ -10,7 +10,14 @@ Please describe what you are working on, under ## Upcoming
 
 ## Upcoming
 
+## v2.0.0-rc.2
+
+- Fixes rc.1 resetting on relay changes, button actions, rejoins and most incoming ZCL commands other than Read Attributes: the Telink compiler miscompiled switch statements at `-Os`; all Telink objects now build without jump tables and the link fails if a malformed table dispatch appears.
+
 ## v2.0.0-rc.1
+
+**Do not install.** Resets on relay changes and most incoming ZCL commands (fixed in rc.2).
+
 
 First release of the BSEED-focused fork as its own product line. It does not
 keep the settings of upstream or 1.x firmware: updating from them resets the
