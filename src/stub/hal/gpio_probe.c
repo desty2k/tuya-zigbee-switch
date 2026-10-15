@@ -430,3 +430,15 @@ bool stub_gpio_probe_parse(const char *name, hal_gpio_probe_id_t *id) {
     *id = candidate;
     return true;
 }
+
+/* The stub encodes pins like Telink: port << 8 | 1 << index. */
+hal_gpio_probe_id_t hal_gpio_probe_id_from_pin(hal_gpio_pin_t pin) {
+    uint8_t mask  = (uint8_t)(pin & 0xFFu);
+    uint8_t index = 0;
+
+    while (mask > 1u) {
+        mask >>= 1;
+        index++;
+    }
+    return HAL_GPIO_PROBE_ID(pin >> 8, index);
+}

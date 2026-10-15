@@ -114,10 +114,12 @@ enum {
         ((uint16_t)(sizeof(((type *)0)->member) / sizeof(hal_zigbee_attribute)))
 
 #if FEATURE_PROBE
-/* The config parser encodes a pin as port << 4 | index. */
 static void probe_claim(hal_gpio_pin_t pin) {
     if (pin != HAL_INVALID_PIN) {
-        gpio_probe_service_claim((uint8_t)(pin >> 4), (uint8_t)(pin & 0x0F));
+        hal_gpio_probe_id_t id = hal_gpio_probe_id_from_pin(pin);
+
+        gpio_probe_service_claim(HAL_GPIO_PROBE_PORT(id),
+                                 HAL_GPIO_PROBE_INDEX(id));
     }
 }
 

@@ -40,6 +40,12 @@ TEST(telink_rejects_pins_the_chip_lacks) {
     ASSERT_EQ(HAL_INVALID_PIN, telink_gpio_pin_from_text(NULL));
 }
 
+TEST(telink_pin_index_is_the_bit_position) {
+    ASSERT_EQ(0, telink_gpio_pin_index(telink_gpio_pin_from_text("A0")));
+    ASSERT_EQ(2, telink_gpio_pin_index(telink_gpio_pin_from_text("C2")));
+    ASSERT_EQ(7, telink_gpio_pin_index(telink_gpio_pin_from_text("B7")));
+}
+
 TEST(silabs_pins_pack_emlib_port_and_pin_number) {
     // gpioPortA..D = 0..3 in the upper byte, pin number in the lower byte.
     ASSERT_EQ(0x000, silabs_gpio_pin_from_text("A0"));
@@ -60,6 +66,7 @@ int main(void) {
     RUN_TEST(pin_text_accepts_only_a_whole_upper_case_name);
     RUN_TEST(telink_pins_are_sdk_gpio_pin_values);
     RUN_TEST(telink_rejects_pins_the_chip_lacks);
+    RUN_TEST(telink_pin_index_is_the_bit_position);
     RUN_TEST(silabs_pins_pack_emlib_port_and_pin_number);
     RUN_TEST(silabs_rejects_pins_the_chip_lacks);
 

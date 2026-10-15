@@ -22,6 +22,12 @@ typedef uint16_t hal_gpio_probe_id_t;
 #define HAL_GPIO_PROBE_PORT(id)     ((uint8_t)((id) >> 8))
 #define HAL_GPIO_PROBE_INDEX(id)    ((uint8_t)((id) & 0xFFu))
 
+/**
+ * Probe id of a pin returned by hal_gpio_parse_pin(), so that pins the device
+ * config gives to a feature can be kept out of the probe table.
+ */
+hal_gpio_probe_id_t hal_gpio_probe_id_from_pin(hal_gpio_pin_t pin);
+
 /* Upper bound of every platform's probe table. */
 #define HAL_GPIO_PROBE_MAX_PINS       32
 

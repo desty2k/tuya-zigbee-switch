@@ -3,6 +3,7 @@
 #pragma pack(pop)
 
 #include "hal/gpio_probe.h"
+#include "telink_gpio_pin.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -218,4 +219,8 @@ uint32_t hal_gpio_probe_ticks(void) {
 
 uint32_t hal_gpio_probe_ticks_per_us(void) {
     return CLOCK_16M_SYS_TIMER_CLK_1US;
+}
+
+hal_gpio_probe_id_t hal_gpio_probe_id_from_pin(hal_gpio_pin_t pin) {
+    return HAL_GPIO_PROBE_ID(pin >> 8, telink_gpio_pin_index(pin));
 }
