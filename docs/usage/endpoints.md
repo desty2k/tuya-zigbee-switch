@@ -45,8 +45,24 @@ Zigbee2MQTT exposes `press`, `release`, `hold`, and `hold_release` actions, plus
 
 Endpoint 1 carries two manufacturer-specific clusters. Every fork-private cluster (`0xFC01`, `0xFC02`, `0xFC10`, `0xFC11`) answers only requests sent with the manufacturer code `0x1A2B` (`helper_scripts/management_protocol.json`); the generated Zigbee2MQTT, ZHA and HOMEd integrations send it.
 
-- **Device Config** (`0xFC10`): the config string (`Text`, writable), its `Status` and `LastError`, the status LED mode (`network`, `off`, `on`) and the multi-press reset count (0 disables it).
+- **Device Config** (`0xFC10`): the config string (`Text`, writable), its `Status` and `LastError`, the status LED mode (`network`, `off`, `on`), the multi-press reset count (0 disables it) and the child lock (below).
 - **Device Diagnostics** (`0xFC11`): read-only `uint32` counters for uptime, GPIO edges captured and dropped, rearm-limit hits, button events and gestures, queued Zigbee button events (submitted, dropped, expired, send failures, high water), network transitions, losses, joins, announces and steering, and descriptor validation failures. The values refresh once per second; every counter except uptime is reportable. They are useful for diagnosing missed input or noisy wiring without a debug probe.
+
+## Child lock
+
+`ChildLock` (`0x0012`, boolean, writable and reportable) on Device Config makes the device ignore its local switch and cover-switch buttons, including a cover's stop button: a press that starts while locked does not switch a relay, move a cover or send a command to bindings. Zigbee commands (On/Off, Window Covering) and attribute writes keep working, and the lock survives reboots, power cuts and OTA updates. The multi-press reset still works while locked, so a locked device can always be re-paired. Button Event (`0xFC02`) reports keep reaching the coordinator.
+
+The lock is also toggled on the device:
+
+| Inputs | Gesture |
+| --- | --- |
+| Cover switch (`X`) | hold open and close together for 3 s; a short press of both still stops the cover |
+| Two or more switch buttons (`S`) | hold the first two switch buttons of the config together for 3 s |
+| One switch button (`S`, e.g. an outlet) | hold it for 10 s |
+
+Onboard reset buttons (`B`) have no gesture: holding one for 2 s is the factory reset. The presses of a locking gesture act as usual (with the default momentary settings a 3 s or 10 s hold is a long press, so no relay toggles); the presses of an unlocking gesture are ignored. A gesture toggle is reported; a remote write is not echoed on the LED.
+
+The lock LED blinks 3 times when the lock engages, twice when it is released and once for a press while locked (250 ms on, 250 ms off); otherwise it shows nothing for the lock. It is the `P` LED of the config string, else the status LED (`L`), else the first indicator (`I`). When the `P` pin is also an `L` or `I` LED, or the fallback is used, the blinks are layered over that LED and it returns to its previous state afterwards.
 
 ## Covers
 

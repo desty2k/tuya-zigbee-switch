@@ -262,6 +262,16 @@ static config_parse_result_t parse_token(const char *token,
         if (!parse_button_token(token, out, *debounce_ms, *gap_ms)) {
             return CONFIG_PARSE_SYNTAX;
         }
+    } else if (token[0] == 'P') {
+        if (out->lock_led_pin != HAL_INVALID_PIN) {
+            return CONFIG_PARSE_LIMIT;
+        }
+        if (!parse_pin(token + 1, &end, &pin) ||
+            (*end != '\0' && strcmp(end, "i") != 0)) {
+            return CONFIG_PARSE_SYNTAX;
+        }
+        out->lock_led_pin     = pin;
+        out->lock_led_on_high = strcmp(end, "i") != 0;
     } else if (token[0] == 'L' || token[0] == 'I') {
         device_indicator_config_t *indicator;
 
@@ -361,7 +371,8 @@ config_parse_result_t config_parser_parse(const char *text,
         return CONFIG_PARSE_SYNTAX;
     }
     memset(out, 0, sizeof(*out));
-    out->battery_pin = HAL_INVALID_PIN;
+    out->battery_pin  = HAL_INVALID_PIN;
+    out->lock_led_pin = HAL_INVALID_PIN;
     if (text == NULL) {
         goto syntax;
     }

@@ -30,6 +30,7 @@ DEVICE_CONFIG_ATTRIBUTES = (
     (0x0004, "last_error", DeviceConfigLastError, "r"),
     (0x0010, "status_led_mode", DeviceConfigStatusLedMode, "rw"),
     (0x0011, "multi_press_reset", t.uint8_t, "rw"),
+    (0x0012, "child_lock", t.Bool, "rw"),
 )
 
 DEVICE_DIAGNOSTICS_ATTRIBUTES = (

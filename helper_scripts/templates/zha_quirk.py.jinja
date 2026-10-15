@@ -883,6 +883,17 @@ for config in CONFIGS:
             entity_type=EntityType.CONFIG,
         )
 
+    if switch_cnt or cover_switch_cnt:
+        builder = builder.switch(
+            "child_lock",
+            DeviceConfigCluster.cluster_id,
+            translation_key="child_lock",
+            fallback_name="Child lock",
+            endpoint_id=1,
+            entity_type=EntityType.CONFIG,
+            reporting_config=ReportingConfig(min_interval=0, max_interval=300, reportable_change=1),
+        )
+
     if has_dedicated_net_led:
         builder = builder.enum(
             "status_led_mode",

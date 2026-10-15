@@ -62,7 +62,9 @@ typedef struct {
     device_cover_switch_config_t cover_switches[DEVICE_COMPOSITION_MAX_COVER_SWITCHES];
     uint8_t                      relay_endpoint_ids[DEVICE_COMPOSITION_MAX_RELAYS];
     hal_gpio_pin_t               battery_pin;
-    uint16_t                     image_type; // OTA image type of the `i` token
+    hal_gpio_pin_t               lock_led_pin; // `P` token; HAL_INVALID_PIN without one
+    bool                         lock_led_on_high;
+    uint16_t                     image_type;   // OTA image type of the `i` token
     uint8_t                      relay_count, relay_endpoint_count, button_count, indicator_count,
                                  interlock_count;
     uint8_t                      cover_count, meter_count, switch_count, cover_switch_count,

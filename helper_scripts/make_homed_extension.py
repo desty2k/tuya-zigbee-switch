@@ -11,7 +11,7 @@ CONFIG_CLUSTER = next(cluster for cluster in PROTOCOL["clusters"] if "enums" in 
 DIAGNOSTICS_CLUSTER = next(cluster for cluster in PROTOCOL["clusters"] if "probe" in cluster)
 
 # ZCL data type ids by the herdsman type names in management_protocol.json.
-DATA_TYPES = {"BITMAP8": 0x18, "BITMAP32": 0x1B, "UINT8": 0x20, "UINT16": 0x21,
+DATA_TYPES = {"BOOLEAN": 0x10, "BITMAP8": 0x18, "BITMAP32": 0x1B, "UINT8": 0x20, "UINT16": 0x21,
               "UINT32": 0x23, "ENUM8": 0x30, "OCTET_STR": 0x41, "LONG_CHAR_STR": 0x44}
 
 
@@ -169,6 +169,13 @@ if __name__ == "__main__":
             basic_exposes.append(counter)
             basic_options[counter] = {"type": "number", "min": 0, "max": 4294967295}
 
+        if switch_cnt or cover_switch_cnt:
+            basic_custom_attrs["childLock"] = management_attribute(
+                CONFIG_CLUSTER, "CHILD_LOCK", "bool", binding=True,
+                reporting={"minInterval": 0, "maxInterval": 255, "valueChange": 1})
+            basic_exposes.append("childLock")
+            basic_options["childLock"] = {"type": "toggle"}
+
         if has_dedicated_net_led:
             basic_custom_attrs["statusLedMode"] = management_attribute(CONFIG_CLUSTER, "STATUS_LED_MODE", "enum")
             basic_exposes.append("statusLedMode")
@@ -281,8 +288,10 @@ if __name__ == "__main__":
                 "endpointId": cover_switch_endpoints
             })
 
-        if indicators_cnt:
-            relay_indicator_endpoints = list(range(switch_cnt + 1, switch_cnt + 1 + indicators_cnt))
+        # Indicators beyond the relays belong to covers.
+        relay_indicators_cnt = min(indicators_cnt, relay_cnt)
+        if relay_indicators_cnt:
+            relay_indicator_endpoints = list(range(switch_cnt + 1, switch_cnt + 1 + relay_indicators_cnt))
             data[zb_manufacturer].append({
                 "modelNames": model_names,
                 "exposes": ["relayIndicatorMode", "relayIndicator"],

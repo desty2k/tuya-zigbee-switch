@@ -22,6 +22,7 @@ typedef struct {
     device_config_error_t    error;
     device_config_led_mode_t led_mode;
     uint8_t                  multi_press_reset;
+    uint8_t                  child_lock;
 } device_config_service_state_t;
 
 void device_config_service_init(void);
@@ -35,6 +36,9 @@ void device_config_service_set_led_mode_provider(
     device_config_led_mode_provider_t provider, void *context);
 device_config_error_t device_config_service_set_led_mode(uint8_t mode);
 device_config_error_t device_config_service_set_multi_press_reset(uint8_t count);
+
+/** Stores the child lock (0 or 1) and applies it to the local inputs. */
+device_config_error_t device_config_service_set_child_lock(uint8_t locked);
 void device_config_service_set_error(device_config_error_t error);
 
 #endif

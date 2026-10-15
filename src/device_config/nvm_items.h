@@ -47,6 +47,9 @@
  * records were written under. */
 #define NV_ITEM_RELAY_TOPOLOGY             101
 
+/* uint8_t child lock state: 1 locked, 0 or missing unlocked. */
+#define NV_ITEM_CHILD_LOCK                 102
+
 #define NV_ITEM_MULTI_PRESS_RESET_COUNT    33
 #define NV_ITEM_POLL_CONTROL_CONFIG        34
 

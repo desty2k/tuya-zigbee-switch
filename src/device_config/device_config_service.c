@@ -6,6 +6,7 @@
 #include "device_config/nvm_items.h"
 #include "device_config/reset.h"
 #include "base_components/action_mapper.h"
+#include "base_components/child_lock.h"
 #include "base_components/gesture_fsm.h"
 #include "hal/nvm.h"
 #include <string.h>
@@ -33,6 +34,7 @@ static void update_state(device_config_status_t status,
     state.error             = error;
     state.led_mode          = (device_config_led_mode_t)record.led_mode;
     state.multi_press_reset = record.multi_press_reset;
+    state.child_lock        = child_lock_is_on();
 }
 
 static device_config_error_t parse_error(config_parse_result_t result) {
@@ -62,6 +64,11 @@ void device_config_service_init(void) {
         record.config_len = strlen(record.config);
     }
     action_mapper_set_multi_press_reset_count(record.multi_press_reset);
+
+    uint8_t locked;
+
+    child_lock_set(hal_nvm_read(NV_ITEM_CHILD_LOCK, sizeof(locked), &locked) ==
+                   HAL_NVM_SUCCESS && locked == 1);
     update_state(DEVICE_CONFIG_STATUS_READY, DEVICE_CONFIG_ERROR_NONE);
 }
 
@@ -173,6 +180,18 @@ device_config_error_t device_config_service_set_multi_press_reset(uint8_t count)
     }
     record = candidate;
     action_mapper_set_multi_press_reset_count(count);
+    update_state(state.status, DEVICE_CONFIG_ERROR_NONE);
+    return DEVICE_CONFIG_ERROR_NONE;
+}
+
+device_config_error_t device_config_service_set_child_lock(uint8_t locked) {
+    if (locked > 1) return DEVICE_CONFIG_ERROR_ARGUMENT;
+
+    if (hal_nvm_write(NV_ITEM_CHILD_LOCK, sizeof(locked), &locked) != HAL_NVM_SUCCESS) {
+        update_state(state.status, DEVICE_CONFIG_ERROR_NVM);
+        return DEVICE_CONFIG_ERROR_NVM;
+    }
+    child_lock_set(locked == 1);
     update_state(state.status, DEVICE_CONFIG_ERROR_NONE);
     return DEVICE_CONFIG_ERROR_NONE;
 }

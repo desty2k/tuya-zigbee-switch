@@ -85,15 +85,22 @@ The pinout is stored in the **device config string**.
 **Cover example** (1-gang cover controller):  
 ⤷ `mfgname;TS130F-CVR;BC5u;LA3;XA2B3u;CC4D2;`
 
+**Cover with stop button and LEDs** (BSEED TS130F: open/close/stop buttons, open/close LEDs, red child lock LED on `D2`):  
+⤷ `vsj5o7dm;TS130F-BS-CVR;LB4;XB6A1A0u;CD3C0;IC3;IB5;PD2;M;`
+
+**Outlet with the child lock on its indicator** (BSEED TS011F: the relay indicator `C4` also blinks the child lock; hold the button 10 s to toggle it):  
+⤷ `drzlxjne;TS011F-BS-PM-3;SB4u;RB5;IC4;PC4;EBC2C3D2;M;`
+
 | Ch      | Peripheral    | Function                                                                                                          |
 |--------:|---------------|-------------------------------------------------------------------------------------------------------------------|
 | **`B`** | Reset button  | • Puts device in pairing                                                                                          |
 | **`L`** | Network led   | • Blinks while pairing <br> • Is the backlight sometimes                                                          |
 | **`S`** | Switch        | • User input <br> • Tactile/touch button or external switch <br> • Spam to put in pairing mode                    |
 | **`R`** | Relay / Triac | • Output <br> • Non-latching: `RC1` - 1 pin: on when high <br> • Latching: `RC2C3` - 2 pins: pulse on, pulse off  |
-| **`X`** | Cover Switch  | • User input for cover control <br> • Format: `XA2B3u` - 2 pins + pull resistor: open button, close button <br> • `XA2B3A4u` - optional third pin: stop button |
+| **`X`** | Cover Switch  | • User input for cover control <br> • Format: `XA2B3u` - 2 pins + pull resistor: open button, close button <br> • `XA2B3A4u` - optional third pin: stop button <br> • Holding open and close for 3 s toggles the child lock |
 | **`C`** | Cover         | • Motor control for curtains/blinds/shades <br> • Format: `CA2B3` - 2 pins: open relay, close relay               |
 | **`I`** | Indicator LED | • 1 per relay, follows state <br> • A cover takes the next 2: lit while opening, lit while closing <br> • Briefly flashes on button press (binding confirmation) <br> • Blinks while pairing if there is no network led |
+| **`P`** | Child lock LED | • At most one <br> • Blinks 3 times on lock, twice on unlock, once for a press while locked; dark otherwise <br> • May name the pin of an `L` or `I` LED: the blinks are layered over it <br> • Without `P` the `L` LED is used, else the first `I` LED (see [child lock](../usage/endpoints.md#child-lock)) |
 
 For buttons (`B`), switches (`S`), and cover switches (`X`), the next character chooses the internal pull-up/down resistor:  
 ⤷ **`u`: up 10K**, `U`: up 1M, `d`: down 100K, `f`: float (external resistor)  
