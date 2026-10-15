@@ -177,8 +177,9 @@ and 32 kHz crystal pins when used) and pins claimed by the config are never
 probeable.
 
 Procedure, with `helper_scripts/probe_discovery.py <friendly name>` driving
-Zigbee2MQTT over MQTT (needs `paho-mqtt` and the fork converter for the probe
-board):
+Zigbee2MQTT over MQTT (needs `paho-mqtt` from `requirements.txt` and the fork
+converter for the probe board). It reads one probe attribute per request, so
+no Read Attributes response needs APS fragmentation:
 
 1. OTA the probe image onto one expendable device with nothing plugged in.
 2. Snapshot, then pull test all pins.

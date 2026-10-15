@@ -122,3 +122,60 @@ def test_discovery_helper_decodes_probe_attributes_and_proposes_a_config() -> No
     assert meter == {"ic": "BL0937", "cf": "C2", "cf1": "C3", "sel": "B4"}
     _, silent = pd.propose(pd.Findings(), "x", "y")
     assert "BL0942" in silent["ic"]
+
+
+def test_index_refuses_a_probe_board_in_the_repository_indexes(tmp_path: Path) -> None:
+    index = ROOT / "zigbee2mqtt/ota/index_probe_guard_test.json"
+    try:
+        result = subprocess.run(
+            [sys.executable, str(INDEX_SCRIPT), "--db_file", str(ROOT / "device_db.yaml"),
+             "--board", PROBE_BOARD,
+             str(ota_file(tmp_path / "image.zigbee", STOCK_IMAGE_TYPE)), str(index)],
+            capture_output=True, text=True)
+        assert result.returncode != 0
+        assert "GPIO probe board" in result.stderr
+        assert not index.exists()
+    finally:
+        index.unlink(missing_ok=True)
+
+
+def test_board_build_refuses_a_probe_board() -> None:
+    result = subprocess.run(["make", "-s", "-f", "board.mk", "check-publishable",
+                             f"BOARD={PROBE_BOARD}"],
+                            cwd=ROOT, capture_output=True, text=True)
+    assert result.returncode != 0
+    assert "GPIO probe board" in result.stderr
+
+
+def test_repository_indexes_hold_no_probe_entry() -> None:
+    db = yaml.safe_load((ROOT / "device_db.yaml").read_text())
+    probes = [name for name, device in db.items()
+              if isinstance(device, dict) and "probe" in (device.get("features") or [])]
+    assert probes
+    for index in (ROOT / "zigbee2mqtt/ota").glob("index_*.json"):
+        text = index.read_text()
+        assert not any(f"/{probe}/" in text for probe in probes), index
+
+
+def test_discovery_helper_reads_one_attribute_per_request() -> None:
+    import probe_discovery as pd
+
+    values = {"status": 0, "pins": "0000", "classes": "01", "levels": 1, "watch": "",
+              "state": 0}
+    ids = {attr_id: name.removeprefix("PROBE_").lower()
+           for attr_id, name, *_ in pd.PROBE["attributes"]}
+    requests = []
+
+    class FakeClient:
+        def publish(self, topic: str, body: str) -> None:
+            attributes = json.loads(body)["read"]["attributes"]
+            requests.append(attributes)
+            reply = {"probe": {ids[attr]: values[ids[attr]] for attr in attributes}}
+            probe._on_message(None, None, type("M", (), {"payload": json.dumps(reply)}))
+
+    probe = object.__new__(pd.Z2MProbe)
+    probe.topic, probe.state, probe.client = "z2m/probe", {}, FakeClient()
+    probe.updated = pd.threading.Event()
+    for name in ("status", "pins", "classes", "levels", "watch"):
+        assert probe.read(name) == values[name]
+    assert requests and all(len(attributes) == 1 for attributes in requests)

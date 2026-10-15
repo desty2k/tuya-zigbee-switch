@@ -16,7 +16,7 @@ the device; a reboot ends every probe operation.
 Zigbee2MQTT needs the fork's converter for the probe board, which declares the
 cluster's commands and publishes the probe attributes under the `probe` key
 of the device state as raw values (octet strings as hex). Requires
-paho-mqtt (`pip install paho-mqtt`).
+paho-mqtt (`requirements.txt`).
 """
 
 import argparse
@@ -36,6 +36,8 @@ STATUS = PROBE["status"]
 CLASSES = PROBE["classes"]
 LIMITS = PROBE["limits"]
 COMMANDS = {name: cmd_id for cmd_id, name, _ in PROBE["commands"]}
+ATTRIBUTES = {name.removeprefix("PROBE_").lower(): attr_id
+              for attr_id, name, *_ in PROBE["attributes"]}
 PULL = {name: value for value, name in enumerate(PROBE["pulls"])}
 OVER_RATE = 1 << PROBE["watch_flags"].index("OVER_RATE")
 WATCH_CAPACITY = 2          # TLSR8258 counters (src/telink/hal/gpio_probe.c)
@@ -131,7 +133,7 @@ class Z2MProbe:
         self.topic = f"{args.base_topic}/{args.device}"
         self.state: dict = {}
         self.updated = threading.Event()
-        self.client = mqtt.Client()
+        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         if args.user:
             self.client.username_pw_set(args.user, args.password)
         self.client.on_message = self._on_message
@@ -142,7 +144,7 @@ class Z2MProbe:
     def _on_message(self, client, userdata, message) -> None:
         payload = json.loads(message.payload or b"{}")
         if "probe" in payload:
-            self.state = payload["probe"]
+            self.state.update(payload["probe"])
             self.updated.set()
 
     def _publish(self, body: dict) -> None:
@@ -154,19 +156,29 @@ class Z2MProbe:
             "payload": payload or {},
             "options": {"manufacturerCode": PROTOCOL["manufacturer_code"]}}})
         time.sleep(0.5)
-        return STATUS[self.read()["status"]]
+        return STATUS[self.read("status")]
 
-    def read(self) -> dict:
-        attrs = [attr_id for attr_id, *_ in PROBE["attributes"]]
+    def read(self, name: str):
+        """One probe attribute, by its lowercase name without `PROBE_`.
+
+        Each attribute is read in its own Read Attributes request: the pins,
+        classes and watch octet strings together exceed one unfragmented APS
+        payload, and the stack does not fragment the response.
+        """
         self.updated.clear()
-        self._publish({"read": {"cluster": CLUSTER["id"], "attributes": attrs,
+        self.state.pop(name, None)
+        self._publish({"read": {"cluster": CLUSTER["id"], "attributes": [ATTRIBUTES[name]],
                                 "options": {"manufacturerCode": PROTOCOL["manufacturer_code"]}}})
-        if not self.updated.wait(10):
-            raise SystemExit("no probe state from Zigbee2MQTT; is the probe converter installed?")
-        return self.state
+        deadline = time.monotonic() + 10
+        while name not in self.state:
+            if not self.updated.wait(max(0.0, deadline - time.monotonic())):
+                raise SystemExit(f"no probe {name} from Zigbee2MQTT; "
+                                 "is the probe converter installed?")
+            self.updated.clear()
+        return self.state[name]
 
     def pins(self) -> list[str]:
-        return parse_pins(bytes.fromhex(self.read()["pins"]))
+        return parse_pins(bytes.fromhex(self.read("pins")))
 
     def watch(self, pins: list[tuple[str, str]], seconds: int) -> tuple[int, dict]:
         raw = b"".join(struct.pack("<HB", pin_id(pin), PULL[pull]) for pin, pull in pins)
@@ -175,7 +187,7 @@ class Z2MProbe:
         if status != "OK":
             raise SystemExit(f"watch {pins}: {status}")
         time.sleep(seconds + 1)
-        return parse_watch(bytes.fromhex(self.read()["watch"]))
+        return parse_watch(bytes.fromhex(self.read("watch")))
 
     def pulse(self, pin: str, level: int, ms: int) -> str:
         status = self.command("PROBE_ARM", {"pin": pin_id(pin)})
@@ -227,12 +239,12 @@ def discover(probe: Z2MProbe, args: argparse.Namespace) -> None:
     pins = probe.pins()
     print(f"Probeable pins: {' '.join(pins)}")
     print(f"snapshot: {probe.command('PROBE_SNAPSHOT')}")
-    levels = parse_levels(pins, probe.read()["levels"])
+    levels = parse_levels(pins, probe.read("levels"))
     print("  " + " ".join(f"{pin}={level}" for pin, level in levels.items()))
 
     print(f"pull test: {probe.command('PROBE_PULL_TEST', {'count': 0, 'pins': []})}")
     time.sleep(LIMITS["PULL_PHASE_MS"] * 4 / 1000 + 0.5)
-    found.classes = parse_classes(pins, bytes.fromhex(probe.read()["classes"]))
+    found.classes = parse_classes(pins, bytes.fromhex(probe.read("classes")))
     for name in CLASSES[1:]:
         print(f"  {name}: {' '.join(p for p, c in found.classes.items() if c == name)}")
 
@@ -266,7 +278,7 @@ def discover(probe: Z2MProbe, args: argparse.Namespace) -> None:
                                           "pins": list(struct.pack("<HB", pin_id(cf1[0]), 0))})
             probe.pulse(pin, 1, LIMITS["PULSE_MAX_MS"])
             time.sleep(1.5)
-            elapsed, records = parse_watch(bytes.fromhex(probe.read()["watch"]))
+            elapsed, records = parse_watch(bytes.fromhex(probe.read("watch")))
             hz = rate_hz(records[cf1[0]], elapsed)
             if baseline and abs(hz - baseline) / baseline > 0.2:
                 print(f"  {cf1[0]} changed {baseline:.1f} -> {hz:.1f} Hz while {pin} was high: SEL")
