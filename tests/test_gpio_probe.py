@@ -2,7 +2,8 @@
 
 `stub_probe` is built with FEATURES="probe relay switch", the feature set of
 the probe board, so a config string written over Zigbee can drive the pins
-already found while the probe covers the rest. Pin electrical behaviour comes from the stub model
+already found while the probe covers the rest. Pin electrical behaviour comes
+from the stub model
 (src/stub/hal/gpio_probe.h): floating, externally driven and pulse-train pins.
 """
 
@@ -29,6 +30,7 @@ from management_protocol_consts import (
     GPIO_PROBE_STATUS_RANGE,
     GPIO_PROBE_STATUS_VERIFY_FAILED,
     GPIO_PROBE_WATCH_OVER_RATE,
+    ZCL_ATTR_DEVICE_CONFIG_TEXT,
     ZCL_ATTR_DIAGNOSTICS_CAPABILITIES,
     ZCL_ATTR_DIAGNOSTICS_PROBE_CLASSES,
     ZCL_ATTR_DIAGNOSTICS_PROBE_LEVELS,
@@ -36,6 +38,7 @@ from management_protocol_consts import (
     ZCL_ATTR_DIAGNOSTICS_PROBE_STATE,
     ZCL_ATTR_DIAGNOSTICS_PROBE_STATUS,
     ZCL_ATTR_DIAGNOSTICS_PROBE_WATCH,
+    ZCL_CLUSTER_DEVICE_CONFIG,
     ZCL_CLUSTER_DEVICE_DIAGNOSTICS,
     ZCL_CMD_DIAGNOSTICS_PROBE_ARM,
     ZCL_CMD_DIAGNOSTICS_PROBE_PULL_TEST,
@@ -43,10 +46,6 @@ from management_protocol_consts import (
     ZCL_CMD_DIAGNOSTICS_PROBE_SNAPSHOT,
     ZCL_CMD_DIAGNOSTICS_PROBE_STOP,
     ZCL_CMD_DIAGNOSTICS_PROBE_WATCH,
-)
-from management_protocol_consts import (
-    ZCL_ATTR_DEVICE_CONFIG_TEXT,
-    ZCL_CLUSTER_DEVICE_CONFIG,
 )
 from zcl_consts import ZCL_ATTR_BASIC_MODEL_ID, ZCL_CLUSTER_BASIC
 
