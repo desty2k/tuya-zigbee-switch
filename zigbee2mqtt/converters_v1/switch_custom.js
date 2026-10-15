@@ -504,10 +504,13 @@ const romasku = {
                             throw new Error(`Pull up down ${part[3]} is invalid. Valid options are u, U, d, f`);
                         } 
                     } else if (part[0] == 'X') {
+                        // X<open><close>[<stop>]<pull>
                         validatePin(part.slice(1,3));
                         validatePin(part.slice(3,5));
-                        if (!["u", "U", "d", "f"].includes(part[5])) {
-                            throw new Error(`Pull up down ${part[5]} is invalid. Valid options are u, U, d, f`);
+                        const pullAt = part.length == 8 ? 7 : 5;
+                        if (pullAt == 7) validatePin(part.slice(5,7));
+                        if (part.length != pullAt + 1 || !["u", "U", "d", "f"].includes(part[pullAt])) {
+                            throw new Error(`Cover switch ${part} is invalid. Use X<open><close>[<stop>]<pull>, pull one of u, U, d, f`);
                         }
                     } else if (part[0] == 'C') {
                         validatePin(part.slice(1,3));
