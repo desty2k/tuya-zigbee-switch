@@ -88,8 +88,14 @@ static void build_pin_list(void) {
     }
 }
 
+/*
+ * Rest state of every unclaimed pin: input with the 100 kOhm pull-down.
+ * Relay drivers such as the ULN2003 have no input pull-down of their own; a
+ * floating input picks up mains hum and half-energises the coil, which can
+ * also pull the supply down far enough to reset the MCU.
+ */
 static void release(hal_gpio_probe_id_t pin) {
-    hal_gpio_probe_input(pin, HAL_GPIO_PULL_NONE);
+    hal_gpio_probe_input(pin, HAL_GPIO_PULL_DOWN);
 }
 
 static hal_gpio_pull_t hal_pull(uint8_t pull) {
@@ -407,8 +413,15 @@ void gpio_probe_service_claim(uint8_t port, uint8_t index) {
     build_pin_list();
 }
 
-void gpio_probe_service_enable(void) {
+void gpio_probe_service_rest_pins(void) {
     build_pin_list();
+    for (uint8_t i = 0; i < pin_count; i++) {
+        release(pins[i]);
+    }
+}
+
+void gpio_probe_service_enable(void) {
+    gpio_probe_service_rest_pins();
     enabled = true;
 }
 

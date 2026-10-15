@@ -50,6 +50,9 @@ from management_protocol_consts import (
 from zcl_consts import ZCL_ATTR_BASIC_MODEL_ID, ZCL_CLUSTER_BASIC
 
 PROBE_CMD = ["./build/stub/stub_probe"]
+# HAL_GPIO_PULL_DOWN: the rest state of every unclaimed pin, at boot and after
+# each probe operation, so no relay driver input floats.
+REST_PULL = 3
 PROBE_CONFIG = "_TZ3210_drzlxjne;TS011F-probe;"
 # Button B4 (active low, pull-up) and relay B5 found on the TS011F outlet.
 OUTLET_CONFIG = PROBE_CONFIG + "SB4u;RB5;IC4;M;"
@@ -135,13 +138,13 @@ def probe_session(config: str = PROBE_CONFIG) -> StubProc:
     return StubProc(cmd=PROBE_CMD, device_config=config)
 
 
-def assert_untouched(probe: Probe, pins: list[str]) -> None:
+def assert_resting(probe: Probe, pins: list[str]) -> None:
     for pin in pins:
         info = probe.info(pin)
-        assert (info["output"], info["pull"], info["contention"]) == (0, 0, 0), pin
+        assert (info["output"], info["pull"], info["contention"]) == (0, REST_PULL, 0), pin
 
 
-def test_probe_board_boots_with_every_pin_untouched() -> None:
+def test_probe_board_boots_with_every_pin_resting_on_the_pull_down() -> None:
     with probe_session() as proc:
         probe = Probe(Device(proc))
         assert probe.device.read_zigbee_attr(
@@ -152,7 +155,7 @@ def test_probe_board_boots_with_every_pin_untouched() -> None:
         probe.step(50)
         for pin in TLSR8258_PROBE_PINS:
             info = probe.info(pin)
-            assert (info["drives"], info["output"], info["pull"]) == (0, 0, 0), pin
+            assert (info["drives"], info["output"], info["pull"]) == (0, 0, REST_PULL), pin
         assert int(probe.attr(ZCL_ATTR_DIAGNOSTICS_PROBE_STATE)) == 0
 
 
@@ -173,7 +176,7 @@ def test_discovery_procedure_finds_meter_button_and_relay_pins() -> None:
         assert classes["C2"] == GPIO_PROBE_CLASS_DRIVEN_LOW
         assert classes["D2"] == GPIO_PROBE_CLASS_DRIVEN_HIGH
         assert classes["C3"] == GPIO_PROBE_CLASS_ACTIVE
-        assert_untouched(probe, TLSR8258_PROBE_PINS)
+        assert_resting(probe, TLSR8258_PROBE_PINS)
 
         payload = struct.pack("<HB", 2, 2) + struct.pack(
             "<HBHB", pin_id("C3"), GPIO_PROBE_PULL_NONE, pin_id("D2"), GPIO_PROBE_PULL_UP)
@@ -188,7 +191,7 @@ def test_discovery_procedure_finds_meter_button_and_relay_pins() -> None:
         cf1_edges, cf1_min, cf1_max, _, cf1_flags = records["C3"]
         assert cf1_edges == 2000 and cf1_min == cf1_max == 1000 and cf1_flags == 0
         assert records["D2"][0] == 1 and records["D2"][3] == 1
-        assert_untouched(probe, ["C3", "D2"])
+        assert_resting(probe, ["C3", "D2"])
 
         # Relay candidate: arm, pulse, cutoff.
         assert probe.arm("A0") == "PROCESSED"
@@ -197,7 +200,7 @@ def test_discovery_procedure_finds_meter_button_and_relay_pins() -> None:
         assert probe.info("A0")["output_level"] == 1
         assert int(probe.attr(ZCL_ATTR_DIAGNOSTICS_PROBE_STATE)) & GPIO_PROBE_STATE_PULSE
         probe.step(100)
-        assert_untouched(probe, ["A0"])
+        assert_resting(probe, ["A0"])
 
         # Each pulse needs a fresh arm; driven-high and active pins are never driven.
         assert probe.pulse("A0", 1, 100) == "ACTION_DENIED"
@@ -245,7 +248,7 @@ def test_low_resistance_transistor_base_reads_driven_low_and_takes_a_short_high_
         assert probe.info("A0")["relay_on"] == 1
         probe.step(GPIO_PROBE_DRIVEN_LOW_PULSE_MAX_MS)
         info = probe.info("A0")
-        assert (info["relay_on"], info["output"], info["output_level"], info["pull"]) == (0, 0, 0, 0)
+        assert (info["relay_on"], info["output"], info["output_level"], info["pull"]) == (0, 0, 0, REST_PULL)
 
 
 def test_driven_low_pin_pulse_is_limited_to_a_short_high_level() -> None:
@@ -271,7 +274,7 @@ def test_driven_low_pin_pulse_is_limited_to_a_short_high_level() -> None:
         assert (info["drives"], info["output"], info["output_level"]) == (1, 1, 1)
         probe.step(GPIO_PROBE_DRIVEN_LOW_PULSE_MAX_MS)
         info = probe.info("C2")
-        assert (info["output"], info["output_level"], info["pull"]) == (0, 0, 0)
+        assert (info["output"], info["output_level"], info["pull"]) == (0, 0, REST_PULL)
         assert int(probe.attr(ZCL_ATTR_DIAGNOSTICS_PROBE_STATE)) == 0
 
 
@@ -286,7 +289,7 @@ def test_driven_low_pulse_is_refused_when_the_pin_no_longer_reads_driven_low() -
         assert probe.status() == GPIO_PROBE_STATUS_VERIFY_FAILED
         assert probe.classes()["C2"] == GPIO_PROBE_CLASS_FLOATING
         info = probe.info("C2")
-        assert (info["drives"], info["output"], info["pull"]) == (0, 0, 0)
+        assert (info["drives"], info["output"], info["pull"]) == (0, 0, REST_PULL)
 
 
 def test_driven_high_and_active_pins_are_never_pulsed() -> None:
@@ -313,7 +316,7 @@ def test_released_pin_is_an_input_with_its_output_latch_cleared() -> None:
         assert probe.pulse("A0", 1, 100) == "PROCESSED"
         probe.step(100)
         info = probe.info("A0")
-        assert (info["output"], info["output_level"], info["pull"]) == (0, 0, 0)
+        assert (info["output"], info["output_level"], info["pull"]) == (0, 0, REST_PULL)
         assert probe.pull_test(["A0"]) == "PROCESSED"
         assert probe.classes()["A0"] == GPIO_PROBE_CLASS_FLOATING
 
@@ -327,7 +330,7 @@ def test_rate_ceiling_flags_a_fast_pin() -> None:
         probe.step(20)
         _, records = probe.watch()
         assert records["B4"][4] == GPIO_PROBE_WATCH_OVER_RATE
-        assert_untouched(probe, ["B4"])
+        assert_resting(probe, ["B4"])
 
 
 def test_stop_command_ends_a_pulse_and_restores_the_pin() -> None:
@@ -338,7 +341,7 @@ def test_stop_command_ends_a_pulse_and_restores_the_pin() -> None:
         assert probe.pulse("B5", 0, 500) == "PROCESSED"
         assert probe.info("B5")["output"] == 1
         assert probe.command(ZCL_CMD_DIAGNOSTICS_PROBE_STOP) == "PROCESSED"
-        assert_untouched(probe, ["B5"])
+        assert_resting(probe, ["B5"])
         assert int(probe.attr(ZCL_ATTR_DIAGNOSTICS_PROBE_STATE)) == 0
 
 
@@ -438,6 +441,7 @@ def test_recovery_graph_disables_the_probe() -> None:
         assert probe.command(ZCL_CMD_DIAGNOSTICS_PROBE_SNAPSHOT) == "ACTION_DENIED"
         assert probe.status() == GPIO_PROBE_STATUS_DISABLED
         assert probe.pins() == []
+        assert_resting(probe, TLSR8258_PROBE_PINS)
 
 
 def test_malformed_and_unknown_probe_commands_are_rejected() -> None:

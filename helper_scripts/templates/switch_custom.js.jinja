@@ -461,12 +461,16 @@ const romasku = {
                         if (part.length > 9 || (part.length == 9 && part[8] != 'i')) {
                             throw new Error(`Meter ${part} is invalid. Use EB<CF><CF1><SEL>[i]`);
                         }
+                    } else if (part[0] == 'K') {
+                        if (!/^K[0-9A-Fa-f]{1,4}(:\d+)?$/.test(part)) {
+                            throw new Error(`Interlock ${part} is invalid. Use K<hex relay mask>[:<ms>], e.g. K03:500`);
+                        }
                     } else if(part[0] == 'M') {
                         ;
                     } else if(part[0] == 'i') {
                         ; // TODO: write validation
                     } else {
-                        throw new Error(`Invalid entry ${part}. Should start with one of B, BT, C, D, E, I, L, M, R, S, SLP, X, i`);
+                        throw new Error(`Invalid entry ${part}. Should start with one of B, BT, C, D, E, I, K, L, M, R, S, SLP, X, i`);
                     }
                 }
             },

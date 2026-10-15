@@ -805,8 +805,12 @@ static void stop_wired_features(void) {
 void feature_wiring_build_recovery(void) {
     stop_wired_features();
 #if FEATURE_PROBE
-    /* Which pins a failed graph drives is unknown, so the probe stays off. */
+    /*
+     * Which pins a failed graph drives is unknown, so the probe stays off;
+     * every pin still rests on the pull-down, so no relay driver floats.
+     */
     gpio_probe_service_init();
+    gpio_probe_service_rest_pins();
 #endif
     memset(endpoints, 0, sizeof(endpoints));
     memset(clusters, 0, sizeof(clusters));
