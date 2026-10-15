@@ -999,6 +999,7 @@ retention limit (pre-existing).
 | 2026-10-15 | fix pins | `c9706ef5` | blocker from section 12 step 1: parser takes pin ids from `hal_gpio_parse_pin` (Telink `port<<8 \| 1<<n`, Silabs `port<<8 \| n`, invalid `0xFFFF`), private `<<4` encoding deleted; stub uses the Telink-like encoding (163 of 370 tests failed against the old parser); SDK-free pin headers with compile-time checks against the SDKs and host unit tests; Telink `size_t` clash fixed (`27e20e35`); review: merge, mutation-checked; `make tests` 370 passed; sk8 OTA: GIRIER 1G 200306 / 2G 200322 (≈400 under 200704), 4-gang 192866; Silabs ZS2S_TS0001 and MOES_TS0011 build (known `-Wformat`/`noreturn` warnings only), closing the wave 2 C/D Silabs debt | merged |
 | 2026-10-15 | 2 P | `d95120b1` | follow-ups: `check-publishable` refuses probe boards in `board/build`/`update-indexes` (fails closed) and the index generator refuses probe entries; discovery helper reads one attribute per request; `paho-mqtt` in `requirements.txt`; stub transistor-base relay model, 10 kΩ pull-up kept (1 MΩ makes every transistor-driven relay pin read driven low; mutation-checked); docs (main-loop pulse cutoff, leaving the probe image); claimed pins converted with `hal_gpio_probe_id_from_pin`; review fixes by integrator; `make tests` 394 passed; probe OTA 191314, non-probe sizes unchanged; no index holds a probe entry | merged |
 | 2026-10-15 | 2b E | `8cc252f0` | C5, C6, D3: Z2M/ZHA/HOMEd use 0xFC10/0xFC11 and manufacturer code `0x1A2B` on every fork-private cluster, generated from `management_protocol.json` (`0x1A2B` unassigned in zigbee-herdsman 10.9.3); `coverInverted` removed, cover settings 0xFF02–0xFF06 and cover-switch long press exposed; ZHA clears lift 0xFF; ZHA multistate present value read-only; Z2M probe converter `TS011F-probe`; `tests/test_integration_parity.py` compares every generated attribute with the stub's registered attributes (mutation-checked); outputs regenerated separately; no firmware change; review: merge; `make tests` 401 passed; offline checks only (herdsman-converters 26.108.1, zha-quirks 2.3.0) | merged |
+| 2026-10-15 | release | `4dfac79b`, tag `v2.0.0-rc.1` (`bbe7976b`) | fork versioned as 2.0.0 (`helper_scripts/firmware_version.py`: file version `MAJOR<<4\|MINOR, PATCH, rc or 0xFF, BUILD_NUMBER`, out-of-range parts fail the build; replaces the git-count byte that wrapped at 256 and depended on `origin/main`); TS0726 4-gang `2.0.0-rc.1-a4663` built on sk8 from a clean clone, 192882 B, file version 0x20000100; index: one normal entry for `_TZ3002_pzao9ls1` plus FORCE, URL pinned to the image commit (H0.1), no `from_tuya` entry; all `538f75d3` entries and images removed; downloaded image matches the index sha512 | published, not flashed |
 
 ## 12. Next steps (current as of the wave 2 P merge)
 
@@ -1068,9 +1069,9 @@ effectively read-only without a `K` token — keep (recommended) or remove.
 
 ### 6. Release and hardware
 
-1. Generate the OTA index entries for the fixed build with immutable URLs
-   (H0.1, commit SHA or tag) and replace the `538f75d3` entries. Tell the owner
-   before publishing.
+1. Done: `v2.0.0-rc.1` for the TS0726 4-gang (section 11). Further releases
+   follow `docs/contribute/release.md`. Version strings keep only 5 hash
+   characters (16-character SWBuildID); file names use the same string.
 2. Owner hardware pass (section 8): the custom-firmware 4-gang first, then one
    spare stock BSEED switch over the stock slot; record results in
    `docs/refactor/*/STATE.md`.
