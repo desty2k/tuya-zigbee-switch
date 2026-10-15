@@ -29,8 +29,6 @@
 
 #define QS_TO_MS(qs)    ((uint32_t)(qs) * 250)
 
-static const uint16_t poll_ctrl_cluster_revision = 0x01;
-
 // Single instance pointer for trampoline
 static zigbee_poll_control_cluster *poll_ctrl_instance = NULL;
 
@@ -174,8 +172,8 @@ static hal_zigbee_cmd_result_t poll_control_cmd_callback(
                                 ((uint32_t)data[1] << 8) |
                                 ((uint32_t)data[2] << 16) |
                                 ((uint32_t)data[3] << 24);
-        printf("Poll control: set long poll interval=%lu\r\n",
-               (unsigned long)new_interval);
+        printf("Poll control: set long poll interval=%d\r\n",
+               (int)new_interval);
         if (new_interval < 0x04 || new_interval > 0x6E0000 ||
             (cluster->check_in_interval != 0 &&
              new_interval > cluster->check_in_interval) ||
@@ -235,8 +233,8 @@ static void poll_control_cluster_on_write_attr(uint16_t attribute_id) {
     zigbee_poll_control_cluster *cluster = poll_ctrl_instance;
 
     if (attribute_id == ZCL_ATTR_POLL_CTRL_CHECK_IN_INTERVAL) {
-        printf("Poll control: check-in interval written=%lu\r\n",
-               (unsigned long)cluster->check_in_interval);
+        printf("Poll control: check-in interval written=%d\r\n",
+               (int)cluster->check_in_interval);
         // Reschedule check-in timer
         timer_cancel(&cluster->check_in_timer);
         if (cluster->check_in_interval != 0) {
