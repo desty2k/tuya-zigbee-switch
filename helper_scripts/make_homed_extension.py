@@ -286,8 +286,10 @@ if __name__ == "__main__":
                 "endpointId": cover_switch_endpoints
             })
 
-        if indicators_cnt:
-            relay_indicator_endpoints = list(range(switch_cnt + 1, switch_cnt + 1 + indicators_cnt))
+        # Indicators beyond the relays belong to covers.
+        relay_indicators_cnt = min(indicators_cnt, relay_cnt)
+        if relay_indicators_cnt:
+            relay_indicator_endpoints = list(range(switch_cnt + 1, switch_cnt + 1 + relay_indicators_cnt))
             data[zb_manufacturer].append({
                 "modelNames": model_names,
                 "exposes": ["relayIndicatorMode", "relayIndicator"],
