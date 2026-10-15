@@ -10930,6 +10930,28 @@ const definitions = [
     },
     {
         zigbeeModel: [
+            "TS130F-probe",
+        ],
+        model: "TS130F-probe",
+        vendor: "Tuya-custom",
+        description: "GPIO probe for pin discovery (helper_scripts/probe_discovery.py)",
+        extend: [
+            ...romasku.managementClusters(true),
+            romasku.deviceConfig("device_config"),
+            ...romasku.deviceConfigState(),
+            ...romasku.diagnosticCounters(),
+            romasku.probe(),
+        ],
+        meta: { multiEndpoint: true },
+        configure: async (device, coordinatorEndpoint, logger) => {
+
+
+
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: [
             "TS011F-BS-PM-3",
         ],
         model: "TS011F_plug_1",
