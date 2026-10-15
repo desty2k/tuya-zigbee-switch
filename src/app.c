@@ -61,11 +61,23 @@ static uint32_t boot_announce_retry_ms;
 static bool     network_status_initialized;
 static hal_zigbee_network_status_t last_network_status;
 static app_network_diagnostics_t   network_diagnostics;
+static uint32_t diagnostics_refreshed_ms;
+
+/*
+ * Diagnostics attributes are copied from their sources at this interval, not
+ * on every main-loop pass: the copy costs CPU time (and battery on end
+ * devices) and the counters are only read or reported on a seconds scale.
+ */
+#define DIAGNOSTICS_REFRESH_INTERVAL_MS    1000u
+
+static void app_diagnostics_provider(diagnostics_snapshot_t *snapshot,
+                                     void *context);
 
 void app_init(void) {
     handle_version_changes();
     device_config_service_init();
     diagnostics_service_init();
+    diagnostics_service_set_provider(app_diagnostics_provider, NULL);
     parse_config(); // Does most of the setup, including all callbacks
                     // registration
 
@@ -130,12 +142,16 @@ void app_task() {
     relay_ctrl_process_pending();
 #if FEATURE_PROBE
     gpio_probe_service_poll();
+    gpio_probe_cluster_refresh();
 #endif
     app_track_network_status(network_status);
-    network_diagnostics.uptime_ms = hal_millis();
-    diagnostics_service_set_provider(app_diagnostics_provider, NULL);
-    diagnostics_service_refresh();
-    device_diagnostics_cluster_refresh();
+    if ((uint32_t)(hal_millis() - diagnostics_refreshed_ms) >=
+        DIAGNOSTICS_REFRESH_INTERVAL_MS) {
+        diagnostics_refreshed_ms      = hal_millis();
+        network_diagnostics.uptime_ms = diagnostics_refreshed_ms;
+        diagnostics_service_refresh();
+        device_diagnostics_cluster_refresh();
+    }
 #ifdef END_DEVICE
     poll_control_cluster_update();
 #endif

@@ -135,7 +135,7 @@ def test_basic_diagnostics_match_pipeline_counters(device, button_pin):
     device.click_button(button_pin)
     device.step_time(350)
     counters = device.counters()
-    device.step_time(0)
+    device.step_time(1000)  # diagnostics attributes refresh once per second
 
     assert int(
         device.read_zigbee_attr(

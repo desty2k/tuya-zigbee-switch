@@ -189,6 +189,7 @@ def test_network_monitor_deduplicates_transitions_and_exposes_diagnostics() -> N
         assert counters["network_losses"] == 1
         assert counters["network_joins"] == 1
         assert counters["last_network_transition_ms"] == 0
+        device.step_time(1000)  # diagnostics attributes refresh once per second
         assert int(device.read_zigbee_attr(
             1, ZCL_CLUSTER_DEVICE_DIAGNOSTICS, ZCL_ATTR_DIAGNOSTICS_NETWORK_TRANSITIONS
         )) == 2
@@ -216,6 +217,7 @@ def test_failed_announce_retries_after_bounded_delay() -> None:
         device.step_time(1)
         device.step_time(0)
         device.wait_for_announce()
+        device.step_time(1000)  # diagnostics attributes refresh once per second
         assert int(device.read_zigbee_attr(
             1, ZCL_CLUSTER_DEVICE_DIAGNOSTICS, ZCL_ATTR_DIAGNOSTICS_ANNOUNCES
         )) == 2
