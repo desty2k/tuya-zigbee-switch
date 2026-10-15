@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Find the pins of a device running the GPIO probe image, through Zigbee2MQTT.
 
-The probe image (a device_db board with `features: [probe]`) answers probe
-commands on the Device Diagnostics cluster; the protocol is defined in
+The probe image (a device_db board whose `features` include `probe`) answers
+probe commands on the Device Diagnostics cluster; the protocol is defined in
 helper_scripts/management_protocol.json. The procedure is in
 docs/contribute/porting.md, section "GPIO probe":
 
@@ -12,7 +12,8 @@ docs/contribute/porting.md, section "GPIO probe":
   heard or seen.
 
 It prints a proposed config string and meter pin map. Nothing is stored on
-the device; a reboot ends every probe operation.
+the device; a reboot ends every probe operation. Pins claimed by the device
+config are not probeable.
 
 Zigbee2MQTT needs the fork's converter for the probe board, which declares the
 cluster's commands and publishes the probe attributes under the `probe` key

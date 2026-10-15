@@ -3131,9 +3131,9 @@ OUTLET_BSEED_TS011F_PROBE:
   tuya_module: null
   mcu_family: Telink
   mcu: TLSR8258
-  config_str: _TZ3210_drzlxjne;TS011F-probe;
+  config_str: _TZ3210_drzlxjne;TS011F-probe;SB4u;RB5;
   alt_config_str: null
-  features: [probe]
+  features: [probe, relay, switch]
   old_manufacturer_names: null
   old_zb_models: null
   stock_manufacturer_id: 4417
@@ -3141,7 +3141,7 @@ OUTLET_BSEED_TS011F_PROBE:
   firmware_image_type: 47116
   build: no
   status: in_progress
-  info: GPIO probe image for pin discovery, not a working outlet firmware; built on demand (docs/contribute/porting.md)
+  info: GPIO probe image for pin discovery with the relay and switch features; built on demand (docs/contribute/porting.md)
   threads: null
   store: null
 OUTLET_MAKEGOOD_PM_TS011F_2GANG:

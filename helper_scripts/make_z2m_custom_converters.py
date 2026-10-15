@@ -29,16 +29,13 @@ if __name__ == "__main__":
     db = yaml.safe_load(db_str)
 
     devices = []
-    probes = []
 
     for device in db.values():
         # A GPIO probe board is built on demand (`build: no`) but still needs its
         # converter: the discovery helper drives it through Zigbee2MQTT.
-        if "probe" in (device.get("features") or []):
-            probes.append({"zb_model": device["config_str"].split(";")[1]})
-            continue
+        is_probe = "probe" in (device.get("features") or [])
         # Skip if build == no. Defaults to yes
-        if not device.get("build", True):
+        if not is_probe and not device.get("build", True):
             continue
 
         config = device["config_str"]
@@ -114,8 +111,10 @@ if __name__ == "__main__":
         devices.append(
             {
                 "zb_models": [zb_model] + (device.get("old_zb_models") or []),
-                "model": device.get("override_z2m_device")
-                or device["stock_converter_model"],
+                # A probe image is its own Zigbee2MQTT model, never the stock one.
+                "model": zb_model if is_probe else (
+                    device.get("override_z2m_device") or device["stock_converter_model"]),
+                "probe": is_probe,
                 "switchNames": switch_names,
                 "relayNames": relay_names,
                 "relayIndicatorNames": relay_names[:indicators_cnt],
@@ -128,6 +127,6 @@ if __name__ == "__main__":
 
     template = env.get_template("switch_custom.js.jinja")
 
-    print(template.render(devices=devices, probes=probes, z2m_v1=args.z2m_v1))
+    print(template.render(devices=devices, z2m_v1=args.z2m_v1))
 
     exit(0)

@@ -580,8 +580,11 @@ const definitions = [
         ],
         model: "{{device.model}}",
         vendor: "Tuya-custom",
+        {% if device.probe %}
+        description: "GPIO probe for pin discovery (helper_scripts/probe_discovery.py)",
+        {% else %}
         description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
-        {% set first_endpoint = device.switchNames[0] if device.switchNames else (device.relayNames[0] if device.relayNames else device.coverNames[0]) %}
+        {% endif %}
         extend: [
             {% if device.switchNames or device.coverSwitchNames %}
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
@@ -655,6 +658,8 @@ const definitions = [
                 commandsResponse: {},
             }),
             {% endif %}
+            {% set first_endpoint = device.switchNames[0] if device.switchNames else (device.relayNames[0] if device.relayNames else (device.coverSwitchNames[0] if device.coverSwitchNames else (device.coverNames[0] if device.coverNames else None))) %}
+            {% if first_endpoint %}
             deviceEndpoints({ endpoints: {
                 {%- for switchName in device.switchNames -%}
                     "{{switchName}}": {{loop.index}},{{" "}}
@@ -669,12 +674,19 @@ const definitions = [
                     "{{coverName}}": {{loop.index + (device.switchNames | length) + (device.relayNames | length) + (device.coverSwitchNames | length)}},{{" "}}
                 {%- endfor -%}
             } }),
-            {% set first_endpoint = device.switchNames[0] if device.switchNames else (device.relayNames[0] if device.relayNames else (device.coverSwitchNames[0] if device.coverSwitchNames else device.coverNames[0])) %}
-            ...romasku.managementClusters(),
+            ...romasku.managementClusters({{ "true" if device.probe }}),
             romasku.deviceConfig("device_config", "{{first_endpoint}}"),
             romasku.multiPressResetCount("multi_press_reset_count", "{{first_endpoint}}"),
             ...romasku.deviceConfigState("{{first_endpoint}}"),
+            {% else %}
+            ...romasku.managementClusters({{ "true" if device.probe }}),
+            romasku.deviceConfig("device_config"),
+            ...romasku.deviceConfigState(),
+            {% endif %}
             ...romasku.diagnosticCounters(),
+            {% if device.probe %}
+            romasku.probe(),
+            {% endif %}
             {% if device.has_dedicated_net_led %}
             romasku.statusLedMode("status_led_mode", "{{first_endpoint}}"),
             {% endif%}
@@ -798,26 +810,6 @@ const definitions = [
             ]);
             {% endfor %}
         },
-        {% if z2m_v1 %}
-        ota: ota.zigbeeOTA,
-        {% else %}
-        ota: true,
-        {% endif%}
-    },
-{% endfor %}
-{% for probe in probes %}
-    {
-        zigbeeModel: ["{{probe.zb_model}}"],
-        model: "{{probe.zb_model}}",
-        vendor: "Tuya-custom",
-        description: "GPIO probe for pin discovery, not a working device (helper_scripts/probe_discovery.py)",
-        extend: [
-            ...romasku.managementClusters(true),
-            romasku.deviceConfig("device_config"),
-            ...romasku.deviceConfigState(),
-            ...romasku.diagnosticCounters(),
-            romasku.probe(),
-        ],
         {% if z2m_v1 %}
         ota: ota.zigbeeOTA,
         {% else %}

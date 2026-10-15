@@ -83,7 +83,7 @@ remain usable when optional diagnostics are unsupported or resource-exhausted.
 | Management topology/integrations | EP1 has Basic, Device Config, Device Diagnostics and OTA in normal and recovery graphs; source integration templates and generated outputs still need the management-protocol conversion |
 | Device schema | flat metadata plus `config_str`; no capability/profile objects |
 | TS0726 target | key `SWITCH_BSEED_TS0726_4GANG`, TLSR8258 router, image type `43627`, eight endpoints |
-| Exact outlet fingerprint | `_TZ3210_drzlxjne` only as the probe board `OUTLET_BSEED_TS011F_PROBE` (`features: [probe]`, no pins); no outlet profile |
+| Exact outlet fingerprint | `_TZ3210_drzlxjne` only as the probe board `OUTLET_BSEED_TS011F_PROBE` (`features: [probe, relay, switch]`, `SB4u;RB5;` from hardware; BL0937 on C2/C3, roles unknown); no outlet profile |
 | Exact cover fingerprint | `_TZ3000_vsj5o7dm` absent from `device_db.yaml` |
 
 ## Target hardware characterization

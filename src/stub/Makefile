@@ -8,9 +8,10 @@ CONFIG ?= X;Y;BA0u;LA1;SA2u;RA3;IA4;
 
 # The default stub contains every feature but the probe; build_switch_only
 # builds the relay + switch image of a wall switch board and build_probe the
-# probe-only image of a GPIO probe board.
+# image of a GPIO probe board (probe + relay + switch).
 include ../features.mk
 SWITCH_ONLY_FEATURES := relay switch
+PROBE_FEATURES := probe relay switch
 
 NVM_MIGRATIONS_VERSION := $(shell cat ../../NVM_MIGRATIONS_VERSION)
 ifeq ($(NVM_MIGRATIONS_VERSION),)
@@ -118,7 +119,7 @@ build_switch_only: $(BUILD_DIR)
 	$(MAKE) build FEATURES="$(SWITCH_ONLY_FEATURES)" BINARY=$(BUILD_DIR)/stub_switch_only
 
 build_probe: $(BUILD_DIR)
-	$(MAKE) build FEATURES="probe" BINARY=$(BUILD_DIR)/stub_probe
+	$(MAKE) build FEATURES="$(PROBE_FEATURES)" BINARY=$(BUILD_DIR)/stub_probe
 
 run: build
 	./$(BINARY) --device-config "$(CONFIG)"
