@@ -4,7 +4,8 @@
 A board's features are its explicit `features` list, or, when the field is
 absent, the features its config tokens need. `interlock` is added to every
 board that can use it: one with a cover, the probe, or a config string with a
-`K` token or more than one relay, so `K` can be added by rewriting the config. The token classification mirrors
+`K` token or more than one relay, so `K` can be added by rewriting the config.
+The token classification mirrors
 src/device_config/config_parser.c: a token belongs to a feature when the code
 it instantiates is compiled only with that feature (src/features.mk).
 
