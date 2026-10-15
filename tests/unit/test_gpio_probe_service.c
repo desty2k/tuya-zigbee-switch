@@ -163,22 +163,59 @@ TEST(pull_test_of_selected_pins_leaves_others_untested) {
     ASSERT_EQ(GPIO_PROBE_CLASS_UNTESTED, class_of(PA0));
 }
 
-TEST(pulse_is_refused_on_pins_not_classified_floating) {
+TEST(pulse_is_refused_on_untested_driven_high_and_active_pins) {
     setup();
     ASSERT_EQ(GPIO_PROBE_STATUS_NOT_FLOATING, gpio_probe_service_arm(PA0));
     stub_gpio_probe_set_driven(PA1, 1);
-    stub_gpio_probe_set_driven(PA2, 0);
     stub_gpio_probe_set_train(PA3, 1300, 600);
     classify_all();
     ASSERT_EQ(GPIO_PROBE_STATUS_NOT_FLOATING, gpio_probe_service_arm(PA1));
-    ASSERT_EQ(GPIO_PROBE_STATUS_NOT_FLOATING, gpio_probe_service_arm(PA2));
     ASSERT_EQ(GPIO_PROBE_STATUS_NOT_FLOATING, gpio_probe_service_arm(PA3));
     ASSERT_EQ(GPIO_PROBE_STATUS_NOT_ARMED, gpio_probe_service_pulse(PA1, 1, 10));
+    ASSERT_EQ(GPIO_PROBE_STATUS_NOT_ARMED, gpio_probe_service_pulse(PA3, 1, 10));
     ASSERT_EQ(GPIO_PROBE_STATUS_NOT_ARMED, gpio_probe_service_pulse(PA0, 1, 10));
     ASSERT_EQ(0, drives(PA0));
     ASSERT_EQ(0, drives(PA1));
-    ASSERT_EQ(0, drives(PA2));
     ASSERT_EQ(0, drives(PA3));
+}
+
+TEST(driven_low_pin_takes_only_a_short_high_pulse) {
+    stub_probe_pin_info_t info;
+
+    setup();
+    stub_gpio_probe_set_driven(PA2, 0);
+    classify_all();
+    ASSERT_EQ(GPIO_PROBE_CLASS_DRIVEN_LOW, class_of(PA2));
+    ASSERT_EQ(GPIO_PROBE_STATUS_OK, gpio_probe_service_arm(PA2));
+    ASSERT_EQ(GPIO_PROBE_STATUS_RANGE, gpio_probe_service_pulse(PA2, 0, 10));
+    ASSERT_EQ(GPIO_PROBE_STATUS_OK, gpio_probe_service_arm(PA2));
+    ASSERT_EQ(GPIO_PROBE_STATUS_RANGE,
+              gpio_probe_service_pulse(PA2, 1, GPIO_PROBE_DRIVEN_LOW_PULSE_MAX_MS + 1));
+    ASSERT_EQ(0, drives(PA2));
+    ASSERT_EQ(GPIO_PROBE_STATUS_OK, gpio_probe_service_arm(PA2));
+    ASSERT_EQ(GPIO_PROBE_STATUS_OK,
+              gpio_probe_service_pulse(PA2, 1, GPIO_PROBE_DRIVEN_LOW_PULSE_MAX_MS));
+    ASSERT_TRUE(stub_gpio_probe_info(PA2, &info));
+    ASSERT_TRUE(info.output_enabled);
+    ASSERT_EQ(1, info.output_level);
+    ASSERT_EQ(1, contention(PA2));
+    run_ms(GPIO_PROBE_DRIVEN_LOW_PULSE_MAX_MS);
+    ASSERT_TRUE(released(PA2));
+    ASSERT_TRUE(stub_gpio_probe_info(PA2, &info));
+    ASSERT_EQ(0, info.output_level);
+    ASSERT_EQ(1, drives(PA2));
+}
+
+TEST(driven_low_pin_must_read_driven_low_right_before_drive) {
+    setup();
+    stub_gpio_probe_set_driven(PA2, 0);
+    classify_all();
+    ASSERT_EQ(GPIO_PROBE_STATUS_OK, gpio_probe_service_arm(PA2));
+    stub_gpio_probe_set_floating(PA2);
+    ASSERT_EQ(GPIO_PROBE_STATUS_VERIFY_FAILED, gpio_probe_service_pulse(PA2, 1, 10));
+    ASSERT_EQ(GPIO_PROBE_CLASS_FLOATING, class_of(PA2));
+    ASSERT_TRUE(released(PA2));
+    ASSERT_EQ(0, drives(PA2));
 }
 
 TEST(each_pulse_needs_its_own_arm) {
@@ -447,7 +484,9 @@ int main(void) {
     RUN_TEST(snapshot_reads_levels_without_changing_modes);
     RUN_TEST(pull_test_classifies_floating_driven_and_active_pins);
     RUN_TEST(pull_test_of_selected_pins_leaves_others_untested);
-    RUN_TEST(pulse_is_refused_on_pins_not_classified_floating);
+    RUN_TEST(pulse_is_refused_on_untested_driven_high_and_active_pins);
+    RUN_TEST(driven_low_pin_takes_only_a_short_high_pulse);
+    RUN_TEST(driven_low_pin_must_read_driven_low_right_before_drive);
     RUN_TEST(each_pulse_needs_its_own_arm);
     RUN_TEST(arm_expires);
     RUN_TEST(pin_must_follow_both_pulls_right_before_drive);
