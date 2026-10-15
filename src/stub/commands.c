@@ -645,6 +645,26 @@ static int cmd_read_pin(int argc, char **argv) {
     return 0;
 }
 
+static int cmd_pin_state(int argc, char **argv) {
+    stub_gpio_pin_state_t state;
+    char *e;
+    long  pin;
+
+    if (argc != 2) {
+        fprintf(stderr, "Usage: pin_state <pin>\n");
+        io_res_err("usage");
+        return -1;
+    }
+    pin = strtol(argv[1], &e, 10);
+    if (*argv[1] == '\0' || *e || pin < 0 || !stub_gpio_pin_state((hal_gpio_pin_t)pin, &state)) {
+        io_res_err("bad_pin=%s", argv[1]);
+        return -1;
+    }
+    io_res_ok("pin=%ld initialized=%u input=%u pull=%u value=%u", pin, state.initialized,
+              state.is_input, (unsigned)state.pull, state.value);
+    return 0;
+}
+
 /* pulse_rate <pin> <mHz> [<gate pin> <gate level>]: counter-only pulse train. */
 static int cmd_pulse_rate(int argc, char **argv) {
     hal_gpio_pin_t pin;
@@ -1066,6 +1086,7 @@ static const SimpleReplCommand kCmds[] = {
     { "set_pin",                 cmd_pin                     },
     { "pin_edge",                cmd_pin_edge                },
     { "read_pin",                cmd_read_pin                },
+    { "pin_state",               cmd_pin_state               },
     { "pulse_rate",              cmd_pulse_rate              },
     { "zcl_read",                cmd_zcl_read                },
     { "zcl_write",               cmd_zcl_write               },

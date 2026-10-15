@@ -6,6 +6,7 @@ _Open the **Outline** (table of contents) from the top right._
 
 Please describe what you are working on, under ## Upcoming
 
+- A device whose stored config the image rejects (for example a cover config under an image without the cover feature: `LastError` `FEATURE_MISSING`) holds every general-purpose pin on the pull-down in its recovery graph. The pins were left floating, so relay driver inputs picked up mains hum: the BSEED TS130F shutter hummed and chattered both motor relays.
 - Power monitoring for BL0937 outlets: the `EB<CF><CF1><SEL>[i]` config token adds voltage, current and active power (Electrical Measurement `0x0B04`) and energy (Metering `0x0702`) on endpoint 1, plus calibration gains and a Reset Energy command on the fork-private Meter Calibration cluster (`0xFC12`). Energy and calibration survive reboots and OTA. New board `OUTLET_BSEED_TS011F_PM_DRZLXJNE` (TS011F `_TZ3210_drzlxjne`); its default calibration is not yet checked against a reference meter.
 ------------------------------------------------------->
 

@@ -17,8 +17,8 @@ typedef char telink_gpio_pin_encoding_matches_sdk[
 
 // GPIO config tracking for deep retention re-init
 // After deep retention wake, all GPIO SFRs are lost and must be replayed.
-// The TLSR8258 has 36 GPIOs (A0..D7, E0..E3); a device config uses far fewer
-// than 32.
+// The TLSR8258 has 36 GPIOs (A0..D7, E0..E3); every recorded pin is one of
+// the 32 pins of ports A-D (device config pins and the recovery rest set).
 #define MAX_GPIO_CONFIGS    32
 
 
@@ -93,6 +93,50 @@ void hal_gpio_init(hal_gpio_pin_t gpio_pin, uint8_t is_input,
     config->is_input = is_input;
     config->value    = 0;
     config->pull     = pull;
+}
+
+/*
+ * TLSR8258 general-purpose pins: ports A-D. Left out: PA7 (SWS, the only way
+ * back to stock firmware), port E (PE0-PE3 are the internal flash SPI), PB1
+ * when the debug UART transmits on it, PC2/PC3 when a 32 kHz crystal is
+ * fitted. The 24 MHz crystal has dedicated pads.
+ */
+static const hal_gpio_pin_t rest_pins[] = {
+    GPIO_PA0, GPIO_PA1, GPIO_PA2, GPIO_PA3, GPIO_PA4, GPIO_PA5, GPIO_PA6,
+    GPIO_PB0,
+#if !UART_PRINTF_MODE
+    GPIO_PB1,
+#endif
+    GPIO_PB2, GPIO_PB3, GPIO_PB4, GPIO_PB5, GPIO_PB6, GPIO_PB7,
+    GPIO_PC0, GPIO_PC1,
+#if !defined(CLOCK_32K_EXT_CRYSTAL) || !CLOCK_32K_EXT_CRYSTAL
+    GPIO_PC2, GPIO_PC3,
+#endif
+    GPIO_PC4, GPIO_PC5, GPIO_PC6, GPIO_PC7,
+    GPIO_PD0, GPIO_PD1, GPIO_PD2, GPIO_PD3, GPIO_PD4, GPIO_PD5, GPIO_PD6,
+    GPIO_PD7,
+};
+
+uint8_t telink_gpio_rest_pins(const hal_gpio_pin_t **pins) {
+    *pins = rest_pins;
+    return (uint8_t)(sizeof(rest_pins) / sizeof(rest_pins[0]));
+}
+
+/*
+ * The output latch is cleared first: a PA or PD pad whose latch holds 1 keeps
+ * reading 1 with its output disabled and the 100 kOhm pull-down applied.
+ * hal_gpio_init() records the pin, so a deep-retention wake restores it.
+ */
+void hal_gpio_rest_all(void) {
+    for (uint8_t i = 0; i < sizeof(rest_pins) / sizeof(rest_pins[0]); i++) {
+        GPIO_PinTypeDef pin = (GPIO_PinTypeDef)rest_pins[i];
+
+        if (gpio_is_output_en(pin)) {
+            continue;
+        }
+        gpio_write(pin, 0);
+        hal_gpio_init(rest_pins[i], 1, HAL_GPIO_PULL_DOWN);
+    }
 }
 
 void telink_gpio_reinit_after_deep_retention(void) {

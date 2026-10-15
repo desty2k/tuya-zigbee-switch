@@ -34,6 +34,18 @@ TS0726_4GANG_CONFIG = (
     "pzao9ls1;BS4;LC1;SD3u;RA0;ID2;SD7u;RA1;IB4;SD4u;RC2;IB5;SB6u;RC3;IC4;M;"
 )
 
+# hal_gpio_pull_t in src/hal/gpio.h
+HAL_GPIO_PULL_UP = 1
+HAL_GPIO_PULL_DOWN = 3
+
+# Every TLSR8258 pin hal_gpio_rest_all() holds: ports A-D without PA7 (SWS).
+TLSR8258_REST_PINS = [f"{port}{index}" for port in "ABCD" for index in range(8)
+                      if (port, index) != ("A", 7)]
+
+# Shutter whose motor relays C0/D3 floated and chattered under an image
+# without the cover feature.
+TS130F_CONFIG = "vsj5o7dm;TS130F-BS-CVR;LB4i;XB6A1A0u;CD3C0;IC3;IB5;PD2;M;"
+
 EXCLUDED_FEATURE_CONFIGS = [
     "M;Cover;CB0B1;",
     "M;CoverSwitch;XA0A1u;RB0;",
@@ -96,6 +108,37 @@ def test_token_for_excluded_feature_boots_recovery_graph(config: str) -> None:
         )
         # Relays named before the rejected token stay off.
         assert device.get_gpio("B2", refresh=True) is False
+
+
+@pytest.mark.parametrize("config", EXCLUDED_FEATURE_CONFIGS + [TS130F_CONFIG])
+def test_recovery_graph_rests_every_pin_on_the_pull_down(config: str) -> None:
+    with StubProc(cmd=SWITCH_ONLY_CMD, device_config=config) as proc:
+        device = Device(proc)
+        assert device.read_zigbee_attr(
+            1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_MODEL_ID
+        ) == "recovery"
+        assert _config_state(device) == (
+            str(DEVICE_CONFIG_STATUS_ERROR),
+            str(DEVICE_CONFIG_ERROR_FEATURE_MISSING),
+        )
+        for pin in TLSR8258_REST_PINS:
+            assert device.pin_state(pin) == {
+                "initialized": 1, "input": 1, "pull": HAL_GPIO_PULL_DOWN, "value": 0,
+            }, pin
+        # SWS stays as the SDK left it.
+        assert device.pin_state("A7")["initialized"] == 0
+
+
+def test_normal_boot_leaves_unclaimed_pins_untouched() -> None:
+    with StubProc(cmd=SWITCH_ONLY_CMD, device_config="M;Relay;SA0u;RB0;") as proc:
+        device = Device(proc)
+        assert device.pin_state("A0") == {
+            "initialized": 1, "input": 1, "pull": HAL_GPIO_PULL_UP, "value": 1,
+        }
+        assert device.pin_state("B0")["input"] == 0
+        for pin in TLSR8258_REST_PINS:
+            if pin not in ("A0", "B0"):
+                assert device.pin_state(pin)["initialized"] == 0, pin
 
 
 @pytest.mark.parametrize("config", EXCLUDED_FEATURE_CONFIGS)

@@ -47,6 +47,16 @@ void hal_gpio_init(hal_gpio_pin_t gpio_pin, uint8_t is_input,
                    hal_gpio_pull_t pull);
 
 /**
+ * Hold every general-purpose pin that is not an output as an input with the
+ * pull-down. A pin nothing configured otherwise stays in its reset state,
+ * which floats on Telink and Silabs: a relay driver input behind it picks up
+ * mains hum and half-energises the coil. Outputs keep their direction and
+ * level. Pins the platform needs for itself (debug interface, flash, crystal,
+ * debug UART) are left out; each platform lists its set.
+ */
+void hal_gpio_rest_all(void);
+
+/**
  * Set output pin high
  * @param gpio_pin GPIO pin identifier
  */

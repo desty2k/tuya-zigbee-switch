@@ -3,6 +3,9 @@
 #include "hal/timer.h"
 #include "stub/machine_io.h"
 #include "stub/hal/gpio_counter.h"
+#if FEATURE_PROBE
+#include "stub/hal/gpio_probe.h"
+#endif
 #include "stub/hal/stub.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -45,6 +48,47 @@ void hal_gpio_init(hal_gpio_pin_t gpio_pin, uint8_t is_input,
 
     io_log("GPIO", "Init pin %d as %s, pull=%d", gpio_pin,
            is_input ? "input" : "output", pull);
+}
+
+/*
+ * The rest set of the TLSR8258 (src/telink/hal/gpio.c) in its pin encoding:
+ * ports A-D, PA7 (SWS) left out. Probe images rest the probe model's pins
+ * too: on the device both models are the same pads.
+ */
+void hal_gpio_rest_all(void) {
+    for (uint8_t port = 0; port < 4; port++) {
+        for (uint8_t index = 0; index < 8; index++) {
+            hal_gpio_pin_t   pin   = (hal_gpio_pin_t)(((uint16_t)port << 8) | (1U << index));
+            stub_gpio_pin_t *state = &gpio_pins[pin];
+
+            if ((port == 0 && index == 7) ||
+                (state->initialized && !state->is_input)) {
+                continue;
+            }
+            if (!state->initialized) {
+                state->last_level = 0;
+            }
+            state->initialized = 1;
+            state->value       = 0;
+            state->is_input    = 1;
+            state->pull        = HAL_GPIO_PULL_DOWN;
+#if FEATURE_PROBE
+            hal_gpio_probe_input(HAL_GPIO_PROBE_ID(port, index), HAL_GPIO_PULL_DOWN);
+#endif
+            io_log("GPIO", "Rest pin %d on the pull-down", pin);
+        }
+    }
+}
+
+bool stub_gpio_pin_state(hal_gpio_pin_t gpio_pin, stub_gpio_pin_state_t *out) {
+    if (gpio_pin >= MAX_GPIO_PINS) {
+        return false;
+    }
+    out->initialized = gpio_pins[gpio_pin].initialized;
+    out->is_input    = gpio_pins[gpio_pin].is_input;
+    out->pull        = gpio_pins[gpio_pin].pull;
+    out->value       = gpio_pins[gpio_pin].value;
+    return true;
 }
 
 void hal_gpio_set(hal_gpio_pin_t gpio_pin) {

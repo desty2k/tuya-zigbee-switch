@@ -26,6 +26,12 @@ static inline hal_gpio_pin_t telink_gpio_pin_from_text(const char *s) {
     return (hal_gpio_pin_t)(((uint16_t)port << 8) | (1U << index));
 }
 
+/*
+ * Pins hal_gpio_rest_all() holds on the pull-down, which are also the GPIO
+ * probe's table; returns the count and points *pins at them.
+ */
+uint8_t telink_gpio_rest_pins(const hal_gpio_pin_t **pins);
+
 /* Pin index 0..7 of a pin id; the id carries exactly one bit of its port. */
 static inline uint8_t telink_gpio_pin_index(hal_gpio_pin_t pin) {
     uint8_t mask  = (uint8_t)(pin & 0xFFu);

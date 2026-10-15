@@ -52,10 +52,10 @@ void gpio_probe_service_init(void);
 /** Keep a pin owned by a configured feature out of every probe operation. */
 void gpio_probe_service_claim(uint8_t port, uint8_t index);
 
-/** Put every unclaimed pin in its rest state: input with the pull-down. */
-void gpio_probe_service_rest_pins(void);
-
-/** Rest the unclaimed pins and accept commands once the device graph is built. */
+/**
+ * Put every unclaimed pin in its rest state (input with the pull-down) and
+ * accept commands once the device graph is built.
+ */
 void gpio_probe_service_enable(void);
 
 /** Probeable pins, in the order every per-pin result uses; none while disabled. */
