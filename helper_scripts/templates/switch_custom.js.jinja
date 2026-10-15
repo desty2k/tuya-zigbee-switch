@@ -292,7 +292,7 @@ const romasku = {
             lookup: { same: 0, opposite: 1, manual: 2 },
             cluster: "genOnOff",
             attribute: { ID: 0xff01, type: 0x30 }, // Enum8
-            description: "Mode for the relay indicator LED",
+            description: "Mode for the relay indicator LED: same or opposite to the relay, or manual (keeps its current state and then follows only the relay indicator setting)",
             entityCategory: "config",
         }),
     relayIndicator: (name, endpointName) =>
@@ -305,6 +305,9 @@ const romasku = {
             attribute: {ID: 0xff02, type: 0x10},  // Boolean
             description: "State of the relay indicator LED",
             access: "ALL",
+            // Reported so the state stays true when the mode changes: entering
+            // manual mode keeps the LED as it was.
+            reporting: {min: 0, max: "1_HOUR", change: 1},
             entityCategory: "config",
         }),
     batteryPercentage: () => {
