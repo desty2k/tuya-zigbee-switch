@@ -76,7 +76,7 @@ def generate(script: str, *args: str) -> str:
 
 def z2m_attribute_lines(text: str) -> list[tuple[str, int, int, bool]]:
     return [(name, int(attr_id, 16), Z2M_TYPES[kind], bool(write)) for name, attr_id, kind, write in
-            re.findall(r"^\s+(\w+): \{ID: (0x[0-9A-Fa-f]{4}), type: Zcl\.DataType\.(\w+)(, write: true)?\},$",
+            re.findall(r"^\s+(\w+): \{name: \"\1\", ID: (0x[0-9A-Fa-f]{4}), type: Zcl\.DataType\.(\w+)(, write: true)?\},$",
                        text, re.MULTILINE)]
 
 
@@ -209,8 +209,8 @@ def test_management_protocol_matches_the_firmware(firmware) -> None:
 def test_parity_check_reports_a_mismatch(firmware) -> None:
     text = generate("make_z2m_custom_converters.py")
     assert mismatches(z2m_references(text), firmware) == []
-    wrong_type = text.replace("overrun: {ID: 0xff06, type: Zcl.DataType.UINT16",
-                              "overrun: {ID: 0xff06, type: Zcl.DataType.UINT32")
+    wrong_type = text.replace("overrun: {name: \"overrun\", ID: 0xff06, type: Zcl.DataType.UINT16",
+                              "overrun: {name: \"overrun\", ID: 0xff06, type: Zcl.DataType.UINT32")
     assert any("0xFF06: type" in e for e in mismatches(z2m_references(wrong_type), firmware))
     wrong_code = text.replace("    manufacturerCode: 0x1A2B,", "    manufacturerCode: 0x125D,", 1)
     assert any("manufacturer code" in e for e in mismatches(z2m_references(wrong_code), firmware))

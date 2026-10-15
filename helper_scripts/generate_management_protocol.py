@@ -178,7 +178,7 @@ def z2m_attributes(attributes, indent):
     lines = []
     for attr_id, name, _, z2m_type, access, _ in attributes:
         write = ", write: true" if access == "rw" else ""
-        lines.append(f"{indent}{camel(name)}: {{ID: 0x{attr_id:04X}, type: Zcl.DataType.{z2m_type}{write}}},")
+        lines.append(f"{indent}{camel(name)}: {{name: \"{camel(name)}\", ID: 0x{attr_id:04X}, type: Zcl.DataType.{z2m_type}{write}}},")
     return lines
 
 
