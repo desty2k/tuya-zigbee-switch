@@ -52,7 +52,7 @@ from zcl_consts import ZCL_ATTR_BASIC_MODEL_ID, ZCL_CLUSTER_BASIC
 PROBE_CMD = ["./build/stub/stub_probe"]
 PROBE_CONFIG = "_TZ3210_drzlxjne;TS011F-probe;"
 # Button B4 (active low, pull-up) and relay B5 found on the TS011F outlet.
-OUTLET_CONFIG = PROBE_CONFIG + "SB4u;RB5;"
+OUTLET_CONFIG = PROBE_CONFIG + "SB4u;RB5;IC4;M;"
 TLSR8258_PROBE_PINS = [f"{port}{index}" for port in "ABCD" for index in range(8)
                        if (port, index) != ("A", 7)]
 
@@ -365,18 +365,24 @@ def test_config_written_over_zigbee_drives_its_pins_and_probe_keeps_the_rest() -
         assert device.read_zigbee_attr(1, ZCL_CLUSTER_DEVICE_CONFIG,
                                        ZCL_ATTR_DEVICE_CONFIG_TEXT) == OUTLET_CONFIG
 
-        # Endpoint 1 is the switch, endpoint 2 the relay.
+        # Endpoint 1 is the switch, endpoint 2 the relay; the C4 indicator
+        # follows the relay.
         device.zcl_relay_on(2)
         assert device.get_gpio("B5", refresh=True)
+        assert device.get_gpio("C4", refresh=True)
         device.zcl_relay_off(2)
         assert not device.get_gpio("B5", refresh=True)
-        device.press_button("B4")              # toggle switch mode: each edge toggles
+        assert not device.get_gpio("C4", refresh=True)
+        # `M`: the button is momentary, so one press and release toggles once.
+        device.press_button("B4")
+        device.release_button("B4")
         assert device.zcl_relay_get(2) == "1"
         assert device.get_gpio("B5", refresh=True)
+        assert device.get_gpio("C4", refresh=True)
 
         pins = probe.pins()
-        assert "B4" not in pins and "B5" not in pins
-        assert len(pins) == len(TLSR8258_PROBE_PINS) - 2
+        assert "B4" not in pins and "B5" not in pins and "C4" not in pins
+        assert len(pins) == len(TLSR8258_PROBE_PINS) - 3
         for pin in ("B4", "B5"):
             assert probe.arm(pin) == "INVALID_VALUE"
             assert probe.status() == GPIO_PROBE_STATUS_BAD_PIN

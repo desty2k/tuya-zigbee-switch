@@ -122,8 +122,8 @@ own `firmware_image_type`, and the stock `stock_manufacturer_id` /
 manufacturer and model fields and the pins found so far; every pin the config
 claims is driven by its feature and left out of the probe.
 Example: `OUTLET_BSEED_TS011F_PROBE` for TS011F `_TZ3210_drzlxjne`, with
-`features: [probe, relay, switch]` and the button and relay found on hardware
-(`SB4u;RB5;`).
+`features: [probe, relay, switch]` and the button, relay and relay indicator
+found on hardware, with the button momentary (`SB4u;RB5;IC4;M;`).
 
 With `relay` and `switch` in the image, a candidate config string is tested
 on the device without reflashing: write it to the Device Config `text`
