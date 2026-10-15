@@ -3144,6 +3144,34 @@ OUTLET_BSEED_TS011F_PROBE:
   info: GPIO probe image for pin discovery with the relay and switch features; built on demand (docs/contribute/porting.md)
   threads: null
   store: null
+COVER_BSEED_TS130F_PROBE:
+  human_name: BSEED shutter switch GPIO probe (vsj5o7dm)
+  category: cover
+  power: mains
+  neutral: required
+  output: relay
+  device_type: router
+  stock_model_name: TS130F
+  stock_manufacturer_name: _TZ3000_vsj5o7dm
+  stock_converter_manufacturer: Tuya
+  stock_converter_model: TS130F
+  override_z2m_device: null
+  tuya_module: null
+  mcu_family: Telink
+  mcu: TLSR8258
+  config_str: _TZ3000_vsj5o7dm;TS130F-probe;
+  alt_config_str: null
+  features: [probe, relay, switch]
+  old_manufacturer_names: null
+  old_zb_models: null
+  stock_manufacturer_id: 4417
+  stock_image_type: 54179
+  firmware_image_type: 47118
+  build: no
+  status: in_progress
+  info: GPIO probe image for pin discovery with the relay and switch features; motor relays need the interlock, which the probe board carries; built on demand (docs/contribute/porting.md)
+  threads: null
+  store: null
 OUTLET_BSEED_TS011F_PM_DRZLXJNE:
   human_name: BSEED PM outlet (drzlxjne)
   category: outlet
