@@ -19,8 +19,10 @@
  *  - one pin at a time, never a pin under watch or pull test;
  *  - the pin must follow both pulls again right before it is driven;
  *  - 1 to GPIO_PROBE_PULSE_MAX_MS ms; the cutoff runs from a task and is
- *    re-checked by gpio_probe_service_poll(); a pulse whose task cannot be
- *    armed is refused before the pin is driven;
+ *    re-checked by gpio_probe_service_poll(), both on the main loop, not in
+ *    an interrupt. If the main loop stalls, the platform watchdog reset
+ *    (Telink: 1 s) is the backstop, and the probe touches no pin at boot.
+ *    A pulse whose task cannot be armed is refused before the pin is driven;
  *  - stop, cutoff and the end of every operation return the pins it touched
  *    to input without pull.
  */

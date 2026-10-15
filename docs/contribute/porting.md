@@ -167,9 +167,9 @@ defined in `helper_scripts/management_protocol.json`):
 | --- | --- |
 | Boot | No pin is touched; nothing is persisted |
 | Snapshot | Reads every probeable pin without changing its mode |
-| Pull test | Pull-up, pull-down, twice, 25 ms each; classifies each pin *floating*, *driven high*, *driven low* or *active*; ends with no pull |
+| Pull test | Pull-up (10 kΩ), pull-down (100 kΩ), twice, 25 ms each; classifies each pin *floating*, *driven high*, *driven low* or *active*; ends with no pull. A relay driven through a transistor with a base resistor of about 20 kΩ or more classifies *floating* and may click during the pull-up phases; one with a low base resistor (a few kΩ) reads *driven low* and is never pulsed |
 | Watch | Counts rising edges on up to 2 pins for 1–300 s: count, min/max interval, last level; a pin above 20 kHz is stopped and flagged |
-| Arm + pulse | Drives one *floating* pin to a level for 1–500 ms, then input without pull. Needs an arm before each pulse; the pin must follow both pulls again right before it is driven; cutoff by timer and main loop |
+| Arm + pulse | Drives one *floating* pin to a level for 1–500 ms, then input without pull. Needs an arm before each pulse; the pin must follow both pulls again right before it is driven. The cutoff runs on the main loop (a task, re-checked every pass), not in an interrupt; if the main loop stalls, the 1 s watchdog reset is the backstop, so a pulse can last up to about 1 s |
 | Stop | Ends every operation, returns its pins to input without pull |
 
 Pins needed by the platform (TLSR8258 SWS `PA7`, flash `PE0`–`PE3`, debug UART
