@@ -7,6 +7,7 @@
 typedef struct {
     uint8_t                      first;
     uint8_t                      second;
+    uint16_t                     hold_ms;
     child_lock_gesture_enabled_t enabled;
     void *                       context;
 } child_lock_gesture_t;
@@ -61,9 +62,7 @@ static void track_gestures(const button_event_t *event, void *arg) {
     for (uint8_t i = 0; i < gesture_count; i++) {
         if (gesture_held(&gestures[i])) {
             armed_gesture = i;
-            (void)timer_restart(&hold_timer,
-                                gestures[i].second == CHILD_LOCK_NO_BUTTON ?
-                                CHILD_LOCK_SINGLE_HOLD_MS : CHILD_LOCK_PAIR_HOLD_MS);
+            (void)timer_restart(&hold_timer, gestures[i].hold_ms);
             return;
         }
     }
@@ -85,13 +84,13 @@ void child_lock_register_input(void) {
     button_dispatcher_register(track_gestures, NULL);
 }
 
-bool child_lock_add_gesture(uint8_t first, uint8_t second,
+bool child_lock_add_gesture(uint8_t first, uint8_t second, uint16_t hold_ms,
                             child_lock_gesture_enabled_t enabled, void *context) {
     if (gesture_count >= CHILD_LOCK_GESTURE_MAX || first >= BUTTON_INPUT_MAX ||
         (second != CHILD_LOCK_NO_BUTTON && second >= BUTTON_INPUT_MAX)) {
         return false;
     }
-    gestures[gesture_count++] = (child_lock_gesture_t){ first, second, enabled, context };
+    gestures[gesture_count++] = (child_lock_gesture_t){ first, second, hold_ms, enabled, context };
     return true;
 }
 

@@ -36,6 +36,7 @@ from zcl_consts import (
 DEVICE_CONFIG_ERROR_PARSE = 2
 DEVICE_CONFIG_ERROR_NVM = 4
 PAIR_HOLD_MS = 3000
+STOP_HOLD_MS = 3000
 SINGLE_HOLD_MS = 10_000
 # Blinks are 250 ms on and 250 ms off; 3 blinks end within 1.5 s.
 BLINKS_DONE_MS = 1600
@@ -125,11 +126,11 @@ def bound_commands(d: Device) -> list:
 # ---------------------------------------------------------------------------
 
 
-def test_cover_hold_open_and_close_3s_locks_with_three_blinks(shutter: Device):
+def test_cover_hold_stop_3s_locks_with_three_blinks(shutter: Device):
     assert lock_state(shutter) == "0"
     shutter.clear_events()
 
-    hold(shutter, ("B6", "A1"), PAIR_HOLD_MS)
+    hold(shutter, ("A0",), STOP_HOLD_MS)
     shutter.step_time(BLINKS_DONE_MS)
 
     assert lock_state(shutter) == "1"
@@ -140,7 +141,7 @@ def test_cover_hold_open_and_close_3s_locks_with_three_blinks(shutter: Device):
 
 def test_cover_release_before_3s_does_not_lock(shutter: Device):
     shutter.clear_events()
-    hold(shutter, ("B6", "A1"), PAIR_HOLD_MS - 200)
+    hold(shutter, ("A0",), STOP_HOLD_MS - 200)
     shutter.step_time(BLINKS_DONE_MS)
 
     assert lock_state(shutter) == "0"
@@ -148,13 +149,28 @@ def test_cover_release_before_3s_does_not_lock(shutter: Device):
 
 
 def test_cover_repress_restarts_the_3s_hold(shutter: Device):
-    hold(shutter, ("B6", "A1"), PAIR_HOLD_MS - 500)
-    shutter.press_button("B6")
-    shutter.press_button("A1")
+    hold(shutter, ("A0",), STOP_HOLD_MS - 500)
+    shutter.press_button("A0")
     shutter.step_time(1000)
     assert lock_state(shutter) == "0"
-    shutter.step_time(PAIR_HOLD_MS - 1000)
+    shutter.step_time(STOP_HOLD_MS - 1000)
     assert lock_state(shutter) == "1"
+
+
+def test_cover_with_stop_button_ignores_holding_open_and_close(shutter: Device):
+    # Touch chips that report one pad at a time cannot hold open and close
+    # together, so a cover switch with a stop button locks from the stop hold.
+    hold(shutter, ("B6", "A1"), PAIR_HOLD_MS + 500)
+    shutter.step_time(BLINKS_DONE_MS)
+    assert lock_state(shutter) == "0"
+
+
+def test_cover_without_stop_button_locks_from_open_and_close():
+    with StubProc(device_config="Mfr;Model;LB4;XB6A1u;CD3C0;PD2;M;").start() as p:
+        d = Device(p)
+        d.step_time(MINIMUM_SWITCH_TIME_MS)
+        hold(d, ("B6", "A1"), PAIR_HOLD_MS)
+        assert lock_state(d) == "1"
 
 
 def test_cover_short_open_and_close_press_still_stops(shutter: Device):
@@ -222,17 +238,17 @@ def test_cover_zigbee_commands_drive_a_locked_cover(shutter: Device):
 
 
 def test_cover_hold_again_unlocks_with_two_blinks(shutter: Device):
-    hold(shutter, ("B6", "A1"), PAIR_HOLD_MS)
+    hold(shutter, ("A0",), STOP_HOLD_MS)
     shutter.step_time(BLINKS_DONE_MS)
     shutter.clear_events()
 
-    hold(shutter, ("B6", "A1"), PAIR_HOLD_MS)
+    hold(shutter, ("A0",), STOP_HOLD_MS)
     shutter.step_time(BLINKS_DONE_MS)
 
     assert lock_state(shutter) == "0"
-    # The two presses of the gesture start while locked and blink once each
-    # (the second restarts the first blink); then the two unlock blinks.
-    assert led_switched_on(shutter, "D2") == 2 + 2
+    # The stop press starts while locked and blinks once; then the two
+    # unlock blinks.
+    assert led_switched_on(shutter, "D2") == 1 + 2
     assert led(shutter, "D2") == 0
 
     shutter.click_button("B6")
@@ -241,7 +257,7 @@ def test_cover_hold_again_unlocks_with_two_blinks(shutter: Device):
 
 
 def test_cover_lock_led_stays_dark_while_locked(shutter: Device):
-    hold(shutter, ("B6", "A1"), PAIR_HOLD_MS)
+    hold(shutter, ("A0",), STOP_HOLD_MS)
     shutter.step_time(10_000)
     assert lock_state(shutter) == "1"
     assert led(shutter, "D2") == 0
@@ -266,7 +282,7 @@ def test_remote_lock_write_is_silent_and_rejects_non_boolean(shutter: Device):
 
 
 def test_lock_survives_reboot(shutter: Device):
-    hold(shutter, ("B6", "A1"), PAIR_HOLD_MS)
+    hold(shutter, ("A0",), STOP_HOLD_MS)
     shutter.step_time(BLINKS_DONE_MS)
     shutter.p.stop()
 
@@ -301,7 +317,7 @@ def test_cover_without_lock_led_falls_back_to_status_led():
     try:
         backlight = led(d, "B4")
         d.clear_events()
-        hold(d, ("B6", "A1"), PAIR_HOLD_MS)
+        hold(d, ("A0",), STOP_HOLD_MS)
         d.step_time(BLINKS_DONE_MS)
         assert lock_state(d) == "1"
         assert led_switched_on(d, "B4") >= 3
@@ -512,11 +528,11 @@ def test_switch_type_changed_to_toggle_during_the_hold_does_not_lock(two_gang: D
 
 def test_toggle_cover_switch_does_not_lock(shutter: Device):
     shutter.zcl_cover_switch_set_switch_type(SHUTTER_SWITCH_EP, ZCL_COVER_SWITCH_TYPE_TOGGLE)
-    hold(shutter, ("B6", "A1"), PAIR_HOLD_MS + 1000)
+    hold(shutter, ("A0",), STOP_HOLD_MS + 1000)
     assert lock_state(shutter) == "0"
 
     shutter.zcl_cover_switch_set_switch_type(SHUTTER_SWITCH_EP, ZCL_COVER_SWITCH_TYPE_MOMENTARY)
-    hold(shutter, ("B6", "A1"), PAIR_HOLD_MS)
+    hold(shutter, ("A0",), STOP_HOLD_MS)
     assert lock_state(shutter) == "1"
 
 
@@ -540,7 +556,7 @@ def test_multi_press_factory_reset_releases_the_lock(outlet: Device):
 def test_failed_store_keeps_the_gesture_from_toggling(shutter: Device):
     shutter.clear_events()
     assert shutter.p.exec("nvm_fail 1").ok
-    hold(shutter, ("B6", "A1"), PAIR_HOLD_MS)
+    hold(shutter, ("A0",), STOP_HOLD_MS)
     shutter.step_time(BLINKS_DONE_MS)
 
     assert lock_state(shutter) == "0"
@@ -572,6 +588,6 @@ def test_gesture_keeps_an_unrelated_last_error(shutter: Device):
     assert not res.ok
     assert last_error(shutter) == str(DEVICE_CONFIG_ERROR_NVM)
 
-    hold(shutter, ("B6", "A1"), PAIR_HOLD_MS)
+    hold(shutter, ("A0",), STOP_HOLD_MS)
     assert lock_state(shutter) == "1"
     assert last_error(shutter) == str(DEVICE_CONFIG_ERROR_NVM)

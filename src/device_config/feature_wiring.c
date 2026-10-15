@@ -942,18 +942,26 @@ static bool switch_lock_gesture_enabled(void *context) {
 static void wire_child_lock_gestures(void) {
 #if FEATURE_COVER
     for (uint8_t i = 0; i < cover_switch_clusters_cnt; i++) {
-        (void)child_lock_add_gesture(cover_switch_clusters[i].open_button_id,
-                                     cover_switch_clusters[i].close_button_id,
-                                     cover_switch_lock_gesture_enabled, &cover_switch_clusters[i]);
+        zigbee_cover_switch_cluster *cluster = &cover_switch_clusters[i];
+
+        if (cluster->stop_button_id != DEVICE_COMPOSITION_NO_BUTTON) {
+            (void)child_lock_add_gesture(cluster->stop_button_id, CHILD_LOCK_NO_BUTTON,
+                                         CHILD_LOCK_STOP_HOLD_MS,
+                                         cover_switch_lock_gesture_enabled, cluster);
+        } else {
+            (void)child_lock_add_gesture(cluster->open_button_id, cluster->close_button_id,
+                                         CHILD_LOCK_PAIR_HOLD_MS,
+                                         cover_switch_lock_gesture_enabled, cluster);
+        }
     }
 #endif
 #if FEATURE_SWITCH
     if (switch_clusters_cnt >= 2) {
         (void)child_lock_add_gesture(switch_clusters[0].button_id, switch_clusters[1].button_id,
-                                     switch_lock_gesture_enabled, NULL);
+                                     CHILD_LOCK_PAIR_HOLD_MS, switch_lock_gesture_enabled, NULL);
     } else if (switch_clusters_cnt == 1) {
         (void)child_lock_add_gesture(switch_clusters[0].button_id, CHILD_LOCK_NO_BUTTON,
-                                     switch_lock_gesture_enabled, NULL);
+                                     CHILD_LOCK_SINGLE_HOLD_MS, switch_lock_gesture_enabled, NULL);
     }
 #endif
 }

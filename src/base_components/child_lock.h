@@ -9,6 +9,11 @@
 /* Hold time of a two-button lock gesture, in ms. */
 #define CHILD_LOCK_PAIR_HOLD_MS      3000
 
+/* Hold time of a cover stop button lock gesture, in ms. A stop hold has no
+ * other action, and touch panels whose touch chip reports one pad at a time
+ * cannot hold open and close together. */
+#define CHILD_LOCK_STOP_HOLD_MS      3000
+
 /* Hold time of a one-button lock gesture, in ms. Longer than the longest
  * long-press duration the converters offer (5000 ms), and a held press is
  * not a click, so it never counts towards the multi-press reset. */
@@ -37,12 +42,11 @@ void child_lock_reset_wiring(void);
 void child_lock_register_input(void);
 
 /**
- * Holding `first` and `second` together for CHILD_LOCK_PAIR_HOLD_MS, or
- * `first` alone for CHILD_LOCK_SINGLE_HOLD_MS when `second` is
- * CHILD_LOCK_NO_BUTTON, toggles the lock. `enabled` (NULL: always) is
- * checked when the hold starts and when it elapses.
+ * Holding `first` (and `second`, unless it is CHILD_LOCK_NO_BUTTON) for
+ * `hold_ms` toggles the lock. `enabled` (NULL: always) is checked when the
+ * hold starts and when it elapses.
  */
-bool child_lock_add_gesture(uint8_t first, uint8_t second,
+bool child_lock_add_gesture(uint8_t first, uint8_t second, uint16_t hold_ms,
                             child_lock_gesture_enabled_t enabled, void *context);
 void child_lock_set_indicator(indicator_feedback_t *indicator);
 void child_lock_set_store(child_lock_store_t store, void *context);

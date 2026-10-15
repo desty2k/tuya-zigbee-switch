@@ -60,7 +60,8 @@ The lock is also toggled on the device:
 
 | Inputs | Gesture |
 | --- | --- |
-| Cover switch (`X`) of type momentary | hold open and close together for 3 s; a short press of both still stops the cover |
+| Cover switch (`X`) of type momentary with a stop button | hold stop for 3 s (touch chips that report one pad at a time cannot hold two) |
+| Cover switch (`X`) of type momentary without a stop button | hold open and close together for 3 s; a short press of both still stops the cover |
 | Two or more switch buttons (`S`), the first two momentary | hold the first two switch buttons of the config together for 3 s |
 | One switch button (`S`, e.g. an outlet), momentary | hold it for 10 s |
 
