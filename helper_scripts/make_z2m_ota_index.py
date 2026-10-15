@@ -77,6 +77,64 @@ def make_ota_index_entry(file: Path, base_url: str, manufacturer_names: list[str
         res["manufacturerName"] = manufacturer_names
     return res
 
+def board_manufacturer_names(db: dict, board: str | None) -> list[str]:
+    """manufacturerName filter of a board's entries, without duplicates."""
+    device = db.get(board) if board else None
+    if not device:
+        return []
+    names = []
+    if device.get("stock_manufacturer_name"):
+        names.append(device["stock_manufacturer_name"])
+    if device.get("old_manufacturer_names"):
+        names.extend(device["old_manufacturer_names"])
+    names.append(device["config_str"].split(";")[0])
+    return list(dict.fromkeys(names))
+
+
+def stock_image_types(db: dict) -> set[int]:
+    return {device["stock_image_type"] for device in db.values()
+            if isinstance(device, dict) and device.get("stock_image_type") is not None}
+
+
+def check_entry(entry: dict, db: dict) -> None:
+    """Refuse an entry that a stock device of another model could accept.
+
+    Stock Tuya images share image types (54179 is used by many models), so an
+    entry with a stock image type must be restricted by manufacturerName.
+    """
+    if entry["imageType"] in stock_image_types(db) and not entry.get("manufacturerName"):
+        raise SystemExit(
+            f"{entry['fileName']}: image type {entry['imageType']} is a stock image type; "
+            "refusing an index entry without a manufacturerName filter")
+
+
+REPO_INDEX_DIR = (Path(__file__).resolve().parent.parent / "zigbee2mqtt" / "ota").resolve()
+
+
+def probe_boards(db: dict) -> set[str]:
+    return {name for name, device in db.items()
+            if isinstance(device, dict) and "probe" in (device.get("features") or [])}
+
+
+def check_publishable(index_file: Path, board: str | None, index_data: list[dict], db: dict) -> None:
+    """Keep GPIO probe images out of the repository indexes.
+
+    Zigbee2MQTT installs read these indexes directly, and a probe's from_tuya
+    entry matches every stock device with the probe board's manufacturer name.
+    A probe image is installed from a local index outside zigbee2mqtt/ota/.
+    """
+    if index_file.resolve().parent != REPO_INDEX_DIR:
+        return
+    probes = probe_boards(db)
+    if board in probes:
+        raise SystemExit(
+            f"{board} is a GPIO probe board; refusing to add it to {index_file}. "
+            "Write a local index outside zigbee2mqtt/ota/ instead (docs/contribute/porting.md)")
+    for entry in index_data:
+        if any(f"/{probe}/" in entry.get("url", "") for probe in probes):
+            raise SystemExit(f"{index_file}: entry {entry['url']} is a GPIO probe image")
+
+
 def get_raw_github_link():
     try:
         branch = subprocess.run(
@@ -131,17 +189,7 @@ if __name__ == "__main__":
     db_str = Path(args.db_file).read_text()
     db = yaml.safe_load(db_str)
 
-    manufacturer_names = []
-    device = db.get(args.board)
-    if device:
-      
-        if device.get("stock_manufacturer_name"):
-            manufacturer_names.append(device["stock_manufacturer_name"])
-        if device.get("old_manufacturer_names"):
-            manufacturer_names.extend(device["old_manufacturer_names"])
-        manufacturer_names.append(
-            device["config_str"].split(";")[0]
-        )
+    manufacturer_names = board_manufacturer_names(db, args.board)
 
     entry = make_ota_index_entry(
         file=Path(args.filename),
@@ -162,6 +210,9 @@ if __name__ == "__main__":
         ) 
     ]
     index_data.append(entry)
+    for indexed in index_data:
+        check_entry(indexed, db)
+    check_publishable(index_file, args.board, index_data, db)
     index_file.write_text(json.dumps(
         index_data,
         indent=2,

@@ -9,6 +9,7 @@
 #include "stub/hal/stub.h"
 
 #include "stub/stub_app.h"
+#include "device_config/build_features.h"
 #include "device_config/config_parser.h"
 #include "device_config/device_config_service.h"
 #include "device_config/feature_wiring.h"
@@ -17,6 +18,9 @@
 #include "base_components/timer_service.h"
 #include "zigbee/zcl_cluster_defs.h"
 #include "zigbee/button_event_cluster.h"
+#if FEATURE_PROBE
+#include "stub/hal/gpio_probe.h"
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -887,6 +891,63 @@ static int cmd_input_diag(int argc, char **argv) {
     return 0;
 }
 
+#if FEATURE_PROBE
+
+/*
+ * probe_pin <pin> float | high | low | train <period_us> <high_us>
+ *                 | base <base_ohm> <pull_in_ua>
+ */
+static int cmd_probe_pin(int argc, char **argv) {
+    hal_gpio_probe_id_t id;
+    unsigned long long  first;
+    unsigned long long  second;
+    bool ok = false;
+
+    if (argc < 3 || !stub_gpio_probe_parse(argv[1], &id)) {
+        io_res_err("usage");
+        return -1;
+    }
+    if (argc == 3 && strcmp(argv[2], "float") == 0) {
+        ok = stub_gpio_probe_set_floating(id);
+    } else if (argc == 3 && strcmp(argv[2], "high") == 0) {
+        ok = stub_gpio_probe_set_driven(id, 1);
+    } else if (argc == 3 && strcmp(argv[2], "low") == 0) {
+        ok = stub_gpio_probe_set_driven(id, 0);
+    } else if (argc == 5 && strcmp(argv[2], "train") == 0 &&
+               parse_ulong_arg(argv[3], UINT32_MAX, &first) == 0 &&
+               parse_ulong_arg(argv[4], UINT32_MAX, &second) == 0) {
+        ok = stub_gpio_probe_set_train(id, (uint32_t)first, (uint32_t)second);
+    } else if (argc == 5 && strcmp(argv[2], "base") == 0 &&
+               parse_ulong_arg(argv[3], UINT32_MAX, &first) == 0 &&
+               parse_ulong_arg(argv[4], UINT32_MAX, &second) == 0) {
+        ok = stub_gpio_probe_set_base(id, (uint32_t)first, (uint32_t)second);
+    }
+    if (!ok) {
+        io_res_err("usage");
+        return -1;
+    }
+    io_res_ok("pin=%s", argv[1]);
+    return 0;
+}
+
+static int cmd_probe_pin_info(int argc, char **argv) {
+    hal_gpio_probe_id_t   id;
+    stub_probe_pin_info_t info;
+
+    if (argc != 2 || !stub_gpio_probe_parse(argv[1], &id) ||
+        !stub_gpio_probe_info(id, &info)) {
+        io_res_err("usage");
+        return -1;
+    }
+    io_res_ok("pin=%s level=%u output=%u output_level=%u pull=%u drives=%u "
+              "contention=%u relay_on=%u relay_pull_ins=%u", argv[1], info.level,
+              info.output_enabled, info.output_level, info.pull, info.drives,
+              info.contention, info.relay_on, info.relay_pull_ins);
+    return 0;
+}
+
+#endif
+
 /* Command table */
 static const SimpleReplCommand kCmds[] = {
     { "machine",                 cmd_machine                 },
@@ -924,6 +985,10 @@ static const SimpleReplCommand kCmds[] = {
     { "pin_late",                cmd_pin_late                },
     { "task_fail",               cmd_task_fail               },
     { "input_diag",              cmd_input_diag              },
+#if FEATURE_PROBE
+    { "probe_pin",               cmd_probe_pin               },
+    { "probe_pin_info",          cmd_probe_pin_info          },
+#endif
     { "q",                       cmd_quit                    },
     { "quit",                    cmd_quit                    },
 };

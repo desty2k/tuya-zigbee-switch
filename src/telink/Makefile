@@ -146,7 +146,8 @@ TELINK_SOURCES := \
 	libc_polyfills/atoi.c \
 	custom_zcl/zcl_multistate_input.c \
 	custom_zcl/zcl_onoff_configuration.c \
-	patch_sdk/drv_nv.c
+	patch_sdk/drv_nv.c \
+	$(if $(filter probe,$(FEATURES)),hal/gpio_probe.c)
 
 # Common source files (shared with Silicon Labs build)
 COMMON_SOURCES := \

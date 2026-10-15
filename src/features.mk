@@ -5,9 +5,14 @@
 # src/, and sets FEATURE_<NAME> to 1; every other feature is set to 0, and the
 # config parser rejects its tokens with CONFIG_PARSE_FEATURE_MISSING.
 # Keep ALL_FEATURES in step with the `features` enum in device_db.schema.json.
+#
+# `probe` is the GPIO probe image for discovering the pins of a device that
+# cannot be opened (docs/contribute/porting.md). It is Telink-only, never in
+# DEFAULT_FEATURES, and the platform makefiles add its HAL source.
 
-ALL_FEATURES := relay switch cover battery meter
-FEATURES ?= $(ALL_FEATURES)
+ALL_FEATURES := relay switch cover battery meter probe
+DEFAULT_FEATURES := relay switch cover battery meter
+FEATURES ?= $(DEFAULT_FEATURES)
 
 UNKNOWN_FEATURES := $(filter-out $(ALL_FEATURES),$(FEATURES))
 ifneq ($(UNKNOWN_FEATURES),)
@@ -22,6 +27,7 @@ FEATURE_SOURCES_cover := \
 	zigbee/cover_switch_cluster.c
 FEATURE_SOURCES_battery := base_components/battery.c zigbee/battery_cluster.c
 FEATURE_SOURCES_meter := base_components/meter_service.c
+FEATURE_SOURCES_probe := base_components/gpio_probe_service.c zigbee/gpio_probe_cluster.c
 
 FEATURE_SOURCES := $(foreach feature,$(FEATURES),$(FEATURE_SOURCES_$(feature)))
 
@@ -33,6 +39,7 @@ feature_defines_for = \
 	FEATURE_SWITCH=$(if $(filter switch,$(1)),1,0) \
 	FEATURE_COVER=$(if $(filter cover,$(1)),1,0) \
 	FEATURE_BATTERY=$(if $(filter battery,$(1)),1,0) \
-	FEATURE_METER=$(if $(filter meter,$(1)),1,0)
+	FEATURE_METER=$(if $(filter meter,$(1)),1,0) \
+	FEATURE_PROBE=$(if $(filter probe,$(1)),1,0)
 
 FEATURE_DEFINES := $(call feature_defines_for,$(FEATURES))

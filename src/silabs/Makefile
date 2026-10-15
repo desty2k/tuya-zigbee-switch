@@ -31,6 +31,9 @@ BOOTLOADER_TYPE ?= internal
 # slcp files list every feature source; code of a feature at 0 is unreferenced
 # and dropped by the linker's section garbage collection.
 include ../features.mk
+ifneq ($(filter probe,$(FEATURES)),)
+$(error The probe feature has no Silabs HAL; probe boards are Telink)
+endif
 
 # Build configuration as comma-separated list
 empty :=

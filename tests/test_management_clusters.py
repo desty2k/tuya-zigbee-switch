@@ -20,7 +20,7 @@ def test_management_clusters_are_fixed_on_empty_composition() -> None:
         assert device.read_zigbee_attr(1, ZCL_CLUSTER_DEVICE_CONFIG,
                                        ZCL_ATTR_DEVICE_CONFIG_TEXT) == "A;B;"
         assert device.read_zigbee_attr(1, ZCL_CLUSTER_DEVICE_DIAGNOSTICS,
-                                       ZCL_ATTR_DIAGNOSTICS_CAPABILITIES) == "01"
+                                       ZCL_ATTR_DIAGNOSTICS_CAPABILITIES) == "1"
 
 
 def test_invalid_config_keeps_management_recovery_available() -> None:
