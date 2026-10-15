@@ -1,5 +1,6 @@
 #include "meter_service.h"
 
+#include "base_components/fixed_math.h"
 #include "base_components/timer_service.h"
 #include "hal/nvm.h"
 #include "hal/timer.h"
@@ -71,44 +72,33 @@ static meter_calibration_t effective_calibration(
 }
 
 static uint32_t scale_u32(uint32_t value, uint32_t gain_ppm) {
-    uint64_t whole    = (uint64_t)(value / METER_CALIBRATION_UNITY_PPM) * gain_ppm;
-    uint64_t fraction =
-        ((uint64_t)(value % METER_CALIBRATION_UNITY_PPM) * gain_ppm) /
-        METER_CALIBRATION_UNITY_PPM;
-
-    return whole + fraction > UINT32_MAX ? UINT32_MAX : (uint32_t)(whole + fraction);
+    return fixed_muldiv_u32(value, gain_ppm, METER_CALIBRATION_UNITY_PPM);
 }
 
 static int32_t scale_i32(int32_t value, uint32_t gain_ppm) {
-    uint64_t magnitude = value < 0 ? (uint64_t)-(int64_t)value : (uint64_t)value;
-    uint64_t scaled    = (uint64_t)scale_u32(
-        magnitude > UINT32_MAX ? UINT32_MAX : (uint32_t)magnitude, gain_ppm);
+    uint32_t magnitude = value < 0 ? (uint32_t)0 - (uint32_t)value : (uint32_t)value;
+    uint32_t scaled    = scale_u32(magnitude, gain_ppm);
 
     if (value < 0) {
-        if (scaled >= (uint64_t)INT32_MAX + 1U) {
-            return INT32_MIN;
-        }
-        return -(int32_t)scaled;
+        return scaled > (uint32_t)INT32_MAX + 1U ? INT32_MIN : (int32_t)(0U - scaled);
     }
     return scaled > INT32_MAX ? INT32_MAX : (int32_t)scaled;
 }
 
-static uint64_t add_u64_saturated(uint64_t left, uint64_t right) {
-    return UINT64_MAX - left < right ? UINT64_MAX : left + right;
-}
-
+/*
+ * A driver delivers at most a few thousand uWh per sample (16 A at 250 V for
+ * 1 s is 1 111 112 uWh), so a delta above UINT32_MAX can only be a fault and
+ * saturates the total instead of being scaled.
+ */
 static uint64_t scale_energy_delta(meter_service_instance_t *service,
                                    uint64_t delta_uwh, uint32_t gain_ppm) {
-    uint64_t whole_units = delta_uwh / METER_CALIBRATION_UNITY_PPM;
-    uint64_t whole       = whole_units > UINT64_MAX / gain_ppm ? UINT64_MAX :
-                           whole_units * gain_ppm;
-    uint64_t fractional =
-        (delta_uwh % METER_CALIBRATION_UNITY_PPM) * gain_ppm +
-        service->energy_remainder_ppm;
-
-    service->energy_remainder_ppm =
-        (uint32_t)(fractional % METER_CALIBRATION_UNITY_PPM);
-    return add_u64_saturated(whole, fractional / METER_CALIBRATION_UNITY_PPM);
+    if (delta_uwh > UINT32_MAX) {
+        return UINT64_MAX;
+    }
+    return fixed_div_u64(fixed_mul_u32((uint32_t)delta_uwh, gain_ppm) +
+                         service->energy_remainder_ppm,
+                         METER_CALIBRATION_UNITY_PPM,
+                         &service->energy_remainder_ppm);
 }
 
 static void scale_sample(meter_service_instance_t *service, meter_sample_t *sample,
@@ -185,11 +175,20 @@ static void notify_subscribers(uint8_t meter_id,
     }
 }
 
+/*
+ * Energy is written only after it changed, never sooner than the minimum
+ * interval, and then once it reached the energy threshold or the maximum
+ * interval passed. The bound on the energy an abrupt power loss discards is
+ * max(threshold, power * minimum interval), and at most power * maximum
+ * interval.
+ */
 static void checkpoint_if_due(meter_service_instance_t *service) {
     uint32_t elapsed = hal_millis() - service->last_checkpoint_ms;
 
-    if (elapsed < service->config.checkpoint_interval_ms &&
-        service->energy_since_checkpoint_uwh < service->config.checkpoint_energy_uwh) {
+    if (service->energy_since_checkpoint_uwh == 0 ||
+        elapsed < service->config.checkpoint_min_interval_ms ||
+        (service->energy_since_checkpoint_uwh < service->config.checkpoint_energy_uwh &&
+         elapsed < service->config.checkpoint_max_interval_ms)) {
         return;
     }
     if (persist_record(service, &service->runtime_calibration,
@@ -221,7 +220,9 @@ uint8_t meter_service_add(const meter_service_config_t *config) {
 
     if (config == NULL || config->driver.ops == NULL ||
         config->driver.ops->sample == NULL || config->sample_interval_ms == 0 ||
-        config->checkpoint_interval_ms == 0 || config->checkpoint_energy_uwh == 0 ||
+        config->checkpoint_max_interval_ms == 0 ||
+        config->checkpoint_max_interval_ms < config->checkpoint_min_interval_ms ||
+        config->checkpoint_energy_uwh == 0 ||
         (!calibration_is_zero(&config->profile_calibration) &&
          !calibration_is_valid(&config->profile_calibration))) {
         return UINT8_MAX;

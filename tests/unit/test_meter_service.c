@@ -61,7 +61,8 @@ static meter_service_config_t valid_config(meter_fake_driver_t *driver) {
             .power_gain_ppm = 1500000,
         },
         .sample_interval_ms = 10,
-        .checkpoint_interval_ms = 100,
+        .checkpoint_min_interval_ms = 0,
+        .checkpoint_max_interval_ms = 100,
         .checkpoint_energy_uwh = 100,
         .nvm_item = NV_ITEM_METER_STATE(0),
     };
@@ -222,11 +223,53 @@ TEST(energy_scaling_and_accumulation_saturate_without_wrapping) {
     ASSERT_EQ(UINT64_MAX, snapshot.accumulated_energy_uwh);
 }
 
+TEST(checkpoints_follow_the_minimum_and_maximum_intervals) {
+    meter_fake_driver_t    driver;
+    meter_service_config_t config;
+    meter_sample_t         sample = { .valid_mask = METER_SAMPLE_ENERGY };
+    uint8_t meter_id = reset_service(&driver);
+
+    meter_service_init();
+    config = valid_config(&driver);
+    config.profile_calibration        = (meter_calibration_t){ 0 };
+    config.checkpoint_min_interval_ms = 50;
+    config.checkpoint_max_interval_ms = 1000;
+    config.checkpoint_energy_uwh      = 100;
+    meter_id = meter_service_add(&config);
+    /* No energy: nothing is written, even after the maximum interval. */
+    meter_fake_driver_set_sample(&driver, &sample);
+    fake_clock_advance_ms(2000);
+    ASSERT_TRUE(meter_service_poll(meter_id));
+    ASSERT_EQ(0, nvm_size[NV_ITEM_METER_STATE(0)]);
+    /* Threshold reached, but inside the minimum interval of the last write. */
+    ASSERT_EQ(METER_SERVICE_OK, meter_service_reset_energy(meter_id));
+    sample.energy_delta_uwh = 200;
+    meter_fake_driver_set_sample(&driver, &sample);
+    nvm_size[NV_ITEM_METER_STATE(0)] = 0;
+    fake_clock_advance_ms(10);
+    ASSERT_TRUE(meter_service_poll(meter_id));
+    ASSERT_EQ(0, nvm_size[NV_ITEM_METER_STATE(0)]);
+    fake_clock_advance_ms(40);
+    ASSERT_TRUE(meter_service_poll(meter_id));
+    ASSERT_TRUE(nvm_size[NV_ITEM_METER_STATE(0)] != 0);
+    /* Below the threshold: written once the maximum interval passed. */
+    nvm_size[NV_ITEM_METER_STATE(0)] = 0;
+    sample.energy_delta_uwh = 1;
+    meter_fake_driver_set_sample(&driver, &sample);
+    fake_clock_advance_ms(999);
+    ASSERT_TRUE(meter_service_poll(meter_id));
+    ASSERT_EQ(0, nvm_size[NV_ITEM_METER_STATE(0)]);
+    fake_clock_advance_ms(1);
+    ASSERT_TRUE(meter_service_poll(meter_id));
+    ASSERT_TRUE(nvm_size[NV_ITEM_METER_STATE(0)] != 0);
+}
+
 int main(void) {
     RUN_TEST(applies_profile_then_runtime_calibration_and_preserves_validity);
     RUN_TEST(checkpoints_restores_and_resets_energy_with_one_owner);
     RUN_TEST(rejects_invalid_configuration_and_keeps_state_on_nvm_failure);
     RUN_TEST(sampling_timer_uses_virtual_time);
     RUN_TEST(energy_scaling_and_accumulation_saturate_without_wrapping);
+    RUN_TEST(checkpoints_follow_the_minimum_and_maximum_intervals);
     return test_runner_failures == 0 ? 0 : 1;
 }

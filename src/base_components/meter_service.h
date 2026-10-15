@@ -18,7 +18,9 @@ typedef struct {
     meter_driver_t      driver;
     meter_calibration_t profile_calibration;
     uint32_t            sample_interval_ms;
-    uint32_t            checkpoint_interval_ms;
+    /* Energy checkpoint policy, see checkpoint_if_due() in meter_service.c. */
+    uint32_t            checkpoint_min_interval_ms;
+    uint32_t            checkpoint_max_interval_ms;
     uint64_t            checkpoint_energy_uwh;
     uint8_t             nvm_item; /* NVM item holding this meter's record */
 } meter_service_config_t;
