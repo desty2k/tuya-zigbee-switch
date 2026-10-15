@@ -203,13 +203,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -790,13 +784,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -1377,13 +1365,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -1964,13 +1946,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -2545,13 +2521,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -3119,13 +3089,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -3696,13 +3660,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -4271,13 +4229,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -4889,13 +4841,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -5509,13 +5455,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -6085,13 +6025,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -6664,13 +6598,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -7248,13 +7176,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -7833,13 +7755,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -8415,13 +8331,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -9002,13 +8912,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -9594,13 +9498,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -10183,13 +10081,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -10767,13 +10659,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -11348,13 +11234,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -11922,13 +11802,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -12500,13 +12374,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -13079,13 +12947,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -13658,13 +13520,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -14238,13 +14094,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -14815,13 +14665,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -15390,13 +15234,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -15964,13 +15802,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -16541,13 +16373,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -17116,13 +16942,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -17693,13 +17513,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -18273,13 +18087,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -18853,13 +18661,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -19427,13 +19229,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -20002,13 +19798,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -20574,13 +20364,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -21150,13 +20934,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -21727,13 +21505,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -22363,13 +22135,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -23000,13 +22766,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -23572,13 +23332,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -24142,13 +23896,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -24714,13 +24462,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -25286,13 +25028,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -25860,13 +25596,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -26437,13 +26167,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -27012,13 +26736,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -27590,13 +27308,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -28176,13 +27888,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -28757,13 +28463,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -29329,13 +29029,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -29901,13 +29595,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -30475,13 +30163,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -31053,13 +30735,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -31615,13 +31291,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -32189,13 +31859,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -32768,13 +32432,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -33352,13 +33010,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -33933,13 +33585,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -34505,13 +34151,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -35077,13 +34717,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -35649,13 +35283,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -36223,13 +35851,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -36802,13 +36424,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -37380,13 +36996,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -37952,13 +37562,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -38528,13 +38132,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -39111,13 +38709,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -39696,13 +39288,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -40274,13 +39860,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -40844,13 +40424,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -41414,13 +40988,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -41986,13 +41554,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -42558,13 +42120,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -43128,13 +42684,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -43706,13 +43256,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -44291,13 +43835,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -44871,13 +44409,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -45443,13 +44975,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -46017,13 +45543,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -46596,13 +46116,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -47174,13 +46688,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -47748,13 +47256,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -48323,13 +47825,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -48897,13 +48393,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -49472,13 +48962,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -50110,13 +49594,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -50688,13 +50166,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -51262,13 +50734,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -51839,13 +51305,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -52414,13 +51874,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -52986,13 +52440,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -53558,13 +53006,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -54136,13 +53578,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -54719,13 +54155,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -55296,13 +54726,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -55870,13 +55294,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -56488,13 +55906,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -57106,13 +56518,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -57724,13 +57130,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -58342,13 +57742,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -58975,13 +58369,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -59658,13 +59046,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -60279,13 +59661,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -60880,13 +60256,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -61481,13 +60851,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -62082,13 +61446,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -62683,13 +62041,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -63286,13 +62638,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -63805,13 +63151,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -64321,13 +63661,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -64841,13 +64175,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -65379,13 +64707,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -65898,13 +65220,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -66414,13 +65730,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -66931,13 +66241,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -67450,13 +66754,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -67971,13 +67269,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -68493,13 +67785,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -69012,13 +68298,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -69528,13 +68808,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -70044,13 +69318,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -70561,13 +69829,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -71080,13 +70342,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -71600,13 +70856,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -72121,13 +71371,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -72641,13 +71885,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -73158,13 +72396,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -73677,13 +72909,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -74198,13 +73424,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -74772,13 +73992,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -75353,13 +74567,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -75939,13 +75147,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -76522,13 +75724,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -77147,13 +76343,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -77778,13 +76968,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -78358,13 +77542,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -78982,13 +78160,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -79616,13 +78788,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -80245,13 +79411,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -80819,13 +79979,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -81400,13 +80554,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -81988,13 +81136,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -82571,13 +81713,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -83189,13 +82325,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -83809,13 +82939,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -84432,13 +83556,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -85053,13 +84171,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -85675,13 +84787,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -86302,13 +85408,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -86928,13 +86028,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -87554,13 +86648,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -88174,13 +87262,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -88800,13 +87882,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -89434,13 +88510,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -90067,13 +89137,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -90687,13 +89751,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -91313,13 +90371,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -91944,13 +90996,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -92557,13 +91603,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -93159,13 +92199,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -93733,13 +92767,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -94312,13 +93340,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -94890,13 +93912,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -95464,13 +94480,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -96043,13 +95053,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -96622,13 +95626,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -97231,13 +96229,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -97846,13 +96838,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -98460,13 +97446,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -99093,13 +98073,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -99696,13 +98670,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -100305,13 +99273,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -100914,13 +99876,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -101517,13 +100473,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -102126,13 +101076,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -102736,13 +101680,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -103356,13 +102294,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -103980,13 +102912,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -104608,13 +103534,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -105240,13 +104160,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -105871,13 +104785,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -106479,13 +105387,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -107093,13 +105995,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -107711,13 +106607,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -108330,13 +107220,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -108947,13 +107831,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -109557,13 +108435,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -110177,13 +109049,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -110801,13 +109667,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -111426,13 +110286,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -112055,13 +110909,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -112680,13 +111528,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -113281,13 +112123,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -113880,13 +112716,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -114483,13 +113313,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -115092,13 +113916,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -115705,13 +114523,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -116320,13 +115132,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -116934,13 +115740,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -117512,13 +116312,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           },
           "statusLedMode": {
             "type": "enum",
@@ -118096,13 +116890,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -118704,13 +117492,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {
@@ -119307,13 +118089,7 @@
             "attributeId": 18,
             "dataType": 16,
             "manufacturerCode": 6699,
-            "action": true,
-            "binding": true,
-            "reporting": {
-              "minInterval": 0,
-              "maxInterval": 255,
-              "valueChange": 1
-            }
+            "action": true
           }
         },
         "multiPressResetCount": {

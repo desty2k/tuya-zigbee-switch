@@ -465,8 +465,9 @@ const romasku = {
             entityCategory: "config",
         }),
     // Device-wide child lock on Device Config (endpoint 1). Locally toggled by
-    // holding cover open+close or the first two switch buttons for 3 s, or the
-    // only switch button for 10 s; reported when toggled.
+    // holding cover open+close or the first two momentary switch buttons for
+    // 3 s, or the only one for 10 s. Read on configure and on `get`, not
+    // reported: the Telink reporting table has no slot left on 4-gang boards.
     childLock: (name, endpointName) =>
         binary({
             name,
@@ -477,7 +478,6 @@ const romasku = {
             attribute: "childLock",
             description: "Ignore the local buttons; Zigbee control keeps working",
             access: "ALL",
-            reporting: {min: 0, max: "MAX", change: 1},
             entityCategory: "config",
         }),
     deviceConfig: (name, endpointName) =>
@@ -797,6 +797,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -953,6 +954,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -1109,6 +1111,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -1265,6 +1268,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -1394,6 +1398,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -1481,6 +1486,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -1585,6 +1591,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -1682,6 +1689,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -1770,6 +1778,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -1857,6 +1866,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -1944,6 +1954,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -2057,6 +2068,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -2196,6 +2208,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -2327,6 +2340,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -2416,6 +2430,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -2531,6 +2546,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -2672,6 +2688,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -2819,6 +2836,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -2958,6 +2976,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3087,6 +3106,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3166,6 +3186,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3254,6 +3275,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3358,6 +3380,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3471,6 +3494,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3592,6 +3616,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3696,6 +3721,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3791,6 +3817,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3878,6 +3905,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3982,6 +4010,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -4078,6 +4107,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -4175,6 +4205,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -4287,6 +4318,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -4374,6 +4406,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -4469,6 +4502,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -4547,6 +4581,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -4635,6 +4670,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -4768,6 +4804,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
 
 
             const coverSwitch1 = device.getEndpoint(1);
@@ -4905,6 +4942,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
 
 
             const coverSwitch1 = device.getEndpoint(1);
@@ -5006,6 +5044,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5084,6 +5123,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5162,6 +5202,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5240,6 +5281,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5318,6 +5360,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5405,6 +5448,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5509,6 +5553,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5604,6 +5649,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5701,6 +5747,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5840,6 +5887,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5969,6 +6017,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6047,6 +6096,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6125,6 +6175,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6212,6 +6263,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6324,6 +6376,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6436,6 +6489,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6523,6 +6577,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6636,6 +6691,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6775,6 +6831,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6904,6 +6961,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6982,6 +7040,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7060,6 +7119,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7138,6 +7198,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7225,6 +7286,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7338,6 +7400,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7450,6 +7513,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7528,6 +7592,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7616,6 +7681,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7738,6 +7804,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7885,6 +7952,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7997,6 +8065,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8075,6 +8144,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8153,6 +8223,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8231,6 +8302,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8309,6 +8381,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8387,6 +8460,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8476,6 +8550,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8590,6 +8665,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8702,6 +8778,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8780,6 +8857,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8867,6 +8945,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8980,6 +9059,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -9092,6 +9172,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -9179,6 +9260,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -9274,6 +9356,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -9361,6 +9444,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -9494,6 +9578,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
 
 
             const coverSwitch1 = device.getEndpoint(1);
@@ -9593,6 +9678,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -9705,6 +9791,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -9792,6 +9879,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -9896,6 +9984,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -9991,6 +10080,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10069,6 +10159,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10147,6 +10238,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10252,6 +10344,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10390,6 +10483,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10494,6 +10588,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10590,6 +10685,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10670,6 +10766,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10758,6 +10855,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10846,6 +10944,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10934,6 +11033,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -11022,6 +11122,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -11131,6 +11232,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -11291,6 +11393,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
 
 
             const coverSwitch1 = device.getEndpoint(1);
@@ -11384,6 +11487,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true, multiEndpointSkip: ["voltage", "current", "power", "energy"] },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -11483,6 +11587,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -11595,6 +11700,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -11682,6 +11788,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -11769,6 +11876,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -11856,6 +11964,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -11943,6 +12052,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -12047,6 +12157,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -12161,6 +12272,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -12242,6 +12354,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -12345,6 +12458,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -12480,6 +12594,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -12594,6 +12709,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -12675,6 +12791,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -12763,6 +12880,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -12869,6 +12987,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -12993,6 +13112,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -13128,6 +13248,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -13242,6 +13363,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -13323,6 +13445,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -13404,6 +13527,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -13492,6 +13616,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -13598,6 +13723,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -13715,6 +13841,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -13839,6 +13966,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -13960,6 +14088,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -14052,6 +14181,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -14154,6 +14284,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -14271,6 +14402,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -14358,6 +14490,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -14472,6 +14605,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -14611,6 +14745,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -14743,6 +14878,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -14843,6 +14979,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -14973,6 +15110,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -15087,6 +15225,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -15188,6 +15327,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -15324,6 +15464,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -15460,6 +15601,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -15547,6 +15689,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -15661,6 +15804,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -15801,6 +15945,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -15932,6 +16077,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -16020,6 +16166,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -16117,6 +16264,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -16231,6 +16379,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -16336,6 +16485,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -16436,6 +16586,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -16560,6 +16711,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -16695,6 +16847,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -16833,6 +16986,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -16932,6 +17086,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -17067,6 +17222,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -17239,6 +17395,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -17402,6 +17559,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -17501,6 +17659,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -17636,6 +17795,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -17806,6 +17966,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -17968,6 +18129,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -18054,6 +18216,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -18141,6 +18304,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -18254,6 +18418,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -18366,6 +18531,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -18453,6 +18619,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -18566,6 +18733,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -18690,6 +18858,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -18824,6 +18993,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -18994,6 +19164,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -19193,6 +19364,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
 
 
             const coverSwitch1 = device.getEndpoint(1);
@@ -19275,6 +19447,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -19373,6 +19546,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -19507,6 +19681,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -19644,6 +19819,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -19742,6 +19918,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -19876,6 +20053,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -20014,6 +20192,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -20113,6 +20292,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -20248,6 +20428,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -20408,6 +20589,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -20579,6 +20761,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -20742,6 +20925,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -20841,6 +21025,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -20976,6 +21161,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -21146,6 +21332,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -21341,6 +21528,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -21525,6 +21713,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -21663,6 +21852,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -21762,6 +21952,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -21876,6 +22067,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -21976,6 +22168,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -22111,6 +22304,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -22248,6 +22442,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -22335,6 +22530,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -22433,6 +22629,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -22567,6 +22764,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -22726,6 +22924,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -22896,6 +23095,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -23057,6 +23257,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -23162,6 +23363,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -23292,6 +23494,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -23391,6 +23594,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -23503,6 +23707,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -23601,6 +23806,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
