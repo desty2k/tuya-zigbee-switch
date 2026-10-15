@@ -3159,7 +3159,7 @@ COVER_BSEED_TS130F_PROBE:
   tuya_module: null
   mcu_family: Telink
   mcu: TLSR8258
-  config_str: _TZ3000_vsj5o7dm;TS130F-probe;
+  config_str: _TZ3000_vsj5o7dm;TS130F-probe;LD2;SB6u;SA1u;SA0u;RD3;RC0;IC3;IB5;K03:500;M;
   alt_config_str: null
   features: [probe, relay, switch]
   old_manufacturer_names: null
@@ -3169,7 +3169,7 @@ COVER_BSEED_TS130F_PROBE:
   firmware_image_type: 47118
   build: no
   status: in_progress
-  info: GPIO probe image for pin discovery with the relay and switch features; motor relays need the interlock, which the probe board carries; built on demand (docs/contribute/porting.md)
+  info: GPIO probe image with the relay and switch features; buttons up B6, stop A0, down A1; relays up D3, down C0 (interlocked, 500 ms); LEDs up C3, down B5, status D2; built on demand (docs/contribute/porting.md)
   threads: null
   store: null
 OUTLET_BSEED_TS011F_PM_DRZLXJNE:
