@@ -55,7 +55,7 @@ Endpoint 1 carries two manufacturer-specific clusters. Every fork-private cluste
 
 A factory reset releases the lock: the multi-press reset still counts presses while locked, and an onboard button's 2 s hold works as before, so a locked device can always be reset and re-paired.
 
-The integrations read the lock when the device is configured and on request (Zigbee2MQTT `get`); they configure no report for it, because the Telink reporting table has no slot left on 4-gang boards. A lock toggled on the device shows in Zigbee2MQTT, ZHA or HOMEd after the next read.
+The integrations read the lock when the device is configured and on request (Zigbee2MQTT `get`). No attribute reporting is configured for it, because the Telink reporting table has no slot left on 4-gang boards; instead, a lock toggled on the device sends one Report Attributes command (with the manufacturer code) to the coordinator, so Zigbee2MQTT, ZHA and HOMEd show the change at once. A remote write sends no report: the writer already knows the value.
 
 The lock is also toggled on the device:
 
@@ -66,7 +66,7 @@ The lock is also toggled on the device:
 | Two or more switch buttons (`S`), the first two momentary | hold the first two switch buttons of the config together for 3 s |
 | One switch button (`S`, e.g. an outlet), momentary | hold it for 10 s |
 
-Inputs of type toggle (rocker or latching switches) have no gesture: their contact stays closed while the load is on. Changing the switch type takes effect on the gesture at once. Onboard reset buttons (`B`) have no gesture: holding one for 2 s is the factory reset. The presses of a locking gesture act as usual (with the default momentary settings a 3 s or 10 s hold is a long press, so no relay toggles); the presses of an unlocking gesture are ignored. A gesture toggle is reported; a remote write is not echoed on the LED.
+Inputs of type toggle (rocker or latching switches) have no gesture: their contact stays closed while the load is on. Changing the switch type takes effect on the gesture at once. Onboard reset buttons (`B`) have no gesture: holding one for 2 s is the factory reset. The presses of a locking gesture act as usual (with the default momentary settings a 3 s or 10 s hold is a long press, so no relay toggles); the presses of an unlocking gesture are ignored. A remote write does not blink the LED.
 
 The lock LED blinks 3 times when the lock engages, twice when it is released and once for a press while locked (250 ms on, 250 ms off); otherwise it shows nothing for the lock. It is the `P` LED of the config string, else the status LED (`L`), else the first indicator (`I`). When the `P` pin is also an `L` or `I` LED, or the fallback is used, the blinks are layered over that LED and it returns to its previous state afterwards. While that LED blinks for the network (not joined, or the commissioning confirmation) it shows no lock blinks; the lock itself still changes.
 
