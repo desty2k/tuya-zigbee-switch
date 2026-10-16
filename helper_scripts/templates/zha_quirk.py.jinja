@@ -310,9 +310,21 @@ class RelayIndicatorMode(t.enum8):
     Manual = 0x02
 
 
-class OnOffWithIndicatorCluster(CustomCluster, OnOff):
+class RelayOnOffCluster(CustomCluster, OnOff):
 
     class AttributeDefs(OnOff.AttributeDefs):
+        inching_duration: Final = ZCLAttributeDef(
+            id=0xff03,
+            type=t.uint16_t,
+            access="rw",
+            is_manufacturer_specific=False,
+        )
+        interlock_group: Final = ZCLAttributeDef(
+            id=0xff04,
+            type=t.uint8_t,
+            access="rw",
+            is_manufacturer_specific=False,
+        )
         led_mode: Final = ZCLAttributeDef(
             id=0xff01,
             type=RelayIndicatorMode,
@@ -627,22 +639,47 @@ for config in CONFIGS:
             )
             .device_automation_triggers(button_event_triggers(endpoint_id))
         )
-    for endpoint_id in range(switch_cnt + 1, switch_cnt + min(relay_cnt, indicators_cnt) + 1):
+    for endpoint_id in range(switch_cnt + 1, switch_cnt + relay_cnt + 1):
         builder = (
             builder
             .removes(OnOff.cluster_id, cluster_type=ClusterType.Client, endpoint_id=endpoint_id)
-            .adds(OnOffWithIndicatorCluster, endpoint_id=endpoint_id)
+            .adds(RelayOnOffCluster, endpoint_id=endpoint_id)
+            .number(
+                RelayOnOffCluster.AttributeDefs.inching_duration.name,
+                RelayOnOffCluster.cluster_id,
+                translation_key="inching_duration_"+str(endpoint_id),
+                fallback_name="Inching duration "+str(endpoint_id),
+                min_value=0,
+                max_value=65535,
+                step=1,
+                unit="ms",
+                endpoint_id=endpoint_id,
+            )
+            .number(
+                RelayOnOffCluster.AttributeDefs.interlock_group.name,
+                RelayOnOffCluster.cluster_id,
+                translation_key="interlock_group_"+str(endpoint_id),
+                fallback_name="Interlock group "+str(endpoint_id),
+                min_value=0,
+                max_value=10,
+                step=1,
+                endpoint_id=endpoint_id,
+            )
+        )
+    for endpoint_id in range(switch_cnt + 1, switch_cnt + min(relay_cnt, indicators_cnt) + 1):
+        builder = (
+            builder
             .enum(
-                OnOffWithIndicatorCluster.AttributeDefs.led_mode.name,
+                RelayOnOffCluster.AttributeDefs.led_mode.name,
                 RelayIndicatorMode,
-                OnOffWithIndicatorCluster.cluster_id,
+                RelayOnOffCluster.cluster_id,
                 translation_key="relay_led_mode_"+str(endpoint_id),
                 fallback_name="Relay Led mode "+str(endpoint_id),
                 endpoint_id=endpoint_id
             )
             .switch(
-                OnOffWithIndicatorCluster.AttributeDefs.led_state.name,
-                OnOffWithIndicatorCluster.cluster_id,
+                RelayOnOffCluster.AttributeDefs.led_state.name,
+                RelayOnOffCluster.cluster_id,
                 translation_key="relay_led_state_"+str(endpoint_id),
                 fallback_name="Relay led state "+str(endpoint_id),
                 endpoint_id=endpoint_id,

@@ -358,6 +358,29 @@ const romasku = {
             reporting: {min: 0, max: "1_HOUR", change: 1},
             entityCategory: "config",
         }),
+    relayInchingDuration: (name, endpointName) =>
+        numeric({
+            name,
+            endpointNames: [endpointName],
+            cluster: "genOnOff",
+            attribute: { ID: 0xff03, type: 0x21 }, // uint16
+            description: "Turn the relay off again this long after every switch-on, in ms (0 = off)",
+            valueMin: 0,
+            valueMax: 65535,
+            unit: "ms",
+            entityCategory: "config",
+        }),
+    relayInterlockGroup: (name, endpointName) =>
+        numeric({
+            name,
+            endpointNames: [endpointName],
+            cluster: "genOnOff",
+            attribute: { ID: 0xff04, type: 0x20 }, // uint8
+            description: "Interlock group of the relay (0 = none): one of the K groups of the device config, numbered from 1. A relay in a config K group stays in it",
+            valueMin: 0,
+            valueMax: 10,
+            entityCategory: "config",
+        }),
     batteryPercentage: () => {
         const result = numeric({
             name: "battery",
@@ -811,6 +834,10 @@ const definitions = [
             {% for relayName in device.relayIndicatorNames %}
             romasku.relayIndicatorMode("{{relayName}}_indicator_mode", "{{relayName}}"),
             romasku.relayIndicator("{{relayName}}_indicator", "{{relayName}}"),
+            {% endfor %}
+            {% for relayName in device.relayNames %}
+            romasku.relayInchingDuration("{{relayName}}_inching_duration", "{{relayName}}"),
+            romasku.relayInterlockGroup("{{relayName}}_interlock_group", "{{relayName}}"),
             {% endfor %}
             {% for coverName in device.coverNames %}
             // The device reports ZCL lift % (0 = open) and 0xFF while the position
