@@ -1,4 +1,9 @@
-# How to Flash via Wire
+# Flashing Telink devices by wire
+
+How to flash a Telink (TLSR825x) device over its SWS pin with a UART adapter:
+for a device that cannot be updated over the air, that no longer starts, or
+that should go back to a stock dump. Converting a working stock device is
+easier over the air: [updating.md](../updating.md).
 
 ### What You'll Need
 

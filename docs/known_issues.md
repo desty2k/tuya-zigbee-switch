@@ -5,18 +5,22 @@ Limits of the current 2.x firmware. Report new problems on the fork's
 
 ## Release status
 
-- Every board is published as a release candidate. Only the boards listed as
-  tested in the [readme](../readme.md#devices) ran 2.x on hardware.
+- Every board except the Sonoff ZBMINIL2 (below) is published as a release
+  candidate (2.0.0-rc.4). Only the boards listed as tested in the
+  [readme](../readme.md#devices) ran 2.x on hardware.
 - Silabs (EFR32MG21/MG22) builds are not hardware-tested in 2.x. Silabs devices
   cannot be converted from stock firmware over the air, and the power meter
   (`E` token) is Telink only.
+- `MODULE_SONOFF_ZBMINIL2` (EFR32MG22) does not build in 2.x (its RAM
+  overflows) and has no 2.x image; it is not part of the release.
 
-## Child lock reporting on 4-gang Telink boards
+## Child lock state after a missed report
 
-The Telink attribute reporting table has no slot left on 4-gang boards, so no
-report is configured for `child_lock`. A lock toggled on the device sends one
-report to the coordinator; a coordinator that misses it shows the old state
-until it reads the attribute again (Zigbee2MQTT: refresh or `get`).
+No attribute reporting is configured for `child_lock`, because the Telink
+attribute reporting table has no slot left on 4-gang boards. A lock toggled on
+the device sends one report to the coordinator; a coordinator that misses it
+shows the old state until it reads the attribute again (Zigbee2MQTT: refresh
+or `get`).
 
 ## Cover position while unknown
 

@@ -50,8 +50,9 @@ configurable Zigbee remote.
 ## Devices
 
 Every board in [`device_db.yaml`](./device_db.yaml) is built and published as
-a release candidate (2.0.0-rc.4). These boards are tested on hardware with 2.x
-firmware:
+a release candidate (2.0.0-rc.4), except the Sonoff ZBMINIL2, which has no 2.x
+image yet ([known issues](./docs/known_issues.md#release-status)). Only these
+boards are tested on hardware with 2.x firmware:
 
 | Board | Device | Stock model |
 | --- | --- | --- |
@@ -59,7 +60,8 @@ firmware:
 | `OUTLET_BSEED_TS011F_PM_DRZLXJNE` | BSEED outlet with power metering | TS011F `_TZ3210_drzlxjne` |
 | `COVER_BSEED_TS130F_VSJ5O7DM` | BSEED shutter switch | TS130F `_TZ3000_vsj5o7dm` |
 
-All other boards are untested on hardware in 2.x. The full generated list is
+All other boards are published release candidates, untested on hardware in
+2.x. The full generated list is
 [docs/supported_devices.md](./docs/supported_devices.md).
 
 ## Installation

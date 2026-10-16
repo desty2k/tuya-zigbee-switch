@@ -1,4 +1,8 @@
-# How to Flash via Wire
+# Flashing Silabs devices by wire
+
+How to flash a Silabs (EFR32MG21) device over SWD with a J-Link: the only way
+to convert a Silabs device from its stock firmware. The Sonoff ZBMINIL2 has
+its own guide: [zbminil2.md](./zbminil2.md).
 
 > [!NOTE]
 > Silabs images of the 2.x firmware are not hardware-tested yet ([known_issues.md](../known_issues.md#release-status)).
