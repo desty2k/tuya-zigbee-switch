@@ -7,8 +7,10 @@
 #include <stdint.h>
 
 void hal_system_reset(void) {
-    // Telink 8258 system reset
     mcu_reset();
+    // mcu_reset() does not return but is not declared noreturn.
+    for (;;) {
+    }
 }
 
 void hal_factory_reset(void) {
