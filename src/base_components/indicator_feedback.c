@@ -82,6 +82,18 @@ void indicator_feedback_request_click_count(indicator_feedback_t *feedback,
                                     INDICATOR_PRIORITY_BUTTON);
 }
 
+void indicator_feedback_request_blinks(indicator_feedback_t *feedback,
+                                       uint8_t count) {
+    if (feedback == NULL || feedback->led == NULL || count == 0 ||
+        feedback->priority > INDICATOR_PRIORITY_BUTTON) {
+        return;
+    }
+
+    led_off(feedback->led);
+    indicator_feedback_start_finite(feedback, 250, 250, count,
+                                    INDICATOR_PRIORITY_BUTTON);
+}
+
 void indicator_feedback_network_connected(indicator_feedback_t *feedback) {
     if (feedback == NULL || feedback->led == NULL ||
         feedback->priority != INDICATOR_PRIORITY_NETWORK) {

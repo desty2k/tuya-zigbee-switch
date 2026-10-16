@@ -168,6 +168,7 @@ COMMON_SOURCES := \
 	$(SRC_DIR)/device_config/capability_state.c \
 	$(SRC_DIR)/base_components/led.c \
 	$(SRC_DIR)/base_components/indicator_feedback.c \
+	$(SRC_DIR)/base_components/child_lock.c \
 	$(SRC_DIR)/base_components/network_indicator.c \
 	$(SRC_DIR)/base_components/relay_driver.c \
 	$(SRC_DIR)/base_components/relay_controller.c \

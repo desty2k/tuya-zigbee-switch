@@ -1,5 +1,6 @@
 #include "switch_cluster.h"
 #include "base_components/button_dispatcher.h"
+#include "base_components/child_lock.h"
 #include "base_components/action_mapper.h"
 #include "cluster_common.h"
 #include "relay_cluster.h"
@@ -57,6 +58,9 @@ static void switch_cluster_button_event(const button_event_t *event, void *arg) 
         if (switch_clusters[i].button_id != event->button_id) {
             continue;
         }
+        if (child_lock_blocks(event)) {
+            return;
+        }
         if (event->type == BUTTON_EVENT_DOWN) {
             switch_cluster_handle_down(&switch_clusters[i]);
         } else {
@@ -74,6 +78,9 @@ static void switch_cluster_gesture_event(const gesture_event_t *event,
 
         if (cluster->button_id != event->button_id) {
             continue;
+        }
+        if (child_lock_press_blocked(cluster->button_id)) {
+            return;
         }
         if (event->type == GESTURE_HOLD_START) {
             switch_cluster_handle_hold(cluster);

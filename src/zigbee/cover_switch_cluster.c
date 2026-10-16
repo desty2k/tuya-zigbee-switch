@@ -2,6 +2,7 @@
 #include "management_protocol.h"
 #include "base_components/action_mapper.h"
 #include "base_components/button_dispatcher.h"
+#include "base_components/child_lock.h"
 #include "basic_cluster.h"
 #include "cluster_common.h"
 #include "zcl_cluster_defs.h"
@@ -71,8 +72,12 @@ static void cover_switch_cluster_button_event(const button_event_t *event,
         zigbee_cover_switch_cluster *cluster = &cover_switch_clusters[i];
 
         if (event->button_id != cluster->open_button_id &&
-            event->button_id != cluster->close_button_id) {
+            event->button_id != cluster->close_button_id &&
+            event->button_id != cluster->stop_button_id) {
             continue;
+        }
+        if (child_lock_blocks(event)) {
+            return;
         }
         if (event->type == BUTTON_EVENT_DOWN) {
             cover_switch_cluster_handle_down(cluster);
@@ -94,7 +99,9 @@ static void cover_switch_cluster_gesture_event(const gesture_event_t *event,
 
         if (event->button_id == cluster->open_button_id ||
             event->button_id == cluster->close_button_id) {
-            cover_switch_cluster_handle_hold(cluster, event->button_id);
+            if (!child_lock_press_blocked(event->button_id)) {
+                cover_switch_cluster_handle_hold(cluster, event->button_id);
+            }
             return;
         }
     }
@@ -260,8 +267,9 @@ void cover_switch_cluster_update_present_value(zigbee_cover_switch_cluster *clus
 
 static void cover_switch_cluster_handle_down(
     zigbee_cover_switch_cluster *cluster) {
-    if (button_input_is_down(cluster->open_button_id) &&
-        button_input_is_down(cluster->close_button_id)) {
+    if ((cluster->stop_button_id != 0xFF && button_input_is_down(cluster->stop_button_id)) ||
+        (button_input_is_down(cluster->open_button_id) &&
+         button_input_is_down(cluster->close_button_id))) {
         cover_switch_cluster_update_present_value(cluster, MULTISTATE_STOP);
     }else if (button_input_is_down(cluster->open_button_id)) {
         cover_switch_cluster_update_present_value(cluster,

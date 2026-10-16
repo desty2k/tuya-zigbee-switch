@@ -1,0 +1,13 @@
+--- a/zigbee/zcl/closures/zcl_window_covering.c
++++ b/zigbee/zcl/closures/zcl_window_covering.c
+@@ -98,6 +98,10 @@
+     case ZCL_CMD_STOP:
+         status = zcl_windowCovering_genCmdPrc(pInMsg);
+         break;
++    /* The application callback reads the payload from the incoming message. */
++    case ZCL_CMD_GO_TO_LIFT_PERCENTAGE:
++        status = zcl_windowCovering_genCmdPrc(pInMsg);
++        break;
+     default:
+         status = ZCL_STA_UNSUP_CLUSTER_COMMAND;
+         break;

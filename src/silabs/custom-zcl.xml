@@ -8,6 +8,7 @@
     <attribute side="server" code="0x0004" define="LAST_ERROR" type="ENUM8" writable="false" default="0">last error</attribute>
     <attribute side="server" code="0x0010" define="STATUS_LED_MODE" type="ENUM8" writable="true" default="0">status led mode</attribute>
     <attribute side="server" code="0x0011" define="MULTI_PRESS_RESET" type="INT8U" writable="true" default="10">multi press reset</attribute>
+    <attribute side="server" code="0x0012" define="CHILD_LOCK" type="BOOLEAN" writable="true" default="0">child lock</attribute>
   </clusterExtension>
   <clusterExtension code="0xfc11" manufacturerCode="0x1a2b">
     <attribute side="server" code="0x0000" define="UPTIME_MS" type="INT32U" writable="false" default="0">uptime ms</attribute>

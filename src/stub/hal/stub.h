@@ -24,6 +24,16 @@ uint8_t stub_gpio_get_output(hal_gpio_pin_t gpio_pin);
 uint32_t stub_gpio_init_count(void);
 uint32_t stub_gpio_write_count(void);
 
+typedef struct {
+    uint8_t         initialized;
+    uint8_t         is_input;
+    hal_gpio_pull_t pull;
+    uint8_t         value;
+} stub_gpio_pin_state_t;
+
+/** Direction, pull and level of a pin; false if the id is out of range. */
+bool stub_gpio_pin_state(hal_gpio_pin_t gpio_pin, stub_gpio_pin_state_t *out);
+
 // Tasks stub functions
 void stub_tasks_poll(void);
 void stub_tasks_pause(void);

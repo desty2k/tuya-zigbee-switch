@@ -75,7 +75,6 @@ ZIGBEE_SOURCES := \
 	$(SDK_PATH)/zigbee/zcl/light_color_control/zcl_light_colorCtrl_attr.c \
 	$(SDK_PATH)/zigbee/zcl/closures/zcl_door_lock.c \
 	$(SDK_PATH)/zigbee/zcl/closures/zcl_door_lock_attr.c \
-	$(SDK_PATH)/zigbee/zcl/closures/zcl_window_covering.c \
 	$(SDK_PATH)/zigbee/zcl/closures/zcl_window_covering_attr.c \
 	$(SDK_PATH)/zigbee/zcl/general/zcl_alarm.c \
 	$(SDK_PATH)/zigbee/zcl/general/zcl_alarm_attr.c \
@@ -151,12 +150,17 @@ PATCHED_REPORTING_SOURCE := $(BUILD_DIR)/sdk-src/zigbee/zcl/zcl_reporting.c
 PATCHED_REPORTING_OBJ := $(BUILD_DIR)/sdk/zigbee/zcl/zcl_reporting.o
 PATCHED_REPORTING_PATCH := $(PROJECT_ROOT)/src/telink/patch_sdk/zcl_reporting_manu_code.patch
 
-SDK_OBJS += $(PATCHED_ZCL_OBJ) $(PATCHED_REPORTING_OBJ)
+PATCHED_WINDOW_COVERING_SOURCE := $(BUILD_DIR)/sdk-src/zigbee/zcl/closures/zcl_window_covering.c
+PATCHED_WINDOW_COVERING_OBJ := $(BUILD_DIR)/sdk/zigbee/zcl/closures/zcl_window_covering.o
+PATCHED_WINDOW_COVERING_PATCH := $(PROJECT_ROOT)/src/telink/patch_sdk/zcl_window_covering_goto.patch
+
+SDK_OBJS += $(PATCHED_ZCL_OBJ) $(PATCHED_REPORTING_OBJ) $(PATCHED_WINDOW_COVERING_OBJ)
 
 # SDK dependency files (only for C files, not assembly)
 SDK_C_SOURCES := $(filter %.c,$(ALL_SDK_SOURCES))
 SDK_DEPS := $(SDK_C_SOURCES:$(SDK_PATH)/%.c=$(BUILD_DIR)/sdk/%.d)
-SDK_DEPS += $(BUILD_DIR)/sdk/zigbee/zcl/zcl.d $(BUILD_DIR)/sdk/zigbee/zcl/zcl_reporting.d
+SDK_DEPS += $(BUILD_DIR)/sdk/zigbee/zcl/zcl.d $(BUILD_DIR)/sdk/zigbee/zcl/zcl_reporting.d \
+            $(BUILD_DIR)/sdk/zigbee/zcl/closures/zcl_window_covering.d
 
 # Build all SDK objects
 sdk-build: $(SDK_OBJS)
@@ -174,6 +178,10 @@ sdk-clean:
 $(BUILD_DIR)/sdk/proj/drivers/drv_nv.o: GCC_FLAGS += -Dnv_resetToFactoryNew=nv_resetToFactoryNew__sdk
 
 $(SDK_OBJS): GCC_FLAGS += -fpack-struct
+
+# The patched copy lives outside the SDK tree; its `#include "../zcl_include.h"`
+# resolves through the original directory.
+$(PATCHED_WINDOW_COVERING_OBJ): GCC_FLAGS += -I$(SDK_PATH)/zigbee/zcl/closures
 
 # Compile SDK C files
 $(BUILD_DIR)/sdk/%.o: $(SDK_PATH)/%.c
@@ -230,7 +238,23 @@ $(PATCHED_REPORTING_SOURCE): $(SDK_PATH)/zigbee/zcl/zcl_reporting.c $(PATCHED_RE
 	@mv $(PATCHED_REPORTING_WORK)/zigbee/zcl/zcl_reporting.c $@
 	@rm -rf $(PATCHED_REPORTING_WORK)
 
-$(PATCHED_ZCL_OBJ) $(PATCHED_REPORTING_OBJ): $(BUILD_DIR)/sdk/%.o: $(BUILD_DIR)/sdk-src/%.c
+# The SDK WindowCovering parser hands only Up/Open, Down/Close and Stop to the
+# application and answers every other command UNSUP_CLUSTER_COMMAND; the patch
+# also passes Go To Lift Percentage on.
+PATCHED_WINDOW_COVERING_WORK := $(BUILD_DIR)/sdk-src-window-covering-work
+
+$(PATCHED_WINDOW_COVERING_SOURCE): $(SDK_PATH)/zigbee/zcl/closures/zcl_window_covering.c $(PATCHED_WINDOW_COVERING_PATCH)
+	@rm -rf $(PATCHED_WINDOW_COVERING_WORK)
+	@mkdir -p $(dir $@) $(PATCHED_WINDOW_COVERING_WORK)/zigbee/zcl/closures
+	@tr -d '\r' < $< > $(PATCHED_WINDOW_COVERING_WORK)/zigbee/zcl/closures/zcl_window_covering.c
+	@patch --batch --forward -F0 -p1 -d $(PATCHED_WINDOW_COVERING_WORK) < $(PATCHED_WINDOW_COVERING_PATCH)
+	@grep -q 'case ZCL_CMD_GO_TO_LIFT_PERCENTAGE:' \
+		$(PATCHED_WINDOW_COVERING_WORK)/zigbee/zcl/closures/zcl_window_covering.c || \
+		{ echo "error: $(PATCHED_WINDOW_COVERING_PATCH) did not pass Go To Lift Percentage on"; exit 1; }
+	@mv $(PATCHED_WINDOW_COVERING_WORK)/zigbee/zcl/closures/zcl_window_covering.c $@
+	@rm -rf $(PATCHED_WINDOW_COVERING_WORK)
+
+$(PATCHED_ZCL_OBJ) $(PATCHED_REPORTING_OBJ) $(PATCHED_WINDOW_COVERING_OBJ): $(BUILD_DIR)/sdk/%.o: $(BUILD_DIR)/sdk-src/%.c
 	@echo "Compiling patched SDK $<"
 	@mkdir -p $(dir $@)
 	@$(CC) $(GCC_FLAGS) $(DEVICE_DEFS) $(INCLUDE_PATHS) -c -o $@ $<

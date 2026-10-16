@@ -402,6 +402,24 @@ const romasku = {
             valueMax: 255,
             entityCategory: "config",
         }),
+    // Device-wide child lock on Device Config (endpoint 1). Locally toggled by
+    // holding a cover's stop button for 5 s (open+close for 3 s without one),
+    // the first two momentary switch buttons for 3 s, or the only one for
+    // 10 s. Read on configure and on `get`; no report is configured (the
+    // Telink reporting table has no slot left on 4-gang boards), the device
+    // sends one unsolicited report when the lock is toggled locally.
+    childLock: (name, endpointName) =>
+        binary({
+            name,
+            endpointName,
+            valueOn: ["LOCK", 1],
+            valueOff: ["UNLOCK", 0],
+            cluster: "manuSpecificDeviceConfig",
+            attribute: "childLock",
+            description: "Ignore the local buttons; Zigbee control keeps working",
+            access: "ALL",
+            entityCategory: "config",
+        }),
     deviceConfig: (name, endpointName) =>
         text({
             name,
@@ -443,15 +461,18 @@ const romasku = {
                             throw new Error(`Pull up down ${part[3]} is invalid. Valid options are u, U, d, f`);
                         } 
                     } else if (part[0] == 'X') {
+                        // X<open><close>[<stop>]<pull>
                         validatePin(part.slice(1,3));
                         validatePin(part.slice(3,5));
-                        if (!["u", "U", "d", "f"].includes(part[5])) {
-                            throw new Error(`Pull up down ${part[5]} is invalid. Valid options are u, U, d, f`);
+                        const pullAt = part.length == 8 ? 7 : 5;
+                        if (pullAt == 7) validatePin(part.slice(5,7));
+                        if (part.length != pullAt + 1 || !["u", "U", "d", "f"].includes(part[pullAt])) {
+                            throw new Error(`Cover switch ${part} is invalid. Use X<open><close>[<stop>]<pull>, pull one of u, U, d, f`);
                         }
                     } else if (part[0] == 'C') {
                         validatePin(part.slice(1,3));
                         validatePin(part.slice(3,5));
-                    } else if (part[0] == 'L' || part[0] == 'R' || part[0] == 'I') {
+                    } else if (part[0] == 'L' || part[0] == 'R' || part[0] == 'I' || part[0] == 'P') {
                         validatePin(part.slice(1,3));
                     } else if (part[0] == 'E') {
                         if (part[1] != 'B') throw new Error(`Meter ${part} is invalid. Use EB<CF><CF1><SEL>[i]`);
@@ -470,7 +491,7 @@ const romasku = {
                     } else if(part[0] == 'i') {
                         ; // TODO: write validation
                     } else {
-                        throw new Error(`Invalid entry ${part}. Should start with one of B, BT, C, D, E, I, K, L, M, R, S, SLP, X, i`);
+                        throw new Error(`Invalid entry ${part}. Should start with one of B, BT, C, D, E, I, K, L, M, P, R, S, SLP, X, i`);
                     }
                 }
             },
@@ -753,6 +774,9 @@ const definitions = [
             ...romasku.managementClusters({{ "true" if device.probe }}),
             romasku.deviceConfig("device_config", "{{first_endpoint}}"),
             romasku.multiPressResetCount("multi_press_reset_count", "{{first_endpoint}}"),
+            {% if device.switchNames or device.coverSwitchNames %}
+            romasku.childLock("child_lock", "{{first_endpoint}}"),
+            {% endif %}
             ...romasku.deviceConfigState("{{first_endpoint}}"),
             {% else %}
             ...romasku.managementClusters({{ "true" if device.probe }}),
@@ -817,6 +841,9 @@ const definitions = [
         meta: { multiEndpoint: true },
         {% endif %}
         configure: async (device, coordinatorEndpoint, logger) => {
+            {% if device.switchNames or device.coverSwitchNames %}
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
+            {% endif %}
             {% for switchName in device.switchNames %}
             const endpoint{{loop.index}} = device.getEndpoint({{loop.index}});
             await reporting.bind(endpoint{{loop.index}}, coordinatorEndpoint, ["genMultistateInput"]);

@@ -6,6 +6,7 @@ _Open the **Outline** (table of contents) from the top right._
 
 Please describe what you are working on, under ## Upcoming
 
+- A device whose stored config the image rejects (for example a cover config under an image without the cover feature: `LastError` `FEATURE_MISSING`) holds every general-purpose pin on the pull-down in its recovery graph. The pins were left floating, so relay driver inputs picked up mains hum: the BSEED TS130F shutter hummed and chattered both motor relays.
 - Power monitoring for BL0937 outlets: the `EB<CF><CF1><SEL>[i]` config token adds voltage, current and active power (Electrical Measurement `0x0B04`) and energy (Metering `0x0702`) on endpoint 1, plus calibration gains and a Reset Energy command on the fork-private Meter Calibration cluster (`0xFC12`). Energy and calibration survive reboots and OTA. New board `OUTLET_BSEED_TS011F_PM_DRZLXJNE` (TS011F `_TZ3210_drzlxjne`); its default calibration is not yet checked against a reference meter.
 ------------------------------------------------------->
 
@@ -18,6 +19,9 @@ Please describe what you are working on, under ## Upcoming
 - Device Diagnostics (`0xFC11`) values refresh once per second instead of on every main-loop pass, and uptime is no longer reportable.
 - Telink release images leave out the debug `printf` calls, which only produce output with `DEBUG=1`.
 - Single-relay boards without a cover leave out relay interlock: the `K` config token needs the `interlock` feature, added automatically to boards with a cover or more than one relay.
+- **Child lock**: Device Config `ChildLock` (`0x0012`) makes the device ignore its local switch and cover-switch buttons (relays, covers and bound commands) while Zigbee control keeps working; it survives reboots and OTA, and a factory reset releases it. Toggled on the device by holding a cover's stop button for 5 s (or open+close without one) or the first two switch buttons for 3 s, or a single switch button for 10 s, when those inputs are momentary. The new `P<pin>[i]` config token names the lock LED (3 blinks on lock, 2 on unlock, 1 per press while locked); without it the status LED or first indicator blinks, layered over its state. The BSEED TS130F (vsj5o7dm) uses its red LED `D2`. Zigbee2MQTT exposes `child_lock` (LOCK/UNLOCK), ZHA and HOMEd a switch; they read it rather than configure a report, and the device sends the coordinator one report when the lock is toggled on the device.
+- A cover resting at an end ignores open or close commands towards that end when the end was reached by a completed move, or after a stop there without an overrun; the relay used to switch on and off at once.
+- HOMEd: relay indicator settings appear only on relay endpoints; a cover's indicators no longer add them to other endpoints.
 - The relay indicator LED and its state attribute always agree: in `same`/`opposite` mode a written indicator state is replaced by the relay-derived one and reported, and switching the indicator mode to `manual` shows the stored state on the LED. A write in another mode left the attribute at the written value while the LED followed the relay.
 
 ## v2.0.0-rc.2
@@ -75,6 +79,7 @@ Settings survive updates between 2.x releases. OTA file versions follow
 - **Generated integrations** (Zigbee2MQTT, ZHA, HOMEd) configure the device through the Device Config (`0xFC10`) and Device Diagnostics (`0xFC11`) clusters, and send the fork manufacturer code `0x1A2B` on every fork-private cluster (`0xFC01`, `0xFC02`, `0xFC10`, `0xFC11`). The network LED switch became the status LED mode (`network`, `off`, `on`); diagnostic counters carry the cluster's attribute names.
 - Covers in Zigbee2MQTT show 100 = open (the device reports ZCL lift %, 0 = open); an unknown position shows as no value in ZHA, while Zigbee2MQTT keeps the last position. Open and close times, deadzones and overrun are exposed in all three integrations, and the cover-switch long press in HOMEd.
 - The GPIO probe board has a Zigbee2MQTT converter (model `TS011F-probe`) for `helper_scripts/probe_discovery.py`.
+- **Cover stop button**: `X<open><close><stop><pull>` adds a stop button to a cover switch; a cover lights the next two `I` LEDs while opening and while closing. `COVER_BSEED_TS130F_VSJ5O7DM` supports the BSEED shutter switch `_TZ3000_vsj5o7dm` (up, stop and down buttons, direction LEDs, backlight as the status LED).
 - The GPIO probe image holds every unclaimed pin on the 100 kΩ pull-down from boot and after each probe operation; a floating relay driver input made a TS130F hum and chatter. `COVER_BSEED_TS130F_PROBE` probes the BSEED shutter switch `_TZ3000_vsj5o7dm`.
 - A GPIO probe image may carry the relay and switch features: a config string written over Zigbee drives the pins it claims while the probe covers the rest. `OUTLET_BSEED_TS011F_PROBE` ships with button `B4` (momentary), relay `B5` and relay indicator `C4` (`SB4u;RB5;IC4;M;`), and its Zigbee2MQTT definition exposes the relay, the indicator modes and the button next to the probe.
 - **Relay inching** (`InchingDuration`) pulses the relay for every switch-on: Zigbee On, Toggle, *MoveToLevelWithOnOff*, bindings, local switches and startup ON.

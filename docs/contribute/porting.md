@@ -85,15 +85,22 @@ The pinout is stored in the **device config string**.
 **Cover example** (1-gang cover controller):  
 ⤷ `mfgname;TS130F-CVR;BC5u;LA3;XA2B3u;CC4D2;`
 
+**Cover with stop button and LEDs** (BSEED TS130F: open/close/stop buttons, open/close LEDs, red child lock LED on `D2`):  
+⤷ `vsj5o7dm;TS130F-BS-CVR;LB4;XB6A1A0u;CD3C0;IC3;IB5;PD2;M;`
+
+**Outlet with the child lock on its indicator** (BSEED TS011F: the relay indicator `C4` also blinks the child lock; hold the button 10 s to toggle it):  
+⤷ `drzlxjne;TS011F-BS-PM-3;SB4u;RB5;IC4;PC4;EBC2C3D2;M;`
+
 | Ch      | Peripheral    | Function                                                                                                          |
 |--------:|---------------|-------------------------------------------------------------------------------------------------------------------|
 | **`B`** | Reset button  | • Puts device in pairing                                                                                          |
 | **`L`** | Network led   | • Blinks while pairing <br> • Is the backlight sometimes                                                          |
 | **`S`** | Switch        | • User input <br> • Tactile/touch button or external switch <br> • Spam to put in pairing mode                    |
 | **`R`** | Relay / Triac | • Output <br> • Non-latching: `RC1` - 1 pin: on when high <br> • Latching: `RC2C3` - 2 pins: pulse on, pulse off  |
-| **`X`** | Cover Switch  | • User input for cover control <br> • Format: `XA2B3u` - 2 pins + pull resistor: open button, close button        |
+| **`X`** | Cover Switch  | • User input for cover control <br> • Format: `XA2B3u` - 2 pins + pull resistor: open button, close button <br> • `XA2B3A4u` - optional third pin: stop button <br> • Holding stop for 5 s (or open and close together for 3 s without a stop button) toggles the child lock (momentary type) |
 | **`C`** | Cover         | • Motor control for curtains/blinds/shades <br> • Format: `CA2B3` - 2 pins: open relay, close relay               |
-| **`I`** | Indicator LED | • 1 per relay, follows state <br> • Briefly flashes on button press (binding confirmation) <br> • Blinks while pairing if there is no network led |
+| **`I`** | Indicator LED | • 1 per relay, follows state <br> • A cover takes the next 2: lit while opening, lit while closing <br> • Briefly flashes on button press (binding confirmation) <br> • Blinks while pairing if there is no network led |
+| **`P`** | Child lock LED | • At most one <br> • Blinks 3 times on lock, twice on unlock, once for a press while locked; dark otherwise <br> • May name the pin of an `L` or `I` LED: the blinks are layered over it <br> • Without `P` the `L` LED is used, else the first `I` LED (see [child lock](../usage/endpoints.md#child-lock)) |
 
 For buttons (`B`), switches (`S`), and cover switches (`X`), the next character chooses the internal pull-up/down resistor:  
 ⤷ **`u`: up 10K**, `U`: up 1M, `d`: down 100K, `f`: float (external resistor)  
@@ -131,7 +138,8 @@ on the device without reflashing: write it to the Device Config `text`
 attribute (cluster `0xFC10`), the device reboots into it, its buttons and
 relays work through the usual endpoints, and the probe keeps working on every
 pin the config does not claim. A config with a token for a feature the image
-lacks boots the recovery graph, which disables the probe; write a config
+lacks boots the recovery graph, which disables the probe and rests every
+pin on the pull-down, as in every image; write a config
 without that token to get it back. When probing a cover device, configure its
 two motor relays as plain relays in one interlock group (`RA0;RA1;K03;`, with
 the default 200 ms dead time) so the two directions are never energised
@@ -183,7 +191,7 @@ defined in `helper_scripts/management_protocol.json`):
 
 | Step | Effect |
 | --- | --- |
-| Boot | Every probeable pin becomes an input with the 100 kΩ pull-down (the rest state), so no relay driver input floats and half-energises its coil on mains hum; nothing is persisted. The recovery graph rests every pin the same way |
+| Boot | Every probeable pin becomes an input with the 100 kΩ pull-down (the rest state), so no relay driver input floats and half-energises its coil on mains hum; nothing is persisted. The recovery graph of every image rests the same pins the same way (`hal_gpio_rest_all()`) |
 | Snapshot | Reads every probeable pin without changing its mode |
 | Pull test | Pull-up (10 kΩ), pull-down (100 kΩ), twice, 25 ms each; classifies each pin *floating*, *driven high*, *driven low* or *active*; ends in the rest state. A relay driven through a transistor with a base resistor of about 20 kΩ or more classifies *floating* and may click during the pull-up phases; one with a low base resistor (a few kΩ) reads *driven low* |
 | Watch | Counts rising edges on up to 2 pins for 1–300 s: count, min/max interval, last level; a pin above 20 kHz is stopped and flagged |

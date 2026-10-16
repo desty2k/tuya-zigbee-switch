@@ -38,17 +38,21 @@ static bool pin_is_reused(hal_gpio_pin_t pin, uint8_t *used_count,
 
 #if FEATURE_METER
 
-/* Indicator pins stay out of the reuse check above; a meter pin must not be one. */
+static bool meter_uses_pin(const device_meter_config_t *meter, hal_gpio_pin_t pin) {
+    return pin == meter->cf_pin || pin == meter->cf1_pin || pin == meter->sel_pin;
+}
+
+/* Indicator and lock LED pins stay out of the reuse check above; a meter pin
+ * must not be one. */
 static bool meter_pin_drives_indicator(const device_composition_t *composition,
                                        const device_meter_config_t *meter) {
     for (uint8_t i = 0; i < composition->indicator_count; i++) {
-        hal_gpio_pin_t pin = composition->indicators[i].pin;
-
-        if (pin == meter->cf_pin || pin == meter->cf1_pin || pin == meter->sel_pin) {
+        if (meter_uses_pin(meter, composition->indicators[i].pin)) {
             return true;
         }
     }
-    return false;
+    return composition->lock_led_pin != HAL_INVALID_PIN &&
+           meter_uses_pin(meter, composition->lock_led_pin);
 }
 
 #endif
@@ -117,7 +121,9 @@ config_parse_result_t device_composition_validate(
         if (composition->cover_switches[i].open_button_id >= composition->button_count ||
             composition->cover_switches[i].close_button_id >= composition->button_count ||
             composition->cover_switches[i].open_button_id ==
-            composition->cover_switches[i].close_button_id) {
+            composition->cover_switches[i].close_button_id ||
+            (composition->cover_switches[i].stop_button_id != DEVICE_COMPOSITION_NO_BUTTON &&
+             composition->cover_switches[i].stop_button_id >= composition->button_count)) {
             return CONFIG_PARSE_REFERENCE;
         }
     }

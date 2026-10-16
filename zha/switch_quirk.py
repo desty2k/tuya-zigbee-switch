@@ -52,6 +52,7 @@ DEVICE_CONFIG_ATTRIBUTES = (
     (0x0004, "last_error", DeviceConfigLastError, "r"),
     (0x0010, "status_led_mode", DeviceConfigStatusLedMode, "rw"),
     (0x0011, "multi_press_reset", t.uint8_t, "rw"),
+    (0x0012, "child_lock", t.Bool, "rw"),
 )
 
 DEVICE_DIAGNOSTICS_ATTRIBUTES = (
@@ -715,6 +716,7 @@ CONFIGS = [
     "ko6v90pg;TS011F-BS-PM-1;LC4i;SB4u;RB5;IB1i;M;",
     "4ux0ondb;TS011F-BS-PM-2;LB4;SB5u;RD2;IC3;M;",
     "o1jzcxou;TS011F-BS;LC2;SB4u;RC3;ID2;M;",
+    "vsj5o7dm;TS130F-BS-CVR;LB4i;XB6A1A0u;CD3C0;IC3;IB5;PD2;M;",
     "drzlxjne;TS011F-BS-PM-3;SB4u;RB5;IC4;EBC2C3D2;M;",
     "bep7ccew;TS011F-MG;LB4;SC3u;RD7;IC4;SD4u;RD2;IC0;M;",
     "ss98ec5d;TS011F-MOES;SB7d;RD2;IB1;M;",
@@ -1254,6 +1256,16 @@ for config in CONFIGS:
             MeterCalibrationCluster.cluster_id,
             translation_key="reset_energy",
             fallback_name="Reset energy",
+            endpoint_id=1,
+            entity_type=EntityType.CONFIG,
+        )
+
+    if switch_cnt or cover_switch_cnt:
+        builder = builder.switch(
+            "child_lock",
+            DeviceConfigCluster.cluster_id,
+            translation_key="child_lock",
+            fallback_name="Child lock",
             endpoint_id=1,
             entity_type=EntityType.CONFIG,
         )

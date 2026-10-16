@@ -45,8 +45,11 @@ typedef enum { DEVICE_METER_BL0937 = 1 }                               device_me
 typedef struct { device_meter_ic_t ic; hal_gpio_pin_t cf_pin; hal_gpio_pin_t cf1_pin;
                  hal_gpio_pin_t    sel_pin; bool sel_high_selects_voltage; }
 device_meter_config_t;
-typedef struct { uint8_t button_id; uint8_t relay_id; }               device_switch_config_t;
-typedef struct { uint8_t open_button_id; uint8_t close_button_id; }   device_cover_switch_config_t;
+typedef struct { uint8_t button_id; uint8_t relay_id; } device_switch_config_t;
+/* stop_button_id is DEVICE_COMPOSITION_NO_BUTTON when the switch has no stop button. */
+#define DEVICE_COMPOSITION_NO_BUTTON    0xFFu
+typedef struct { uint8_t open_button_id; uint8_t close_button_id; uint8_t stop_button_id; }
+device_cover_switch_config_t;
 typedef struct {
     char                         manufacturer[32]; char model[32];
     device_button_config_t       buttons[DEVICE_COMPOSITION_MAX_BUTTONS];
@@ -59,7 +62,9 @@ typedef struct {
     device_cover_switch_config_t cover_switches[DEVICE_COMPOSITION_MAX_COVER_SWITCHES];
     uint8_t                      relay_endpoint_ids[DEVICE_COMPOSITION_MAX_RELAYS];
     hal_gpio_pin_t               battery_pin;
-    uint16_t                     image_type; // OTA image type of the `i` token
+    hal_gpio_pin_t               lock_led_pin; // `P` token; HAL_INVALID_PIN without one
+    bool                         lock_led_on_high;
+    uint16_t                     image_type;   // OTA image type of the `i` token
     uint8_t                      relay_count, relay_endpoint_count, button_count, indicator_count,
                                  interlock_count;
     uint8_t                      cover_count, meter_count, switch_count, cover_switch_count,

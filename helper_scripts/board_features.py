@@ -52,7 +52,7 @@ def token_feature(token):
         return True, "interlock"
     if token.startswith("BT"):
         return True, "battery"
-    if token[:1] in ("B", "L", "I"):
+    if token[:1] in ("B", "L", "I", "P"):
         return True, None
     if token[:1] == "S":
         return True, "switch"

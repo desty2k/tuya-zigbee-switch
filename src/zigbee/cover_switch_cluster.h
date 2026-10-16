@@ -23,6 +23,7 @@ typedef struct {
     uint8_t                     endpoint;
     uint8_t                     open_button_id;
     uint8_t                     close_button_id;
+    uint8_t                     stop_button_id; // 0xFF: no stop button
     uint16_t                    hold_duration_ms;
 
     // Attributes

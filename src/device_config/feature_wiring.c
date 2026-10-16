@@ -9,6 +9,7 @@
 #include "base_components/action_mapper.h"
 #include "base_components/battery.h"
 #include "base_components/button_input.h"
+#include "base_components/child_lock.h"
 #include "base_components/cover_controller.h"
 #include "base_components/diagnostics_service.h"
 #include "base_components/gesture_fsm.h"
@@ -25,6 +26,7 @@
 #include "base_components/network_indicator.h"
 #include "base_components/relay_controller.h"
 #include "base_components/relay_driver.h"
+#include "hal/gpio.h"
 #include "hal/zigbee_ota.h"
 #include "zigbee/basic_cluster.h"
 #include "zigbee/battery_cluster.h"
@@ -141,6 +143,8 @@ void parse_config(void) {
 network_indicator_t network_indicator = { .manual_state_when_connected = 1 };
 led_t leds[DEVICE_COMPOSITION_MAX_INDICATORS];
 static indicator_feedback_t indicator_feedbacks[DEVICE_COMPOSITION_MAX_INDICATORS];
+static led_t lock_led;
+static indicator_feedback_t lock_led_feedback;
 uint8_t leds_cnt;
 static button_config_t     wired_button_configs[DEVICE_COMPOSITION_MAX_BUTTONS];
 static gesture_config_t    wired_gesture_configs[DEVICE_COMPOSITION_MAX_BUTTONS];
@@ -219,6 +223,7 @@ static void probe_claim_composition(const device_composition_t *c) {
         probe_claim(c->indicators[i].pin);
     }
     probe_claim(c->battery_pin);
+    probe_claim(c->lock_led_pin);
 }
 
 #endif
@@ -305,10 +310,11 @@ static uint8_t built_endpoint_count(void) {
     return count == 0 ? 1 : count;
 }
 
-#if FEATURE_RELAY || FEATURE_SWITCH
+#if FEATURE_RELAY || FEATURE_SWITCH || FEATURE_COVER
 
 /* The n-th indicator that is not the dedicated status LED, or NULL. Relay
- * and switch endpoints take shared indicators in endpoint order. */
+ * and switch endpoints take shared indicators in endpoint order; covers take
+ * the next ones, two each (see wire_cover_leds). */
 static indicator_feedback_t *shared_indicator(const device_composition_t *c, uint8_t n) {
     for (uint8_t i = 0; i < leds_cnt; i++) {
         if (c->indicators[i].dedicated) {
@@ -386,6 +392,51 @@ static feature_wiring_result_t wire_interlocks(void) {
 
 #if FEATURE_COVER
 
+typedef struct {
+    indicator_feedback_t *open_led;
+    indicator_feedback_t *close_led;
+} cover_leds_t;
+
+static cover_leds_t cover_leds[DEVICE_COMPOSITION_MAX_COVERS];
+
+static void cover_leds_on_state(void *context, uint8_t cover_id,
+                                const cover_state_t *state) {
+    cover_leds_t *pair = context;
+
+    (void)cover_id;
+    if (pair->open_led != NULL) {
+        indicator_feedback_set_base_state(pair->open_led, state->motion == COVER_OPENING);
+    }
+    if (pair->close_led != NULL) {
+        indicator_feedback_set_base_state(pair->close_led, state->motion == COVER_CLOSING);
+    }
+}
+
+/* Each cover lights its first indicator while opening and its second while
+ * closing, after the indicators the relay and switch endpoints take. */
+static bool wire_cover_leds(const device_composition_t *c) {
+    uint8_t first = 0;
+
+#if FEATURE_RELAY
+    first = relay_clusters_cnt;
+#endif
+#if FEATURE_SWITCH
+    if (switch_clusters_cnt > first) {
+        first = switch_clusters_cnt;
+    }
+#endif
+    for (uint8_t i = 0; i < cover_clusters_cnt; i++) {
+        cover_leds[i].open_led  = shared_indicator(c, (uint8_t)(first + 2 * i));
+        cover_leds[i].close_led = shared_indicator(c, (uint8_t)(first + 2 * i + 1));
+        if ((cover_leds[i].open_led != NULL || cover_leds[i].close_led != NULL) &&
+            !cover_controller_subscribe(cover_clusters[i].controller_id,
+                                        cover_leds_on_state, &cover_leds[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
 /* Cover relays form one interlock group per cover, numbered after the
  * config's K groups. */
 static feature_wiring_result_t wire_covers(const device_composition_t *c) {
@@ -399,6 +450,7 @@ static feature_wiring_result_t wire_covers(const device_composition_t *c) {
         cover_switch_clusters[i].cover_switch_idx   = i;
         cover_switch_clusters[i].open_button_id     = c->cover_switches[i].open_button_id;
         cover_switch_clusters[i].close_button_id    = c->cover_switches[i].close_button_id;
+        cover_switch_clusters[i].stop_button_id     = c->cover_switches[i].stop_button_id;
         cover_switch_clusters[i].hold_duration_ms   = COVER_SWITCH_DEFAULT_HOLD_MS;
         cover_switch_clusters[i].multi_click_gap_ms = open_button->multi_click_gap_ms;
         cover_switch_clusters[i].debounce_ms        = open_button->debounce_ms;
@@ -424,7 +476,7 @@ static feature_wiring_result_t wire_covers(const device_composition_t *c) {
             return FEATURE_WIRING_INVALID;
         }
     }
-    return FEATURE_WIRING_OK;
+    return wire_cover_leds(c) ? FEATURE_WIRING_OK : FEATURE_WIRING_INVALID;
 }
 
 #endif
@@ -480,6 +532,30 @@ static void stop_meters(void) {
 }
 
 #endif
+
+/* The `P` LED blinks the child lock feedback. On the pin of an `L` or `I`
+ * LED it shares that LED's feedback, so a blink is layered over the LED's
+ * state and restores it. Without `P` the status LED is used, else the first
+ * indicator, else no LED. */
+static indicator_feedback_t *wire_lock_led(const device_composition_t *c) {
+    for (uint8_t i = 0; i < leds_cnt; i++) {
+        if (c->lock_led_pin != HAL_INVALID_PIN && c->indicators[i].pin == c->lock_led_pin) {
+            return &indicator_feedbacks[i];
+        }
+    }
+    if (c->lock_led_pin != HAL_INVALID_PIN) {
+        hal_gpio_init(c->lock_led_pin, 0, HAL_GPIO_PULL_NONE);
+        lock_led = (led_t){ .pin = c->lock_led_pin, .on_high = c->lock_led_on_high };
+        indicator_feedback_init(&lock_led_feedback, &lock_led);
+        return &lock_led_feedback;
+    }
+    for (uint8_t i = 0; i < leds_cnt; i++) {
+        if (c->indicators[i].dedicated) {
+            return &indicator_feedbacks[i];
+        }
+    }
+    return leds_cnt > 0 ? &indicator_feedbacks[0] : NULL;
+}
 
 feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
     if (feature_wiring_preflight(c) != FEATURE_WIRING_OK) {
@@ -557,6 +633,8 @@ feature_wiring_result_t feature_wiring_build(const device_composition_t *c) {
     device_config_service_set_led_mode_provider(
         network_indicator.has_dedicated_led ? apply_status_led_mode : NULL,
         network_indicator.has_dedicated_led ? &network_indicator : NULL);
+    child_lock_reset_wiring();
+    child_lock_set_indicator(wire_lock_led(c));
     for (uint8_t i = 0; i < buttons_cnt; i++) {
         bool pulled_down = c->buttons[i].pull == HAL_GPIO_PULL_DOWN;
 
@@ -805,17 +883,21 @@ static void stop_wired_features(void) {
 void feature_wiring_build_recovery(void) {
     stop_wired_features();
 #if FEATURE_PROBE
-    /*
-     * Which pins a failed graph drives is unknown, so the probe stays off;
-     * every pin still rests on the pull-down, so no relay driver floats.
-     */
+    /* Which pins a failed graph drives is unknown, so the probe stays off. */
     gpio_probe_service_init();
-    gpio_probe_service_rest_pins();
 #endif
+
+    /*
+     * Pins of a rejected config were never configured, so a relay driver
+     * input behind one would float. Relays a failed build already wired stay
+     * outputs, driven off by stop_wired_features().
+     */
+    hal_gpio_rest_all();
     memset(endpoints, 0, sizeof(endpoints));
     memset(clusters, 0, sizeof(clusters));
     memset(&basic_cluster, 0, sizeof(basic_cluster));
     device_config_service_set_led_mode_provider(NULL, NULL);
+    child_lock_reset_wiring();
     basic_cluster.deviceEnable = 1;
     basic_cluster.manuName[0]  = 7;
     memcpy(basic_cluster.manuName + 1, "unknown", 7);
@@ -836,6 +918,58 @@ void feature_wiring_build_recovery(void) {
     hal_register_on_network_status_change_callback(network_changed);
 }
 
+/* Lock gestures: open and close of each momentary cover switch, and the
+ * first two switch buttons, or the only one, while they are momentary. A
+ * toggle input stays down while its load is on, so it never locks. Onboard
+ * buttons have none: their 2 s hold is the factory reset. */
+#if FEATURE_COVER
+static bool cover_switch_lock_gesture_enabled(void *context) {
+    const zigbee_cover_switch_cluster *cluster = context;
+
+    return cluster->switch_type != ZCL_COVER_SWITCH_TYPE_TOGGLE;
+}
+
+#endif
+#if FEATURE_SWITCH
+static bool switch_lock_gesture_enabled(void *context) {
+    (void)context;
+    for (uint8_t i = 0; i < switch_clusters_cnt && i < 2; i++) {
+        if (switch_clusters[i].mode == ZCL_ONOFF_CONFIGURATION_SWITCH_TYPE_TOGGLE) {
+            return false;
+        }
+    }
+    return true;
+}
+
+#endif
+
+static void wire_child_lock_gestures(void) {
+#if FEATURE_COVER
+    for (uint8_t i = 0; i < cover_switch_clusters_cnt; i++) {
+        zigbee_cover_switch_cluster *cluster = &cover_switch_clusters[i];
+
+        if (cluster->stop_button_id != DEVICE_COMPOSITION_NO_BUTTON) {
+            (void)child_lock_add_gesture(cluster->stop_button_id, CHILD_LOCK_NO_BUTTON,
+                                         CHILD_LOCK_STOP_HOLD_MS,
+                                         cover_switch_lock_gesture_enabled, cluster);
+        } else {
+            (void)child_lock_add_gesture(cluster->open_button_id, cluster->close_button_id,
+                                         CHILD_LOCK_PAIR_HOLD_MS,
+                                         cover_switch_lock_gesture_enabled, cluster);
+        }
+    }
+#endif
+#if FEATURE_SWITCH
+    if (switch_clusters_cnt >= 2) {
+        (void)child_lock_add_gesture(switch_clusters[0].button_id, switch_clusters[1].button_id,
+                                     CHILD_LOCK_PAIR_HOLD_MS, switch_lock_gesture_enabled, NULL);
+    } else if (switch_clusters_cnt == 1) {
+        (void)child_lock_add_gesture(switch_clusters[0].button_id, CHILD_LOCK_NO_BUTTON,
+                                     CHILD_LOCK_SINGLE_HOLD_MS, switch_lock_gesture_enabled, NULL);
+    }
+#endif
+}
+
 void feature_wiring_start(void) {
     button_input_init();
 #if FEATURE_SWITCH
@@ -845,6 +979,7 @@ void feature_wiring_start(void) {
     cover_switch_cluster_register_input();
 #endif
     button_event_cluster_register_input();
+    child_lock_register_input();
     gesture_fsm_init();
 #if FEATURE_SWITCH
     switch_cluster_register_gestures();
@@ -857,6 +992,7 @@ void feature_wiring_start(void) {
 #if FEATURE_COVER
         .cover = cover_controller_action,
 #endif
+        .factory_reset = device_config_service_factory_reset,
     });
     button_event_cluster_register_gestures();
 
@@ -891,6 +1027,10 @@ void feature_wiring_start(void) {
             cover_switch_clusters[i].debounce_ms;
         wired_button_configs[close_id].debounce_ms =
             cover_switch_clusters[i].debounce_ms;
+        if (cover_switch_clusters[i].stop_button_id != DEVICE_COMPOSITION_NO_BUTTON) {
+            wired_button_configs[cover_switch_clusters[i].stop_button_id].debounce_ms =
+                cover_switch_clusters[i].debounce_ms;
+        }
     }
 #endif
     for (uint8_t i = 0; i < buttons_cnt; i++) {
@@ -899,6 +1039,7 @@ void feature_wiring_start(void) {
         gesture_fsm_add(id, &wired_gesture_configs[i]);
         action_mapper_add_reset_button(id, button_roles[i] == INPUT_BUTTON_ONBOARD);
     }
+    wire_child_lock_gestures();
     button_event_cluster_sync_states();
     if (!hal_zigbee_init(endpoints, built_endpoint_count())) {
         device_config_service_set_error(DEVICE_CONFIG_ERROR_RESOURCE);

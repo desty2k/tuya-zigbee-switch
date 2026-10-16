@@ -118,6 +118,7 @@ void stub_app_print_help(void) {
     puts("  set_pin <pin> <0|1>                   - Simulate GPIO input");
     puts("  pin_edge <pin> <0|1> [after_ms]       - Queue GPIO edge");
     puts("  read_pin <pin>                        - Read GPIO output");
+    puts("  pin_state <pin>                       - GPIO direction, pull and level");
     puts("  zcl_list_attrs                        - List all Zigbee attributes");
     puts("  zcl_read <ep> <cluster> <attr>        - Read attribute (ep dec, IDs "
          "hex)");

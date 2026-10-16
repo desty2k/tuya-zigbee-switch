@@ -29,6 +29,7 @@ const managementProtocol = {
             lastError: {name: "lastError", ID: 0x0004, type: Zcl.DataType.ENUM8},
             statusLedMode: {name: "statusLedMode", ID: 0x0010, type: Zcl.DataType.ENUM8, write: true},
             multiPressReset: {name: "multiPressReset", ID: 0x0011, type: Zcl.DataType.UINT8, write: true},
+            childLock: {name: "childLock", ID: 0x0012, type: Zcl.DataType.BOOLEAN, write: true},
         },
         enums: {
             status: ['ready', 'reboot_pending', 'error'],
@@ -462,6 +463,24 @@ const romasku = {
             valueMax: 255,
             entityCategory: "config",
         }),
+    // Device-wide child lock on Device Config (endpoint 1). Locally toggled by
+    // holding a cover's stop button for 5 s (open+close for 3 s without one),
+    // the first two momentary switch buttons for 3 s, or the only one for
+    // 10 s. Read on configure and on `get`; no report is configured (the
+    // Telink reporting table has no slot left on 4-gang boards), the device
+    // sends one unsolicited report when the lock is toggled locally.
+    childLock: (name, endpointName) =>
+        binary({
+            name,
+            endpointName,
+            valueOn: ["LOCK", 1],
+            valueOff: ["UNLOCK", 0],
+            cluster: "manuSpecificDeviceConfig",
+            attribute: "childLock",
+            description: "Ignore the local buttons; Zigbee control keeps working",
+            access: "ALL",
+            entityCategory: "config",
+        }),
     deviceConfig: (name, endpointName) =>
         text({
             name,
@@ -503,15 +522,18 @@ const romasku = {
                             throw new Error(`Pull up down ${part[3]} is invalid. Valid options are u, U, d, f`);
                         } 
                     } else if (part[0] == 'X') {
+                        // X<open><close>[<stop>]<pull>
                         validatePin(part.slice(1,3));
                         validatePin(part.slice(3,5));
-                        if (!["u", "U", "d", "f"].includes(part[5])) {
-                            throw new Error(`Pull up down ${part[5]} is invalid. Valid options are u, U, d, f`);
+                        const pullAt = part.length == 8 ? 7 : 5;
+                        if (pullAt == 7) validatePin(part.slice(5,7));
+                        if (part.length != pullAt + 1 || !["u", "U", "d", "f"].includes(part[pullAt])) {
+                            throw new Error(`Cover switch ${part} is invalid. Use X<open><close>[<stop>]<pull>, pull one of u, U, d, f`);
                         }
                     } else if (part[0] == 'C') {
                         validatePin(part.slice(1,3));
                         validatePin(part.slice(3,5));
-                    } else if (part[0] == 'L' || part[0] == 'R' || part[0] == 'I') {
+                    } else if (part[0] == 'L' || part[0] == 'R' || part[0] == 'I' || part[0] == 'P') {
                         validatePin(part.slice(1,3));
                     } else if (part[0] == 'E') {
                         if (part[1] != 'B') throw new Error(`Meter ${part} is invalid. Use EB<CF><CF1><SEL>[i]`);
@@ -530,7 +552,7 @@ const romasku = {
                     } else if(part[0] == 'i') {
                         ; // TODO: write validation
                     } else {
-                        throw new Error(`Invalid entry ${part}. Should start with one of B, BT, C, D, E, I, K, L, M, R, S, SLP, X, i`);
+                        throw new Error(`Invalid entry ${part}. Should start with one of B, BT, C, D, E, I, K, L, M, P, R, S, SLP, X, i`);
                     }
                 }
             },
@@ -732,6 +754,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_0"),
@@ -775,6 +798,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -887,6 +911,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_0"),
@@ -930,6 +955,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -1042,6 +1068,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_0"),
@@ -1085,6 +1112,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -1197,6 +1225,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_0"),
@@ -1240,6 +1269,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -1352,6 +1382,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -1368,6 +1399,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -1429,6 +1461,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -1454,6 +1487,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -1532,6 +1566,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -1557,6 +1592,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -1635,6 +1671,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -1653,6 +1690,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -1722,6 +1760,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -1740,6 +1779,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -1810,6 +1850,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -1826,6 +1867,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -1887,6 +1929,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -1912,6 +1955,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -1990,6 +2034,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -2024,6 +2069,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -2119,6 +2165,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_0"),
@@ -2162,6 +2209,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -2276,6 +2324,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -2292,6 +2341,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -2355,6 +2405,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -2380,6 +2431,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -2460,6 +2512,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -2494,6 +2547,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -2591,6 +2645,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_0"),
@@ -2634,6 +2689,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -2746,6 +2802,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -2780,6 +2837,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -2875,6 +2933,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_0"),
@@ -2918,6 +2977,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3030,6 +3090,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -3046,6 +3107,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3108,6 +3170,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -3124,6 +3187,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3186,6 +3250,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -3211,6 +3276,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3289,6 +3355,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -3314,6 +3381,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3392,6 +3460,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -3426,6 +3495,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3521,6 +3591,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -3546,6 +3617,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3624,6 +3696,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -3649,6 +3722,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3727,6 +3801,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -3743,6 +3818,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3804,6 +3880,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -3829,6 +3906,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -3907,6 +3985,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -3932,6 +4011,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -4011,6 +4091,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -4027,6 +4108,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -4089,6 +4171,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -4123,6 +4206,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -4218,6 +4302,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -4234,6 +4319,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -4295,6 +4381,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -4320,6 +4407,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -4398,6 +4486,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -4414,6 +4503,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -4475,6 +4565,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -4491,6 +4582,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -4553,6 +4645,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -4578,6 +4671,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -4686,6 +4780,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "cover_switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "cover_switch"),
+            romasku.childLock("child_lock", "cover_switch"),
             ...romasku.deviceConfigState("cover_switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "cover_switch"),
@@ -4710,6 +4805,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
 
 
             const coverSwitch1 = device.getEndpoint(1);
@@ -4804,6 +4900,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "cover_switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "cover_switch_left"),
+            romasku.childLock("child_lock", "cover_switch_left"),
             ...romasku.deviceConfigState("cover_switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "cover_switch_left"),
@@ -4846,6 +4943,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
 
 
             const coverSwitch1 = device.getEndpoint(1);
@@ -4930,6 +5028,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -4946,6 +5045,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5007,6 +5107,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -5023,6 +5124,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5084,6 +5186,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -5100,6 +5203,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5161,6 +5265,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -5177,6 +5282,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5238,6 +5344,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -5254,6 +5361,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5315,6 +5423,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -5340,6 +5449,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5418,6 +5528,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -5443,6 +5554,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5521,6 +5633,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -5537,6 +5650,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5599,6 +5713,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -5633,6 +5748,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5728,6 +5844,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_0"),
@@ -5771,6 +5888,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5883,6 +6001,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -5899,6 +6018,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -5960,6 +6080,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -5976,6 +6097,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6037,6 +6159,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -6053,6 +6176,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6114,6 +6238,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -6139,6 +6264,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6217,6 +6343,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_left", "relay_middle", "relay_right"] }),
@@ -6250,6 +6377,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6345,6 +6473,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -6361,6 +6490,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6422,6 +6552,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -6447,6 +6578,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6525,6 +6657,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -6559,6 +6692,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6654,6 +6788,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_0"),
@@ -6697,6 +6832,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6809,6 +6945,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -6825,6 +6962,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6886,6 +7024,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -6902,6 +7041,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -6963,6 +7103,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -6979,6 +7120,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7040,6 +7182,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -7056,6 +7199,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7117,6 +7261,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -7142,6 +7287,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7220,6 +7366,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -7254,6 +7401,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7349,6 +7497,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -7365,6 +7514,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7426,6 +7576,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -7442,6 +7593,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7504,6 +7656,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -7529,6 +7682,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7607,6 +7761,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_0"),
@@ -7650,6 +7805,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7762,6 +7918,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -7796,6 +7953,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7891,6 +8049,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -7907,6 +8066,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -7968,6 +8128,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -7984,6 +8145,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8045,6 +8207,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -8061,6 +8224,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8122,6 +8286,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -8138,6 +8303,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8199,6 +8365,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -8215,6 +8382,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8276,6 +8444,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -8292,6 +8461,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8355,6 +8525,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -8380,6 +8551,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8459,6 +8631,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -8493,6 +8666,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8588,6 +8762,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -8604,6 +8779,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8665,6 +8841,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -8681,6 +8858,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8742,6 +8920,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -8767,6 +8946,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8845,6 +9025,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -8879,6 +9060,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -8974,6 +9156,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -8990,6 +9173,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -9051,6 +9235,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -9076,6 +9261,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -9154,6 +9340,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -9170,6 +9357,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -9231,6 +9419,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -9256,6 +9445,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -9364,6 +9554,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "cover_switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "cover_switch"),
+            romasku.childLock("child_lock", "cover_switch"),
             ...romasku.deviceConfigState("cover_switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "cover_switch"),
@@ -9388,6 +9579,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
 
 
             const coverSwitch1 = device.getEndpoint(1);
@@ -9452,6 +9644,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -9486,6 +9679,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -9581,6 +9775,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -9597,6 +9792,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -9658,6 +9854,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -9683,6 +9880,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -9761,6 +9959,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -9786,6 +9985,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -9864,6 +10064,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -9880,6 +10081,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -9941,6 +10143,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -9957,6 +10160,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10018,6 +10222,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -10034,6 +10239,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10095,6 +10301,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_0"),
@@ -10138,6 +10345,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10250,6 +10458,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -10275,6 +10484,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10353,6 +10563,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -10378,6 +10589,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10457,6 +10669,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -10473,6 +10686,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10534,6 +10748,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -10552,6 +10767,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10621,6 +10837,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -10639,6 +10856,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10708,6 +10926,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -10726,6 +10945,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10795,6 +11015,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -10813,6 +11034,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10882,6 +11104,7 @@ const definitions = [
             ...romasku.managementClusters(true),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.probe(),
@@ -10900,6 +11123,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -10969,6 +11193,7 @@ const definitions = [
             ...romasku.managementClusters(true),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.probe(),
@@ -11008,6 +11233,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -11077,6 +11303,126 @@ const definitions = [
     },
     {
         zigbeeModel: [
+            "TS130F-BS-CVR",
+        ],
+        model: "TS130F",
+        vendor: "Tuya-custom",
+        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        extend: [
+            deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
+                name: "manuSpecificTuyaButtonEvent",
+                ID: 0xFC02,
+                manufacturerCode: managementProtocol.manufacturerCode,
+                attributes: {
+                    buttonState: {name: "buttonState", ID: 0x0000, type: Zcl.DataType.ENUM8},
+                    lastEventSeq: {name: "lastEventSeq", ID: 0x0001, type: Zcl.DataType.UINT16},
+                    multiClickGap: {name: "multiClickGap", ID: 0x0002, type: Zcl.DataType.UINT16, write: true},
+                    debounceMs: {name: "debounceMs", ID: 0x0003, type: Zcl.DataType.UINT16, write: true},
+                },
+                commands: {},
+                commandsResponse: {
+                    buttonEvent: {
+                        name: "buttonEvent",
+                        ID: 0x00,
+                        parameters: [
+                            {name: "seq", type: Zcl.DataType.UINT16},
+                            {name: "pressId", type: Zcl.DataType.UINT16},
+                            {name: "eventType", type: Zcl.DataType.UINT8},
+                            {name: "count", type: Zcl.DataType.UINT8},
+                            {name: "durationMs", type: Zcl.DataType.UINT16},
+                        ],
+                    },
+                },
+            }),
+            romasku.buttonEvents(["cover_switch", ]),
+            deviceAddCustomCluster("manuSpecificTuyaCoverSwitchConfig", {
+                name: "manuSpecificTuyaCoverSwitchConfig",
+                ID: 0xFC01,
+                manufacturerCode: managementProtocol.manufacturerCode,
+                attributes: {
+                    switchType: {name: "switchType", ID: 0x0000, type: Zcl.DataType.ENUM8, write: true},
+                    coverIndex: {name: "coverIndex", ID: 0x0001, type: Zcl.DataType.UINT8, write: true},
+                    reversal: {name: "reversal", ID: 0x0002, type: Zcl.DataType.BOOLEAN, write: true},
+                    localMode: {name: "localMode", ID: 0x0003, type: Zcl.DataType.ENUM8, write: true},
+                    bindedMode: {name: "bindedMode", ID: 0x0004, type: Zcl.DataType.ENUM8, write: true},
+                    longPressDuration: {name: "longPressDuration", ID: 0x0005, type: Zcl.DataType.UINT16, write: true},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            deviceAddCustomCluster("closuresWindowCovering", {
+                name: "closuresWindowCovering",
+                ID: 0x0102,
+                attributes: {
+                    moving: {name: "moving", ID: 0xff00, type: Zcl.DataType.ENUM8},
+                    motorReversal: {name: "motorReversal", ID: 0xff01, type: Zcl.DataType.BOOLEAN, write: true},
+                    openTime: {name: "openTime", ID: 0xff02, type: Zcl.DataType.UINT32, write: true},
+                    closeTime: {name: "closeTime", ID: 0xff03, type: Zcl.DataType.UINT32, write: true},
+                    closedDeadzone: {name: "closedDeadzone", ID: 0xff04, type: Zcl.DataType.UINT16, write: true},
+                    openDeadzone: {name: "openDeadzone", ID: 0xff05, type: Zcl.DataType.UINT16, write: true},
+                    overrun: {name: "overrun", ID: 0xff06, type: Zcl.DataType.UINT16, write: true},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            deviceEndpoints({ endpoints: {"cover_switch": 1, "cover": 2, } }),
+            ...romasku.managementClusters(),
+            romasku.deviceConfig("device_config", "cover_switch"),
+            romasku.multiPressResetCount("multi_press_reset_count", "cover_switch"),
+            romasku.childLock("child_lock", "cover_switch"),
+            ...romasku.deviceConfigState("cover_switch"),
+            ...romasku.diagnosticCounters(),
+            romasku.statusLedMode("status_led_mode", "cover_switch"),
+            // The device reports ZCL lift % (0 = open) and 0xFF while the position
+            // is unknown, which windowCovering ignores.
+            windowCovering({
+                controls: ["lift"],
+                configureReporting: false,
+                endpointNames: ["cover"]
+            }),
+            romasku.coverMoving("cover_moving", "cover"),
+            romasku.coverMotorReversal("cover_motor_reversal", "cover"),
+            ...romasku.coverSettings("cover"),
+            romasku.coverSwitchPressAction("cover_switch_press_action", "cover_switch"),
+            ...romasku.buttonTiming("cover_switch"),
+            romasku.coverSwitchType("cover_switch_type", "cover_switch"),
+            romasku.coverSwitchInvert("cover_switch_invert", "cover_switch"),
+            romasku.coverSwitchCoverIndex("cover_switch_cover_index", "cover_switch", 1),
+            romasku.coverSwitchLocalMode("cover_switch_local_mode", "cover_switch"),
+            romasku.coverSwitchBindedMode("cover_switch_binded_mode", "cover_switch"),
+            romasku.coverSwitchLongPressDuration("cover_switch_long_press_duration", "cover_switch"),
+        ],
+        meta: { multiEndpoint: true },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
+
+
+            const coverSwitch1 = device.getEndpoint(1);
+            await reporting.bind(coverSwitch1, coordinatorEndpoint, ["genMultistateInput"]);
+            await coverSwitch1.configureReporting("genMultistateInput", [
+                {
+                    attribute: "presentValue",
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                },
+            ]);
+
+            const cover1 = device.getEndpoint(2);
+            await reporting.bind(cover1, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await cover1.configureReporting("closuresWindowCovering", [
+                {
+                    attribute: "moving",
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                },
+            ]);
+        },
+        ota: true,
+    },
+    {
+        zigbeeModel: [
             "TS011F-BS-PM-3",
         ],
         model: "TS011F_plug_1",
@@ -11124,6 +11470,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay"] }),
@@ -11141,6 +11488,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true, multiEndpointSkip: ["voltage", "current", "power", "energy"] },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -11210,6 +11558,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -11239,6 +11588,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -11333,6 +11683,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay"] }),
@@ -11350,6 +11701,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -11419,6 +11771,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay"] }),
@@ -11436,6 +11789,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -11505,6 +11859,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay"] }),
@@ -11522,6 +11877,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -11591,6 +11947,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay"] }),
@@ -11608,6 +11965,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -11677,6 +12035,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay"] }),
@@ -11694,6 +12053,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -11764,6 +12124,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_0_press_action", "switch_0"),
@@ -11797,6 +12158,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -11898,6 +12260,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_press_action", "switch"),
@@ -11910,6 +12273,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -11978,6 +12342,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_press_action", "switch"),
@@ -11990,6 +12355,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -12058,6 +12424,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_0"),
@@ -12092,6 +12459,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -12193,6 +12561,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_0_press_action", "switch_0"),
@@ -12226,6 +12595,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -12327,6 +12697,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_press_action", "switch"),
@@ -12339,6 +12710,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -12407,6 +12779,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_press_action", "switch"),
@@ -12419,6 +12792,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -12487,6 +12861,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_left_press_action", "switch_left"),
@@ -12506,6 +12881,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -12585,6 +12961,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_left_press_action", "switch_left"),
@@ -12611,6 +12988,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -12701,6 +13079,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_0_press_action", "switch_0"),
@@ -12734,6 +13113,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -12835,6 +13215,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_0_press_action", "switch_0"),
@@ -12868,6 +13249,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -12969,6 +13351,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_press_action", "switch"),
@@ -12981,6 +13364,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -13049,6 +13433,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_press_action", "switch"),
@@ -13061,6 +13446,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -13129,6 +13515,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_press_action", "switch"),
@@ -13141,6 +13528,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -13209,6 +13597,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_left_press_action", "switch_left"),
@@ -13228,6 +13617,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -13307,6 +13697,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_left_press_action", "switch_left"),
@@ -13333,6 +13724,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -13423,6 +13815,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_left_press_action", "switch_left"),
@@ -13449,6 +13842,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -13539,6 +13933,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_0_press_action", "switch_0"),
@@ -13572,6 +13967,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -13673,6 +14069,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_left_press_action", "switch_left"),
@@ -13692,6 +14089,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -13771,6 +14169,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_press_action", "switch"),
@@ -13783,6 +14182,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -13851,6 +14251,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.pressAction("switch_0_press_action", "switch_0"),
@@ -13884,6 +14285,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -13984,6 +14386,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -14000,6 +14403,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -14061,6 +14465,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -14086,6 +14491,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -14165,6 +14571,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -14199,6 +14606,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -14294,6 +14702,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_0"),
@@ -14337,6 +14746,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -14450,6 +14860,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -14468,6 +14879,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -14538,6 +14950,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -14567,6 +14980,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -14662,6 +15076,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -14696,6 +15111,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -14791,6 +15207,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -14809,6 +15226,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -14880,6 +15298,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -14909,6 +15328,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -15004,6 +15424,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -15044,6 +15465,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -15163,6 +15585,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -15179,6 +15602,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -15240,6 +15664,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -15265,6 +15690,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -15344,6 +15770,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -15378,6 +15805,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -15474,6 +15902,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_0"),
@@ -15517,6 +15946,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -15629,6 +16059,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -15647,6 +16078,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -15716,6 +16148,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -15734,6 +16167,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -15803,6 +16237,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -15830,6 +16265,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -15916,6 +16352,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -15943,6 +16380,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -16029,6 +16467,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -16047,6 +16486,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -16117,6 +16557,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -16146,6 +16587,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -16240,6 +16682,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -16269,6 +16712,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -16363,6 +16807,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -16403,6 +16848,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -16522,6 +16968,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -16540,6 +16987,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -16609,6 +17057,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -16638,6 +17087,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -16732,6 +17182,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -16772,6 +17223,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -16892,6 +17344,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_0"),
@@ -16943,6 +17396,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -17087,6 +17541,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -17105,6 +17560,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -17174,6 +17630,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -17203,6 +17660,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -17297,6 +17755,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -17337,6 +17796,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -17456,6 +17916,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_0", "relay_1", "relay_2", "relay_3"] }),
@@ -17506,6 +17967,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -17650,6 +18112,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay"] }),
@@ -17667,6 +18130,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -17736,6 +18200,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -17752,6 +18217,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -17813,6 +18279,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -17838,6 +18305,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -17916,6 +18384,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -17950,6 +18419,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -18045,6 +18515,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -18061,6 +18532,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -18122,6 +18594,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -18147,6 +18620,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -18225,6 +18699,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -18259,6 +18734,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -18354,6 +18830,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_left", "relay_right"] }),
@@ -18382,6 +18859,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -18476,6 +18954,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_left", "relay_middle", "relay_right"] }),
@@ -18515,6 +18994,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -18634,6 +19114,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_0", "relay_1", "relay_2", "relay_3"] }),
@@ -18684,6 +19165,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -18858,6 +19340,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "cover_switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "cover_switch"),
+            romasku.childLock("child_lock", "cover_switch"),
             ...romasku.deviceConfigState("cover_switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "cover_switch"),
@@ -18882,6 +19365,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
 
 
             const coverSwitch1 = device.getEndpoint(1);
@@ -18946,6 +19430,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay"] }),
@@ -18963,6 +19448,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -19032,6 +19518,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_left", "relay_right"] }),
@@ -19060,6 +19547,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -19154,6 +19642,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_left", "relay_middle", "relay_right"] }),
@@ -19193,6 +19682,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -19312,6 +19802,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay"] }),
@@ -19329,6 +19820,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -19398,6 +19890,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_left", "relay_right"] }),
@@ -19426,6 +19919,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -19520,6 +20014,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_left", "relay_middle", "relay_right"] }),
@@ -19559,6 +20054,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -19678,6 +20174,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -19696,6 +20193,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -19765,6 +20263,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -19794,6 +20293,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -19888,6 +20388,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -19928,6 +20429,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -20047,6 +20549,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -20087,6 +20590,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -20206,6 +20710,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_0"),
@@ -20257,6 +20762,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -20402,6 +20908,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay"] }),
@@ -20419,6 +20926,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -20489,6 +20997,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_left", "relay_right"] }),
@@ -20517,6 +21026,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -20612,6 +21122,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_left", "relay_middle", "relay_right"] }),
@@ -20651,6 +21162,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -20770,6 +21282,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_0", "relay_1", "relay_2", "relay_3"] }),
@@ -20820,6 +21333,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -20964,6 +21478,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_0", "relay_1", "relay_2", "relay_3"] }),
@@ -21014,6 +21529,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -21158,6 +21674,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_left", "relay_middle", "relay_right"] }),
@@ -21197,6 +21714,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -21316,6 +21834,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -21334,6 +21853,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -21403,6 +21923,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -21432,6 +21953,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -21527,6 +22049,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -21545,6 +22068,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -21615,6 +22139,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -21644,6 +22169,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -21738,6 +22264,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_left"),
@@ -21778,6 +22305,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -21897,6 +22425,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay"] }),
@@ -21914,6 +22443,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -21983,6 +22513,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay"] }),
@@ -22000,6 +22531,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -22069,6 +22601,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_left", "relay_right"] }),
@@ -22097,6 +22630,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -22191,6 +22725,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_left", "relay_middle", "relay_right"] }),
@@ -22230,6 +22765,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -22349,6 +22885,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_left", "relay_middle", "relay_right"] }),
@@ -22388,6 +22925,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -22507,6 +23045,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_0", "relay_1", "relay_2", "relay_3"] }),
@@ -22557,6 +23096,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -22701,6 +23241,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch"),
@@ -22717,6 +23258,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -22778,6 +23320,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_0"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_0"),
+            romasku.childLock("child_lock", "switch_0"),
             ...romasku.deviceConfigState("switch_0"),
             ...romasku.diagnosticCounters(),
             romasku.statusLedMode("status_led_mode", "switch_0"),
@@ -22821,6 +23364,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -22933,6 +23477,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay"] }),
@@ -22950,6 +23495,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -23020,6 +23566,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_left", "relay_right"] }),
@@ -23048,6 +23595,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -23142,6 +23690,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch"),
+            romasku.childLock("child_lock", "switch"),
             ...romasku.deviceConfigState("switch"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay"] }),
@@ -23159,6 +23708,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:
@@ -23228,6 +23778,7 @@ const definitions = [
             ...romasku.managementClusters(),
             romasku.deviceConfig("device_config", "switch_left"),
             romasku.multiPressResetCount("multi_press_reset_count", "switch_left"),
+            romasku.childLock("child_lock", "switch_left"),
             ...romasku.deviceConfigState("switch_left"),
             ...romasku.diagnosticCounters(),
             onOff({ endpointNames: ["relay_left", "relay_right"] }),
@@ -23256,6 +23807,7 @@ const definitions = [
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read("manuSpecificDeviceConfig", ["childLock"]);
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
             // switch action:

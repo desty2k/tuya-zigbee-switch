@@ -166,6 +166,12 @@ class Device:
             self._gpio_state[pin_num] = bool(val)
         return self._gpio_state[pin_num]
 
+    def pin_state(self, pin: str) -> dict[str, int]:
+        """Direction, pull (hal_gpio_pull_t) and level of a stub pin."""
+        res = self.p.exec(f"pin_state {self._parse_pin(pin)}")
+        assert res.ok, f"pin_state failed: {res.payload}"
+        return {k: int(v) for k, v in res.payload.items() if k != "pin"}
+
     def set_gpio(self, pin: str, val: int) -> None:
         res = self.p.exec(f"set_pin {self._parse_pin(pin)} {val}")
         assert res.ok, f"GPIO failed: {res.payload}"
