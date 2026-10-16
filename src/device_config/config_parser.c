@@ -50,6 +50,8 @@ static bool parse_pull(const char *text, hal_gpio_pull_t *pull) {
         *pull = HAL_GPIO_PULL_NONE;
     } else if (*text == 'u' && text[1] == '\0') {
         *pull = HAL_GPIO_PULL_UP;
+    } else if (*text == 'U' && text[1] == '\0') {
+        *pull = HAL_GPIO_PULL_UP_1M;
     } else if (*text == 'd' && text[1] == '\0') {
         *pull = HAL_GPIO_PULL_DOWN;
     } else {

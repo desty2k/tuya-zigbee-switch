@@ -91,22 +91,6 @@ hal_gpio_diagnostics_t hal_gpio_get_diagnostics(void) {
     return fake_gpio_diagnostics;
 }
 
-hal_gpio_pull_t hal_gpio_parse_pull(const char *text) {
-    if (text == NULL) {
-        return HAL_GPIO_PULL_INVALID;
-    }
-    if (strcmp(text, "u") == 0) {
-        return HAL_GPIO_PULL_UP;
-    }
-    if (strcmp(text, "d") == 0) {
-        return HAL_GPIO_PULL_DOWN;
-    }
-    if (strcmp(text, "f") == 0 || text[0] == '\0') {
-        return HAL_GPIO_PULL_NONE;
-    }
-    return HAL_GPIO_PULL_INVALID;
-}
-
 /* The stub counter backend reads pulse-generator gate levels through this. */
 uint8_t stub_gpio_get_output(hal_gpio_pin_t pin) {
     return hal_gpio_read(pin);

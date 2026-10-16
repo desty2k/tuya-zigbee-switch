@@ -84,8 +84,3 @@ hal_gpio_pin_t hal_gpio_parse_pin(const char *text) {
     (void)text;
     return HAL_INVALID_PIN;
 }
-
-hal_gpio_pull_t hal_gpio_parse_pull(const char *text) {
-    (void)text;
-    return HAL_GPIO_PULL_INVALID;
-}

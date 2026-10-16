@@ -333,6 +333,30 @@ TEST(pins_are_the_hal_pin_ids) {
     ASSERT_EQ(HAL_GPIO_PULL_DOWN, composition.buttons[2].pull);
 }
 
+TEST(pull_suffixes_select_the_input_resistor) {
+    device_composition_t composition;
+
+    ASSERT_EQ(CONFIG_PARSE_OK,
+              config_parser_parse("Tuya;Pull;SA0;SA1f;SA2u;SA3U;SA4d;", &composition));
+    ASSERT_EQ(HAL_GPIO_PULL_NONE, composition.buttons[0].pull);
+    ASSERT_EQ(HAL_GPIO_PULL_NONE, composition.buttons[1].pull);
+    ASSERT_EQ(HAL_GPIO_PULL_UP, composition.buttons[2].pull);
+    ASSERT_EQ(HAL_GPIO_PULL_UP_1M, composition.buttons[3].pull);
+    ASSERT_EQ(HAL_GPIO_PULL_DOWN, composition.buttons[4].pull);
+    ASSERT_EQ(CONFIG_PARSE_SYNTAX,
+              config_parser_parse("Tuya;Pull;SA0D;", &composition));
+}
+
+TEST(battery_pin_may_be_a_button_pin_but_not_an_output) {
+    device_composition_t composition;
+
+    ASSERT_EQ(CONFIG_PARSE_OK,
+              config_parser_parse("Tuya;Remote;SA0u;ID0i;SA3u;BTA0;M;", &composition));
+    ASSERT_EQ(FAKE_GPIO_PIN('A', 0), composition.battery_pin);
+    ASSERT_EQ(CONFIG_PARSE_PIN_CONFLICT,
+              config_parser_parse("Tuya;Remote;SA0u;RB4;BTB4;", &composition));
+}
+
 TEST(pins_the_hal_rejects_fail_the_parse) {
     device_composition_t composition;
 
@@ -366,6 +390,8 @@ int main(void) {
     RUN_TEST(parses_the_bl0937_meter_token);
     RUN_TEST(parser_failure_zeroes_the_output);
     RUN_TEST(pins_are_the_hal_pin_ids);
+    RUN_TEST(pull_suffixes_select_the_input_resistor);
+    RUN_TEST(battery_pin_may_be_a_button_pin_but_not_an_output);
     RUN_TEST(pins_the_hal_rejects_fail_the_parse);
 
     return test_runner_failures == 0 ? 0 : 1;

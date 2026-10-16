@@ -24,12 +24,20 @@ enum {
         DEVICE_COMPOSITION_MAX_METERS * 3,
 };
 
-static bool pin_is_reused(hal_gpio_pin_t pin, uint8_t *used_count,
-                          hal_gpio_pin_t used_pins[DEVICE_COMPOSITION_MAX_PINS]) {
-    for (uint8_t i = 0; i < *used_count; i++) {
-        if (used_pins[i] == pin) {
+static bool pin_is_listed(hal_gpio_pin_t pin, const hal_gpio_pin_t *pins,
+                          uint8_t count) {
+    for (uint8_t i = 0; i < count; i++) {
+        if (pins[i] == pin) {
             return true;
         }
+    }
+    return false;
+}
+
+static bool pin_is_reused(hal_gpio_pin_t pin, uint8_t *used_count,
+                          hal_gpio_pin_t used_pins[DEVICE_COMPOSITION_MAX_PINS]) {
+    if (pin_is_listed(pin, used_pins, *used_count)) {
+        return true;
     }
     used_pins[*used_count] = pin;
     (*used_count)++;
@@ -70,6 +78,7 @@ config_parse_result_t device_composition_validate(
     const device_composition_t *composition) {
     hal_gpio_pin_t used_pins[DEVICE_COMPOSITION_MAX_PINS];
     uint8_t        used_count = 0;
+    uint8_t        button_pin_count;
 
     if (composition == NULL || !count_is_within_bounds(composition)) {
         return CONFIG_PARSE_LIMIT;
@@ -84,6 +93,7 @@ config_parse_result_t device_composition_validate(
             return CONFIG_PARSE_PIN_CONFLICT;
         }
     }
+    button_pin_count = used_count;
     for (uint8_t i = 0; i < composition->relay_count; i++) {
         if (pin_is_reused(composition->relays[i].on_pin, &used_count, used_pins) ||
             (composition->relays[i].is_latching &&
@@ -96,7 +106,11 @@ config_parse_result_t device_composition_validate(
             return CONFIG_PARSE_REFERENCE;
         }
     }
+
+    /* Battery remotes sample VBAT through one of their button pins: the
+     * battery pin may be a button pin, never an output. */
     if (composition->battery_pin != HAL_INVALID_PIN &&
+        !pin_is_listed(composition->battery_pin, used_pins, button_pin_count) &&
         pin_is_reused(composition->battery_pin, &used_count, used_pins)) {
         return CONFIG_PARSE_PIN_CONFLICT;
     }
