@@ -6,8 +6,9 @@ Use them to run automations on single, double, triple and longer clicks or on
 holds, with or without a relay attached.
 
 Button events come from the fork-private Button Event cluster (`0xFC02`). They
-go to the coordinator only, never to bindings, and they keep coming while the
-[child lock](./configuration.md#child-lock) is on.
+go to the coordinator only, never to bindings. A press that starts while the
+[child lock](./configuration.md#child-lock) is on sends no button events, so
+automations on button actions are locked too.
 
 ## Gestures
 

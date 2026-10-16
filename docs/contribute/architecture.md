@@ -86,7 +86,7 @@ flowchart TD
 | Actions | `action_mapper` | Relay requests from switches, cover actions to `cover_controller_action`, factory reset on a hold of an onboard (`B`) button or a multi-press of any other button |
 | Relays | `relay_controller` | The single entry for relay changes (`relay_ctrl_submit`): on/off/toggle/pulse/timed on, inching, deferral through `interlock` (peers off, dead time), state callbacks to subscribers |
 | Pins | `relay_driver` | Writes relay pins; a latching relay gets a 100 ms pulse on its on or off pin, timed by `timer_service`; one pulse at a time unless the config has `SLP` |
-| Events | `button_event_cluster` | Queues button and gesture events (16 entries) for the coordinator on cluster `0xFC02` |
+| Events | `button_event_cluster` | Queues button and gesture events (16 entries) for the coordinator on cluster `0xFC02`; drops presses the switch or cover-switch policy marked as taken under the child lock, so its dispatcher sink is registered after theirs |
 
 The stub registers one extra observer on both the dispatcher and the gesture
 FSM to print `btn_event` and `gesture` machine events.

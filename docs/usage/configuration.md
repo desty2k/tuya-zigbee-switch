@@ -353,11 +353,11 @@ releases the child lock. Trigger it with:
 
 `child_lock` makes the device ignore its local switch and cover-switch
 buttons, including a cover's stop button: a press that starts while locked
-does not switch a relay, move a cover or send a command to bindings. Zigbee
-commands (On/Off, Window Covering) and setting writes keep working, and the
-lock survives reboots, power cuts and OTA updates. [Button
-events](./button_events.md) keep reaching the coordinator, so automations on
-button actions keep working.
+does not switch a relay, move a cover, send a command to bindings or send
+[button events](./button_events.md) to the coordinator, so automations on
+button actions are locked too; `ButtonState` stays released. Zigbee commands
+(On/Off, Window Covering) and setting writes keep working, and the lock
+survives reboots, power cuts and OTA updates.
 
 A factory reset releases the lock: the multi-press reset still counts presses
 while locked, and an onboard button's 2 s hold works as usual, so a locked
