@@ -2,6 +2,7 @@
 #include "management_protocol.h"
 
 #include "base_components/button_dispatcher.h"
+#include "base_components/child_lock.h"
 #include "cluster_common.h"
 #include "zcl_cluster_defs.h"
 #include "zcl_ids.h"
@@ -154,6 +155,13 @@ static void button_event_cluster_emit(uint8_t endpoint,
     button_event_cluster_enqueue(endpoint, &payload);
 }
 
+/* A press that started under the child lock reaches the coordinator as
+ * neither a button event nor a ButtonState change, so automations stay locked
+ * too. */
+static bool button_event_cluster_button_down(uint8_t button_id) {
+    return button_input_is_down(button_id) && !child_lock_press_blocked(button_id);
+}
+
 void button_event_cluster_init(void) {
     button_event_cluster_count     = 0;
     button_event_seq               = 0;
@@ -195,7 +203,7 @@ void button_event_cluster_add_to_endpoint(
     cluster->config_changed_arg = config_changed_arg;
     for (uint8_t i = 0; i < button_count; i++) {
         cluster->button_ids[i] = button_ids[i];
-        if (button_input_is_down(button_ids[i])) {
+        if (button_event_cluster_button_down(button_ids[i])) {
             cluster->button_state = 1;
         }
     }
@@ -245,7 +253,7 @@ void button_event_cluster_sync_states(void) {
 
         cluster->button_state = 0;
         for (uint8_t i = 0; i < cluster->button_count; i++) {
-            if (button_input_is_down(cluster->button_ids[i])) {
+            if (button_event_cluster_button_down(cluster->button_ids[i])) {
                 cluster->button_state = 1;
                 break;
             }
@@ -259,7 +267,7 @@ void button_event_cluster_on_button_event(const button_event_t *event,
 
     (void)arg;
     cluster = button_event_cluster_find_by_button(event->button_id);
-    if (cluster == NULL) {
+    if (cluster == NULL || child_lock_press_blocked(event->button_id)) {
         return;
     }
     if (event->type == BUTTON_EVENT_DOWN) {
@@ -267,7 +275,7 @@ void button_event_cluster_on_button_event(const button_event_t *event,
     } else {
         cluster->button_state = 0;
         for (uint8_t i = 0; i < cluster->button_count; i++) {
-            if (button_input_is_down(cluster->button_ids[i])) {
+            if (button_event_cluster_button_down(cluster->button_ids[i])) {
                 cluster->button_state = 1;
                 break;
             }
@@ -289,7 +297,7 @@ void button_event_cluster_on_gesture_event(const gesture_event_t *event,
 
     (void)arg;
     cluster = button_event_cluster_find_by_button(event->button_id);
-    if (cluster == NULL) {
+    if (cluster == NULL || child_lock_press_blocked(event->button_id)) {
         return;
     }
     if (event->type == GESTURE_HOLD_START) {

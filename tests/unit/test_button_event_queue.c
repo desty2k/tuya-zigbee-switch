@@ -1,4 +1,5 @@
 #include "base_components/button_dispatcher.h"
+#include "base_components/child_lock.h"
 #include "base_components/gesture_fsm.h"
 #include "support/fake_tasks.h"
 #include "support/runner.h"
@@ -53,6 +54,11 @@ void hal_zigbee_notify_attribute_changed(uint8_t endpoint_id,
 }
 
 bool button_input_is_down(uint8_t button_id) {
+    (void)button_id;
+    return false;
+}
+
+bool child_lock_press_blocked(uint8_t button_id) {
     (void)button_id;
     return false;
 }
