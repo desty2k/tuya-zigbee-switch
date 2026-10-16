@@ -15,6 +15,9 @@ Zigbee can drive the pins already found while the probe covers the rest.
 
   board_features.py check            validate every board, exit 1 on errors
   board_features.py features BOARD   print BOARD's features, exit 1 if invalid
+  board_features.py configs          print "<board>\t<config|alt>\t<config string>"
+                                     for every built board, for the firmware
+                                     parser check (make unit_tests)
 """
 
 import argparse
@@ -162,10 +165,20 @@ def main():
     sub.add_parser("check")
     features_parser = sub.add_parser("features")
     features_parser.add_argument("board")
+    sub.add_parser("configs")
     args = parser.parse_args()
 
     db = load_db(args.db)
     order = known_features()
+
+    if args.command == "configs":
+        for name, board in sorted(db.items()):
+            if board.get("build") not in (True, "yes"):
+                continue
+            for text in config_strings(board):
+                kind = "config" if text == board.get("config_str") else "alt"
+                print(f"{name}\t{kind}\t{text}")
+        return
 
     if args.command == "features":
         if args.board not in db:

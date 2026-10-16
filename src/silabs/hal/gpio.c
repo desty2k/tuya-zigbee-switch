@@ -99,6 +99,8 @@ void hal_gpio_init(hal_gpio_pin_t gpio_pin, uint8_t is_input,
     if (is_input) {
         switch (pull_direction) {
         case HAL_GPIO_PULL_UP:
+        case HAL_GPIO_PULL_UP_1M:
+            // EFR32 has one pull-up strength.
             sl_gpio_set_pin_mode(&sl_gpio, SL_GPIO_MODE_INPUT_PULL,
                                  1); // DOUT=1 => pull-up
             break;
@@ -244,17 +246,4 @@ typedef char silabs_gpio_pin_encoding_matches_emlib[
 
 hal_gpio_pin_t hal_gpio_parse_pin(const char *s) {
     return silabs_gpio_pin_from_text(s);
-}
-
-hal_gpio_pull_t hal_gpio_parse_pull(const char *pull_str) {
-    if (pull_str[0] == 'u' || pull_str[0] == 'U') {
-        return HAL_GPIO_PULL_UP;
-    }
-    if (pull_str[0] == 'd') {
-        return HAL_GPIO_PULL_DOWN;
-    }
-    if (pull_str[0] == 'f') {
-        return HAL_GPIO_PULL_NONE;
-    }
-    return HAL_GPIO_PULL_INVALID;
 }

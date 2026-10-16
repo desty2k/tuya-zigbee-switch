@@ -10,6 +10,11 @@ Please describe what you are working on, under ## Upcoming
 
 ## Upcoming
 
+- Config strings with the `U` pull suffix (weak 1 MΩ pull-up; Silabs uses its only pull-up) are accepted again; they booted the recovery graph (`OUTLET_TUYA_PM_TS011F`, `SWITCH_IHSENO_TS0001`, `SWITCH_IHSENO_TS0002`).
+- A battery pin (`BT`) may share a button pin, as the battery remotes measure VBAT through one; their config strings booted the recovery graph.
+- `SWITCH_MILFRA_TS0001` has no onboard reset button: it shared the switch input pin, which the parser rejects. The multi-press reset remains.
+- `make unit_tests` parses every built board's config string with the firmware parser.
+
 ## v2.0.0-rc.3
 
 - Telink: a cluster-specific command to a cluster without commands (power configuration, multistate input, on/off switch configuration, the fork-private clusters) is answered with an unsupported-command status; it reset the device.

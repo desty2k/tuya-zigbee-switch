@@ -193,31 +193,4 @@ hal_gpio_pin_t hal_gpio_parse_pin(const char *s) {
     return telink_gpio_pin_from_text(s);
 }
 
-hal_gpio_pull_t hal_gpio_parse_pull(const char *pull_str) {
-    if (!pull_str) {
-        return HAL_GPIO_PULL_INVALID;
-    }
-
-    switch (pull_str[0]) {
-    case 'u':
-        return HAL_GPIO_PULL_UP;
-
-    case 'U':
-        return HAL_GPIO_PULL_UP_1M;
-
-    case 'd':
-    case 'D':
-        return HAL_GPIO_PULL_DOWN;
-
-    case 'f':
-    case 'F':
-    case 'n':
-    case 'N':
-        return HAL_GPIO_PULL_NONE;
-
-    default:
-        return HAL_GPIO_PULL_INVALID;
-    }
-}
-
 // GPIO interrupt callbacks

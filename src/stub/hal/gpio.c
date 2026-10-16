@@ -40,9 +40,10 @@ void hal_gpio_init(hal_gpio_pin_t gpio_pin, uint8_t is_input,
 
     gpio_pins[gpio_pin].initialized = 1;
     init_count++;
-    gpio_pins[gpio_pin].is_input   = is_input;
-    gpio_pins[gpio_pin].pull       = pull;
-    gpio_pins[gpio_pin].value      = (pull == HAL_GPIO_PULL_UP) ? 1 : 0;
+    gpio_pins[gpio_pin].is_input = is_input;
+    gpio_pins[gpio_pin].pull     = pull;
+    gpio_pins[gpio_pin].value    =
+        (pull == HAL_GPIO_PULL_UP || pull == HAL_GPIO_PULL_UP_1M) ? 1 : 0;
     gpio_pins[gpio_pin].watched    = 0;
     gpio_pins[gpio_pin].last_level = gpio_pins[gpio_pin].value;
 
@@ -154,25 +155,6 @@ hal_gpio_pin_t hal_gpio_parse_pin(const char *s) {
     hal_gpio_pin_t res = (hal_gpio_pin_t)(((uint16_t)port << 8) | (1U << index));
     io_log("GPIO", "Parsed GPIO pin '%s' as %d", s, res);
     return res;
-}
-
-hal_gpio_pull_t hal_gpio_parse_pull(const char *pull_str) {
-    if (!pull_str) {
-        io_log("GPIO", "Error: NULL string passed to hal_parse_gpio_pull");
-        return HAL_GPIO_PULL_INVALID;
-    }
-
-    if (strcmp(pull_str, "") == 0)
-        return HAL_GPIO_PULL_NONE;
-
-    if (strcmp(pull_str, "u") == 0)
-        return HAL_GPIO_PULL_UP;
-
-    if (strcmp(pull_str, "d") == 0)
-        return HAL_GPIO_PULL_DOWN;
-
-    io_log("GPIO", "Error: Invalid GPIO pull string: '%s'", pull_str);
-    return HAL_GPIO_PULL_INVALID;
 }
 
 // Stub-specific functions for testing

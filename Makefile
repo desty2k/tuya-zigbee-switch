@@ -126,6 +126,7 @@ UNIT_PARSER_FEATURE_SOURCES := tests/unit/test_config_parser_features.c \
 	tests/unit/support/fake_gpio_counter.c \
 	tests/unit/support/fake_gpio_parse.c
 UNIT_GPIO_PIN_TEST := $(UNIT_BUILD_DIR)/test_gpio_pin_mapping
+UNIT_DEVICE_DB_CONFIGS := $(UNIT_BUILD_DIR)/check_device_db_configs
 TELINK_INIT_TEST_CFLAGS := $(UNIT_CFLAGS) -Itests/unit/telink_sdk_stub -Isrc/telink -Isrc/telink/hal
 
 $(UNIT_BUILD_DIR):
@@ -191,6 +192,13 @@ $(UNIT_TELINK_ZIGBEE_INIT_TEST): tests/unit/test_telink_zigbee_init.c \
 	$(CC) $(TELINK_INIT_TEST_CFLAGS) $^ -o $@
 
 $(UNIT_CONFIG_PARSER_TEST): tests/unit/test_config_parser.c \
+		src/device_config/config_parser.c \
+		src/device_config/device_composition.c \
+		tests/unit/support/fake_gpio_counter.c \
+		tests/unit/support/fake_gpio_parse.c | $(UNIT_BUILD_DIR)
+	$(CC) $(UNIT_CFLAGS) $^ -o $@
+
+$(UNIT_DEVICE_DB_CONFIGS): tests/unit/check_device_db_configs.c \
 		src/device_config/config_parser.c \
 		src/device_config/device_composition.c \
 		tests/unit/support/fake_gpio_counter.c \
@@ -272,7 +280,7 @@ unit_tests: $(UNIT_QUEUE_TEST) $(UNIT_TIMER_TEST) $(UNIT_BUTTON_TEST) \
 		$(UNIT_TELINK_ZIGBEE_INIT_TEST) $(UNIT_CONFIG_PARSER_TEST) $(UNIT_ACTION_MAPPER_TEST) $(UNIT_CAPABILITY_STATE_TEST) $(UNIT_COVER_TEST) $(UNIT_COUNTER_TEST) $(UNIT_METER_TEST) \
 		$(UNIT_BL0937_TEST) $(UNIT_FIXED_MATH_TEST) \
 		$(UNIT_PROBE_TEST) $(UNIT_PARSER_SWITCH_ONLY_TEST) $(UNIT_PARSER_COVER_BATTERY_TEST) \
-		$(UNIT_GPIO_PIN_TEST)
+		$(UNIT_GPIO_PIN_TEST) $(UNIT_DEVICE_DB_CONFIGS)
 	./$(UNIT_QUEUE_TEST)
 	./$(UNIT_TIMER_TEST)
 	./$(UNIT_BUTTON_TEST)
@@ -295,6 +303,7 @@ unit_tests: $(UNIT_QUEUE_TEST) $(UNIT_TIMER_TEST) $(UNIT_BUTTON_TEST) \
 	./$(UNIT_PARSER_SWITCH_ONLY_TEST)
 	./$(UNIT_PARSER_COVER_BATTERY_TEST)
 	./$(UNIT_GPIO_PIN_TEST)
+	python3 helper_scripts/board_features.py configs | ./$(UNIT_DEVICE_DB_CONFIGS)
 
 # Format all C/H files using uncrustify
 format:

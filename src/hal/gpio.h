@@ -107,11 +107,4 @@ hal_gpio_diagnostics_t hal_gpio_get_diagnostics(void);
  */
 hal_gpio_pin_t hal_gpio_parse_pin(const char *s);
 
-/**
- * Parse pull resistor string ("u"/"d"/"f" for up/down/float)
- * @param pull_str Pull string ("u"/"d"/"f")
- * @return Pull configuration or HAL_GPIO_PULL_INVALID
- */
-hal_gpio_pull_t hal_gpio_parse_pull(const char *pull_str);
-
 #endif
