@@ -6,7 +6,11 @@ const {
     text,
     binary,
     windowCovering,
+{% if z2m_v1 %}
     deviceAddCustomCluster,
+{% else %}
+    deviceAddCustomCluster: zhcDeviceAddCustomCluster,
+{% endif %}
     electricityMeter,
 } = require("zigbee-herdsman-converters/lib/modernExtend");
 const {assertString, postfixWithEndpointName} = require("zigbee-herdsman-converters/lib/utils");
@@ -19,7 +23,95 @@ const Zcl = require('zigbee-herdsman').Zcl;
 {% include "management_protocol.js.jinja" %}
 {% if z2m_v1 %}
 const ota = require("zigbee-herdsman-converters/lib/ota");
+{% else %}
+
+// zigbee-herdsman keeps custom clusters only in the in-memory Device, and the
+// stock extend registers them on `start` and in configure. A device interviewed
+// while Zigbee2MQTT runs (new join, re-interview after converting from stock
+// firmware) gets this definition only after `start`, so the clusters are also
+// registered on every later device event; addCustomCluster is idempotent.
+const deviceAddCustomCluster = (clusterName, clusterDefinition) => ({
+    ...zhcDeviceAddCustomCluster(clusterName, clusterDefinition),
+    onEvent: [(event) => event.type !== "stop" && event.data.device.addCustomCluster(clusterName, clusterDefinition)],
+});
 {% endif%}
+{# Reporting set up by configure. Zigbee2MQTT 2.x runs it as the last extend,
+   after the extends that register the custom clusters it names. #}
+{% macro configure_body(device) %}
+            {% for switchName in device.switchNames %}
+            const endpoint{{loop.index}} = device.getEndpoint({{loop.index}});
+            await reporting.bind(endpoint{{loop.index}}, coordinatorEndpoint, ["genMultistateInput"]);
+            // switch action:
+            await endpoint{{loop.index}}.configureReporting("genMultistateInput", [
+                {
+                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                },
+            ]);
+            {% endfor %}
+            {% if device.has_battery_cluster %}
+            // Battery reporting
+            const batteryEndpoint = device.getEndpoint(1);
+            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            await batteryEndpoint.configureReporting("genPowerCfg", [
+                {
+                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                },
+            ]);
+            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+            {% endif %}
+            {% for relayName in device.relayNames %}
+            const endpoint{{loop.index  + (device.switchNames | length)}} = device.getEndpoint({{loop.index  + (device.switchNames | length)}});
+            await reporting.onOff(endpoint{{loop.index  + (device.switchNames | length)}}, {
+                min: 0,
+                max: constants.repInterval.MAX,
+                change: 1,
+            });
+            {% endfor %}
+
+            {% for relayName in device.relayIndicatorNames %}
+            await endpoint{{loop.index  + (device.switchNames | length)}}.configureReporting("genOnOff", [
+                {
+                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                },
+            ]);
+            {% endfor %}
+
+            {% for coverSwitchName in device.coverSwitchNames %}
+            const coverSwitch{{loop.index}} = device.getEndpoint({{loop.index + (device.switchNames | length) + (device.relayNames | length)}});
+            await reporting.bind(coverSwitch{{loop.index}}, coordinatorEndpoint, ["genMultistateInput"]);
+            await coverSwitch{{loop.index}}.configureReporting("genMultistateInput", [
+                {
+                    attribute: "presentValue",
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                },
+            ]);
+            {% endfor %}
+
+            {% for coverName in device.coverNames %}
+            const cover{{loop.index}} = device.getEndpoint({{loop.index + (device.switchNames | length) + (device.relayNames | length) + (device.coverSwitchNames | length)}});
+            await reporting.bind(cover{{loop.index}}, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(cover{{loop.index}});
+            await cover{{loop.index}}.configureReporting("closuresWindowCovering", [
+                {
+                    attribute: "moving",
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                },
+            ]);
+            {% endfor %}
+{% endmacro %}
 
 const snakeCase = (name) => name.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 
@@ -865,87 +957,26 @@ const definitions = [
             romasku.coverSwitchBindedMode("{{coverSwitchName}}_binded_mode", "{{coverSwitchName}}"),
             romasku.coverSwitchLongPressDuration("{{coverSwitchName}}_long_press_duration", "{{coverSwitchName}}"),
             {% endfor %}
+            {% if not z2m_v1 %}
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+{{ configure_body(device) | indent(8, true) }}
+                }],
+                isModernExtend: true,
+            },
+            {% endif %}
         ],
         {% if device.has_meter %}
         meta: { multiEndpoint: true, multiEndpointSkip: ["voltage", "current", "power", "energy"] },
         {% else %}
         meta: { multiEndpoint: true },
         {% endif %}
+        {% if z2m_v1 %}
         configure: async (device, coordinatorEndpoint, logger) => {
-            {% for switchName in device.switchNames %}
-            const endpoint{{loop.index}} = device.getEndpoint({{loop.index}});
-            await reporting.bind(endpoint{{loop.index}}, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint{{loop.index}}.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            {% endfor %}
-            {% if device.has_battery_cluster %}
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-            {% endif %}
-            {% for relayName in device.relayNames %}
-            const endpoint{{loop.index  + (device.switchNames | length)}} = device.getEndpoint({{loop.index  + (device.switchNames | length)}});
-            await reporting.onOff(endpoint{{loop.index  + (device.switchNames | length)}}, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            {% endfor %}
-
-            {% for relayName in device.relayIndicatorNames %}
-            await endpoint{{loop.index  + (device.switchNames | length)}}.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            {% endfor %}
-
-            {% for coverSwitchName in device.coverSwitchNames %}
-            const coverSwitch{{loop.index}} = device.getEndpoint({{loop.index + (device.switchNames | length) + (device.relayNames | length)}});
-            await reporting.bind(coverSwitch{{loop.index}}, coordinatorEndpoint, ["genMultistateInput"]);
-            await coverSwitch{{loop.index}}.configureReporting("genMultistateInput", [
-                {
-                    attribute: "presentValue",
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            {% endfor %}
-
-            {% for coverName in device.coverNames %}
-            const cover{{loop.index}} = device.getEndpoint({{loop.index + (device.switchNames | length) + (device.relayNames | length) + (device.coverSwitchNames | length)}});
-            await reporting.bind(cover{{loop.index}}, coordinatorEndpoint, ["closuresWindowCovering"]);
-            await reporting.currentPositionLiftPercentage(cover{{loop.index}});
-            await cover{{loop.index}}.configureReporting("closuresWindowCovering", [
-                {
-                    attribute: "moving",
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            {% endfor %}
-        },
+{{ configure_body(device) }}        },
+        {% endif %}
         {% if z2m_v1 %}
         ota: ota.zigbeeOTA,
         {% else %}

@@ -10,6 +10,7 @@ Please describe what you are working on, under ## Upcoming
 
 ## Upcoming
 
+- Zigbee2MQTT 2.x: a device interviewed or paired while Zigbee2MQTT runs (including one just converted from stock firmware) gets the fork's custom clusters at once, and covers configure; their configure failed with `Invalid attribute 'moving' for cluster 'closuresWindowCovering'` and their settings could not be read until Zigbee2MQTT restarted.
 ## v2.0.0-rc.5
 
 - Images for every built board are published in this repository, and the Zigbee2MQTT OTA indexes list only them; generated index URLs and integration descriptions name the fork.
