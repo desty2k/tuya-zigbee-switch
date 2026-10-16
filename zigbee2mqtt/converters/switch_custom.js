@@ -11367,6 +11367,7 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            romasku.relayInterlockGroup("relay_interlock_group", "relay"),
         ],
         meta: { multiEndpoint: true },
         configure: async (device, coordinatorEndpoint, logger) => {
