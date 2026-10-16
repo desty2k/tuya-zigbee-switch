@@ -1,54 +1,62 @@
-*Open the **Outline** (table of contents) from the top right.*  
+# Known issues
 
-# ⚠️ Open issues
+Limits of the current 2.x firmware. Report new problems on the fork's
+[issue tracker](https://github.com/desty2k/tuya-zigbee-switch/issues).
 
-*Issues affecting the **latest version***
+## Release status
 
-### Bugs
+- Every board is published as a release candidate. Only the boards listed as
+  tested in the [readme](../readme.md#devices) ran 2.x on hardware.
+- Silabs (EFR32MG21/MG22) builds are not hardware-tested in 2.x. Silabs devices
+  cannot be converted from stock firmware over the air, and the power meter
+  (`E` token) is Telink only.
 
-- Switch randomly toggles on TLSR8253 512KB devices ([#289](https://github.com/romasku/tuya-zigbee-switch/issues/289))
-  (HOBEIAN and Zbeacon)
-- *Power-on behavior* doesn't fully work on some devices
-- Press event missing on very short single presses ([#438](https://github.com/romasku/tuya-zigbee-switch/issues/438))
-- Telink Router sometimes unavailable? ([#255](https://github.com/romasku/tuya-zigbee-switch/issues/255))
-- *momentary_nc* not working after power loss.  
-  (Apply the setting again)
+## Child lock reporting on 4-gang Telink boards
 
-### Power draw
+The Telink attribute reporting table has no slot left on 4-gang boards, so no
+report is configured for `child_lock`. A lock toggled on the device sends one
+report to the coordinator; a coordinator that misses it shows the old state
+until it reads the attribute again (Zigbee2MQTT: refresh or `get`).
 
-- The cusom firmware draws more current than the original
-- As a result, the **minimum Load increases for *no-Neutral devices*!**  
-  - estimated values: >4W for EndDevice, >8W for Router
-  - smart bulbs not recommended (<1W when brighness=0)  
-    ⤷ dummy load (capactior) may be required
+## Cover position while unknown
 
-### End_device does not respond to Zigbee group commands
-- same issue on stock firmware (Zigbee limitation)
-- work-around: use Home Assistant groups or Router firmware
+While a cover's position is unknown (`0xFF`, see
+[configuration.md](./usage/configuration.md#how-a-cover-moves)), Zigbee2MQTT
+keeps showing the last position and ZHA shows none, but HOMEd cannot filter the
+value and shows an out-of-range position until the next completed move to an
+end.
 
-### Failed to read state of 'Switch' after reconnect 
+## Power meter accuracy
 
-- error shows up every time the switch reboots
-- **can safely be ignored**, doesn't mean anything  
-- discussion: [#40](https://github.com/romasku/tuya-zigbee-switch/issues/40)
+The BL0937 scale of `OUTLET_BSEED_TS011F_PM_DRZLXJNE` is not yet checked
+against a reference meter; readings may be off by several percent. Calibrate
+with a reference meter ([configuration.md](./usage/configuration.md#meter-e-token-telink-only)).
 
-<br>
+## Two-button gestures on touch panels
 
-# ✅ Closed issues
+Touch panels whose touch chip reports one pad at a time cannot press two
+buttons together: the two-button child lock gesture and stopping a cover with
+open and close together do not work on them. Covers with a stop button use a
+5 s hold of stop for the child lock instead.
 
-*Some of the already already fixed issues, only present on **old fw versions**.*
+## Integration differences
 
-### (< 1.1.3) Telink End_device unreachable from Z2M after a while
-- **fixed in latest build** (force update if affected)
-- work-around: set Z2M 'Availablility check' to 10 mins or use Router firmware
-- discussion: [#217](https://github.com/romasku/tuya-zigbee-switch/issues/217)
+- HOMEd receives no [button events](./usage/button_events.md) and does not
+  offer the `deferred_single` relay mode.
+- ZHA and HOMEd do not expose the [config string](./usage/config_string.md);
+  use Zigbee2MQTT or a raw attribute write.
+- The integrations offer `multi_press_reset_count` up to 255; the device
+  accepts 0–10 and refuses larger values.
 
-### (= v1.1.0) Devices can't update OTA
-- Keep this version or flash by wire
+## End devices and group commands
 
-### (< v1.0.18) Custom config string bricks unit
-- Interacting with the *device config* field **immediately bricks 3-4 gang devices**
-- Recover: flash by wire
+End-device firmware does not receive Zigbee group commands, as on the stock
+firmware: group commands reach only devices that keep their receiver on. Use
+router firmware or a Home Assistant group for devices in groups.
 
-### (< v1.0.17) 4-gang devices can't update OTA 
-- Ask for support or flash by wire
+## Power draw of no-neutral switches
+
+The firmware draws more current than the stock firmware, so a no-neutral
+(L-only) switch needs a larger load: estimated more than 4 W as an end device
+and 8 W as a router. A smart bulb (under 1 W when off) is not enough without a
+bypass capacitor.

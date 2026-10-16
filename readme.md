@@ -1,93 +1,103 @@
-[![GitHub stars](https://img.shields.io/github/stars/romasku/tuya-zigbee-switch.svg?style=flat&label=Stars&color=yellow)](https://github.com/romasku/tuya-zigbee-switch/stargazers)
-[![GitHub issues](https://img.shields.io/github/issues/romasku/tuya-zigbee-switch.svg?label=Issues)](https://github.com/romasku/tuya-zigbee-switch/issues)
-[![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md)
-[![Discord](https://img.shields.io/discord/1405486711412359278.svg?logo=discord&logoColor=white&label=Chat&color=blue)](https://discord.gg/4HAg2Fr565)
+# Custom firmware for Tuya Zigbee switches (BSEED fork)
 
-# 🔓 Custom firmware for Tuya Zigbee switches
+Open firmware for Tuya-style Zigbee wall switches, relay modules, outlets,
+shutter switches and battery remotes on Telink (TLSR8258/TLSR8253) and Silabs
+(EFR32MG21/MG22) chips. It replaces the vendor firmware, fixes its bugs (two
+buttons pressed together toggling one relay) and turns a wall switch into a
+configurable Zigbee remote.
 
-Feature-rich custom firmware for Telink/Silabs Zigbee switches, modules, sockets
+> [!IMPORTANT]
+> This repository, [desty2k/tuya-zigbee-switch](https://github.com/desty2k/tuya-zigbee-switch),
+> is a separate product built on [romasku/tuya-zigbee-switch](https://github.com/romasku/tuya-zigbee-switch).
+> - Moving a device from upstream firmware (or 1.x) to this fork's 2.x resets
+>   its settings. Network membership, binds and groups survive.
+> - Settings survive OTA updates between fork 2.x releases.
+> - The fork's Zigbee2MQTT converter, ZHA quirk and HOMEd extension match fork
+>   firmware only. Update them together with the firmware and never mix them
+>   with upstream converters.
 
-- Already **160+** [supported_devices.md](./docs/supported_devices.md)
-- Port new devices: [contribute/porting.md](./docs/contribute/porting.md)
+## Features
 
-## 🤔 Why?
+- **Relay control from the buttons**, with the moment of switching per button:
+  on press, on release, on long press, or after a resolved single click
+  (`deferred_single`, which leaves double clicks for automations).
+- **Detached mode**: a button that only sends commands and events.
+- **Button events**: press, release, hold, hold release and 1–10 clicks per
+  button, with configurable multi-click gap and debounce.
+- **Direct binding** to lights, relays and covers: On/Off commands, and
+  dimming of bound lights while a button is held.
+- **Switch types**: rocker, push button (normally open or closed), with five
+  action modes that keep relays and bound devices in step.
+- **Child lock** of the local buttons, toggled from Zigbee or by a hold gesture
+  on the device.
+- **Relay interlock** (`K` config token, plus a per-relay interlock group) with
+  dead time, and **inching** (automatic switch-off after a set time).
+- **Power-on behaviour** per relay: off, on, toggle, previous.
+- **Relay indicator LEDs**: same as the relay, opposite, or manual.
+- **Covers** (shutters, blinds): position tracking from travel times,
+  calibration with deadzones and overrun, go to position, stop button.
+- **Power metering** with the BL0937 chip (Telink): voltage, current, power,
+  energy, with calibration.
+- **Battery remotes** with battery reporting.
+- **Router and end-device images** for no-neutral switches.
+- **Diagnostics**: counters for inputs, button events and the network.
+- **Recovery graph**: a device with an unusable configuration stays reachable
+  for a corrected configuration or an OTA update.
+- **OTA updates** from Zigbee2MQTT and ZHA, including conversion of stock
+  Telink devices.
+- **Factory reset** by a configurable number of presses or the onboard button.
 
-The main driver for this project was a **frustrating bug in the factory firmware:**
+## Devices
 
-> When you pressed one button, the device shortly ignored input from the others.  
-> As a result, simultaneously **pressing two buttons toggled a single relay.**
+Every board in [`device_db.yaml`](./device_db.yaml) is built and published as
+a release candidate (2.0.0-rc.4). These boards are tested on hardware with 2.x
+firmware:
 
-Users also consider this _the missing piece of a reliable smart home,_ because it allows **using a light switch as a Zigbee remote**.
+| Board | Device | Stock model |
+| --- | --- | --- |
+| `SWITCH_BSEED_TS0726_4GANG` | BSEED Echo Click / Scale 4-gang switch | TS0726 `_TZ3002_pzao9ls1` |
+| `OUTLET_BSEED_TS011F_PM_DRZLXJNE` | BSEED outlet with power metering | TS011F `_TZ3210_drzlxjne` |
+| `COVER_BSEED_TS130F_VSJ5O7DM` | BSEED shutter switch | TS130F `_TZ3000_vsj5o7dm` |
 
-> Most cheap switches on the market don't allow **binding to other devices** out-of-the-box.
+All other boards are untested on hardware in 2.x. The full generated list is
+[docs/supported_devices.md](./docs/supported_devices.md).
 
-## ✨ Features
+## Installation
 
-### Already implemented
-- **Super fast reaction time** (choose action moment: press / release)
-- **Detached mode** (unlink switch and relay)
-- **Outgoing binds**  (remotely control Zigbee lights - state & brightness)
-- Supports **all button types**: toggle, momentary NO, momentary NC
-- Configurable **Long press** for push-switches (action & duration)
-- Custom **switch action modes** (sync: switch position - relay state - bound devices)
-- Both **Router** & **EndDevice** modes for no-Neutral devices
-- **Power-on behavior** (on, off, previous, toggle)
-- **Wireless flashing and updating** (OTA from original fw, further OTA updates)
-- Multiple **reset options** (configurable multi-press count, on-board button)
+- Over the air from Zigbee2MQTT or ZHA (Telink devices): [docs/updating.md](./docs/updating.md)
+- By wire: [docs/flashing/](./docs/flashing/)
+- A device not on the list: [docs/contribute/porting.md](./docs/contribute/porting.md)
 
-### Work in progress
-- **Wireless switches (battery-powered remotes)** - [almost done](https://github.com/romasku/tuya-zigbee-switch/pull/389)
-- FW-level multi-press (double or triple click) - [progress](https://github.com/romasku/tuya-zigbee-switch/pull/380)
-- Countdown timers (on_with_timed_off)
-- Inching (pulse relay output)
-- Scenes (send and receive)
-- Power monitoring - [progress](https://github.com/romasku/tuya-zigbee-switch/pull/314)
-- **Curtain modules** - [almost done](https://github.com/romasku/tuya-zigbee-switch/pull/408)
-- Touchlink
-- Integrate converters with Z2M
-- Integrate updates with Z2M
+## Documentation
 
-## 📲 Installation
+Using the firmware:
 
-If your device is already on [**supported_devices.md**](./docs/supported_devices.md), the firmware can be **installed**:
+- [updating.md](./docs/updating.md): OTA index, integration files, converting, updating, router or end device
+- [usage/configuration.md](./docs/usage/configuration.md): every setting with its default and range, child lock, factory reset
+- [usage/button_events.md](./docs/usage/button_events.md): clicks and holds in automations
+- [usage/config_string.md](./docs/usage/config_string.md): the device config string and the recovery graph
+- [usage/endpoints.md](./docs/usage/endpoints.md): endpoints, binding, groups, cluster reference
+- [faq.md](./docs/faq.md): troubleshooting
+- [known_issues.md](./docs/known_issues.md)
+- [changelog_fw.md](./docs/changelog_fw.md)
+- [flashing/](./docs/flashing/): wired flashing for Telink, Silabs and the Sonoff ZBMINIL2
 
-- wirelessly on Z2M / ZHA (only Telink devices): [updating.md](./docs/updating.md)
-- by wire: [flashing/](./docs/flashing/)
+Developing it:
 
-Otherwise, check [contribute/porting.md](./docs/contribute/porting.md).
+- [contribute/architecture.md](./docs/contribute/architecture.md)
+- [contribute/porting.md](./docs/contribute/porting.md)
+- [contribute/](./docs/contribute/)
 
-## 📑 Documentation
+## Support
 
-**Information and diagrams are available in [docs/](./docs/)**
+Report bugs and ask questions on the fork's
+[issue tracker](https://github.com/desty2k/tuya-zigbee-switch/issues).
 
-Some quick links:
-- ❓ [**faq.md**](./docs/faq.md) ⬅ *Troubleshoot*
-- 🚨 ️[known_issues.md](./docs/known_issues.md)
-- 📝 [changelog_fw.md](./docs/changelog_fw.md)
-- 🛠️ [contribute/](./docs/contribute/)
-- ⚙️ [usage/](./docs/usage/)
-  - [endpoints.md](./docs/usage/endpoints.md) 
-  - [change_device_type.md](./docs/usage/change_device_type.md)
+## Acknowledgements
 
-## 💬 Chat
-
-Discuss, troubleshoot and follow the updates on Discord 🙂
-
-[![Discord](https://discord.com/api/guilds/1405486711412359278/widget.png?style=banner3)](https://discord.gg/4HAg2Fr565)
-
-## 🙏 Acknowledgements
-
-- [doctor64/tuyaZigbee](https://github.com/doctor64/tuyaZigbee)  
-  ⤷ fw for other Tuya Zigbee devices (helpful examples)
-- [medium.com/@omaslyuchenko](https://medium.com/@omaslyuchenko)  
-  ⤷ **Hello Zigbee World** series (very useful Zigbee programming guides)
-
-## ⭐ Star History
-
-<a href="https://www.star-history.com/#romasku/tuya-zigbee-switch&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=romasku/tuya-zigbee-switch&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=romasku/tuya-zigbee-switch&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=romasku/tuya-zigbee-switch&type=Date" />
- </picture>
-</a>
+- [romasku/tuya-zigbee-switch](https://github.com/romasku/tuya-zigbee-switch):
+  the upstream project this fork is built on
+- [doctor64/tuyaZigbee](https://github.com/doctor64/tuyaZigbee): firmware for
+  other Tuya Zigbee devices
+- [medium.com/@omaslyuchenko](https://medium.com/@omaslyuchenko): the *Hello
+  Zigbee World* series of Zigbee programming guides
