@@ -1,97 +1,57 @@
-*Open the **Outline** (table of contents) from the top right.*  
+# Installing and updating over the air
 
-# Updating OTA
+This page covers converting a supported device from its stock firmware,
+updating between fork releases, and switching between router and end-device
+firmware, all over Zigbee. Wired flashing is in [flashing/](./flashing/).
 
-This page describes **converting** and **updating** supported devices **wirelessly.**
+> [!IMPORTANT]
+> - This firmware is the fork [desty2k/tuya-zigbee-switch](https://github.com/desty2k/tuya-zigbee-switch),
+>   a separate project from upstream romasku/tuya-zigbee-switch.
+> - Moving a device from upstream firmware (or 1.x) to fork 2.x resets its
+>   settings. Network membership, binds and groups survive.
+> - Settings survive OTA updates between fork 2.x releases.
+> - The fork's converters, quirk and extension match fork firmware only.
+>   Update them together with the firmware, and never mix them with upstream
+>   converters.
 
-- ***Zigbee2MQTT is heavily recommended***
-- *ZHA can't re-interview and update pinouts*
-- *HOMEd supports only local updates and can't edit pinouts*
+> [!CAUTION]
+> Every board is published as a release candidate (2.0.0-rc.4), except the
+> Sonoff ZBMINIL2 ([known_issues.md](./known_issues.md#release-status)). Only
+> the boards listed as tested in the [readme](../readme.md#devices) ran 2.x on
+> hardware.
+> A faulty image can leave a device that needs wired flashing:
+> [flashing/](./flashing/). Restoring stock firmware needs a dump of the stock
+> device ([`bin/_factory/`](../bin/_factory/)).
 
-> [!CAUTION]  
-> The main branch is generally safe. However, bugs in the code **can brick your device**.  
-> - Recover or restore: [flashing/](./flashing/)  
-> - Restoring the original FW requires a memory dump of the stock device: [`bin/_factory/`](../bin/_factory/)
+Integration support:
 
-- To receive custom FW updates, your ZHA / Z2M instance must have a **custom OTA index** applied.  
-- To use the new features, you must **download and regularly update the quirks / converters / extensions**.  
+- **Zigbee2MQTT** (recommended): converts, updates and exposes every setting,
+  including the [config string](./usage/config_string.md).
+- **ZHA**: updates and exposes the settings except the config string; it cannot
+  re-interview a device (remove and pair it again instead).
+- **HOMEd**: exposes the settings except the config string and receives no
+  [button events](./usage/button_events.md); firmware updates only from local
+  files.
 
-## Conversion
+## Integration files
 
-**Original fw ➡ custom fw** update steps (only Telink devices):  
+The firmware's Zigbee interface is described by generated files on the
+`refactor/input-pipeline` branch. Install the set that matches the firmware you
+install, and replace it whenever you update the firmware.
 
-1. Find your device on [supported_devices.md](./supported_devices.md)
-2. Read [known_issues.md](./known_issues.md)
-3. **Download** the custom [# Quirks / Converters / Extensions](#quirks--converters--extensions)
-4. **Apply** the preferred [# OTA index](#ota-index) (not FORCE)
-5. **Restart** HA / Z2M
-6. Bring the device closer to the coordinator, or add routers to **boost signal**  
-  (Pairing requires stronger signal than normal usage)
-7. Ensure **stable power** for no-Neutral switches (big load - non-smart bulb)
-8. Optionally, tweak Z2M settings for [# Faster OTA updates](#faster-ota-updates)
-9. **Check** for updates (blue cloud button) 
-10. **Start** the update (red download button)  
-  Progress bar may get stuck at 100% - it's ok
-11. **Permit join** when it's done (LED blinks if mapped correctly)
-12. **Interview** the device **`i`**  
-  ⤷ option missing from ZHA, remove and re-pair if needed  
-13. **Reconfigure** the device **`🗘`** 
-14. Be aware of [## Version update](#version-update) steps
-15. Read [faq.md](./faq.md) before reaching out for support
+| Integration | File | Install to |
+| --- | --- | --- |
+| Zigbee2MQTT 2.x | [`zigbee2mqtt/converters/`][converters]: `switch_custom.js` and `tuya_with_ota.js` | `external_converters/` in the Zigbee2MQTT data folder (next to `coordinator_backup.json`) |
+| Zigbee2MQTT 1.x | [`zigbee2mqtt/converters_v1/`][converters_v1]: the same two files | as above |
+| ZHA | [`zha/switch_quirk.py`][quirks] | `custom_zha_quirks/` in the Home Assistant config folder |
+| HOMEd | [`homed/tuya-custom.json`][extensions] | `/opt/homed-zigbee/external` (or the `device/external` path of `homed-zigbee.conf`) |
 
-> Hopefully, you now have a working device with custom firmware! 😊  
-> *Consider yourself invited to our [Discord](/readme.md#discord) community!* 
+`switch_custom.js` describes devices running this firmware;
+`tuya_with_ota.js` adds the OTA update to the stock Tuya definitions of
+supported models, so they can be converted. Restart the integration after
+replacing a file.
 
-## Version update
-
-**Custom fw ➡ custom fw** update steps (all devices):
-
-1. Check if you have the correct [# OTA index](#ota-index)
-2. Read [changelog_fw.md](./changelog_fw.md)
-3. Remember your configurations and binds  
-  (In case update erases them - if mentioned in step 2)
-4. Ensure **strong signal**  
-5. Ensure **stable power** for no-Neutral switches (big load - non-smart bulb)
-6. Optionally, tweak Z2M settings for [# Faster OTA updates](#faster-ota-updates)
-7. **Check** for updates (blue cloud button) 
-8. **Start** the update (red download button) 
-9. **Re-download** the custom [# Quirks / Converters / Extensions](#quirks--converters--extensions) and restart ZHA / Z2M
-10. **Interview** the device **`i`**  
-⤷ option missing from ZHA, remove and re-pair if needed  
-(updates endpoints, clusters and identifiers)
-11.  **Reconfigure** the device **`🗘`**  
-(resets reporting and stuff?, keeps user binds and settings)
-12.   Re-do user settings if needed
-
-> *If your device is several versions behind, it will update directly to the latest version.*
-
-# OTA index
-
-The index points to the firmware images.  
-We use a link to the latest index (so it's always up-to-date).  
-
-### Changing the index
-
-<details>
-<summary> Z2M</summary>  
-
-Apply custom index in the user interface and **restart Z2M:**  
-**Z2M ➡ Settings ➡ OTA updates ➡ OTA index override file name**  
-
-Or in `configuration.yaml`:
-```yaml
-ota:
-  zigbee_ota_override_index_location: >-
-    LINK_OR_PATH
-```
-
-</details>
-
-<details>
-<summary> ZHA </summary>  
-
-Edit `homeassistant/configuration.yaml` and **restart HA**:  
-(More details: [#62][zha_tips])
+ZHA needs the quirk path and the OTA index in `configuration.yaml`:
 
 ```yaml
 zha:
@@ -101,153 +61,104 @@ zha:
     ota:
       extra_providers:
         - type: z2m
-          url: LINK_OR_PATH
+          url: <index URL>
 ```
 
-</details>
+## OTA index
 
-### Choosing an index
+The index lists the firmware images. Point Zigbee2MQTT at it under
+**Settings → OTA updates → OTA index override file name**, or in
+`configuration.yaml`, then restart Zigbee2MQTT:
 
-- You can install **Router** or **EndDevice** firmware
-- Switch between them by re-installing (update again with FORCE index)
-- **Router** can be more responsive
-- **EndDevice** is useful for no-Neutral switches, because it draws less power (still more than original fw).  
-  It's also useful when you don't want the device to route Zigbee traffic
-  (e.g. If it's often powered-off, or if it has poor signal)
+```yaml
+ota:
+  zigbee_ota_override_index_location: <index URL>
+```
+
+The custom index is added to the official one, so other devices keep receiving
+their own updates.
+
+| Index | URL | Contents |
+| --- | --- | --- |
+| Router | `https://raw.githubusercontent.com/desty2k/tuya-zigbee-switch/refs/heads/refactor/input-pipeline/zigbee2mqtt/ota/index_router.json` | router images for every board, plus conversion images for stock Tuya devices of supported models |
+| Router, force | `https://raw.githubusercontent.com/desty2k/tuya-zigbee-switch/refs/heads/refactor/input-pipeline/zigbee2mqtt/ota/index_router-FORCE.json` | router images that install over any fork version, including the same one |
+| End device | `https://raw.githubusercontent.com/desty2k/tuya-zigbee-switch/refs/heads/refactor/input-pipeline/zigbee2mqtt/ota/index_end_device.json` | end-device images for no-neutral boards and battery devices, plus conversion images |
+| End device, force | `https://raw.githubusercontent.com/desty2k/tuya-zigbee-switch/refs/heads/refactor/input-pipeline/zigbee2mqtt/ota/index_end_device-FORCE.json` | end-device images that install over any fork version |
+
+Use a normal index day to day. The force indexes always offer an update; use
+one only to switch between router and end-device firmware or to reinstall, then
+go back to the normal index.
+
+The images themselves are in [`bin/`][bin] on the same branch:
+`bin/router/<BOARD>/` and `bin/end_device/<BOARD>_END_DEVICE/`.
+
+## Converting a stock device (Telink only)
+
+Silabs devices are converted by wire: [flashing/silabs.md](./flashing/silabs.md).
+
+1. Find the device in [supported_devices.md](./supported_devices.md) and read
+   [known_issues.md](./known_issues.md).
+2. Install the [integration files](#integration-files) and a normal
+   [OTA index](#ota-index), then restart Zigbee2MQTT or Home Assistant.
+3. Give the device a strong signal: move it close to the coordinator or a
+   router. A no-neutral switch needs a sufficient load (see
+   [router or end device](#router-or-end-device)).
+4. In Zigbee2MQTT's OTA page, check the device for updates, then start the
+   update. The progress bar may stay at 100 % for a while.
+5. After the update the device leaves the stock identity and joins again:
+   permit joining. Its LED blinks while it is not joined.
+6. Interview the device (`i`) and reconfigure it. ZHA: remove and pair it
+   again.
+
+## Updating between fork releases
+
+1. Read [changelog_fw.md](./changelog_fw.md) for the new version.
+2. Check the device for updates in the OTA page and start the update.
+3. When it finishes, replace the [integration files](#integration-files) with
+   the ones from the same branch and restart the integration.
+4. Interview and reconfigure the device. Settings, binds and groups stay.
+
+A device several versions behind updates directly to the newest version.
+
+## Router or end device
+
+Every board has a router image. Boards without a neutral wire, and battery
+devices, also have an end-device image.
+
+- **Router**: relays Zigbee traffic for other devices and answers fastest.
+  Needs a constant supply.
+- **End device**: does not route and draws less power, which helps no-neutral
+  switches and devices that are often switched off. It does not receive group
+  commands ([known_issues.md](./known_issues.md)).
 
 > [!WARNING]
-> **L-only switches need a big load to function, on any firmware**
-> - e.g. 10W dumb bulb is safe 
-> - estimated values: >4W for EndDevice, >8W for Router  
-> - **not recommended: no-Neutral switch + smart bulb ( <1W when brightness=0 )**  
->   ⤷ dummy load (capactior) may be required
+> A no-neutral (L-only) switch draws its supply through the load, on any
+> firmware. This firmware draws more than the stock one: count on more than
+> about 4 W of load for an end device and 8 W for a router (estimates). A smart
+> bulb draws under 1 W when off and is not enough without a bypass capacitor.
 
-<details>
-<summary> <b> Index link format </b> </summary>  
+To switch a device between router and end-device firmware:
 
-```
-https://raw.githubusercontent.com/USER/REPO/refs/heads/BRANCH/zigbee2mqtt/ota/INDEX
-```
-</details>
-<br>
+1. Point Zigbee2MQTT at the force index of the type you want (router force or
+   end device force).
+2. Check the device for updates and install the update.
+3. On its first start as the other type the device clears its network data and
+   leaves the network, because the stack's network data of one type does not
+   fit the other: permit joining and pair it again. Its binds and group
+   memberships are gone; set them up again.
+4. Interview the device and confirm its type changed.
+5. Point Zigbee2MQTT back at the normal index of the new type.
 
-The available indexes **for the main branch** are:  
+## Faster OTA updates
 
-<details>
-<summary> <code> index_router.json </code> </summary>  
+Updates run slowly by default to spare the network. With a good signal and a
+quiet network, lower **Settings → OTA updates → default maximum data size**
+and **image block response delay** in Zigbee2MQTT (50 bytes and 50 ms finish
+in under 5 minutes). See the
+[Zigbee2MQTT OTA documentation](https://www.zigbee2mqtt.io/guide/usage/ota_updates.html#advanced-configuration).
 
-- Both L and L+N switches get Router FW
-- Both stock and custom FW devices receive updates
-```
-https://raw.githubusercontent.com/romasku/tuya-zigbee-switch/refs/heads/main/zigbee2mqtt/ota/index_router.json
-```
-</details>
-
-<details>
-<summary> <code> index_router-FORCE.json </code> </summary>  
-
-- Both L and L+N switches get Router FW
-- Allows (re-installing FW with the same version number
-- Only custom FW devices receive updates
-- Useful for switching between operation modes or branches
-```
-https://raw.githubusercontent.com/romasku/tuya-zigbee-switch/refs/heads/main/zigbee2mqtt/ota/index_router-FORCE.json
-```
-</details>
-
-<details>
-<summary> <code> index_end_device.json </code> </summary>  
-
-- L-only switches get EndDevice FW
-- L+N switches do not get anything
-- Both stock and custom FW devices receive updates
-```
-https://raw.githubusercontent.com/romasku/tuya-zigbee-switch/refs/heads/main/zigbee2mqtt/ota/index_end_device.json
-```
-</details>
-
-<details>
-<summary> <code> index_end_device-FORCE.json </code> </summary>  
-
-- L-only switches get EndDevice FW
-- L+N switches do not get anything
-- Allows re-installing FW with the same version number
-- Only custom FW devices receive updates
-- Useful for switching between operation modes or branches
-```
-https://raw.githubusercontent.com/romasku/tuya-zigbee-switch/refs/heads/main/zigbee2mqtt/ota/index_end_device-FORCE.json
-```
-</details>
-<br>
-
-> [!NOTE]  
-> The custom OTA index appends to the original Z2M index.  
-> So your other Zigbee devices will still receive updates normally.
-
-### Faster OTA updates
-
-By default, updates perform slowly to put less strain on the network and ensure stability.  
-If your device has good signal and the network is not being actively used, you can lower the duration:
-
-Go to **Z2M ➡ Settings ➡ OTA updates** and tweak the values. More info: [Z2M doc][z2m_ota_speed].  
-*50B + 50ms takes less than 5 minutes on an empty network*  
-*(default_maximum_data_size and image_block_response_delay).*
-
-# Quirks / Converters / Extensions
-
-Custom quirks / converters / extensions:
-
-- are needed for recognizing the device and exposing all supported features 
-
-- can be updated independently of fw updates (e.g. support new devices)
-
-- are generally backwards-compatible (Use the latest files)
-
-- are not yet submitted to [ZHA][zha-device-handlers], [Z2M][zigbee-herdsman-converters] and [HOMEd][homed-service-zigbee]  
-**⤷ manually download and update them**
-
-### Download
-
-<details>
-<summary> ZHA steps </summary>  
-
-1. (Re)download them from [`zha/`][quirks] (main branch)  
-2. (Re)place them in `homeassistant/custom_zha_quirks/`  
-3. Specify the custom quirks path in the configuration file (see [# OTA index](#ota-index))
-4. Restart HA to apply
-5. Reconfigure device (does not remove user settings or binds)
-
-</details>
-
-<details>
-<summary> Z2M steps </summary>  
-
-1. (Re)download them from [`zigbee2mqtt/converters/`][converters] (main branch)  
-2. Create the `external_converters/` folder in `zigbee2mqtt/` or `data/`  
-_The path differs depending on version/installation method. The parent folder must already exist._  
-The new folder should be at the same level with coordinator_backup.json.  
-3. (Re)place them in `external_converters/`
-4. Restart Z2M to apply
-5. Interview + reconfigure device (does not remove user settings or binds)
-
-</details>
-
-<details>
-<summary> HOMEd steps </summary>  
-
-1. (Re)download them from [`homed/`][extensions] (main branch)
-2. (Re)place them in `/opt/homed-zigbee/external`  
-_Or your custom path if you changed it in `homed-zigbee.conf` file (`device/external` setting)._
-3. Restart HOMEd Zigbee to apply
-4. Reconfigure device (does not remove user settings or binds) or remove it and add again
-
-</details>
-
-[quirks]: https://github.com/romasku/tuya-zigbee-switch/tree/main/zha
-[converters]: https://github.com/romasku/tuya-zigbee-switch/tree/main/zigbee2mqtt/converters
-[extensions]: https://github.com/romasku/tuya-zigbee-switch/tree/main/homed
-[zha_tips]: https://github.com/romasku/tuya-zigbee-switch/issues/62
-[zha-device-handlers]: https://github.com/zigpy/zha-device-handlers
-[zigbee-herdsman-converters]: https://github.com/Koenkk/zigbee-herdsman-converters
-[z2m_ota_speed]: https://www.zigbee2mqtt.io/guide/usage/ota_updates.html#advanced-configuration
-[homed-service-zigbee]: https://github.com/u236/homed-service-zigbee
+[converters]: https://github.com/desty2k/tuya-zigbee-switch/tree/refactor/input-pipeline/zigbee2mqtt/converters
+[converters_v1]: https://github.com/desty2k/tuya-zigbee-switch/tree/refactor/input-pipeline/zigbee2mqtt/converters_v1
+[quirks]: https://github.com/desty2k/tuya-zigbee-switch/tree/refactor/input-pipeline/zha
+[extensions]: https://github.com/desty2k/tuya-zigbee-switch/tree/refactor/input-pipeline/homed
+[bin]: https://github.com/desty2k/tuya-zigbee-switch/tree/refactor/input-pipeline/bin

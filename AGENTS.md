@@ -14,7 +14,7 @@ options and OTA updating.
   (EFR32MG21 / EFR32MG22).
 - 160+ supported devices, all described in one database: `device_db.yaml`.
 - One firmware binary per board. The board's *features* (relay, switch, cover,
-  battery, meter; `features` in `device_db.yaml`, otherwise derived from its
+  battery, meter, probe, interlock; `features` in `device_db.yaml`, otherwise derived from its
   config tokens) are selected at build time through `src/features.mk`; code of
   other features is left out of the image.
 - The hardware layout is **not** compiled in: it comes from a *device config
@@ -65,11 +65,11 @@ General rules for every file:
 
 | Path | Content |
 | --- | --- |
-| `src/app.c`, `src/app.h` | Application entry point; delegates to config parsing |
+| `src/app.c`, `src/app.h` | `app_init()` runs NVM migrations, `device_config_service_init()` and `parse_config()`; `app_task()` is the main-loop pump |
 | `src/hal/` | Hardware abstraction layer headers — the only cross-platform contract |
-| `src/base_components/` | Platform-independent building blocks (button, relay, led, battery, indicator) |
+| `src/base_components/` | Platform-independent logic: input pipeline (`gpio_edge_queue`, `button_input`, `button_dispatcher`, `gesture_fsm`, `action_mapper`), controllers (`relay_controller`, `relay_driver`, `interlock`, `cover_controller`), feedback (`indicator_feedback`, `led`, `child_lock`), services (`timer_service`, `diagnostics_service`, `meter_service`, `gpio_probe_service`) |
 | `src/zigbee/` | Platform-independent ZCL cluster implementations |
-| `src/device_config/` | Device config string parsing, NVM items, migrations, reset |
+| `src/device_config/` | Config service and parser, `device_composition`, `feature_wiring` (builds the graph and the recovery graph), `capability_state`, NVM item ids, migrations, reset |
 | `src/telink/` | Telink platform: HAL impl, SDK glue, makefiles, OTA packaging |
 | `src/silabs/` | Silabs platform: HAL impl, SLC project files, bootloader extension |
 | `src/stub/` | Host build: HAL impl, REPL, machine-readable event output |
@@ -78,12 +78,15 @@ General rules for every file:
 | `helper_scripts/` | Generators for converters, quirks, docs (+ `templates/`) |
 | `board.mk`, `tools.mk`, `Makefile`, `make_scripts/` | Build orchestration |
 | `docs/` | User and contributor documentation |
-| `docs/refactor/` | Design specs for in-flight refactors; read the local `STATE.md` first |
 | `bin/`, `zigbee2mqtt/`, `zha/`, `homed/` | Build and generator output — never hand-edited |
 
 Layering rule: `src/base_components/` and `src/zigbee/` must not include platform
 headers. They talk to hardware only through `src/hal/`. Platform-specific code
 lives in `src/telink/`, `src/silabs/`, `src/stub/` and implements the HAL.
+Data flow, ownership rules, execution contexts and extension checklists:
+`docs/contribute/architecture.md`. Why the design is the way it is:
+`docs/contribute/design_decisions.md`. Known unfinished work:
+`docs/contribute/open_work.md`.
 
 ## Build and test
 
@@ -124,6 +127,11 @@ Verification expectations for any code change:
 - NVM is simulated in `stub_nvm_data/` and wiped between tests.
 - Device hardware for a test comes from the `device_config` fixture — a config
   string, not a real device entry.
+- Stub variants with other feature sets: `stub_switch_only`, `stub_probe`,
+  `stub_end_device` (all built by `make tests`); select with `StubProc(cmd=...)`.
+- Native unit tests in `tests/unit/` (`make unit_tests`) compile single modules
+  with fakes from `tests/unit/support/` and parse every board's config string.
+- Details: `docs/contribute/tests.md`.
 
 ## Code conventions
 
@@ -135,11 +143,12 @@ Verification expectations for any code change:
   access out of policy.
 - Prefer explicit `uint8_t` / `uint16_t` / `uint32_t` and unsigned time
   arithmetic (`now - then`) so `hal_millis()` wraparound is handled naturally.
-- Interrupt-context code does queue pushes and task scheduling only.
+- Interrupt-context code does queue pushes and sets pending flags only; tasks are
+  scheduled from the main loop.
 - New ZCL attributes and clusters: add cluster ids to `src/zigbee/zcl_ids.h`,
-  keep attribute and command definitions with their owning cluster, register
-  custom clusters in both platform layers, and mirror them in the generator
-  templates.
+  keep attribute and command definitions with their owning cluster, give a new
+  standard cluster a Telink register function, and mirror them in the generator
+  templates (checklist in `docs/contribute/architecture.md`).
 
 ## Comments and documentation policy
 
@@ -164,7 +173,7 @@ When replacing an implementation, **delete the old one in the same change**. No
 adapters, no parallel paths, no dead symbols.
 
 This repository is the BSEED-focused fork (`desty2k/tuya-zigbee-switch`), a
-separate product from upstream `romasku/tuya-zigbee-switch`; it is not merged
+separate project from upstream `romasku/tuya-zigbee-switch`; it is not merged
 back. Compatibility guarantees:
 
 - None towards upstream firmware: upstream's Basic `0xFF0x` management
@@ -183,6 +192,8 @@ Documentation rules:
 
 - `docs/` describes how the firmware behaves now.
 - Version history goes only in `docs/changelog_fw.md`.
+- Design rationale goes in `docs/contribute/design_decisions.md`, unfinished
+  engineering work in `docs/contribute/open_work.md`.
 - Do not create new markdown files unless asked; update the relevant existing doc.
 - Generated docs (`docs/supported_devices.md`) are regenerated, never edited.
 

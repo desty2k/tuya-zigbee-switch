@@ -1,35 +1,61 @@
 # Device database
 
-Information about all supported devices is kept inside [`device_db.yaml`](../../device_db.yaml).  
-⤷ the only file you need to edit for adding a new device (usually)
+Every supported device is one entry in [`device_db.yaml`](../../device_db.yaml),
+validated by [`device_db.schema.json`](../../device_db.schema.json). Adding a
+device usually means adding one entry ([porting.md](./porting.md)). The file
+is large: find an entry with `grep -n '^<KEY>:' device_db.yaml` and read only
+that block.
+
+All fields except `features` are required (use `null` where the schema allows
+it). After editing, run `make tools/check_device_features` and
+`make unit_tests`.
 
 [off_conv]: https://github.com/Koenkk/zigbee-herdsman-converters/tree/master/src/devices
 
-| Field                          | Description                                                                                                                                                                                                                                                                              |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **KEY** (e.g. `TS0004_AVATTO`) | **Given device name**: <br> • Used in project as `BOARD` <br> • Name of the device directory in `bin/`                                                                                                                                                                                   |
-| `human_name`                   | Full name of the device: <br> • Shown in [supported_devices.md](/docs/supported_devices.md)                                                                                                                                                                                              |
-| `power`                        | Power source: <br> • `mains`, `USB`, `AAA`, `CR2032` etc. <br> • Shown in [supported_devices.md](/docs/supported_devices.md)                                                                                                                                                             |
-| `neutral`                      | Does the device have Neutral? <br> • `without` / `optional` / `required` <br> • Currently unused                                                                                                                                                                                         |
-| `device_type`                  | Default operation mode for custom FW: <br> • `end_device` ➡ Line-only devices <br> • `router` ➡ Line+Neutral devices <br> (Scripts build both variants for L-only devices)                                                                                                               |
-| `mcu`                          | Microcontroller unit type: <br> • `TLSR8258` ➡ Telink TLSR8258 MCU <br> • `EFR32MG21` ➡ Silicon Labs EFR32MG21 MCU <br> • Determines which toolchain and SDK to use for building firmware                                                                                                |
-| `stock_model_name`             | **Zigbee Model** in Z2M on stock FW: <br> • Identifies the device <br> • Value hardcoded on the stock FW, can't be changed <br> • Currently unused                                                                                                                                       |
-| `stock_manufacturer_name`      | **Zigbee Manufacturer** in Z2M on stock FW: <br> • Identifies the exact device <br> • Value hardcoded on the stock FW, can't be changed <br> • Used in OTA indexes to select the correct FW when updating <br> • Format: `_TZ3000_xxxxxxxx`                                              |
-| `stock_converter_manufacturer` | **Manufacturer** in Z2M on stock FW <br> • Not Zigbee Manufacturer! <br> • Manufacturer name given by Z2M converter <br> • May be overwritten by `whiteLabel` <br> &nbsp; (Check [official Z2M converters][off_conv]) <br> • Needed to enable OTA for stock FW                           |
-| `stock_converter_model`        | **Model** in Z2M on stock FW: <br> • Not Zigbee Model! <br> • Model name given by Z2M converter <br> • May be overwritten by `whiteLabel` <br> &nbsp; (Check [official Z2M converters][off_conv]) <br> • Needed to enable OTA for stock FW <br> • Used as base for the custom converter? |
-| `override_z2m_device`          | Overwrites the model name: <br> (get it from `whiteLabel` in [official Z2M converters][off_conv]): <br> • Keeps generic converter <br> • Adds custom name & picture <br> • eg. `TS0004_AVATTO` shows up as `ZWSM16-4-Zigbee`, <br> instead of generic `TS0004_switch_module_2`           |
-| `tuya_module`                  | Tuya module inside the device: <br> • Currently unused <br>                                                                                                                                                                                                                              |
-| `mcu_family`                   | Microcontroller manufacturer: <br> • `Telink` / `Silabs` <br> • Currently unused                                                                                                                                                                                                         |
-| `config_str`                   | Given `manufacturer;model;pinout` on custom FW: <br> • `manufacturer` ➡ ID & OTA updates <br> • `model` ➡ selects converter <br> • `pinout` ➡ GPIO mapping                                                                                                                               |
-| `alt_config_str`               | Alternative config string: <br> • Its tokens count when features are derived                                                                                                                                                                                                                                       |
-| `features` | Optional. Features compiled into the board's firmware image: <br> • `relay` ➡ `R` tokens (relay endpoints) <br> • `switch` ➡ `S` tokens (switch endpoints) <br> • `cover` ➡ `C` and `X` tokens (covers, cover switches) <br> • `battery` ➡ `BT` token <br> • `meter` ➡ `E` tokens (BL0937 energy meter); never together with `probe` <br> • `probe` ➡ GPIO probe image ([porting.md](./porting.md)); must be the only feature, Telink router, config without pins <br> • `interlock` ➡ `K` tokens and the relay pair of each cover; added automatically to boards with a cover, the probe, a `K` token or more than one relay. Without it the relay cluster's InterlockGroup attribute stays 0 and other values are rejected <br> • Omitted ➡ derived from the `config_str` / `alt_config_str` tokens <br> • `make tools/check_device_features` fails if a config uses a token whose feature is not listed <br> • A device whose stored config uses such a token boots a recovery configuration with error `FEATURE_MISSING` |
-| `old_manufacturer_names`       | Previously used manufacturer names in custom FW                                                                                                                                                                                                                                          |
-| `old_zb_models`                | Previously used model names in custom FW                                                                                                                                                                                                                                                 |
-| `stock_manufacturer_id`        | Another stock FW identifier (usually 4417): <br> • Needed for stock OTA update <br> • Found in Z2M debug logs when attempting OTA                                                                                                                                                        |
-| `stock_image_type`             | Stock FW identifier (usually 54179): <br> • Needed for stock OTA update <br> • Found in Z2M debug logs when attempting OTA                                                                                                                                                               |
-| `firmware_image_type`          | Given custom FW identifier: <br> • Currently unique per device <br> • Increment for every new device                                                                                                                                                                                     |
-| `build`                        | Whether to build for this device or not <br> • `yes` / `no`                                                                                                                                                                                                                              |
-| `status`                       | Device support status: <br> `🟩 fully_supported`, `🟨 mostly_supported`, <br> `🟧 in_progress`, `🟥 unsupported` <br> • Shown in [supported_devices.md](/docs/supported_devices.md)                                                                                                      |
-| `info`                         | Status explained briefly                                                                                                                                                                                                                                                                 |
-| `threads`                      | Link to device-related GitHub issue or pull request                                                                                                                                                                                                                                      |
-| `store`                        | Links to buy the exact same device: <br> • Preferably AliExpress (international, English, no affiliation)                                                                                                                                                                                |
+## Identity and description
+
+| Field | Description |
+| --- | --- |
+| **KEY** (e.g. `SWITCH_BSEED_TOUCH_TS0002`) | Board name: `BOARD=<KEY>` in the build, directory name under `bin/` |
+| `human_name` | Full device name, shown in [supported_devices.md](../supported_devices.md) |
+| `category` | `module`, `switch`, `remote`, `outlet`, `board`, `plug`, `din_relay`, `cover`; shown in supported_devices.md |
+| `power` | `mains`, `DC`, `USB`, `AA`, `AAA`, `CR2016`, `CR2025`, `CR2032`, `CR2430`, `CR2450`, `LR23A`, `18650`; shown in supported_devices.md |
+| `neutral` | `required`, `optional`, `without` or `null`. Descriptive; no build step or generator reads it |
+| `output` | AC output: `relay`, `relay_latching`, `triac`, `nothing` or `null`. Descriptive; no build step or generator reads it |
+| `tuya_module` | Tuya module inside the device (`ZTU`, `ZT3L`, `ZS3L`, `TYZS3`, ...). Descriptive |
+| `status` | `fully_supported`, `mostly_supported`, `in_progress`, `unsupported`; shown in supported_devices.md |
+| `info` | Short explanation of the status and findings |
+| `threads` | Link(s) to the related issue or pull request |
+| `store` | Link(s) to buy the exact device |
+
+## Platform and build
+
+| Field | Description |
+| --- | --- |
+| `mcu_family` | `Telink`, `Silabs` or `NXP`. Selects the platform makefile (`src/telink/`, `src/silabs/`); a probe board must be `Telink` |
+| `mcu` | `TLSR825x`, `TLSR8253`, `TLSR8253F512AT32`, `TLSR8258`, `EFR32MG21A020F768IM32`, `EFR32MG22C224F512GN32`, `JN5169` or `null`. Passed to the Silabs project generation (`make silabs/gen MCU=...`, `slc --with`) |
+| `device_type` | `router` (L+N devices) or `end_device` (L-only and battery devices). `make_scripts/make_all.sh` builds a router image for every board and an end-device image too for `end_device` boards |
+| `build` | `yes` / `no`. `make_scripts/make_all.sh` and the converter, quirk and extension generators skip `no` boards (the Zigbee2MQTT converter keeps probe boards); `make unit_tests` parses the configs of `yes` boards only |
+| `features` | Optional. Features compiled into the image: `relay` (`R` tokens), `switch` (`S`), `cover` (`C`, `X`), `battery` (`BT`), `meter` (`E`; not with `probe`), `probe` (GPIO probe image, [porting.md](./porting.md#gpio-probe-devices-that-cannot-be-opened); only with `relay`/`switch`, Telink router), `interlock` (`K` tokens and each cover's motor relays; added automatically to boards with a cover, the probe, a `K` token or more than one relay). Omitted: derived from the tokens of `config_str` and `alt_config_str`. Without `interlock` the relay cluster's `InterlockGroup` stays 0 and other values are rejected |
+| `config_str` | Default device config string `manufacturer;model;tokens...` ([config_string.md](../usage/config_string.md), examples in [porting.md](./porting.md#config-string)). `manufacturer` and `model` become the Zigbee manufacturer and model on the custom firmware: OTA updates match the manufacturer, converters match the model |
+| `alt_config_str` | Alternative config string(s) for hardware variants. Their tokens count when features are derived, and `make unit_tests` reports those the parser rejects |
+| `firmware_image_type` | OTA image type of the custom firmware, unique per board. `make tools/unused_image_type` prints the next free value |
+
+`make tools/check_device_features` fails when a config uses a token whose
+feature the board does not compile. A device whose stored config uses such a
+token boots the recovery graph with Device Config `LastError`
+`FEATURE_MISSING` ([architecture.md](./architecture.md#recovery-graph)).
+
+## Stock firmware and converters
+
+| Field | Description |
+| --- | --- |
+| `stock_model_name` | Zigbee model on the stock firmware (e.g. `TS0002`), string or list; shown in supported_devices.md |
+| `stock_manufacturer_name` | Zigbee manufacturer on the stock firmware (`_TZ3000_xxxxxxxx`). The board's OTA index entries are filtered to it, the old names and the config string's manufacturer |
+| `stock_manufacturer_id` | Manufacturer code of the stock OTA image (usually 4417), from the Zigbee2MQTT debug log of an OTA check. Needed for the from-stock OTA file |
+| `stock_image_type` | Image type of the stock OTA image (usually 54179), from the same log. Needed for the from-stock OTA file |
+| `stock_converter_manufacturer` | Manufacturer name in the official Zigbee2MQTT converter ([herdsman converters][off_conv]), not the Zigbee manufacturer. With `stock_converter_model` it adds OTA support to the stock converter (`tuya_with_ota.js`) |
+| `stock_converter_model` | Model name in the official Zigbee2MQTT converter, not the Zigbee model. Also the model the custom converter reports unless `override_z2m_device` is set |
+| `override_z2m_device` | Model reported by the custom converter instead of `stock_converter_model` (a `whiteLabel` model from the official converter), for the device's own name and picture |
+| `old_manufacturer_names` | Manufacturer names earlier custom firmware used; added to the OTA index `manufacturerName` filter and the ZHA quirk |
+| `old_zb_models` | Model names earlier custom firmware used; matched by the generated converters, quirk and extension |

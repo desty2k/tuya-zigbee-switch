@@ -1,4 +1,16 @@
-# How to Flash ZBMINIL2
+# Flashing the Sonoff ZBMINIL2 by wire
+
+How to open the Sonoff ZBMINIL2 (EFR32MG22) and flash it over SWD with a
+J-Link.
+
+> [!WARNING]
+> **No 2.x image exists for the ZBMINIL2 yet.** The board
+> (`MODULE_SONOFF_ZBMINIL2`) does not build in 2.x (its RAM overflows) and is
+> not part of the 2.0.0-rc.4 release
+> ([known_issues.md](../known_issues.md#release-status)). The files under
+> `bin/router/MODULE_SONOFF_ZBMINIL2/` and
+> `bin/end_device/MODULE_SONOFF_ZBMINIL2_END_DEVICE/` are 1.x images; they do
+> not match the fork's converters. Do not flash them.
 
 **Flashing custom firmware on ZBMINIL2 is irreversible**
 
@@ -58,7 +70,10 @@ Connect:
 
 ### Step 3: Flash the Firmware
 
-Download both the bootloader and firmware for your device from [bin/](https://github.com/romasku/tuya-zigbee-switch/raw/refs/heads/main/bin). You'll need the `efr32mg22_bootloader_sonoff_zbminil2.s37` and the `.s37` file with router/end_device firmware.
+You need the bootloader `bin/efr32mg22_bootloader_module_sonoff_zbminil2.s37`
+from [bin/](https://github.com/desty2k/tuya-zigbee-switch/tree/refactor/input-pipeline/bin)
+and a 2.x `.s37` image of the board, which is not available yet (see the
+warning above).
 
 #### Using Commander Software
 
@@ -93,7 +108,7 @@ Now you'll need to flash both the bootloader and firmware separately.
 
    ![commander ](/docs/.images/commander_browse.png)
 
-2. Select the bootloader file (`efr32mg22_bootloader_sonoff_zbminil2.s37`).  
+2. Select the bootloader file (`efr32mg22_bootloader_module_sonoff_zbminil2.s37`).  
   Screenshot is just illustration, please use zbminil2 file:
 
    ![commander ](/docs/.images/commander_select_bootloader.png)
@@ -102,7 +117,7 @@ Now you'll need to flash both the bootloader and firmware separately.
 
    ![commander ](/docs/.images/commander_flash.png)
 
-4. Now select your device-specific firmware file (`bin/*/SONOFF_ZBMINIL2/*.s37`) and press "Flash" again.  
+4. Now select the firmware file (the board's 2.x `.s37` image) and press "Flash" again.  
   Screenshot is just illustration, please use zbminil2 file. Wait until the process finishes:
 
    ![commander ](/docs/.images/commander_select_firmware.png)

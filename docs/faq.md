@@ -1,85 +1,120 @@
-# Frequently Asked Questions
+# Frequently asked questions
 
-<details open>
-<summary>
-<b> Troubleshooting </b>
-</summary>
-<p></p>
+### Something does not work. What should I check first?
 
-Before reporting any issues:
-1. Stop Z2M   
-2. Update coordinator  
-  Just restart it if there's no update
-3. Re-download the custom [converters/](../zigbee2mqtt/converters/)
-4. Restart Z2M 
-5. Boost signal if possible
-6. Ensure **stable power** for no-Neutral switches (big load - non-smart bulb)
-7. **Interview device `i`** 
-8. **Reconfigure device `🗘`**
+1. Make sure the [integration files](./updating.md#integration-files) match
+   the firmware on the device: the fork's files from the
+   `refactor/input-pipeline` branch, never upstream converters.
+2. Restart Zigbee2MQTT (or Home Assistant) after replacing them.
+3. Give the device a strong signal and, for a no-neutral switch, a sufficient
+   load ([updating.md](./updating.md#router-or-end-device)).
+4. Interview (`i`) and reconfigure the device.
+5. Check `device_config_status` and `device_config_last_error`
+   ([below](#the-device-shows-up-as-recovery)) and the
+   [diagnostics counters](#how-do-i-read-the-diagnostics-counters).
+6. Read [known_issues.md](./known_issues.md).
 
-Resetting the device may also help  
-⤷ Spam any switch / Hold reset button / Remove from Z2M
+Report what remains on the fork's
+[issue tracker](https://github.com/desty2k/tuya-zigbee-switch/issues), with the
+board name, firmware version, config string and the diagnostics counters.
 
-</details>
+### How do the relay, action and binded modes work?
 
-<details>
-<summary>
-How do the Action modes work?
-</summary>
-<p></p>
+See [configuration.md](./usage/configuration.md#switch-endpoints-s-buttons).
 
-Detailed answer and discussion here: [Switch mode #238](https://github.com/romasku/tuya-zigbee-switch/discussions/238)
-</details>
+### How do I use double clicks or holds in automations?
 
-<details>
-<summary>
-What is force OTA index?
-</summary>
-<p></p>
+See [button_events.md](./usage/button_events.md).
 
-**It shows *Update available* constantly**  
-- Allows updating without incrementing the version number
-- Allows reinstalling the same version  
+### The device shows up as "recovery"
 
-Use it when:
-- switching between Router/End-device firmware
-- switching branches
-- testing changes in the source code
+The device stores a [config string](./usage/config_string.md) its firmware
+cannot run, so it booted the recovery graph: Basic reports manufacturer
+`unknown` and model `recovery`, only endpoint 1 exists, and every relay is off.
+`device_config_last_error` names the reason
+([table](./usage/config_string.md#when-a-config-string-is-rejected)); the most
+common one is `feature_missing` after installing an image built for another
+board.
 
-The firmware image is the same in normal and force index.
-</details>
+The device is still on the network and still accepts OTA updates and config
+writes. Two ways back:
 
-<details>
-<summary>
-Will my other devices still receive updates?
-</summary>
-<p></p>
+- **Write a corrected config string.** Integrations do not recognise the
+  `recovery` model, so use Zigbee2MQTT's Dev console: endpoint 1, cluster
+  `0xFC10` (64528), attribute `0x0002`, type long character string (`0x44`),
+  manufacturer code `0x1A2B` (6699). The device restarts with the new string.
+- **Install the right image over OTA.** Zigbee2MQTT offers updates only to
+  devices with a definition, so add a temporary external converter:
 
-**Yes**. The custom index is appended to the official index.  
-- Supported devices receive custom updates
-- Not-supported devices receive official updates
-</details>
+  ```js
+  module.exports = {
+      zigbeeModel: ["recovery"],
+      model: "recovery",
+      vendor: "Tuya-custom",
+      description: "Custom firmware in its recovery graph",
+      extend: [],
+      ota: true,
+  };
+  ```
 
-<details>
-<summary>
-Is it possible to revert to stock firmware?
-</summary>
-<p></p>
+  The published index entries match devices by manufacturer name, and
+  `unknown` matches none of them. Copy the board's entry from the fork's index
+  into a local index file without its `manufacturerName` field, point
+  `zigbee_ota_override_index_location` at that file, and update. Remove the
+  temporary converter and restore the index afterwards.
 
-Reverting to stock firmware is only possible via **wired flashing.**  
-It additionally requires a **memory dump of the original device.**  
-*Some backups are available in [`bin/_factory/`](../bin/_factory/)*
+### How do I read the diagnostics counters?
 
-Follow the same steps outlined in [flashing/](./flashing/), as you would for custom firmware.
+Device Diagnostics (`0xFC11`) on endpoint 1 counts input, button event and
+network activity since boot ([reference](./usage/endpoints.md#device-diagnostics-0xfc11)).
+Zigbee2MQTT exposes each counter (`uptime_ms`, `gpio_edges`, `gpio_dropped`,
+`button_events`, `zb_dropped`, `network_losses`, …) and reads it on request:
+press refresh in the Exposes tab, or publish
+`{"gpio_dropped": ""}` to `zigbee2mqtt/<device>/get`. ZHA has them as
+diagnostic sensors, disabled by default; HOMEd lists them on endpoint 1.
 
-</details>
+What to look for:
 
-<details>
-<summary>
-How to recover an unresponsive device?
-</summary>
-<p></p>
+| Counter | Points to |
+| --- | --- |
+| `gpio_dropped`, `gpio_rearm_hits` rising | noisy wiring or a bouncing contact; raise the debounce |
+| `button_events` rising without presses | interference on the switch wires; raise the debounce |
+| `zb_expired`, `zb_dropped`, `zb_send_failed` | button events lost on the way to the coordinator: weak signal or the device not joined |
+| `network_losses`, `network_joins` rising | unstable connection or supply (no-neutral load too small) |
+| `uptime_ms` low or restarting | the device rebooted: power cuts or a crash |
 
-If your device does not join Z2M, and does not respond to commands or button-presses, the only way to bring it back is [flashing/](./flashing/)
+### How do I reset the device?
 
-</details>
+- Press any switch or cover-switch button 10 times in a row, with pauses
+  shorter than the multi-click gap (350 ms by default). The count is
+  `multi_press_reset_count` (0–10, 0 turns it off). A rocker counts one press
+  per on-and-off cycle.
+- Or hold the onboard reset button, if the board has one, for 2 s.
+
+The device leaves the network, starts pairing (its LED blinks) and releases
+the child lock. Details: [configuration.md](./usage/configuration.md#factory-reset).
+
+### What is a force OTA index?
+
+An index whose images install over any fork version, including the same one,
+so Zigbee2MQTT always shows an update. Use it to switch between router and
+end-device firmware or to reinstall, then return to the normal index. The
+image is the same as in the normal index. See
+[updating.md](./updating.md#ota-index).
+
+### Will my other devices still receive updates?
+
+Yes. The custom index is added to the official one: supported devices get
+images from this repository, all others their official updates.
+
+### Can I go back to the stock firmware?
+
+Only by wire, and only with a memory dump of the stock device. Some dumps are
+in [`bin/_factory/`](../bin/_factory/). Follow [flashing/](./flashing/) with
+the dump instead of the custom image.
+
+### The device does not respond at all
+
+If it does not join, does not react to buttons and shows no LED activity,
+flash it by wire: [flashing/](./flashing/). A device that joins as
+`recovery` does not need this ([above](#the-device-shows-up-as-recovery)).

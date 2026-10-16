@@ -1,132 +1,129 @@
-*Open the **Outline** (table of contents) from the top right.*  
+# Building
 
-# 🛠️ Building
+The firmware is built per board: `board.mk` reads the board's entry in
+[`device_db.yaml`](../../device_db.yaml) and builds one image with
 
-Building consists of multiple steps:
+- the board's **features** (`helper_scripts/board_features.py features <BOARD>`,
+  see [device_db_explained.md](./device_db_explained.md)): only the code of
+  those features is compiled in (`src/features.mk`), so two images for the
+  same MCU can differ in code, not only in the default config string;
+- the board's `config_str` as the default **device config string**, used until
+  another one is written over Zigbee;
+- the board's `firmware_image_type`, `device_type` (router or end device) and
+  MCU.
 
-1. (one-time) installing dependencies
-2. (one-time) installing SDK and toolchain
-3. (optional) clearing OTA index files
-4. cleaning previous firmware build (for every board)
-5. building updated firmware (for every board)
-6. generating new index files
-7. updating Z2M converters (for old and new Z2M versions)
-8. updating ZHA quirks
-9. updating HOMEd extensions
-10. updating [supported_devices.md](/docs/supported_devices.md)
-11. (manual) updating [changelog_fw.md](/docs/changelog_fw.md)
-12. running unit tests (automated on push and merge)
-13. (online) freezing OTA links
+How the pieces fit together is described in [architecture.md](./architecture.md).
 
-The process is automated with scripts that you can run locally or online.
+## Setup
 
-> [!IMPORTANT]  
-> We currently generate a dedicated firmware binary **for each device**.  
-> The only difference between binaries is the **pre-defined config string** (device name and pinout) + imageType.  
-> We are slowly moving towards a unified build **(with an empty config string)** where the user will have to select the appropriate config string.
+Linux is recommended; the scripts use `apt` (Debian/Ubuntu).
 
-Below are explicit instructions for building, installing and contributing.
+1. Clone the repository and create a branch for the change.
+2. Run `make_scripts/make_install.sh` once: it installs the system packages
+   (`make`, `python3`, `yq`, `gcc-arm-none-eabi`, ...) and runs `make setup`,
+   which downloads the Telink and Silabs toolchains and SDKs
+   (`telink_tools/`, `silabs_tools/`) and creates the Python virtual
+   environment.
+3. `source .venv/bin/activate` before running the generators and tests.
 
-## ☁️ Online build (GitHub Actions)
+For the host build and the tests only, the toolchains are not needed:
+`make setup_venv` and a host C compiler suffice.
 
-Two branches are recommended to avoid conflicts between generated files.  
-(Skip if you don't plan to merge.)
+### Dev container
 
-1. Fork the repository and clone it
-2. Create **code_branch** from main (eg. newFeature)
-3. Make changes
-4. Update `changelog_fw.md` (manual)
-5. Commit changes and push
-6. Create **build_branch** from **code_branch** (newFeature ➡ newFeature_build) and push
-7. Visit GitHub Actions on your fork (web) and run `build.yml` on **build_branch**  
-   (this takes 5 minutes as it builds the firmware for every device)
-8. Add the updated converters/quirks/extensions to your Z2M/ZHA/HOMEd instance  
-   (if new ones were generated)
-9. Prepare the update
+`.devcontainer/` provides an image with the dependencies, the VS Code
+extensions and the virtual environment. Open the folder in VS Code and choose
+**Reopen in Container**.
 
-   - For wireless update, use the corresponding index in your OTA settings  
-     (user + **build_branch** + device_type)
-   - For wire update, get the binary file for your device  
-     - Telink: `bin/DEVICE_TYPE/BOARD/tlc_switch-X.Y.Z-<commit-hash>.bin`
-     - Silabs: `bin/DEVICE_TYPE/BOARD/tlc_switch-X.Y.Z-<commit-hash>.s37`
+## Workflow
 
-10. Perform device update and test: [flashing/](../flashing/)
-11. Create a Pull Request (**code_branch** ➡ **romasku/main**)
-12. Check the unit tests result
+1. Change code; build and test on the host:
+   `make stub/build`, `make unit_tests`, `make tests` ([tests.md](./tests.md)).
+2. `make format` (uncrustify over `src/`; CI rejects unformatted code).
+3. After changing `device_db.yaml`: `make tools/check_device_features`.
+4. Build the board: `BOARD=<key> make board/build`. For a debug image with
+   UART output: `BOARD=<key> DEBUG=1 make board/build-firmware`
+   ([debugging.md](./debugging.md)).
+5. Install it on a device ([updating.md](../updating.md) or
+   [flashing/](../flashing/)) and test it.
+6. Regenerate the integrations if the Zigbee interface or the device database
+   changed (`make tools/update_converters`, `make tools/update_zha_quirk`,
+   `make tools/update_homed_extension`, `make tools/update_supported_devices`)
+   and commit the generated files separately.
+7. Add the change to the `## Upcoming` section of
+   [changelog_fw.md](../changelog_fw.md).
 
-## 💻 Local build
+Images under `bin/` and the OTA index entries in `zigbee2mqtt/ota/` are
+published as part of a release: see [release.md](./release.md).
 
-This project uses:
+## Make targets
 
-- **Make** for building, with all rules defined in Makefile
-- **Python** for helper_scripts and ZHA quirks
-- **Javascript** for Z2M converters
-- **JSON** for HOMEd extensions
-- **YAML** for the device database
+`make help`, `make tools/help`, `make board/help`, `make stub/help`,
+`make telink/help` and `make silabs/help` print the targets of each makefile.
 
-**Linux is recommended.**  
-We currently have bash scripts for Debian/Ubuntu to install dependencies with apt and automate building for multiple boards.  
-They can easily be adapted for other distributions. (Please share your scripts)
+### Host build and tests
 
-1. Fork the repository and clone it
-2. Run `make_scripts/make_install.sh` (one-time)
-3. Enter virtual env to access python packages `source .venv/bin/activate`
-4. Create **code_branch** from main (eg. newFeature)
-5. Make changes
-6. Build with `make_scripts/make_all.sh` or `make_scripts/make_debug_single.sh`
-7. Run unit tests with `make tests`: [tests.md](./tests.md)
-8. Perform device update and test: [flashing/](../flashing/)
-9. Update `changelog_fw.md` (manual)
-10. Commit changes (without generated files) and push
-11. Create a Pull Request (**code_branch** ➡ **romasku/main**)
+| Command | Description |
+| --- | --- |
+| `make stub/build` | Host simulation binary `build/stub/stub_device` |
+| `make stub/build_end_device` | End-device stub `build/stub/stub_end_device` |
+| `make stub/build_switch_only` | Stub with only `relay switch` |
+| `make stub/build_probe` | Stub with `probe relay switch interlock` |
+| `make stub/run` | Build and start the stub REPL |
+| `make stub/clean` | Remove the stub build and NVM data |
+| `make tests` | Build the four stub variants and run pytest |
+| `make unit_tests` | Build and run the native unit tests in `tests/unit/` |
+| `make format` | uncrustify every `.c` / `.h` in `src/` |
 
-### 🐳 Dev Container build
+### Boards (`board.mk`)
 
-As an alternative, dev containers support multiple platforms, and provide a quick, isolated development environment.  
-It automatically installs all required dependencies and tools, configures VS Code extensions (C/C++ IntelliSense, Hex Editor, YAML), 
-and activates the python virtual environment.
+`BOARD` is a key of `device_db.yaml`; `DEVICE_TYPE` defaults to the board's
+`device_type` and can be overridden (`DEVICE_TYPE=end_device`).
 
-**Prerequisites:**
-- [Docker](https://www.docker.com/get-started) or [Podman](https://podman.io/)
-- [Visual Studio Code](https://code.visualstudio.com/) with [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+| Command | Description |
+| --- | --- |
+| `BOARD=<key> make board/build` | Refuse probe boards, delete old images of the board, build, generate the OTA files, add them to the Zigbee2MQTT indexes |
+| `BOARD=<key> make board/build-firmware` | Build the image only (`bin/<device_type>/<board>/`, `.bin` for Telink, `.s37` for Silabs) |
+| `BOARD=<key> make board/generate-ota-files` | Normal, forced and (Telink) from-stock `.zigbee` OTA files |
+| `BOARD=<key> make board/update-indexes` | Add the board's OTA files to `zigbee2mqtt/ota/index_*.json`; refuses probe boards |
+| `make_scripts/make_all.sh` | Clear the indexes, build every board with `build: yes` (router, plus end device for `end_device` boards), regenerate converters, quirk and extension |
+| `make_scripts/make_debug_single.sh` | `DEBUG=1` router and end-device builds of one board (edit `DEVICE` in a copy) |
 
-**Setup:**
-1. Fork the repository and clone it
-2. Open the project folder in VS Code
-3. Click **"Reopen in Container"** (or Command Palette: `Dev Containers: Reopen in Container`)
-4. Wait for container to build and install dependencies (first time takes a few minutes)
+### Platforms
 
-After the container is ready, continue with the local build workflow from step 4 onwards:  
-Create **code_branch**, make changes, build with make commands, run tests, etc.
+| Command | Description |
+| --- | --- |
+| `make setup` | Telink and Silabs tools, Python virtual environment |
+| `make setup_venv` | Python virtual environment only |
+| `make telink/tools/all` | Download the Telink toolchain and SDK |
+| `make telink/build` | Build the Telink firmware with the makefile defaults |
+| `make silabs/tools/all` | Download SLC CLI, Gecko SDK and Commander |
+| `make silabs/trust` | Trust the SDK signature (first setup) |
+| `make silabs/gen`, `make silabs/build` | Generate the SLC project, build |
+| `make silabs/install` | Flash with Commander |
+| `make silabs/bootloader_build`, `make silabs/bootloader_install` | Silabs bootloader |
 
-### Available commands
+### Generators and checks (`tools.mk`)
 
-| Command                               | Description                                               |
-| ------------------------------------- | --------------------------------------------------------- |
-| `make help`                           | Show all available make commands                          |
-| `make setup`                          | Install all tools and dependencies                        |
-| `make tests`                          | Run automated tests (builds stub first)                   |
-| `make stub/build`                     | Build simulation environment for testing                  |
-| `make stub/run`                       | Run interactive device simulation                         |
-| `make telink/tools/all`               | Install Telink development tools                          |
-| `make telink/build`                   | Build firmware for Telink hardware                        |
-| `make silabs/tools/all`               | Install Silicon Labs development tools                    |
-| `make silabs/build`                   | Build firmware for Silicon Labs hardware                  |
-| `make silabs/install`                 | Flash firmware to connected device                        |
-| `make tools/update_converters`        | Generate Zigbee2MQTT converters                           |
-| `make tools/update_zha_quirk`         | Generate ZHA quirks                                       |
-| `make tools/update_homed_extension`   | Generate HOMEd extensions                                 |
-| `make tools/update_supported_devices` | Update [supported_devices.md](/docs/supported_devices.md) |
-| `make tools/freeze_ota_links`         | Replace branch refs with commit IDs in OTA indexes        |
-| `make tools/clean_z2m_index`          | Clear Zigbee2MQTT OTA index files                         |
-
-> [!TIP]  
-> Run `make help` to see all available commands, or use `make <platform>/help` (e.g., `make silabs/help`) for platform-specific options.
+| Command | Description |
+| --- | --- |
+| `make tools/update_converters` | Zigbee2MQTT converters (`zigbee2mqtt/converters/`, `converters_v1/`) |
+| `make tools/update_zha_quirk` | `zha/switch_quirk.py` |
+| `make tools/update_homed_extension` | `homed/tuya-custom.json` |
+| `make tools/update_supported_devices` | [supported_devices.md](../supported_devices.md) |
+| `make tools/check_device_features` | Every board's config tokens against its features, probe board rules, `ALL_FEATURES` against the schema enum |
+| `make tools/check_management_protocol` | Files generated from `helper_scripts/management_protocol.json` are up to date |
+| `make tools/unused_image_type` | Next free `firmware_image_type` |
+| `make tools/clean_z2m_index` | Empty the Zigbee2MQTT OTA indexes |
+| `make tools/freeze_ota_links` | Replace the branch name in index URLs with the current commit (release step) |
 
 ## Further reading
 
+- [architecture.md](./architecture.md)
+- [design_decisions.md](./design_decisions.md)
+- [open_work.md](./open_work.md)
 - [porting.md](./porting.md)
-- [project_structure.md](./project_structure.md)
 - [device_db_explained.md](./device_db_explained.md)
 - [debugging.md](./debugging.md)
 - [tests.md](./tests.md)
+- [release.md](./release.md)

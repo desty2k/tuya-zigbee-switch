@@ -302,7 +302,7 @@ def discover(probe: Z2MProbe, args: argparse.Namespace) -> None:
     config, meter = propose(found, args.manufacturer, args.model)
     print(f"\nProposed config string: {config}")
     print(f"Meter pin map: {json.dumps(meter)}")
-    print("Record the results in docs/refactor/capabilities/STATE.md.")
+    print("Put the results in the board's device_db.yaml entry (docs/contribute/porting.md).")
 
 
 def main() -> None:

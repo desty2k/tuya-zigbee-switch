@@ -1,4 +1,11 @@
-# How to Flash via Wire
+# Flashing Silabs devices by wire
+
+How to flash a Silabs (EFR32MG21) device over SWD with a J-Link: the only way
+to convert a Silabs device from its stock firmware. The Sonoff ZBMINIL2 has
+its own guide: [zbminil2.md](./zbminil2.md).
+
+> [!NOTE]
+> Silabs images of the 2.x firmware are not hardware-tested yet ([known_issues.md](../known_issues.md#release-status)).
 
 ### What You'll Need
 
@@ -42,7 +49,7 @@ Finally, attach the wires to your J-Link programmer (for JLINK V9, the connectio
 
 ### Step 3: Flash the Firmware
 
-Download both the bootloader and firmware for your device from [bin/](https://github.com/romasku/tuya-zigbee-switch/raw/refs/heads/main/bin). You'll need the generic `efr32mg21_bootloader.s37` and the `.s37` file specific for your device.
+Download both the bootloader and the firmware from [bin/](https://github.com/desty2k/tuya-zigbee-switch/tree/refactor/input-pipeline/bin): the generic bootloader `bin/efr32mg21_bootloader_generic.s37` and your board's image `bin/router/<BOARD>/tlc_switch-<version>.s37` (or `bin/end_device/<BOARD>_END_DEVICE/` for end-device firmware).
 
 #### Using Commander Software
 
@@ -78,7 +85,7 @@ Now you'll need to flash both the bootloader and firmware separately.
 
    ![commander ](/docs/.images/commander_browse.png)
 
-2. Select the bootloader file (`efr32mg21_bootloader.s37`):
+2. Select the bootloader file (`efr32mg21_bootloader_generic.s37`):
 
    ![commander ](/docs/.images/commander_select_bootloader.png)
 
