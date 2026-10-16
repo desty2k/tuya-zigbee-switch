@@ -747,7 +747,7 @@ const definitions = [
         ],
         model: "TYWB 4ch-RF",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -911,7 +911,7 @@ const definitions = [
         ],
         model: "TYWB 4ch-RF",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -1075,7 +1075,7 @@ const definitions = [
         ],
         model: "TYWB 4ch-RF",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -1239,7 +1239,7 @@ const definitions = [
         ],
         model: "TYWB 4ch-RF",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -1403,7 +1403,7 @@ const definitions = [
         ],
         model: "ZG-001",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -1483,7 +1483,7 @@ const definitions = [
         ],
         model: "ZG-2002-RF",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -1591,7 +1591,7 @@ const definitions = [
         ],
         model: "ZG-2002-RF",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -1699,7 +1699,7 @@ const definitions = [
         ],
         model: "Zigbee_SoC_Board_V2_(ZTU)",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -1789,7 +1789,7 @@ const definitions = [
         ],
         model: "TS011F_din_smart_relay",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -1880,7 +1880,7 @@ const definitions = [
         ],
         model: "WHD02",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -1960,7 +1960,7 @@ const definitions = [
         ],
         model: "TMZ02",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -2068,7 +2068,7 @@ const definitions = [
         ],
         model: "TS0003_switch_module_2",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -2204,7 +2204,7 @@ const definitions = [
         ],
         model: "TS0004_switch_module",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -2370,7 +2370,7 @@ const definitions = [
         ],
         model: "ZWSM16-1-Zigbee",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -2452,7 +2452,7 @@ const definitions = [
         ],
         model: "ZWSM16-2-Zigbee",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -2562,7 +2562,7 @@ const definitions = [
         ],
         model: "ZWSM16-3-Zigbee",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -2700,7 +2700,7 @@ const definitions = [
         ],
         model: "ZWSM16-4-Zigbee",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -2864,7 +2864,7 @@ const definitions = [
         ],
         model: "ZWSM16-3-Zigbee",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -3000,7 +3000,7 @@ const definitions = [
         ],
         model: "ZWSM16-4-Zigbee",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -3164,7 +3164,7 @@ const definitions = [
         ],
         model: "TS0001",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -3245,7 +3245,7 @@ const definitions = [
         ],
         model: "LZWSM16-1",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -3326,7 +3326,7 @@ const definitions = [
         ],
         model: "LZWSM16-2",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -3434,7 +3434,7 @@ const definitions = [
         ],
         model: "LZWSM16-2",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -3542,7 +3542,7 @@ const definitions = [
         ],
         model: "LZWSM16-3",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -3678,7 +3678,7 @@ const definitions = [
         ],
         model: "EKAC-T3092Z",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -3786,7 +3786,7 @@ const definitions = [
         ],
         model: "TS0012",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -3894,7 +3894,7 @@ const definitions = [
         ],
         model: "TS0001",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -3974,7 +3974,7 @@ const definitions = [
         ],
         model: "TS0002",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -4082,7 +4082,7 @@ const definitions = [
         ],
         model: "L13Z",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -4191,7 +4191,7 @@ const definitions = [
         ],
         model: "TS0001",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -4272,7 +4272,7 @@ const definitions = [
         ],
         model: "TS0003_switch_module_2",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -4408,7 +4408,7 @@ const definitions = [
         ],
         model: "TS0001",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -4488,7 +4488,7 @@ const definitions = [
         ],
         model: "TS0012",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -4596,7 +4596,7 @@ const definitions = [
         ],
         model: "TS0001_switch_module",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -4676,7 +4676,7 @@ const definitions = [
         ],
         model: "JR-ZDS01",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -4757,7 +4757,7 @@ const definitions = [
         ],
         model: "TS0002_basic",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -4865,7 +4865,7 @@ const definitions = [
         ],
         model: "TS130F_GIRIER",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -4985,7 +4985,7 @@ const definitions = [
         ],
         model: "TS130F_GIRIER_DUAL",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -5144,7 +5144,7 @@ const definitions = [
         ],
         model: "JR-ZDS01",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -5224,7 +5224,7 @@ const definitions = [
         ],
         model: "ZG-301Z",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -5304,7 +5304,7 @@ const definitions = [
         ],
         model: "WHD02",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -5384,7 +5384,7 @@ const definitions = [
         ],
         model: "ZG-301Z",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -5464,7 +5464,7 @@ const definitions = [
         ],
         model: "TS0011",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -5544,7 +5544,7 @@ const definitions = [
         ],
         model: "TS0002_limited",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -5652,7 +5652,7 @@ const definitions = [
         ],
         model: "TS0012",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -5760,7 +5760,7 @@ const definitions = [
         ],
         model: "_TZ3000_pgq7ormg",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -5841,7 +5841,7 @@ const definitions = [
         ],
         model: "_TZ3000_mhhxxjrs",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -5977,7 +5977,7 @@ const definitions = [
         ],
         model: "_TZ3000_knoj8lpk",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -6141,7 +6141,7 @@ const definitions = [
         ],
         model: "WHD02",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -6221,7 +6221,7 @@ const definitions = [
         ],
         model: "WHD02",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -6301,7 +6301,7 @@ const definitions = [
         ],
         model: "TS0001_power",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -6381,7 +6381,7 @@ const definitions = [
         ],
         model: "ZM-104B-M",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -6489,7 +6489,7 @@ const definitions = [
         ],
         model: "MS-104CZ",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -6624,7 +6624,7 @@ const definitions = [
         ],
         model: "TS0011",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -6704,7 +6704,7 @@ const definitions = [
         ],
         model: "ZM4LT2",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -6812,7 +6812,7 @@ const definitions = [
         ],
         model: "ZM4LT3",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -6948,7 +6948,7 @@ const definitions = [
         ],
         model: "ZM4LT4",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -7112,7 +7112,7 @@ const definitions = [
         ],
         model: "B1Z",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -7192,7 +7192,7 @@ const definitions = [
         ],
         model: "TS0001",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -7272,7 +7272,7 @@ const definitions = [
         ],
         model: "ZBMINIL2",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -7352,7 +7352,7 @@ const definitions = [
         ],
         model: "WHD02",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -7432,7 +7432,7 @@ const definitions = [
         ],
         model: "TS0002",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -7540,7 +7540,7 @@ const definitions = [
         ],
         model: "TS0003",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -7676,7 +7676,7 @@ const definitions = [
         ],
         model: "TS0001",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -7756,7 +7756,7 @@ const definitions = [
         ],
         model: "TS0001",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -7837,7 +7837,7 @@ const definitions = [
         ],
         model: "TS0002_basic_2",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -7945,7 +7945,7 @@ const definitions = [
         ],
         model: "SB04-Zigbee",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -8109,7 +8109,7 @@ const definitions = [
         ],
         model: "SB03-Zigbee",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -8245,7 +8245,7 @@ const definitions = [
         ],
         model: "WHD02",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -8325,7 +8325,7 @@ const definitions = [
         ],
         model: "WHD02",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -8405,7 +8405,7 @@ const definitions = [
         ],
         model: "WHD02",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -8485,7 +8485,7 @@ const definitions = [
         ],
         model: "WHD02",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -8565,7 +8565,7 @@ const definitions = [
         ],
         model: "TS0011_switch_module",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -8645,7 +8645,7 @@ const definitions = [
         ],
         model: "TS0011_switch_module",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -8727,7 +8727,7 @@ const definitions = [
         ],
         model: "TS0012_switch_module",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -8836,7 +8836,7 @@ const definitions = [
         ],
         model: "ZB08",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -8972,7 +8972,7 @@ const definitions = [
         ],
         model: "TS0001",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -9052,7 +9052,7 @@ const definitions = [
         ],
         model: "TS0011_switch_module",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -9132,7 +9132,7 @@ const definitions = [
         ],
         model: "TS0002_limited",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -9240,7 +9240,7 @@ const definitions = [
         ],
         model: "TS0003",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -9376,7 +9376,7 @@ const definitions = [
         ],
         model: "QS-Zigbee-SEC01-U",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -9456,7 +9456,7 @@ const definitions = [
         ],
         model: "QS-Zigbee-SEC02-U",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -9564,7 +9564,7 @@ const definitions = [
         ],
         model: "TS0011",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -9644,7 +9644,7 @@ const definitions = [
         ],
         model: "TS0012",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -9752,7 +9752,7 @@ const definitions = [
         ],
         model: "TS130F",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -9872,7 +9872,7 @@ const definitions = [
         ],
         model: "TS0003",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -10008,7 +10008,7 @@ const definitions = [
         ],
         model: "TS0001_switch_module",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -10088,7 +10088,7 @@ const definitions = [
         ],
         model: "TS0002_basic",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -10196,7 +10196,7 @@ const definitions = [
         ],
         model: "TS0002_basic",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -10304,7 +10304,7 @@ const definitions = [
         ],
         model: "WHD02",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -10384,7 +10384,7 @@ const definitions = [
         ],
         model: "WHD02",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -10464,7 +10464,7 @@ const definitions = [
         ],
         model: "TS0001_switch_module",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -10544,7 +10544,7 @@ const definitions = [
         ],
         model: "TS0004_switch_module",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -10708,7 +10708,7 @@ const definitions = [
         ],
         model: "L13Z",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -10816,7 +10816,7 @@ const definitions = [
         ],
         model: "TS0002",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -10925,7 +10925,7 @@ const definitions = [
         ],
         model: "TS011F_plug_1_2",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -11005,7 +11005,7 @@ const definitions = [
         ],
         model: "TS011F_plug_1_2",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -11095,7 +11095,7 @@ const definitions = [
         ],
         model: "TS011F_plug_1_2",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -11185,7 +11185,7 @@ const definitions = [
         ],
         model: "TS011F_plug_1_2",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -11275,7 +11275,7 @@ const definitions = [
         ],
         model: "_TZ3000_o1jzcxou",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -11604,7 +11604,7 @@ const definitions = [
         ],
         model: "TS130F",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -11724,7 +11724,7 @@ const definitions = [
         ],
         model: "TS011F_plug_1",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -11824,7 +11824,7 @@ const definitions = [
         ],
         model: "MG-GPO01",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -11952,7 +11952,7 @@ const definitions = [
         ],
         model: "ZK-EU",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -12041,7 +12041,7 @@ const definitions = [
         ],
         model: "TS011F_plug_1",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -12130,7 +12130,7 @@ const definitions = [
         ],
         model: "TS011F_plug_1",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -12219,7 +12219,7 @@ const definitions = [
         ],
         model: "TS011F_plug_1",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -12308,7 +12308,7 @@ const definitions = [
         ],
         model: "HG08673",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -12397,7 +12397,7 @@ const definitions = [
         ],
         model: "ZG-101ZS",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -12532,7 +12532,7 @@ const definitions = [
         ],
         model: "ZG-101ZL",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -12613,7 +12613,7 @@ const definitions = [
         ],
         model: "IH-K663",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -12694,7 +12694,7 @@ const definitions = [
         ],
         model: "_TZ3000_mh9px7cq",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -12830,7 +12830,7 @@ const definitions = [
         ],
         model: "TS0046",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -12965,7 +12965,7 @@ const definitions = [
         ],
         model: "HG08164",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -13046,7 +13046,7 @@ const definitions = [
         ],
         model: "ZT-B-EU1",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -13127,7 +13127,7 @@ const definitions = [
         ],
         model: "ZT-B-EU2",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -13226,7 +13226,7 @@ const definitions = [
         ],
         model: "ZT-B-EU3",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -13343,7 +13343,7 @@ const definitions = [
         ],
         model: "ZT-SR-EU4",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -13478,7 +13478,7 @@ const definitions = [
         ],
         model: "TS0044",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -13613,7 +13613,7 @@ const definitions = [
         ],
         model: "SH-SC07",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -13694,7 +13694,7 @@ const definitions = [
         ],
         model: "TS0041",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -13775,7 +13775,7 @@ const definitions = [
         ],
         model: "TS0041",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -13856,7 +13856,7 @@ const definitions = [
         ],
         model: "TS0042",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -13955,7 +13955,7 @@ const definitions = [
         ],
         model: "TS0043",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -14072,7 +14072,7 @@ const definitions = [
         ],
         model: "TS0043",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -14189,7 +14189,7 @@ const definitions = [
         ],
         model: "TS0044",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -14324,7 +14324,7 @@ const definitions = [
         ],
         model: "TLSR82xx_2btn_remote",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -14423,7 +14423,7 @@ const definitions = [
         ],
         model: "ZG-101ZL",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -14504,7 +14504,7 @@ const definitions = [
         ],
         model: "TS004F",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -14639,7 +14639,7 @@ const definitions = [
         ],
         model: "RoomsAI_37022454",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -14719,7 +14719,7 @@ const definitions = [
         ],
         model: "37022463-2",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -14828,7 +14828,7 @@ const definitions = [
         ],
         model: "370224742",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -14964,7 +14964,7 @@ const definitions = [
         ],
         model: "TS0004",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -15129,7 +15129,7 @@ const definitions = [
         ],
         model: "TS0001",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -15220,7 +15220,7 @@ const definitions = [
         ],
         model: "TS0002",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -15349,7 +15349,7 @@ const definitions = [
         ],
         model: "TS0003",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -15485,7 +15485,7 @@ const definitions = [
         ],
         model: "TS0011",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -15577,7 +15577,7 @@ const definitions = [
         ],
         model: "TS0012",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -15706,7 +15706,7 @@ const definitions = [
         ],
         model: "TS0013",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -15872,7 +15872,7 @@ const definitions = [
         ],
         model: "TS0001",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -15952,7 +15952,7 @@ const definitions = [
         ],
         model: "TS0002",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -16061,7 +16061,7 @@ const definitions = [
         ],
         model: "TS0003",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -16198,7 +16198,7 @@ const definitions = [
         ],
         model: "TS0004",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -16362,7 +16362,7 @@ const definitions = [
         ],
         model: "TS0001",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -16452,7 +16452,7 @@ const definitions = [
         ],
         model: "TS0001",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -16542,7 +16542,7 @@ const definitions = [
         ],
         model: "TS0002",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -16660,7 +16660,7 @@ const definitions = [
         ],
         model: "TS0002",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -16778,7 +16778,7 @@ const definitions = [
         ],
         model: "TS0011",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -16869,7 +16869,7 @@ const definitions = [
         ],
         model: "TS0012",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -16997,7 +16997,7 @@ const definitions = [
         ],
         model: "TS0012",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -17125,7 +17125,7 @@ const definitions = [
         ],
         model: "TS0013",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -17291,7 +17291,7 @@ const definitions = [
         ],
         model: "EC-GL86ZPCS11",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -17381,7 +17381,7 @@ const definitions = [
         ],
         model: "EC-GL86ZPCS21",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -17509,7 +17509,7 @@ const definitions = [
         ],
         model: "EC-GL86ZPCS31",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -17676,7 +17676,7 @@ const definitions = [
         ],
         model: "EC-GL86ZPCS41",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -17880,7 +17880,7 @@ const definitions = [
         ],
         model: "EC-SL-FK86ZPCS11",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -17970,7 +17970,7 @@ const definitions = [
         ],
         model: "EC-SL-FK86ZPCS21",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -18098,7 +18098,7 @@ const definitions = [
         ],
         model: "EC-SL-FK86ZPCS31",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -18264,7 +18264,7 @@ const definitions = [
         ],
         model: "TS0014",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -18467,7 +18467,7 @@ const definitions = [
         ],
         model: "TS0601_switch_1_gang",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -18556,7 +18556,7 @@ const definitions = [
         ],
         model: "Homeetec_37022454",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -18636,7 +18636,7 @@ const definitions = [
         ],
         model: "37022463-1",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -18744,7 +18744,7 @@ const definitions = [
         ],
         model: "37022474_1",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -18880,7 +18880,7 @@ const definitions = [
         ],
         model: "_TZ3000_qq9ahj6z",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -18960,7 +18960,7 @@ const definitions = [
         ],
         model: "_TZ3000_zxrfobzw",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -19068,7 +19068,7 @@ const definitions = [
         ],
         model: "TW-03",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -19204,7 +19204,7 @@ const definitions = [
         ],
         model: "TS0012",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -19331,7 +19331,7 @@ const definitions = [
         ],
         model: "TS0013",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -19496,7 +19496,7 @@ const definitions = [
         ],
         model: "TS0014",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -19699,7 +19699,7 @@ const definitions = [
         ],
         model: "TS130F",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -19819,7 +19819,7 @@ const definitions = [
         ],
         model: "TS0011",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -19908,7 +19908,7 @@ const definitions = [
         ],
         model: "TS0012",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -20035,7 +20035,7 @@ const definitions = [
         ],
         model: "TS0013",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -20200,7 +20200,7 @@ const definitions = [
         ],
         model: "TS0011",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -20289,7 +20289,7 @@ const definitions = [
         ],
         model: "TS0012",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -20416,7 +20416,7 @@ const definitions = [
         ],
         model: "TS0013",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -20581,7 +20581,7 @@ const definitions = [
         ],
         model: "TS0001",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -20671,7 +20671,7 @@ const definitions = [
         ],
         model: "TS0002",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -20799,7 +20799,7 @@ const definitions = [
         ],
         model: "TS0003",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -20965,7 +20965,7 @@ const definitions = [
         ],
         model: "TS0003",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -21131,7 +21131,7 @@ const definitions = [
         ],
         model: "TS0004",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -21336,7 +21336,7 @@ const definitions = [
         ],
         model: "ZS-EUB_1gang",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -21426,7 +21426,7 @@ const definitions = [
         ],
         model: "ZS-EUB_2gang",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -21554,7 +21554,7 @@ const definitions = [
         ],
         model: "TS0013",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -21719,7 +21719,7 @@ const definitions = [
         ],
         model: "TS0014",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -21922,7 +21922,7 @@ const definitions = [
         ],
         model: "SR-ZS",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -22125,7 +22125,7 @@ const definitions = [
         ],
         model: "WS-US-ZB",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -22290,7 +22290,7 @@ const definitions = [
         ],
         model: "TS0001",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -22380,7 +22380,7 @@ const definitions = [
         ],
         model: "TS0002",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -22509,7 +22509,7 @@ const definitions = [
         ],
         model: "T441",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -22600,7 +22600,7 @@ const definitions = [
         ],
         model: "T442",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -22728,7 +22728,7 @@ const definitions = [
         ],
         model: "ZM-L03E-Z",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -22894,7 +22894,7 @@ const definitions = [
         ],
         model: "TS0001",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -22983,7 +22983,7 @@ const definitions = [
         ],
         model: "X701A",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -23072,7 +23072,7 @@ const definitions = [
         ],
         model: "X702A",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -23199,7 +23199,7 @@ const definitions = [
         ],
         model: "X703A",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -23364,7 +23364,7 @@ const definitions = [
         ],
         model: "TS0003",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -23529,7 +23529,7 @@ const definitions = [
         ],
         model: "TS0004",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -23732,7 +23732,7 @@ const definitions = [
         ],
         model: "TS0001",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -23812,7 +23812,7 @@ const definitions = [
         ],
         model: "TS0004",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -23976,7 +23976,7 @@ const definitions = [
         ],
         model: "X701A",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -24066,7 +24066,7 @@ const definitions = [
         ],
         model: "TS0012",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -24193,7 +24193,7 @@ const definitions = [
         ],
         model: "TS0011",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
@@ -24282,7 +24282,7 @@ const definitions = [
         ],
         model: "TS0012",
         vendor: "Tuya-custom",
-        description: "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+        description: "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
         extend: [
             deviceAddCustomCluster("manuSpecificTuyaButtonEvent", {
                 name: "manuSpecificTuyaButtonEvent",
