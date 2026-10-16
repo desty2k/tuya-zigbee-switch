@@ -142,8 +142,12 @@ To switch a device between router and end-device firmware:
 1. Point Zigbee2MQTT at the force index of the type you want (router force or
    end device force).
 2. Check the device for updates and install the update.
-3. Interview the device and confirm its type changed.
-4. Point Zigbee2MQTT back at the normal index of the new type.
+3. On its first start as the other type the device clears its network data and
+   leaves the network, because the stack's network data of one type does not
+   fit the other: permit joining and pair it again. Its binds and group
+   memberships are gone; set them up again.
+4. Interview the device and confirm its type changed.
+5. Point Zigbee2MQTT back at the normal index of the new type.
 
 ## Faster OTA updates
 
