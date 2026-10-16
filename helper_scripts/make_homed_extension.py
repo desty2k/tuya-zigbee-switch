@@ -4,6 +4,10 @@ import yaml
 
 from pathlib import Path
 
+from board_features import board_features, build_features
+
+FEATURE_ORDER = build_features()
+
 
 PROTOCOL = json.loads((Path(__file__).resolve().parent / "management_protocol.json").read_text())
 MANUFACTURER_CODE = PROTOCOL["manufacturer_code"]
@@ -287,17 +291,24 @@ if __name__ == "__main__":
             })
 
         if relay_cnt:
+            # The InterlockGroup attribute exists only in images with the interlock feature.
+            has_interlock_groups = "interlock" in board_features(device, FEATURE_ORDER)
+            relay_options = {
+                "customAttributes": {
+                    "relayInchingDuration": {"type": "value", "clusterId": 0x0006, "attributeId": 0xff03, "dataType": 0x21, "action": True},
+                },
+                "relayInchingDuration": {"type": "number", "min": 0, "max": 65535, "unit": "ms"},
+            }
+            relay_exposes = ["relayInchingDuration"]
+            if has_interlock_groups:
+                relay_options["customAttributes"]["relayInterlockGroup"] = {
+                    "type": "value", "clusterId": 0x0006, "attributeId": 0xff04, "dataType": 0x20, "action": True}
+                relay_options["relayInterlockGroup"] = {"type": "number", "min": 0, "max": 10}
+                relay_exposes.append("relayInterlockGroup")
             data[zb_manufacturer].append({
                 "modelNames": model_names,
-                "exposes": ["relayInchingDuration", "relayInterlockGroup"],
-                "options": {
-                    "customAttributes": {
-                        "relayInchingDuration": {"type": "value", "clusterId": 0x0006, "attributeId": 0xff03, "dataType": 0x21, "action": True},
-                        "relayInterlockGroup": {"type": "value", "clusterId": 0x0006, "attributeId": 0xff04, "dataType": 0x20, "action": True},
-                    },
-                    "relayInchingDuration": {"type": "number", "min": 0, "max": 65535, "unit": "ms"},
-                    "relayInterlockGroup": {"type": "number", "min": 0, "max": 10},
-                },
+                "exposes": relay_exposes,
+                "options": relay_options,
                 "endpointId": list(range(switch_cnt + 1, switch_cnt + 1 + relay_cnt))
             })
 

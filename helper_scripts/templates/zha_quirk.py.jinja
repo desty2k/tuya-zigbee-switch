@@ -483,13 +483,15 @@ class CustomWindowCoveringCluster(CustomCluster, WindowCovering):
   Generate with: `make tools/update_zha_quirk`
 ``````````````````````````````````````````````````````````````````'''
 
+# (config string, image has the interlock feature and so the InterlockGroup
+# attribute)
 CONFIGS = [
-    {% for config in configs %}
-    "{{ config }}",
+    {% for config, has_interlock in configs %}
+    ("{{ config }}", {{ has_interlock }}),
     {% endfor %}
 ]
 
-for config in CONFIGS:
+for config, has_interlock_groups in CONFIGS:
     zb_manufacturer, zb_model, *peripherals = config.rstrip(";").split(";")
 
     relay_cnt = 0
@@ -655,7 +657,9 @@ for config in CONFIGS:
                 unit="ms",
                 endpoint_id=endpoint_id,
             )
-            .number(
+        )
+        if has_interlock_groups:
+            builder = builder.number(
                 RelayOnOffCluster.AttributeDefs.interlock_group.name,
                 RelayOnOffCluster.cluster_id,
                 translation_key="interlock_group_"+str(endpoint_id),
@@ -665,7 +669,6 @@ for config in CONFIGS:
                 step=1,
                 endpoint_id=endpoint_id,
             )
-        )
     for endpoint_id in range(switch_cnt + 1, switch_cnt + min(relay_cnt, indicators_cnt) + 1):
         builder = (
             builder
