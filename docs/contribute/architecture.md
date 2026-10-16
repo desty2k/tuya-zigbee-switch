@@ -51,6 +51,7 @@ flowchart TD
     IRQ["GPIO interrupt<br/>(platform HAL)"] -->|hal_gpio_edge_t| Q[gpio_edge_queue<br/>32 entries, SPSC]
     Q --> BI["button_input<br/>debounce, worker task"]
     BI -->|button_event_t DOWN/UP| BD[button_dispatcher]
+    CL -.->|"lock stage: stamps locked"| BD
     BD --> SW[switch_cluster]
     BD --> CSW[cover_switch_cluster]
     BD --> BEC[button_event_cluster]
@@ -80,13 +81,14 @@ flowchart TD
 | Capture | platform HAL (`src/telink/hal/gpio_interrupts.c`, `src/silabs/hal/gpio.c`) | Timestamps each level change of a watched pin and hands it to the single edge sink (`hal_gpio_set_edge_sink`). Telink masks the watched interrupts in the ISR and re-arms them from `hal_gpio_process_pending()`; edges seen there carry `HAL_GPIO_EDGE_DEFERRED` |
 | Queue | `gpio_edge_queue` | Single-producer single-consumer ring of 32 edges. On overflow the edge is counted as dropped and `button_input` re-reads every input on its next run |
 | Debounce | `button_input` | Commits a level held for `debounce_ms` (default 25 ms, 1–200 ms) and emits `BUTTON_EVENT_DOWN`/`UP` with a sequence number and press id |
-| Fan-out | `button_dispatcher` | Calls up to `BUTTON_SINK_MAX` (6) registered sinks in registration order |
-| Gestures | `gesture_fsm` | Hold start/end after `hold_ms`, and `N_CLICK` after the multi-click gap (default 350 ms); up to `GESTURE_SINK_MAX` (6) sinks |
-| Policy | `switch_cluster`, `cover_switch_cluster` | Switch mode, relay mode, binding mode, long press; send bound On/Off, Level or Window Covering commands; honour the child lock |
-| Actions | `action_mapper` | Relay requests from switches, cover actions to `cover_controller_action`, factory reset on a hold of an onboard (`B`) button or a multi-press of any other button |
+| Lock | `child_lock` (the dispatcher's lock stage) | Decides once per press, on `DOWN`, whether it starts while the child lock is on for that button (switch and cover-switch inputs, not onboard `B` buttons); the dispatcher stamps `button_event_t.locked` on the press's `DOWN` and `UP`. A locked press blinks the lock LED once |
+| Fan-out | `button_dispatcher` | Calls up to `BUTTON_SINK_MAX` (6) registered sinks in registration order, all with the same stamped event |
+| Gestures | `gesture_fsm` | Hold start/end after `hold_ms`, and `N_CLICK` after the multi-click gap (default 350 ms); up to `GESTURE_SINK_MAX` (6) sinks. A gesture is `locked` when a press it is made of was |
+| Policy | `switch_cluster`, `cover_switch_cluster` | Switch mode, relay mode, binding mode, long press; send bound On/Off, Level or Window Covering commands; ignore `locked` events |
+| Actions | `action_mapper` | Relay requests from switches, cover actions to `cover_controller_action`, factory reset on a hold of an onboard (`B`) button or a multi-press of any other button; the reset ignores `locked`, so a locked device can always be reset |
 | Relays | `relay_controller` | The single entry for relay changes (`relay_ctrl_submit`): on/off/toggle/pulse/timed on, inching, deferral through `interlock` (peers off, dead time), state callbacks to subscribers |
 | Pins | `relay_driver` | Writes relay pins; a latching relay gets a 100 ms pulse on its on or off pin, timed by `timer_service`; one pulse at a time unless the config has `SLP` |
-| Events | `button_event_cluster` | Queues button and gesture events (16 entries) for the coordinator on cluster `0xFC02`; drops presses the switch or cover-switch policy marked as taken under the child lock, so its dispatcher sink is registered after theirs |
+| Events | `button_event_cluster` | Queues button and gesture events (16 entries) for the coordinator on cluster `0xFC02`; ignores `locked` events, so `ButtonState` and the coordinator see only unlocked presses |
 
 The stub registers one extra observer on both the dispatcher and the gesture
 FSM to print `btn_event` and `gesture` machine events.
