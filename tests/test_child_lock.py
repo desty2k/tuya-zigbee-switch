@@ -465,6 +465,19 @@ def test_press_started_locked_stays_silent_after_unlock(two_gang: Device):
     assert len(button_events(two_gang, 1)) >= 3
 
 
+def test_press_started_unlocked_completes_after_lock(two_gang: Device):
+    two_gang.zcl_switch_relay_mode_set(1, ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DETACHED)
+    two_gang.clear_events()
+    two_gang.press_button("A0")
+    two_gang.step_time(MINIMUM_SWITCH_TIME_MS)
+    write_lock(two_gang, 1)
+    two_gang.release_button("A0")
+    two_gang.step_time(1000)
+
+    assert len(button_events(two_gang, 1)) == 3
+    assert button_state(two_gang, 1) == "0"
+
+
 def test_cover_locked_buttons_send_no_button_events(shutter: Device):
     write_lock(shutter, 1)
     shutter.clear_events()

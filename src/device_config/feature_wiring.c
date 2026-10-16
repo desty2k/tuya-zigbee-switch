@@ -978,9 +978,6 @@ void feature_wiring_start(void) {
 #if FEATURE_COVER
     cover_switch_cluster_register_input();
 #endif
-
-    /* The switch and cover-switch sinks mark a press taken under the child
-     * lock before the Button Event sink checks it. */
     button_event_cluster_register_input();
     child_lock_register_input();
     gesture_fsm_init();
@@ -1041,6 +1038,9 @@ void feature_wiring_start(void) {
 
         gesture_fsm_add(id, &wired_gesture_configs[i]);
         action_mapper_add_reset_button(id, button_roles[i] == INPUT_BUTTON_ONBOARD);
+        if (button_roles[i] != INPUT_BUTTON_ONBOARD) {
+            (void)child_lock_add_button(id);
+        }
     }
     wire_child_lock_gestures();
     button_event_cluster_sync_states();

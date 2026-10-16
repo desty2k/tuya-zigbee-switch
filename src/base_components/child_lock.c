@@ -22,8 +22,10 @@ static indicator_feedback_t *indicator;
 static child_lock_store_t    store;
 static void *                store_context;
 
+/* Bit n: button n is a local control the lock applies to. */
+static uint16_t lockable_buttons;
 /* Bit n: the current or last press of button n started while locked. */
-static uint16_t blocked_presses;
+static uint16_t locked_presses;
 
 static bool gesture_held(const child_lock_gesture_t *gesture) {
     return (gesture->enabled == NULL || gesture->enabled(gesture->context)) &&
@@ -74,14 +76,45 @@ void child_lock_reset_wiring(void) {
         hold_timer_ready = true;
     }
     timer_cancel(&hold_timer);
-    gesture_count   = 0;
-    armed_gesture   = 0;
-    indicator       = NULL;
-    blocked_presses = 0;
+    gesture_count    = 0;
+    armed_gesture    = 0;
+    indicator        = NULL;
+    lockable_buttons = 0;
+    locked_presses   = 0;
+}
+
+/* A press is decided when it starts: one that starts while locked stays
+ * locked up to its release, one that starts unlocked completes normally even
+ * if the lock engages while it is held. */
+static bool press_locked(const button_event_t *event) {
+    uint16_t bit;
+
+    if (event->button_id >= BUTTON_INPUT_MAX) {
+        return false;
+    }
+    bit = (uint16_t)(1u << event->button_id);
+    if (event->type == BUTTON_EVENT_DOWN) {
+        if (locked && (lockable_buttons & bit) != 0) {
+            locked_presses |= bit;
+            indicator_feedback_request_blinks(indicator, CHILD_LOCK_BLINKS_PRESS);
+        } else {
+            locked_presses &= (uint16_t) ~bit;
+        }
+    }
+    return (locked_presses & bit) != 0;
 }
 
 void child_lock_register_input(void) {
+    button_dispatcher_set_lock(press_locked);
     button_dispatcher_register(track_gestures, NULL);
+}
+
+bool child_lock_add_button(uint8_t button_id) {
+    if (button_id >= BUTTON_INPUT_MAX) {
+        return false;
+    }
+    lockable_buttons |= (uint16_t)(1u << button_id);
+    return true;
 }
 
 bool child_lock_add_gesture(uint8_t first, uint8_t second, uint16_t hold_ms,
@@ -109,28 +142,4 @@ void child_lock_set(bool on) {
 
 bool child_lock_is_on(void) {
     return locked;
-}
-
-bool child_lock_blocks(const button_event_t *event) {
-    uint16_t bit;
-
-    if (event == NULL || event->button_id >= BUTTON_INPUT_MAX) {
-        return false;
-    }
-    bit = (uint16_t)(1u << event->button_id);
-    if (event->type == BUTTON_EVENT_DOWN) {
-        if (!locked) {
-            blocked_presses &= (uint16_t) ~bit;
-            return false;
-        }
-        blocked_presses |= bit;
-        indicator_feedback_request_blinks(indicator, CHILD_LOCK_BLINKS_PRESS);
-        return true;
-    }
-    return (blocked_presses & bit) != 0;
-}
-
-bool child_lock_press_blocked(uint8_t button_id) {
-    return button_id < BUTTON_INPUT_MAX &&
-           (blocked_presses & (uint16_t)(1u << button_id)) != 0;
 }
