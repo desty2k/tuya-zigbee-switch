@@ -1,8 +1,8 @@
-*Open the **Outline** (table of contents) from the top right.*  
+# Porting
 
-# Porting  
-
-*Follow this guide if [supported_devices.md](/docs/supported_devices.md) does not include your device.* 
+How to add a device that [supported_devices.md](/docs/supported_devices.md)
+does not list: find its pinout, write its config string and database entry,
+then build and install the firmware.
 
 ### Steps
 1. Check compatibility
@@ -91,36 +91,23 @@ The pinout is stored in the **device config string**.
 **Outlet with the child lock on its indicator** (BSEED TS011F: the relay indicator `C4` also blinks the child lock; hold the button 10 s to toggle it):  
 ⤷ `drzlxjne;TS011F-BS-PM-3;SB4u;RB5;IC4;PC4;EBC2C3D2;M;`
 
-| Ch      | Peripheral    | Function                                                                                                          |
-|--------:|---------------|-------------------------------------------------------------------------------------------------------------------|
-| **`B`** | Reset button  | • Puts device in pairing                                                                                          |
-| **`L`** | Network led   | • Blinks while pairing <br> • Is the backlight sometimes                                                          |
-| **`S`** | Switch        | • User input <br> • Tactile/touch button or external switch <br> • Spam to put in pairing mode                    |
-| **`R`** | Relay / Triac | • Output <br> • Non-latching: `RC1` - 1 pin: on when high <br> • Latching: `RC2C3` - 2 pins: pulse on, pulse off  |
-| **`X`** | Cover Switch  | • User input for cover control <br> • Format: `XA2B3u` - 2 pins + pull resistor: open button, close button <br> • `XA2B3A4u` - optional third pin: stop button <br> • Holding stop for 5 s (or open and close together for 3 s without a stop button) toggles the child lock (momentary type) |
-| **`C`** | Cover         | • Motor control for curtains/blinds/shades <br> • Format: `CA2B3` - 2 pins: open relay, close relay               |
-| **`I`** | Indicator LED | • 1 per relay, follows state <br> • A cover takes the next 2: lit while opening, lit while closing <br> • Briefly flashes on button press (binding confirmation) <br> • Blinks while pairing if there is no network led |
-| **`P`** | Child lock LED | • At most one <br> • Blinks 3 times on lock, twice on unlock, once for a press while locked; dark otherwise <br> • May name the pin of an `L` or `I` LED: the blinks are layered over it <br> • Without `P` the `L` LED is used, else the first `I` LED (see [child lock](../usage/configuration.md#child-lock)) |
+Every token, its pull suffix, defaults, ranges and limits are described in
+[config_string.md](../usage/config_string.md#tokens); that page is the token
+reference. Points that matter while porting:
 
-For buttons (`B`), switches (`S`), and cover switches (`X`), the character after the pin(s) chooses the internal pull resistor:  
-⤷ **`u`: pull-up** (Telink 10 kΩ), `U`: pull-up (Telink 1 MΩ; Silabs has one pull-up strength, so it equals `u`), `d`: pull-down (Telink 100 kΩ), `f` or nothing: no pull (external resistor)  
-
-Usually, pressing the button bridges the GPIO pin to Ground (active low).  
-⤷ So we need a pull-up resistor `u`: to hold it at VCC (high) while not-pressed.
-
-For LEDs, add `i` to invert the state.
-
-Additional options: 
-| Format       | Option                       | Function                                                                          |
-|-------------:|------------------------------|-----------------------------------------------------------------------------------|
-| **`D<N>`**   | Debounce delay               | • Set software debounce in ms for all buttons/switches; default 25 <br> • Must be 1–200; other values make the config invalid |
-| **`G<N>`**   | Multi-click gap              | • Default multi-click gap in ms for all buttons: a click that follows within it counts towards the same multi-click; default 350 <br> • The parser accepts 0–65535; the `MultiClickGap` attribute (`0xFC02`) accepts 100–2000, so stay in that range |
-| **`K<hex>[:<ms>]`** | Relay interlock group | • Needs the `interlock` feature <br> • `<hex>`: bit mask of relay indices (bit 0 = first relay; relays count in config order, a `C` cover takes two) <br> • `:<ms>`: dead time between one relay of the group switching off and another switching on, 0–65535 ms, default 200; `:0` switches over at once <br> • Switching one relay on switches the others in the group off <br> • Up to 10 groups; a mask naming a relay that does not exist makes the config invalid; mask 0 is ignored <br> • Each cover's two motor relays are interlocked without a `K` token <br> • Example: `RA0;RA1;K03;` |
-| **`i00000`** | Image type                   | • Change OTA image_type (migrate to another build)                                |
-| **`M`**      | Momentary                    | • Defaults buttons to momentary mode (for devices with built-in switches)         |
-| **`BT<pin>`** | Battery mode                | • Enables battery-powered behavior <br> • Adds battery measurement/reporting using the selected ADC pin |
-| **`SLP`**    | Simultaneous Latching Pulses |  • Enable simultaneous pulses for latching relays (they are disallowed by default)|
-| **`EB<CF><CF1><SEL>`** | BL0937 energy meter | • Needs the `meter` feature (Telink: 2 hardware counters; not with `probe`) <br> • `CF` active power pulses, `CF1` voltage/current pulses, `SEL` output choosing CF1's quantity <br> • SEL high selects voltage; append `i` when SEL low selects voltage, e.g. `EBC2C3D2i` <br> • Meter n reports Electrical Measurement, Metering and Meter Calibration on endpoint n |
+- Usually pressing a button bridges its pin to ground (active low), so the
+  button needs the pull-up suffix `u` to hold the pin high while released.
+  An external pull resistor needs `f` (or no suffix outside Zigbee2MQTT).
+- `B` is the onboard pairing button (hold 2 s for a factory reset), `S` a
+  switch or touch button with an endpoint, `L` the network LED (sometimes the
+  backlight), `I` the indicator LED of a relay. Add `i` to an LED that lights
+  when its pin is low.
+- `M` suits devices with built-in push or touch buttons.
+- A token needs its feature in the board image (`R` relay, `S` switch,
+  `C`/`X` cover, `BT` battery, `E` meter, `K` interlock); otherwise the device
+  boots the recovery graph with `FEATURE_MISSING`.
+- The `i<number>` token changes the OTA image type the device announces;
+  normally the board's `firmware_image_type` sets it.
 
 ## GPIO probe (devices that cannot be opened)
 

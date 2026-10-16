@@ -323,7 +323,8 @@ dropped GPIO edges.
    `device_db.schema.json` (`board_features.py check` compares it with
    `ALL_FEATURES`), and the token classification in `token_feature()` in
    `helper_scripts/board_features.py`.
-5. **Docs.** Add the token to the table in [porting.md](./porting.md#config-string).
+5. **Docs.** Add the token to the token table in
+   [config_string.md](../usage/config_string.md#tokens).
 6. **Tests.** Parser unit tests in `tests/unit/test_config_parser.c` (and
    `test_config_parser_features.c` for feature gating), a pytest with a
    `device_config` fixture using the token, then `make unit_tests` (which also
