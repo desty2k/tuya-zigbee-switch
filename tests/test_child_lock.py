@@ -2,8 +2,8 @@
 
 Holding open and close of a cover switch, or the first two switch buttons,
 for 3 s toggles the lock; a single switch button is held for 10 s. While
-locked, presses that start do nothing locally or towards bindings and blink
-the lock LED once. Locking blinks 3 times, unlocking twice. Remote control
+locked, presses that start do nothing locally, towards bindings or towards
+the coordinator (no button events) and blink the lock LED once. Locking blinks 3 times, unlocking twice. Remote control
 and the Device Config child lock attribute keep working.
 """
 from collections.abc import Iterator
@@ -17,10 +17,13 @@ from zcl_consts import (
     ZCL_ATTR_DEVICE_CONFIG_CHILD_LOCK,
     ZCL_ATTR_DEVICE_CONFIG_LAST_ERROR,
     ZCL_ATTR_DEVICE_CONFIG_TEXT,
+    ZCL_ATTR_BUTTON_EVENT_STATE,
+    ZCL_CLUSTER_BUTTON_EVENT,
     ZCL_CLUSTER_DEVICE_CONFIG,
     ZCL_CLUSTER_ON_OFF,
     ZCL_CLUSTER_WINDOW_COVERING,
     ZCL_CMD_ONOFF_TOGGLE,
+    ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DETACHED,
     ZCL_ATTR_DEVICE_CONFIG_STATUS_LED_MODE,
     ZCL_COVER_SWITCH_MODE_IMMEDIATE,
     ZCL_COVER_SWITCH_TYPE_MOMENTARY,
@@ -409,6 +412,78 @@ def test_locked_switch_press_does_not_act_in_rise_mode(two_gang: Device):
     two_gang.step_time(MINIMUM_SWITCH_TIME_MS)
     assert relays(two_gang) == ("0", "0")
     two_gang.release_button("A0")
+
+
+def button_events(d: Device, endpoint: int) -> list:
+    return d.zcl_list_cmds(endpoint, ZCL_CLUSTER_BUTTON_EVENT, dst="coordinator")
+
+
+def button_state(d: Device, endpoint: int) -> str:
+    return d.read_zigbee_attr(endpoint, ZCL_CLUSTER_BUTTON_EVENT, ZCL_ATTR_BUTTON_EVENT_STATE)
+
+
+def test_unlocked_detached_switch_sends_button_events(two_gang: Device):
+    two_gang.zcl_switch_relay_mode_set(1, ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DETACHED)
+    two_gang.clear_events()
+    two_gang.click_button("A0")
+    two_gang.step_time(1000)
+
+    assert len(button_events(two_gang, 1)) >= 3
+
+
+def test_locked_detached_switch_sends_no_button_events(two_gang: Device):
+    two_gang.zcl_switch_relay_mode_set(1, ZCL_ONOFF_CONFIGURATION_RELAY_MODE_DETACHED)
+    write_lock(two_gang, 1)
+    two_gang.clear_events()
+
+    two_gang.press_button("A0")
+    two_gang.step_time(MINIMUM_SWITCH_TIME_MS)
+    assert button_state(two_gang, 1) == "0"
+    two_gang.release_button("A0")
+    two_gang.click_button("A0")
+    two_gang.click_button("A0")
+    two_gang.long_click_button("A0", 1500)
+    two_gang.step_time(1000)
+
+    assert button_events(two_gang, 1) == []
+    assert button_state(two_gang, 1) == "0"
+    assert relays(two_gang) == ("0", "0")
+
+
+def test_press_started_locked_stays_silent_after_unlock(two_gang: Device):
+    write_lock(two_gang, 1)
+    two_gang.clear_events()
+    two_gang.press_button("A0")
+    two_gang.step_time(MINIMUM_SWITCH_TIME_MS)
+    write_lock(two_gang, 0)
+    two_gang.release_button("A0")
+    two_gang.step_time(1000)
+    assert button_events(two_gang, 1) == []
+
+    two_gang.click_button("A0")
+    two_gang.step_time(1000)
+    assert len(button_events(two_gang, 1)) >= 3
+
+
+def test_cover_locked_buttons_send_no_button_events(shutter: Device):
+    write_lock(shutter, 1)
+    shutter.clear_events()
+    for pin in ("B6", "A1", "A0"):
+        shutter.click_button(pin)
+        shutter.step_time(1000)
+
+    assert button_events(shutter, SHUTTER_SWITCH_EP) == []
+    assert button_state(shutter, SHUTTER_SWITCH_EP) == "0"
+
+
+def test_unlock_hold_sends_no_button_events(outlet: Device):
+    write_lock(outlet, 1)
+    outlet.clear_events()
+    hold(outlet, ("B4",), SINGLE_HOLD_MS)
+    outlet.step_time(BLINKS_DONE_MS)
+
+    assert lock_state(outlet) == "0"
+    assert button_events(outlet, 1) == []
 
 
 def test_locked_switch_relays_follow_zigbee(two_gang: Device):

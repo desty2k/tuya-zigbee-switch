@@ -978,6 +978,9 @@ void feature_wiring_start(void) {
 #if FEATURE_COVER
     cover_switch_cluster_register_input();
 #endif
+
+    /* The switch and cover-switch sinks mark a press taken under the child
+     * lock before the Button Event sink checks it. */
     button_event_cluster_register_input();
     child_lock_register_input();
     gesture_fsm_init();
