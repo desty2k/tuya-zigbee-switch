@@ -4821,6 +4821,7 @@ const definitions = [
 
             const cover1 = device.getEndpoint(2);
             await reporting.bind(cover1, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(cover1);
             await cover1.configureReporting("closuresWindowCovering", [
                 {
                     attribute: "moving",
@@ -4969,6 +4970,7 @@ const definitions = [
 
             const cover1 = device.getEndpoint(3);
             await reporting.bind(cover1, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(cover1);
             await cover1.configureReporting("closuresWindowCovering", [
                 {
                     attribute: "moving",
@@ -4979,6 +4981,7 @@ const definitions = [
             ]);
             const cover2 = device.getEndpoint(4);
             await reporting.bind(cover2, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(cover2);
             await cover2.configureReporting("closuresWindowCovering", [
                 {
                     attribute: "moving",
@@ -9595,6 +9598,7 @@ const definitions = [
 
             const cover1 = device.getEndpoint(2);
             await reporting.bind(cover1, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(cover1);
             await cover1.configureReporting("closuresWindowCovering", [
                 {
                     attribute: "moving",
@@ -11410,6 +11414,7 @@ const definitions = [
 
             const cover1 = device.getEndpoint(2);
             await reporting.bind(cover1, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(cover1);
             await cover1.configureReporting("closuresWindowCovering", [
                 {
                     attribute: "moving",
@@ -19381,6 +19386,7 @@ const definitions = [
 
             const cover1 = device.getEndpoint(2);
             await reporting.bind(cover1, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(cover1);
             await cover1.configureReporting("closuresWindowCovering", [
                 {
                     attribute: "moving",
