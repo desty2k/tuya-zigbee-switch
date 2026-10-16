@@ -135,6 +135,7 @@ void hal_gpio_rest_all(void) {
             continue;
         }
         gpio_write(pin, 0);
+        gpio_set_func(pin, AS_GPIO);
         hal_gpio_init(rest_pins[i], 1, HAL_GPIO_PULL_DOWN);
     }
 }
