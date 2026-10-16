@@ -10,6 +10,7 @@ Please describe what you are working on, under ## Upcoming
 
 ## Upcoming
 
+- **Child lock**: a press that starts while the device is locked sends no Button Event (`0xFC02`) commands and leaves `ButtonState` released, so automations on button actions are locked too. Locked detached switches sent their press, click and hold events to the coordinator.
 - Config strings with the `U` pull suffix (weak 1 MΩ pull-up; Silabs uses its only pull-up) are accepted again; they booted the recovery graph (`OUTLET_TUYA_PM_TS011F`, `SWITCH_IHSENO_TS0001`, `SWITCH_IHSENO_TS0002`).
 - A battery pin (`BT`) may share a button pin, as the battery remotes measure VBAT through one; their config strings booted the recovery graph.
 - `SWITCH_MILFRA_TS0001` has no onboard reset button: it shared the switch input pin, which the parser rejects. The multi-press reset remains.
