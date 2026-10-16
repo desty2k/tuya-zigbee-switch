@@ -1,237 +1,175 @@
-# Testing System
+# Tests
 
-The project uses a comprehensive testing system based on **pytest** and a **stub device implementation** that simulates Zigbee firmware behavior without requiring physical hardware.
+Two suites run in CI (`.github/workflows/test.yml`) next to
+`make tools/check_device_features`:
 
-## Test Architecture
+| Suite | Command | What it runs |
+| --- | --- | --- |
+| Native unit tests | `make unit_tests` | Single modules compiled for the host with fakes from `tests/unit/support/`, plus the parse check of every board's config string |
+| Stub tests | `make tests` | pytest in `tests/` driving the host build of the whole firmware (`src/stub/`) over its REPL |
 
-### Stub Device Implementation
+Install the Python dependencies once (`make setup_venv`, or
+`pip install -r requirements.txt`).
 
-The core of the testing system is the **stub device** (`src/stub/`), which is a host-native implementation of the firmware that:
+## Native unit tests (`tests/unit/`)
 
-- Implements the same Hardware Abstraction Layer (HAL) as the real firmware
-- Simulates Zigbee network behavior
-- Provides a REPL (Read-Eval-Print Loop) interface for interactive control
-- Maintains persistent state using NVM simulation in `stub_nvm_data/`
-- Supports time control (freezing/stepping time) for deterministic testing
+`make unit_tests` builds each test from `tests/unit/test_<module>.c` and the
+sources it needs into `build/unit/`, with `-Wall -Wextra -Werror -std=c99
+-DHAL_STUB` and every feature enabled, and runs them.
 
-### Test Client Infrastructure
+| Test | Covers |
+| --- | --- |
+| `test_gpio_edge_queue`, `test_button_input`, `fuzz_debounce` | Edge ring, debounce, overflow resync |
+| `test_gesture_fsm`, `test_action_mapper` | Holds, multi-clicks, reset triggers |
+| `test_timer_service` | Timer arm, cancel, failed arm |
+| `test_relay_controller`, `test_interlock`, `test_cover_controller` | Relay requests, interlock dead time, cover motion |
+| `test_button_event_queue` | Button event queue, pacing, time to live |
+| `test_config_parser`, `test_config_parser_features` | Config tokens; the feature test is built twice, as `test_config_parser_switch_only` (`relay switch`) and `test_config_parser_cover_battery` (`cover battery interlock`) |
+| `test_capability_state` | Persisted per-capability records |
+| `test_zigbee_descriptor`, `test_telink_zigbee_init` | Descriptor limits; Telink registration against `tests/unit/telink_sdk_stub/` |
+| `test_gpio_counter`, `test_bl0937`, `test_meter_service`, `test_fixed_math` | Meter path |
+| `test_gpio_probe_service` | GPIO probe safety rules |
+| `test_gpio_pin_mapping` | Pin name tables of both platforms |
+| `check_device_db_configs` | Reads `python3 helper_scripts/board_features.py configs` on stdin and parses every `config_str` and `alt_config_str` of every built board with the firmware parser. A rejected `config_str` fails; a rejected alternative is only reported |
 
-The Python test infrastructure (`tests/client.py`) provides:
+Support code in `tests/unit/support/`: `runner.h` (`TEST`, `ASSERT_*`),
+`fake_clock` (`hal_millis`), `fake_tasks` (`hal_tasks`, with
+`fake_tasks_poll()` and `fake_tasks_reject_next()` to simulate a full timer
+pool), `fake_gpio`, `fake_gpio_counter`, `fake_gpio_parse`, `fake_relay_hw`.
 
-- **`StubProc`** class - Manages the stub device subprocess lifecycle
-- **Command execution** - Send commands to stub device and receive responses
-- **Event handling** - Listen for asynchronous events from the device
-- **Process management** - Automatic startup/shutdown of stub processes
+A new unit test needs a target in the `Makefile` (sources listed explicitly),
+an entry in the `unit_tests` prerequisites and a line that runs it.
 
-### Test Fixtures and Utilities
+## Stub tests (`tests/`)
 
-The test configuration (`tests/conftest.py`) provides reusable fixtures:
+### Stub binaries
 
-- **Device configuration parsing** - Extract pins and endpoints from config strings
-- **Hardware abstraction** - Button/relay/LED pin management
-- **Zigbee cluster testing** - ZCL command and attribute verification
-- **Time control** - Deterministic timing for testing sequences
-- **GPIO simulation** - Virtual pin state management
+`make tests` builds four stub variants (`src/stub/Makefile`) into
+`build/stub/`, then runs `python -m pytest tests/ -v`:
 
-## Test Categories
+| Target | Binary | Image |
+| --- | --- | --- |
+| `make stub/build` | `stub_device` | Router, every default feature |
+| `make stub/build_end_device` | `stub_end_device` | End device (`-DEND_DEVICE`) |
+| `make stub/build_switch_only` | `stub_switch_only` | `relay switch` only |
+| `make stub/build_probe` | `stub_probe` | `probe relay switch interlock` |
 
-### 1. Basic Cluster Tests (`test_basic_cluster.py`)
+Tests pick a variant with `StubProc(cmd=["./build/stub/<binary>"], ...)`;
+the default is `stub_device`.
 
-Tests fundamental Zigbee Basic cluster attributes:
+Command line options of the stub:
 
-```python
-def test_manufacturer_name_attr(device: Device) -> None:
-    val = device.read_attr(ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_MFR_NAME)
-    assert val == "StubManufacturer"
-```
+| Option | Effect |
+| --- | --- |
+| `--device-config <string>` | Config string used when NVM holds none |
+| `--not-joined` | Start outside a network |
+| `--freeze-time` | Virtual time advances only on `step_time` / `time_advance` |
+| `--fail-zigbee-init` | Refuse the next Zigbee init (recovery path tests) |
 
-- Manufacturer information (name, model ID, hardware version)
-- Software version and build information
-- Date codes and device configuration
-- Status LED state management
+### Virtual time
 
-### 2. Switch Cluster Tests (`test_switch_cluster*.py`)
+`StubProc` starts the stub with `--freeze-time` by default. Time then moves
+only when a test steps it, and due tasks run during the step, so timing tests
+are deterministic. Never wait on firmware timers with wall-clock sleeps.
 
-Tests switch-specific Zigbee cluster behavior:
+### Test client
 
-- **Configuration attributes** - Switch type, actions, modes
-- **Multistate input** - Switch state reporting
-- **Binding modes** - How switches interact with relays
-- **Switch modes** - Toggle vs momentary operation
+`tests/client.py`:
 
-### 3. Relay Cluster Tests (`test_relay_cluster.py`)
+- `StubProc(cmd=..., joined=True, freeze_time=True, device_config=None)`
+  starts the binary, switches it to machine mode (`machine on`) and reads its
+  output on a thread. Use it as a context manager or call `start()` / `stop()`.
+- `exec(cmd, timeout=1.0)` sends a REPL command and returns a `CmdResult`
+  (`ok`, `payload` as key/value pairs) from the `RES OK|ERR` line.
+- `on_event` callbacks receive `Event`s from `EVT <name> ...` lines.
 
-Tests relay control through On/Off cluster:
+`tests/conftest.py`:
 
-- On/Off commands and state reporting
-- Relay endpoint configuration
-- GPIO control for relay outputs
+| Fixture / helper | Purpose |
+| --- | --- |
+| `cleanup_nvm` (autouse) | Deletes `stub_nvm_data/` before and after every test |
+| `device_config` | Config string of the test; override it in a module. Default: one LED, four switches, four relays |
+| `button_pins`, `relay_pins`, `led_pin`, `relay_button_pairs` | Pins derived from `device_config` |
+| `stub_proc`, `device` | A started `StubProc` and the `Device` wrapper around it |
+| `Device` GPIO | `set_gpio`, `get_gpio`, `pin_state`, `press_button`, `release_button`, `click_button`, `long_click_button`, `click_n`, `hold_button`, `pin_edge`, `pin_burst`, `pin_late`, `inject_edges` |
+| `Device` time | `freeze_time`, `unfreeze_time`, `step_time`, `time_advance`, `tasks_poll`, `time_model`, `time_set`, `millis` |
+| `Device` Zigbee | `read_zigbee_attr`, `write_zigbee_attr`, `call_zigbee_cmd`, `call_zigbee_cmd_no_activity` (and `_raw` variants), `zcl_list_cmds`, `wait_for_attr_change`, `wait_for_cmd_send`, `wait_for_announce`, `set_network`, `is_joined`, `poll_rate_ms` |
+| `Device` cluster shortcuts | `zcl_relay_*`, `zcl_switch_*`, `zcl_cover_switch_*`, `zcl_cover_*` |
+| `Device` diagnostics | `counters()` (`diag`), `input_diag()`, `task_fail`, `set_battery_voltage`, `status` |
+| `wait_for`, `wait_not_none`, `ensure_never_true` | Polling helpers for asynchronous output |
 
-### 4. Device Configuration Tests (`test_device_config_parser.py`)
+ZCL ids come from `tests/zcl_consts.py`; management cluster ids from the
+generated `tests/management_protocol_consts.py`.
 
-Tests the configuration string parsing system:
+### REPL commands
 
-- Pin assignment parsing from `device_db.yaml` entries
-- Endpoint generation based on device capabilities
-- Configuration validation and error handling
+Defined in the command table at the end of `src/stub/commands.c`. Run
+`make stub/run` (or `./build/stub/stub_device --device-config "<string>"`) to
+use them interactively; `help` lists them.
 
-### 5. Network Join Tests (`test_network_join.py`)
+| Area | Commands |
+| --- | --- |
+| Session | `machine on\|off`, `help`, `status` / `s`, `quit` / `q` |
+| GPIO | `set_pin <pin> <0\|1>`, `read_pin <pin>`, `pin_state <pin>`, `pin_edge <pin> <0\|1> [after_ms]`, `pin_burst`, `pin_late`, `pulse_rate <pin> <mHz> [gate pin level]` |
+| Time and tasks | `freeze_time <0\|1>`, `step_time <ms>`, `time_advance <ms>`, `tasks_poll`, `time_model native\|telink`, `time_set <virtual_ms>`, `task_fail <count>` |
+| Zigbee | `zcl_read`, `zcl_write`, `zcl_write_raw`, `zcl_write_undivided`, `zcl_attr_callback`, `zcl_cmd`, `zcl_cmd_no_activity`, `zcl_foundation`, `zcl_configure_reporting`, `zcl_list_attrs`, `zcl_clusters`, `zcl_attrs`, `zcl_graph_usage`, `net <0\|1\|2>` |
+| Fault injection | `tx_fail <count>`, `announce_fail <count>`, `nvm_fail <count>`, `task_fail <count>` |
+| Diagnostics | `diag`, `input_diag` |
+| Other | `set_battery_voltage <mV>`; `probe_pin`, `probe_pin_info` in probe builds |
 
-Tests Zigbee network behavior:
+Pins are numeric in the REPL; `Device` converts names such as `B1`.
 
-- Initial join attempts on startup
-- LED blinking during join process
-- Rejoining after network disconnection
-- Status reporting for network state
+Machine events: `btn_event`, `gesture`, `gpio`, `zcl_attr_change`,
+`zcl_attr_report`, `zcl_cmd_send`, `zcl_init_failed`, `zcl_leave_network`,
+`zcl_start_network_steering`, `zdo_announce`.
 
-### 6. Base Components Tests (`test_base_components.py`)
+### Test files
 
-Tests shared utility components used across the firmware.
+| Area | Files |
+| --- | --- |
+| Input pipeline | `test_input_timing.py`, `test_input_latency.py`, `test_button_events.py`, `test_gesture_reset.py`, `test_base_components.py` |
+| Switches | `test_switch_cluster.py`, `test_switch_cluster_momentary_mode.py`, `test_switch_cluster_toggle_mode.py`, `test_switches_without_relays.py` |
+| Relays | `test_relay_cluster.py`, `test_relay_inching.py`, `test_relay_timed_off.py`, `test_latching_relay.py`, `test_interlock.py`, `test_indicator_flash.py` |
+| Covers | `test_cover_cluster.py`, `test_cover_switch_cluster.py`, `test_cover_stop_and_leds.py` |
+| Child lock | `test_child_lock.py` |
+| Device config and composition | `test_device_config_parser.py`, `test_composition_graph.py`, `test_build_features.py`, `test_management_clusters.py` |
+| Zigbee behaviour | `test_basic_cluster.py`, `test_attribute_reporting.py`, `test_attribute_write_contract.py`, `test_foundation_frames.py`, `test_network_join.py`, `test_poll_control_cluster.py`, `test_battery_cluster.py` |
+| Meter | `test_meter.py` |
+| GPIO probe | `test_gpio_probe.py` |
+| Persistence | `test_nvm_migrations.py` |
+| Integrations and tooling | `test_integration_parity.py` (generated converters vs. the firmware descriptor), `test_helper_scripts.py`, `test_check_tc32_jump_tables.py`, `test_stub_repl.py` |
 
-## Running Tests
-
-### Prerequisites
-
-Install Python dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Build the stub device:
-
-```bash
-make stub/build
-```
-
-### Basic Test Execution
-
-Run all tests:
-
-```bash
-make tests
-# Or directly:
-pytest tests/
-```
-
-Run specific test file:
-
-```bash
-pytest tests/test_switch_cluster.py
-```
-
-Run with verbose output:
-
-```bash
-pytest -v tests/
-```
-
-### Interactive Testing
-
-You can also run the stub device interactively for manual testing:
-
-```bash
-make stub/run
-# Or with specific device config:
-./build/stub/stub_device --device-config "StubMfr;StubDev;LC0;SA0u;RB0;"
-```
-
-This provides a REPL interface where you can:
-
-- Check device status: `status`
-- Control GPIO pins: `write_pin 12 1`, `read_pin 12`
-- Step time forward: `time_step 1000`
-- Send ZCL commands: `zcl_attr_read 1 0x0006 0x0000`
-
-## Writing New Tests
-
-### Test Structure Pattern
-
-Follow this pattern for new test files:
+## Writing a test
 
 ```python
 import pytest
-from tests.conftest import Device, StubProc
-from tests.zcl_consts import ZCL_CLUSTER_*, ZCL_ATTR_*
+from conftest import Device
+from zcl_consts import ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF
 
-def test_feature_name(stub_proc: StubProc) -> None:
-    device = Device(stub_proc)
 
-    # Test setup
-    result = device.some_action()
-
-    # Assertions
-    assert result == expected_value
-```
-
-### Common Test Patterns
-
-**Attribute reading:**
-
-```python
-val = device.read_attr(cluster_id, attr_id)
-assert val == "expected_value"
-```
-
-**GPIO control:**
-
-```python
-device.set_gpio("A0", True)
-assert device.get_gpio("A0", refresh=True) == True
-```
-
-**ZCL command sending:**
-
-```python
-device.send_zcl_cmd(endpoint, cluster_id, cmd_id, data_bytes)
-```
-
-**Time-based testing:**
-
-```python
-device.step_time(500)  # Advance 500ms
-```
-
-**Event waiting:**
-
-```python
-evt = device.wait_for_event("zcl_cmd", timeout=2.0)
-assert evt.payload["cmd"] == "0x01"
-```
-
-### Device Configuration
-
-Tests use configuration strings that define device hardware:
-
-```python
 @pytest.fixture
 def device_config() -> str:
-    # Format: "Manufacturer;Device;LED_pin;Switch_pins;Relay_pins;"
-    return "StubMfr;StubDev;LC0;SA0u;SA1u;RB0;RB1;"
+    return "Mfr;Model;SA0u;RB0;M;"  # M: momentary switch, a click toggles
+
+
+def test_click_toggles_relay(device: Device) -> None:
+    device.click_button("A0")
+    assert device.read_zigbee_attr(2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF) == "1"
 ```
 
-## Test Environment
+Endpoints are numbered switches first, then relays, cover switches and covers
+(see [architecture.md](./architecture.md#composition-and-features)), so the
+relay above is endpoint 2. Without `M` a switch defaults to toggle mode (a
+latching wall switch), where press and release each act on the relay, so a
+click leaves it off. For a variant binary or a custom start, use
+`StubProc` directly:
 
-### Automatic Cleanup
+```python
+from client import StubProc
 
-Tests automatically clean up:
+with StubProc(cmd=["./build/stub/stub_switch_only"], device_config="M;T;SA0u;RB0;") as proc:
+    assert proc.exec("s").ok
+```
 
-- NVM data directory (`stub_nvm_data/`) before and after each test
-- Stub processes are terminated after test completion
-- GPIO states are reset between tests
-
-### Time Control
-
-Tests can control time for deterministic behavior:
-
-- `freeze_time=True` (default) - Time doesn't advance automatically
-- `device.step_time(ms)` - Manually advance time by specified milliseconds
-- Useful for testing timeouts, delays, and periodic behavior
-
-### Network State Control
-
-Tests can simulate different network states:
-
-- `joined=True` (default) - Device starts joined to network
-- `joined=False` - Device starts unjoined, will attempt to join
-- `device.set_network(state)` - Change network state during test
+Run one file with `pytest tests/test_relay_cluster.py -v` after
+`make stub/build`.
