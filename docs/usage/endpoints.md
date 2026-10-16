@@ -201,7 +201,7 @@ These attributes carry no manufacturer code.
 | IndicatorMode | `0xFF01` | enum8 | 0 same, 1 opposite, 2 manual (relays with an LED) |
 | IndicatorState | `0xFF02` | boolean | LED state (relays with an LED) |
 | InchingDuration | `0xFF03` | uint16 | ms; 0 = off |
-| InterlockGroup | `0xFF04` | uint8 | 0 = none, or a `K` group number |
+| InterlockGroup | `0xFF04` | uint8 | 0 = none, or a `K` group number; only in images with the interlock feature (more than one relay, a `K` group or a cover) |
 
 ### Window Covering (`0x0102`, cover endpoints)
 

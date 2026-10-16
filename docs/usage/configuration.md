@@ -169,8 +169,9 @@ tokens in the [config string](./config_string.md#k--relay-interlock), numbered
 The two relays of a cover form their own interlock group; it cannot be
 changed.
 
-The integrations offer the setting only on devices with more than one relay, a
-`K` token or a cover; a single relay has nothing to interlock with.
+Only boards with more than one relay, a `K` token or a cover have the setting:
+the firmware of a single-relay board leaves interlock out, as a single relay
+has nothing to interlock with.
 
 ### Relay indicator LED
 
