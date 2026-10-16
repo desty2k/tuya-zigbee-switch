@@ -100,7 +100,7 @@ The pinout is stored in the **device config string**.
 | **`X`** | Cover Switch  | • User input for cover control <br> • Format: `XA2B3u` - 2 pins + pull resistor: open button, close button <br> • `XA2B3A4u` - optional third pin: stop button <br> • Holding stop for 5 s (or open and close together for 3 s without a stop button) toggles the child lock (momentary type) |
 | **`C`** | Cover         | • Motor control for curtains/blinds/shades <br> • Format: `CA2B3` - 2 pins: open relay, close relay               |
 | **`I`** | Indicator LED | • 1 per relay, follows state <br> • A cover takes the next 2: lit while opening, lit while closing <br> • Briefly flashes on button press (binding confirmation) <br> • Blinks while pairing if there is no network led |
-| **`P`** | Child lock LED | • At most one <br> • Blinks 3 times on lock, twice on unlock, once for a press while locked; dark otherwise <br> • May name the pin of an `L` or `I` LED: the blinks are layered over it <br> • Without `P` the `L` LED is used, else the first `I` LED (see [child lock](../usage/endpoints.md#child-lock)) |
+| **`P`** | Child lock LED | • At most one <br> • Blinks 3 times on lock, twice on unlock, once for a press while locked; dark otherwise <br> • May name the pin of an `L` or `I` LED: the blinks are layered over it <br> • Without `P` the `L` LED is used, else the first `I` LED (see [child lock](../usage/configuration.md#child-lock)) |
 
 For buttons (`B`), switches (`S`), and cover switches (`X`), the character after the pin(s) chooses the internal pull resistor:  
 ⤷ **`u`: pull-up** (Telink 10 kΩ), `U`: pull-up (Telink 1 MΩ; Silabs has one pull-up strength, so it equals `u`), `d`: pull-down (Telink 100 kΩ), `f` or nothing: no pull (external resistor)  
