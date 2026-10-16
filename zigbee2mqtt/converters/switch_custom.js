@@ -6,7 +6,7 @@ const {
     text,
     binary,
     windowCovering,
-    deviceAddCustomCluster,
+    deviceAddCustomCluster: zhcDeviceAddCustomCluster,
     electricityMeter,
 } = require("zigbee-herdsman-converters/lib/modernExtend");
 const {assertString, postfixWithEndpointName} = require("zigbee-herdsman-converters/lib/utils");
@@ -82,6 +82,16 @@ const managementProtocol = {
         },
     },
 };
+// zigbee-herdsman keeps custom clusters only in the in-memory Device, and the
+// stock extend registers them on `start` and in configure. A device interviewed
+// while Zigbee2MQTT runs (new join, re-interview after converting from stock
+// firmware) gets this definition only after `start`, so the clusters are also
+// registered on every later device event; addCustomCluster is idempotent.
+const deviceAddCustomCluster = (clusterName, clusterDefinition) => ({
+    ...zhcDeviceAddCustomCluster(clusterName, clusterDefinition),
+    onEvent: [(event) => event.type !== "stop" && event.data.device.addCustomCluster(clusterName, clusterDefinition)],
+});
+
 const snakeCase = (name) => name.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 
 const buttonEventActions = {0: "press", 1: "release", 2: "hold", 3: "hold_release"};
@@ -828,81 +838,87 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -992,81 +1008,87 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -1156,81 +1178,87 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -1320,81 +1348,87 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -1450,30 +1484,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -1541,47 +1581,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -1649,47 +1695,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -1747,38 +1799,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -1836,38 +1894,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -1924,30 +1988,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -2015,47 +2085,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -2134,64 +2210,70 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -2281,81 +2363,87 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -2413,30 +2501,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -2506,47 +2600,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -2627,64 +2727,70 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -2776,81 +2882,87 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -2929,64 +3041,70 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -3076,81 +3194,87 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -3206,30 +3330,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -3286,30 +3416,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -3378,47 +3514,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -3486,47 +3628,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -3605,64 +3753,70 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -3730,47 +3884,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -3838,47 +3998,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -3934,30 +4100,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -4025,47 +4197,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -4133,47 +4311,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -4230,30 +4414,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -4333,64 +4523,70 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -4446,30 +4642,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -4537,47 +4739,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -4633,30 +4841,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -4712,30 +4926,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -4804,47 +5024,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -4937,34 +5163,40 @@ const definitions = [
             romasku.coverSwitchLocalMode("cover_switch_local_mode", "cover_switch"),
             romasku.coverSwitchBindedMode("cover_switch_binded_mode", "cover_switch"),
             romasku.coverSwitchLongPressDuration("cover_switch_long_press_duration", "cover_switch"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+        
+
+                    const coverSwitch1 = device.getEndpoint(1);
+                    await reporting.bind(coverSwitch1, coordinatorEndpoint, ["genMultistateInput"]);
+                    await coverSwitch1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: "presentValue",
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+                    const cover1 = device.getEndpoint(2);
+                    await reporting.bind(cover1, coordinatorEndpoint, ["closuresWindowCovering"]);
+                    await reporting.currentPositionLiftPercentage(cover1);
+                    await cover1.configureReporting("closuresWindowCovering", [
+                        {
+                            attribute: "moving",
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-
-
-            const coverSwitch1 = device.getEndpoint(1);
-            await reporting.bind(coverSwitch1, coordinatorEndpoint, ["genMultistateInput"]);
-            await coverSwitch1.configureReporting("genMultistateInput", [
-                {
-                    attribute: "presentValue",
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-            const cover1 = device.getEndpoint(2);
-            await reporting.bind(cover1, coordinatorEndpoint, ["closuresWindowCovering"]);
-            await reporting.currentPositionLiftPercentage(cover1);
-            await cover1.configureReporting("closuresWindowCovering", [
-                {
-                    attribute: "moving",
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-        },
         ota: true,
     },
     {
@@ -5075,55 +5307,61 @@ const definitions = [
             romasku.coverSwitchLocalMode("cover_switch_right_local_mode", "cover_switch_right"),
             romasku.coverSwitchBindedMode("cover_switch_right_binded_mode", "cover_switch_right"),
             romasku.coverSwitchLongPressDuration("cover_switch_right_long_press_duration", "cover_switch_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+        
+
+                    const coverSwitch1 = device.getEndpoint(1);
+                    await reporting.bind(coverSwitch1, coordinatorEndpoint, ["genMultistateInput"]);
+                    await coverSwitch1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: "presentValue",
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const coverSwitch2 = device.getEndpoint(2);
+                    await reporting.bind(coverSwitch2, coordinatorEndpoint, ["genMultistateInput"]);
+                    await coverSwitch2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: "presentValue",
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+                    const cover1 = device.getEndpoint(3);
+                    await reporting.bind(cover1, coordinatorEndpoint, ["closuresWindowCovering"]);
+                    await reporting.currentPositionLiftPercentage(cover1);
+                    await cover1.configureReporting("closuresWindowCovering", [
+                        {
+                            attribute: "moving",
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const cover2 = device.getEndpoint(4);
+                    await reporting.bind(cover2, coordinatorEndpoint, ["closuresWindowCovering"]);
+                    await reporting.currentPositionLiftPercentage(cover2);
+                    await cover2.configureReporting("closuresWindowCovering", [
+                        {
+                            attribute: "moving",
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-
-
-            const coverSwitch1 = device.getEndpoint(1);
-            await reporting.bind(coverSwitch1, coordinatorEndpoint, ["genMultistateInput"]);
-            await coverSwitch1.configureReporting("genMultistateInput", [
-                {
-                    attribute: "presentValue",
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const coverSwitch2 = device.getEndpoint(2);
-            await reporting.bind(coverSwitch2, coordinatorEndpoint, ["genMultistateInput"]);
-            await coverSwitch2.configureReporting("genMultistateInput", [
-                {
-                    attribute: "presentValue",
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-            const cover1 = device.getEndpoint(3);
-            await reporting.bind(cover1, coordinatorEndpoint, ["closuresWindowCovering"]);
-            await reporting.currentPositionLiftPercentage(cover1);
-            await cover1.configureReporting("closuresWindowCovering", [
-                {
-                    attribute: "moving",
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const cover2 = device.getEndpoint(4);
-            await reporting.bind(cover2, coordinatorEndpoint, ["closuresWindowCovering"]);
-            await reporting.currentPositionLiftPercentage(cover2);
-            await cover2.configureReporting("closuresWindowCovering", [
-                {
-                    attribute: "moving",
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-        },
         ota: true,
     },
     {
@@ -5179,30 +5417,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -5258,30 +5502,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -5337,30 +5587,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -5416,30 +5672,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -5495,30 +5757,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -5586,47 +5854,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -5694,47 +5968,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -5790,30 +6070,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -5893,64 +6179,70 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -6040,81 +6332,87 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -6170,30 +6468,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -6249,30 +6553,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -6328,30 +6638,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -6419,47 +6735,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -6537,64 +6859,70 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -6650,30 +6978,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -6741,47 +7075,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -6860,64 +7200,70 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -7007,81 +7353,87 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -7137,30 +7489,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -7216,30 +7574,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -7295,30 +7659,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -7374,30 +7744,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -7465,47 +7841,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -7584,64 +7966,70 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -7697,30 +8085,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -7776,30 +8170,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -7868,47 +8268,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -7998,81 +8404,87 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -8151,64 +8563,70 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -8264,30 +8682,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -8343,30 +8767,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -8422,30 +8852,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -8501,30 +8937,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -8580,30 +9022,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -8659,30 +9107,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -8752,47 +9206,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -8872,64 +9332,70 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -8985,30 +9451,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -9064,30 +9536,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -9155,47 +9633,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -9274,64 +9758,70 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -9387,30 +9877,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -9478,47 +9974,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -9574,30 +10076,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -9665,47 +10173,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -9798,34 +10312,40 @@ const definitions = [
             romasku.coverSwitchLocalMode("cover_switch_local_mode", "cover_switch"),
             romasku.coverSwitchBindedMode("cover_switch_binded_mode", "cover_switch"),
             romasku.coverSwitchLongPressDuration("cover_switch_long_press_duration", "cover_switch"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+        
+
+                    const coverSwitch1 = device.getEndpoint(1);
+                    await reporting.bind(coverSwitch1, coordinatorEndpoint, ["genMultistateInput"]);
+                    await coverSwitch1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: "presentValue",
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+                    const cover1 = device.getEndpoint(2);
+                    await reporting.bind(cover1, coordinatorEndpoint, ["closuresWindowCovering"]);
+                    await reporting.currentPositionLiftPercentage(cover1);
+                    await cover1.configureReporting("closuresWindowCovering", [
+                        {
+                            attribute: "moving",
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-
-
-            const coverSwitch1 = device.getEndpoint(1);
-            await reporting.bind(coverSwitch1, coordinatorEndpoint, ["genMultistateInput"]);
-            await coverSwitch1.configureReporting("genMultistateInput", [
-                {
-                    attribute: "presentValue",
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-            const cover1 = device.getEndpoint(2);
-            await reporting.bind(cover1, coordinatorEndpoint, ["closuresWindowCovering"]);
-            await reporting.currentPositionLiftPercentage(cover1);
-            await cover1.configureReporting("closuresWindowCovering", [
-                {
-                    attribute: "moving",
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-        },
         ota: true,
     },
     {
@@ -9904,64 +10424,70 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -10017,30 +10543,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -10108,47 +10640,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -10216,47 +10754,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -10312,30 +10856,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -10391,30 +10941,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -10470,30 +11026,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -10583,81 +11145,87 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -10725,47 +11293,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -10833,47 +11407,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -10930,30 +11510,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -11011,38 +11597,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -11100,38 +11692,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -11189,38 +11787,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -11278,38 +11882,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -11368,38 +11978,44 @@ const definitions = [
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
             romasku.relayInterlockGroup("relay_interlock_group", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -11481,74 +12097,80 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -11641,34 +12263,40 @@ const definitions = [
             romasku.coverSwitchLocalMode("cover_switch_local_mode", "cover_switch"),
             romasku.coverSwitchBindedMode("cover_switch_binded_mode", "cover_switch"),
             romasku.coverSwitchLongPressDuration("cover_switch_long_press_duration", "cover_switch"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+        
+
+                    const coverSwitch1 = device.getEndpoint(1);
+                    await reporting.bind(coverSwitch1, coordinatorEndpoint, ["genMultistateInput"]);
+                    await coverSwitch1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: "presentValue",
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+                    const cover1 = device.getEndpoint(2);
+                    await reporting.bind(cover1, coordinatorEndpoint, ["closuresWindowCovering"]);
+                    await reporting.currentPositionLiftPercentage(cover1);
+                    await cover1.configureReporting("closuresWindowCovering", [
+                        {
+                            attribute: "moving",
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-
-
-            const coverSwitch1 = device.getEndpoint(1);
-            await reporting.bind(coverSwitch1, coordinatorEndpoint, ["genMultistateInput"]);
-            await coverSwitch1.configureReporting("genMultistateInput", [
-                {
-                    attribute: "presentValue",
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-            const cover1 = device.getEndpoint(2);
-            await reporting.bind(cover1, coordinatorEndpoint, ["closuresWindowCovering"]);
-            await reporting.currentPositionLiftPercentage(cover1);
-            await cover1.configureReporting("closuresWindowCovering", [
-                {
-                    attribute: "moving",
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-        },
         ota: true,
     },
     {
@@ -11736,38 +12364,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true, multiEndpointSkip: ["voltage", "current", "power", "energy"] },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -11839,63 +12473,69 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint3.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint3.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -11952,38 +12592,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -12040,38 +12686,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -12128,38 +12780,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -12216,38 +12874,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -12304,38 +12968,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -12408,69 +13078,75 @@ const definitions = [
             romasku.bindedMode("switch_3_binded_mode", "switch_3"),
             romasku.longPressDuration("switch_3_long_press_duration", "switch_3"),
             romasku.levelMoveRate("switch_3_level_move_rate", "switch_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -12522,36 +13198,42 @@ const definitions = [
             romasku.bindedMode("switch_binded_mode", "switch"),
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -12603,36 +13285,42 @@ const definitions = [
             romasku.bindedMode("switch_binded_mode", "switch"),
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -12706,69 +13394,75 @@ const definitions = [
             romasku.bindedMode("switch_3_binded_mode", "switch_3"),
             romasku.longPressDuration("switch_3_long_press_duration", "switch_3"),
             romasku.levelMoveRate("switch_3_level_move_rate", "switch_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -12841,69 +13535,75 @@ const definitions = [
             romasku.bindedMode("switch_3_binded_mode", "switch_3"),
             romasku.longPressDuration("switch_3_long_press_duration", "switch_3"),
             romasku.levelMoveRate("switch_3_level_move_rate", "switch_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -12955,36 +13655,42 @@ const definitions = [
             romasku.bindedMode("switch_binded_mode", "switch"),
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -13036,36 +13742,42 @@ const definitions = [
             romasku.bindedMode("switch_binded_mode", "switch"),
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -13124,47 +13836,53 @@ const definitions = [
             romasku.bindedMode("switch_right_binded_mode", "switch_right"),
             romasku.longPressDuration("switch_right_long_press_duration", "switch_right"),
             romasku.levelMoveRate("switch_right_level_move_rate", "switch_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -13230,58 +13948,64 @@ const definitions = [
             romasku.bindedMode("switch_right_binded_mode", "switch_right"),
             romasku.longPressDuration("switch_right_long_press_duration", "switch_right"),
             romasku.levelMoveRate("switch_right_level_move_rate", "switch_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -13354,69 +14078,75 @@ const definitions = [
             romasku.bindedMode("switch_3_binded_mode", "switch_3"),
             romasku.longPressDuration("switch_3_long_press_duration", "switch_3"),
             romasku.levelMoveRate("switch_3_level_move_rate", "switch_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -13489,69 +14219,75 @@ const definitions = [
             romasku.bindedMode("switch_3_binded_mode", "switch_3"),
             romasku.longPressDuration("switch_3_long_press_duration", "switch_3"),
             romasku.levelMoveRate("switch_3_level_move_rate", "switch_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -13603,36 +14339,42 @@ const definitions = [
             romasku.bindedMode("switch_binded_mode", "switch"),
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -13684,36 +14426,42 @@ const definitions = [
             romasku.bindedMode("switch_binded_mode", "switch"),
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -13765,36 +14513,42 @@ const definitions = [
             romasku.bindedMode("switch_binded_mode", "switch"),
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -13853,47 +14607,53 @@ const definitions = [
             romasku.bindedMode("switch_right_binded_mode", "switch_right"),
             romasku.longPressDuration("switch_right_long_press_duration", "switch_right"),
             romasku.levelMoveRate("switch_right_level_move_rate", "switch_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -13959,58 +14719,64 @@ const definitions = [
             romasku.bindedMode("switch_right_binded_mode", "switch_right"),
             romasku.longPressDuration("switch_right_long_press_duration", "switch_right"),
             romasku.levelMoveRate("switch_right_level_move_rate", "switch_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -14076,58 +14842,64 @@ const definitions = [
             romasku.bindedMode("switch_right_binded_mode", "switch_right"),
             romasku.longPressDuration("switch_right_long_press_duration", "switch_right"),
             romasku.levelMoveRate("switch_right_level_move_rate", "switch_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -14200,69 +14972,75 @@ const definitions = [
             romasku.bindedMode("switch_3_binded_mode", "switch_3"),
             romasku.longPressDuration("switch_3_long_press_duration", "switch_3"),
             romasku.levelMoveRate("switch_3_level_move_rate", "switch_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -14321,47 +15099,53 @@ const definitions = [
             romasku.bindedMode("switch_right_binded_mode", "switch_right"),
             romasku.longPressDuration("switch_right_long_press_duration", "switch_right"),
             romasku.levelMoveRate("switch_right_level_move_rate", "switch_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -14413,36 +15197,42 @@ const definitions = [
             romasku.bindedMode("switch_binded_mode", "switch"),
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -14515,69 +15305,75 @@ const definitions = [
             romasku.bindedMode("switch_3_binded_mode", "switch_3"),
             romasku.longPressDuration("switch_3_long_press_duration", "switch_3"),
             romasku.levelMoveRate("switch_3_level_move_rate", "switch_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    // Battery reporting
+                    const batteryEndpoint = device.getEndpoint(1);
+                    await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                    await batteryEndpoint.configureReporting("genPowerCfg", [
+                        {
+                            attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.HOUR,
+                            reportableChange: 2, // 1% (2 in ZCL 0-200 format)
+                        },
+                    ]);
+                    await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            // Battery reporting
-            const batteryEndpoint = device.getEndpoint(1);
-            await reporting.bind(batteryEndpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await batteryEndpoint.configureReporting("genPowerCfg", [
-                {
-                    attribute: {ID: 0x0021, type: 0x20}, // BatteryPercentageRemaining
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: 2, // 1% (2 in ZCL 0-200 format)
-                },
-            ]);
-            await batteryEndpoint.read("genPowerCfg", [0x0021, 0x0020]);
-
-
-
-        },
         ota: true,
     },
     {
@@ -14633,30 +15429,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -14724,47 +15526,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -14844,64 +15652,70 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -14991,81 +15805,87 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -15124,38 +15944,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -15228,63 +16054,69 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint3.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint3.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -15364,64 +16196,70 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -15479,38 +16317,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -15584,63 +16428,69 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint3.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint3.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -15726,88 +16576,94 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -15863,30 +16719,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -15954,47 +16816,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -16074,64 +16942,70 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -16222,81 +17096,87 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -16354,38 +17234,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -16443,38 +17329,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -16544,55 +17436,61 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint3.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint3.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -16662,55 +17560,61 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint3.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint3.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -16768,38 +17672,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -16872,63 +17782,69 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint3.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint3.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -17000,63 +17916,69 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint3.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint3.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -17141,88 +18063,94 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -17280,38 +18208,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -17383,63 +18317,69 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint3.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint3.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -17524,88 +18464,94 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -17704,113 +18650,119 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint7.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint8.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint7.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint8.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -17868,38 +18820,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -17971,63 +18929,69 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint3.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint3.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -18112,88 +19076,94 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -18290,113 +19260,119 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint7.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint8.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint7.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint8.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -18453,38 +19429,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -18540,30 +19522,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -18631,47 +19619,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -18750,64 +19744,70 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -18863,30 +19863,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -18954,47 +19960,53 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -19073,64 +20085,70 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -19201,63 +20219,69 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint3.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint3.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -19341,88 +20365,94 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -19519,113 +20549,119 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint7.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint8.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint7.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint8.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -19718,34 +20754,40 @@ const definitions = [
             romasku.coverSwitchLocalMode("cover_switch_local_mode", "cover_switch"),
             romasku.coverSwitchBindedMode("cover_switch_binded_mode", "cover_switch"),
             romasku.coverSwitchLongPressDuration("cover_switch_long_press_duration", "cover_switch"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+        
+
+                    const coverSwitch1 = device.getEndpoint(1);
+                    await reporting.bind(coverSwitch1, coordinatorEndpoint, ["genMultistateInput"]);
+                    await coverSwitch1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: "presentValue",
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+                    const cover1 = device.getEndpoint(2);
+                    await reporting.bind(cover1, coordinatorEndpoint, ["closuresWindowCovering"]);
+                    await reporting.currentPositionLiftPercentage(cover1);
+                    await cover1.configureReporting("closuresWindowCovering", [
+                        {
+                            attribute: "moving",
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-
-
-            const coverSwitch1 = device.getEndpoint(1);
-            await reporting.bind(coverSwitch1, coordinatorEndpoint, ["genMultistateInput"]);
-            await coverSwitch1.configureReporting("genMultistateInput", [
-                {
-                    attribute: "presentValue",
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-            const cover1 = device.getEndpoint(2);
-            await reporting.bind(cover1, coordinatorEndpoint, ["closuresWindowCovering"]);
-            await reporting.currentPositionLiftPercentage(cover1);
-            await cover1.configureReporting("closuresWindowCovering", [
-                {
-                    attribute: "moving",
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-        },
         ota: true,
     },
     {
@@ -19802,38 +20844,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -19904,63 +20952,69 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint3.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint3.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -20044,88 +21098,94 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -20182,38 +21242,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -20284,63 +21350,69 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint3.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint3.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -20424,88 +21496,94 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -20563,38 +21641,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -20666,63 +21750,69 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint3.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint3.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -20807,88 +21897,94 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -20973,88 +22069,94 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -21152,113 +22254,119 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint7.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint8.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint7.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint8.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -21316,38 +22424,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -21419,63 +22533,69 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint3.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint3.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -21560,88 +22680,94 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -21738,113 +22864,119 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint7.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint8.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint7.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint8.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -21941,113 +23073,119 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint7.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint8.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint7.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint8.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -22131,88 +23269,94 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -22270,38 +23414,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -22373,63 +23523,69 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint3.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint3.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -22488,38 +23644,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -22592,63 +23754,69 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint3.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint3.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -22733,88 +23901,94 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -22871,38 +24045,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -22959,38 +24139,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -23061,63 +24247,69 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint3.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint3.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -23201,88 +24393,94 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -23366,88 +24564,94 @@ const definitions = [
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_middle_interlock_group", "relay_middle"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -23544,113 +24748,119 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint5.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint6.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint7.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint8.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint5.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint6.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint7.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint8.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -23706,30 +24916,36 @@ const definitions = [
             romasku.longPressDuration("switch_long_press_duration", "switch"),
             romasku.levelMoveRate("switch_level_move_rate", "switch"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -23819,81 +25035,87 @@ const definitions = [
             romasku.relayInterlockGroup("relay_1_interlock_group", "relay_1"),
             romasku.relayInterlockGroup("relay_2_interlock_group", "relay_2"),
             romasku.relayInterlockGroup("relay_3_interlock_group", "relay_3"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint3.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint4.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint5 = device.getEndpoint(5);
+                    await reporting.onOff(endpoint5, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint6 = device.getEndpoint(6);
+                    await reporting.onOff(endpoint6, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint7 = device.getEndpoint(7);
+                    await reporting.onOff(endpoint7, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint8 = device.getEndpoint(8);
+                    await reporting.onOff(endpoint8, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint3.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint4.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint5 = device.getEndpoint(5);
-            await reporting.onOff(endpoint5, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint6 = device.getEndpoint(6);
-            await reporting.onOff(endpoint6, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint7 = device.getEndpoint(7);
-            await reporting.onOff(endpoint7, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint8 = device.getEndpoint(8);
-            await reporting.onOff(endpoint8, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-
-
-        },
         ota: true,
     },
     {
@@ -23950,38 +25172,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -24053,63 +25281,69 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint3.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint3.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -24166,38 +25400,44 @@ const definitions = [
             romasku.relayIndicatorMode("relay_indicator_mode", "relay"),
             romasku.relayIndicator("relay_indicator", "relay"),
             romasku.relayInchingDuration("relay_inching_duration", "relay"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.onOff(endpoint2, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint2.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.onOff(endpoint2, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint2.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
     {
@@ -24268,63 +25508,69 @@ const definitions = [
             romasku.relayInchingDuration("relay_right_inching_duration", "relay_right"),
             romasku.relayInterlockGroup("relay_left_interlock_group", "relay_left"),
             romasku.relayInterlockGroup("relay_right_interlock_group", "relay_right"),
+            // A definition-level configure runs before every extend's configure,
+            // so reporting that names custom attributes runs here instead.
+            {
+                configure: [async (device, coordinatorEndpoint) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint1.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
+                    // switch action:
+                    await endpoint2.configureReporting("genMultistateInput", [
+                        {
+                            attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    const endpoint3 = device.getEndpoint(3);
+                    await reporting.onOff(endpoint3, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+                    const endpoint4 = device.getEndpoint(4);
+                    await reporting.onOff(endpoint4, {
+                        min: 0,
+                        max: constants.repInterval.MAX,
+                        change: 1,
+                    });
+
+                    await endpoint3.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+                    await endpoint4.configureReporting("genOnOff", [
+                        {
+                            attribute: {ID: 0xff02, type: 0x10}, // Boolean
+                            minimumReportInterval: 0,
+                            maximumReportInterval: constants.repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ]);
+
+
+
+                }],
+                isModernExtend: true,
+            },
         ],
         meta: { multiEndpoint: true },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint1.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genMultistateInput"]);
-            // switch action:
-            await endpoint2.configureReporting("genMultistateInput", [
-                {
-                    attribute: {ID: 0x0055 /* presentValue */, type: 0x21}, // uint16
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.onOff(endpoint3, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.onOff(endpoint4, {
-                min: 0,
-                max: constants.repInterval.MAX,
-                change: 1,
-            });
-
-            await endpoint3.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-            await endpoint4.configureReporting("genOnOff", [
-                {
-                    attribute: {ID: 0xff02, type: 0x10}, // Boolean
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.MAX,
-                    reportableChange: 1,
-                },
-            ]);
-
-
-        },
         ota: true,
     },
 ];
