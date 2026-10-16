@@ -2,7 +2,6 @@
 #include "management_protocol.h"
 
 #include "base_components/button_dispatcher.h"
-#include "base_components/child_lock.h"
 #include "cluster_common.h"
 #include "zcl_cluster_defs.h"
 #include "zcl_ids.h"
@@ -155,13 +154,6 @@ static void button_event_cluster_emit(uint8_t endpoint,
     button_event_cluster_enqueue(endpoint, &payload);
 }
 
-/* A press that started under the child lock reaches the coordinator as
- * neither a button event nor a ButtonState change, so automations stay locked
- * too. */
-static bool button_event_cluster_button_down(uint8_t button_id) {
-    return button_input_is_down(button_id) && !child_lock_press_blocked(button_id);
-}
-
 void button_event_cluster_init(void) {
     button_event_cluster_count     = 0;
     button_event_seq               = 0;
@@ -195,6 +187,7 @@ void button_event_cluster_add_to_endpoint(
     }
     cluster->endpoint           = endpoint->endpoint;
     cluster->button_count       = button_count;
+    cluster->pressed_mask       = 0;
     cluster->button_state       = 0;
     cluster->last_event_seq     = 0;
     cluster->multi_click_gap_ms = multi_click_gap_ms;
@@ -203,10 +196,11 @@ void button_event_cluster_add_to_endpoint(
     cluster->config_changed_arg = config_changed_arg;
     for (uint8_t i = 0; i < button_count; i++) {
         cluster->button_ids[i] = button_ids[i];
-        if (button_event_cluster_button_down(button_ids[i])) {
-            cluster->button_state = 1;
+        if (button_input_is_down(button_ids[i])) {
+            cluster->pressed_mask |= (uint8_t)(1u << i);
         }
     }
+    cluster->button_state = cluster->pressed_mask != 0;
 
     SETUP_ATTR_FOR_TABLE(cluster->attr_infos, 0, ZCL_ATTR_BUTTON_EVENT_STATE,
                          ZCL_DATA_TYPE_ENUM8, HAL_ATTR_READ,
@@ -251,13 +245,13 @@ void button_event_cluster_sync_states(void) {
         zigbee_button_event_cluster *cluster =
             button_event_clusters[cluster_index];
 
-        cluster->button_state = 0;
+        cluster->pressed_mask = 0;
         for (uint8_t i = 0; i < cluster->button_count; i++) {
-            if (button_event_cluster_button_down(cluster->button_ids[i])) {
-                cluster->button_state = 1;
-                break;
+            if (button_input_is_down(cluster->button_ids[i])) {
+                cluster->pressed_mask |= (uint8_t)(1u << i);
             }
         }
+        cluster->button_state = cluster->pressed_mask != 0;
     }
 }
 
@@ -267,20 +261,22 @@ void button_event_cluster_on_button_event(const button_event_t *event,
 
     (void)arg;
     cluster = button_event_cluster_find_by_button(event->button_id);
-    if (cluster == NULL || child_lock_press_blocked(event->button_id)) {
+    if (cluster == NULL || event->locked) {
         return;
     }
-    if (event->type == BUTTON_EVENT_DOWN) {
-        cluster->button_state = 1;
-    } else {
-        cluster->button_state = 0;
-        for (uint8_t i = 0; i < cluster->button_count; i++) {
-            if (button_event_cluster_button_down(cluster->button_ids[i])) {
-                cluster->button_state = 1;
-                break;
-            }
+    for (uint8_t i = 0; i < cluster->button_count; i++) {
+        uint8_t bit = (uint8_t)(1u << i);
+
+        if (cluster->button_ids[i] != event->button_id) {
+            continue;
+        }
+        if (event->type == BUTTON_EVENT_DOWN) {
+            cluster->pressed_mask |= bit;
+        } else {
+            cluster->pressed_mask &= (uint8_t) ~bit;
         }
     }
+    cluster->button_state = cluster->pressed_mask != 0;
     hal_zigbee_notify_attribute_changed(cluster->endpoint,
                                         ZCL_CLUSTER_BUTTON_EVENT,
                                         ZCL_ATTR_BUTTON_EVENT_STATE);
@@ -297,7 +293,7 @@ void button_event_cluster_on_gesture_event(const gesture_event_t *event,
 
     (void)arg;
     cluster = button_event_cluster_find_by_button(event->button_id);
-    if (cluster == NULL || child_lock_press_blocked(event->button_id)) {
+    if (cluster == NULL || event->locked) {
         return;
     }
     if (event->type == GESTURE_HOLD_START) {

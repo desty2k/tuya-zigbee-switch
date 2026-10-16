@@ -2,7 +2,6 @@
 #include "management_protocol.h"
 #include "base_components/action_mapper.h"
 #include "base_components/button_dispatcher.h"
-#include "base_components/child_lock.h"
 #include "basic_cluster.h"
 #include "cluster_common.h"
 #include "zcl_cluster_defs.h"
@@ -76,7 +75,7 @@ static void cover_switch_cluster_button_event(const button_event_t *event,
             event->button_id != cluster->stop_button_id) {
             continue;
         }
-        if (child_lock_blocks(event)) {
+        if (event->locked) {
             return;
         }
         if (event->type == BUTTON_EVENT_DOWN) {
@@ -91,7 +90,7 @@ static void cover_switch_cluster_button_event(const button_event_t *event,
 static void cover_switch_cluster_gesture_event(const gesture_event_t *event,
                                                void *arg) {
     (void)arg;
-    if (event->type != GESTURE_HOLD_START) {
+    if (event->type != GESTURE_HOLD_START || event->locked) {
         return;
     }
     for (uint8_t i = 0; i < cover_switch_clusters_cnt; i++) {
@@ -99,9 +98,7 @@ static void cover_switch_cluster_gesture_event(const gesture_event_t *event,
 
         if (event->button_id == cluster->open_button_id ||
             event->button_id == cluster->close_button_id) {
-            if (!child_lock_press_blocked(event->button_id)) {
-                cover_switch_cluster_handle_hold(cluster, event->button_id);
-            }
+            cover_switch_cluster_handle_hold(cluster, event->button_id);
             return;
         }
     }

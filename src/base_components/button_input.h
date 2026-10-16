@@ -24,6 +24,10 @@ typedef struct {
     uint32_t            timestamp_ms;
     uint32_t            seq;
     uint32_t            press_id;
+
+    /* The press started while the child lock held this button; set by the
+     * button dispatcher, the same for the press's DOWN and UP. */
+    bool                locked;
 } button_event_t;
 
 typedef struct {

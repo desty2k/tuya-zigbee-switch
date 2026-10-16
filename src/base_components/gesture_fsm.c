@@ -11,6 +11,8 @@ typedef struct {
     bool        button_down;
     bool        hold_active;
     bool        suppressed;
+    bool        press_locked;  /* the current or last press */
+    bool        clicks_locked; /* any press of the pending click sequence */
     uint32_t    active_press_id;
     uint32_t    click_press_id;
     uint32_t    down_at_ms;
@@ -31,7 +33,8 @@ static uint32_t gesture_events_emitted;
 
 static void gesture_fsm_emit(uint8_t button_id, gesture_type_t type,
                              uint8_t count, uint16_t duration_ms,
-                             uint32_t press_id, uint32_t timestamp_ms) {
+                             uint32_t press_id, uint32_t timestamp_ms,
+                             bool locked) {
     gesture_event_t event = {
         .button_id    = button_id,
         .type         = type,
@@ -39,6 +42,7 @@ static void gesture_fsm_emit(uint8_t button_id, gesture_type_t type,
         .duration_ms  = duration_ms,
         .press_id     = press_id,
         .timestamp_ms = timestamp_ms,
+        .locked       = locked,
     };
 
     gesture_events_emitted++;
@@ -56,12 +60,14 @@ static void gesture_fsm_hold_expired(void *arg) {
     if (runtime->click_count != 0) {
         gesture_fsm_emit(runtime->button_id, GESTURE_N_CLICK,
                          runtime->click_count, 0, runtime->click_press_id,
-                         hal_millis());
-        runtime->click_count = 0;
+                         hal_millis(), runtime->clicks_locked);
+        runtime->click_count   = 0;
+        runtime->clicks_locked = false;
     }
     runtime->hold_active = true;
     gesture_fsm_emit(runtime->button_id, GESTURE_HOLD_START, 0, 0,
-                     runtime->active_press_id, hal_millis());
+                     runtime->active_press_id, hal_millis(),
+                     runtime->press_locked);
 }
 
 static void gesture_fsm_click_gap_expired(void *arg) {
@@ -72,8 +78,9 @@ static void gesture_fsm_click_gap_expired(void *arg) {
     }
     gesture_fsm_emit(runtime->button_id, GESTURE_N_CLICK,
                      runtime->click_count, 0, runtime->click_press_id,
-                     hal_millis());
-    runtime->click_count = 0;
+                     hal_millis(), runtime->clicks_locked);
+    runtime->click_count   = 0;
+    runtime->clicks_locked = false;
 }
 
 static void gesture_fsm_button_event(const button_event_t *event, void *arg) {
@@ -92,6 +99,7 @@ static void gesture_fsm_button_event(const button_event_t *event, void *arg) {
         uint32_t elapsed;
 
         runtime->button_down     = true;
+        runtime->press_locked    = event->locked;
         runtime->active_press_id = event->press_id;
         runtime->down_at_ms      = event->timestamp_ms;
         runtime->hold_active     = false;
@@ -116,16 +124,19 @@ static void gesture_fsm_button_event(const button_event_t *event, void *arg) {
         runtime->hold_active = false;
         gesture_fsm_emit(event->button_id, GESTURE_HOLD_END, 0,
                          (uint16_t)(event->timestamp_ms - runtime->down_at_ms),
-                         event->press_id, event->timestamp_ms);
+                         event->press_id, event->timestamp_ms,
+                         runtime->press_locked);
         return;
     }
     runtime->click_count++;
     runtime->click_press_id = event->press_id;
+    runtime->clicks_locked |= runtime->press_locked;
     if (runtime->click_count >= GESTURE_MAX_N_CLICK) {
         gesture_fsm_emit(event->button_id, GESTURE_N_CLICK,
                          runtime->click_count, 0, event->press_id,
-                         event->timestamp_ms);
-        runtime->click_count = 0;
+                         event->timestamp_ms, runtime->clicks_locked);
+        runtime->click_count   = 0;
+        runtime->clicks_locked = false;
         return;
     }
     timer_restart(&runtime->multi_click_timer, config->multi_click_gap_ms);
@@ -154,6 +165,8 @@ void gesture_fsm_add(uint8_t button_id, const gesture_config_t *config) {
     runtime->button_down     = button_input_is_down(button_id);
     runtime->hold_active     = false;
     runtime->suppressed      = button_input_boot_press(button_id);
+    runtime->press_locked    = false;
+    runtime->clicks_locked   = false;
     runtime->active_press_id = 0;
     runtime->click_press_id  = 0;
     runtime->down_at_ms      = hal_millis();
@@ -192,13 +205,14 @@ void gesture_fsm_resync(uint8_t button_id) {
 
         gesture_fsm_emit(button_id, GESTURE_HOLD_END, 0,
                          (uint16_t)(now - runtime->down_at_ms),
-                         runtime->active_press_id, now);
+                         runtime->active_press_id, now, runtime->press_locked);
     }
-    runtime->hold_active = false;
-    runtime->click_count = 0;
-    runtime->button_down = button_input_is_down(button_id);
-    runtime->suppressed  = runtime->button_down;
-    runtime->down_at_ms  = hal_millis();
+    runtime->hold_active   = false;
+    runtime->click_count   = 0;
+    runtime->clicks_locked = false;
+    runtime->button_down   = button_input_is_down(button_id);
+    runtime->suppressed    = runtime->button_down;
+    runtime->down_at_ms    = hal_millis();
 }
 
 bool gesture_fsm_hold_active(uint8_t button_id) {
