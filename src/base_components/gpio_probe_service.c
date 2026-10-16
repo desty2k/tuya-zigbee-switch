@@ -413,15 +413,11 @@ void gpio_probe_service_claim(uint8_t port, uint8_t index) {
     build_pin_list();
 }
 
-void gpio_probe_service_rest_pins(void) {
+void gpio_probe_service_enable(void) {
     build_pin_list();
     for (uint8_t i = 0; i < pin_count; i++) {
         release(pins[i]);
     }
-}
-
-void gpio_probe_service_enable(void) {
-    gpio_probe_service_rest_pins();
     enabled = true;
 }
 

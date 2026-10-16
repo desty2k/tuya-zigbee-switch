@@ -138,7 +138,8 @@ on the device without reflashing: write it to the Device Config `text`
 attribute (cluster `0xFC10`), the device reboots into it, its buttons and
 relays work through the usual endpoints, and the probe keeps working on every
 pin the config does not claim. A config with a token for a feature the image
-lacks boots the recovery graph, which disables the probe; write a config
+lacks boots the recovery graph, which disables the probe and rests every
+pin on the pull-down, as in every image; write a config
 without that token to get it back. When probing a cover device, configure its
 two motor relays as plain relays in one interlock group (`RA0;RA1;K03;`, with
 the default 200 ms dead time) so the two directions are never energised
@@ -190,7 +191,7 @@ defined in `helper_scripts/management_protocol.json`):
 
 | Step | Effect |
 | --- | --- |
-| Boot | Every probeable pin becomes an input with the 100 kΩ pull-down (the rest state), so no relay driver input floats and half-energises its coil on mains hum; nothing is persisted. The recovery graph rests every pin the same way |
+| Boot | Every probeable pin becomes an input with the 100 kΩ pull-down (the rest state), so no relay driver input floats and half-energises its coil on mains hum; nothing is persisted. The recovery graph of every image rests the same pins the same way (`hal_gpio_rest_all()`) |
 | Snapshot | Reads every probeable pin without changing its mode |
 | Pull test | Pull-up (10 kΩ), pull-down (100 kΩ), twice, 25 ms each; classifies each pin *floating*, *driven high*, *driven low* or *active*; ends in the rest state. A relay driven through a transistor with a base resistor of about 20 kΩ or more classifies *floating* and may click during the pull-up phases; one with a low base resistor (a few kΩ) reads *driven low* |
 | Watch | Counts rising edges on up to 2 pins for 1–300 s: count, min/max interval, last level; a pin above 20 kHz is stopped and flagged |

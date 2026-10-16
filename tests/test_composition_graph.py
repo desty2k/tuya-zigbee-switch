@@ -223,6 +223,10 @@ def test_preflight_counts_exactly_the_registered_graph(config: str) -> None:
         proc.stop()
 
 
+# hal_gpio_pull_t in src/hal/gpio.h
+HAL_GPIO_PULL_DOWN = 3
+
+
 def _assert_recovery_graph(proc: StubProc) -> None:
     device = Device(proc)
     assert device.read_zigbee_attr(1, ZCL_CLUSTER_BASIC, ZCL_ATTR_BASIC_MODEL_ID) == "recovery"
@@ -296,3 +300,18 @@ def test_refused_zigbee_init_leaves_relays_off_and_inputs_inactive() -> None:
         device.click_button("A0")
         device.step_time(1000)
         assert device.get_gpio("B0", refresh=True) is False
+
+
+def test_refused_zigbee_init_keeps_wired_relays_driven_and_rests_the_rest() -> None:
+    with StubProc(
+        cmd=["./build/stub/stub_device", "--fail-zigbee-init"], device_config="M;Safe;SA0u;RB0;"
+    ) as proc:
+        device = Device(proc)
+        _assert_recovery_graph(proc)
+        # The wired relay stays an output driven off; every other pin,
+        # including the wired switch input, rests on the pull-down.
+        assert device.pin_state("B0") == {"initialized": 1, "input": 0, "pull": 0, "value": 0}
+        for pin in ("A0", "A1", "C0", "D3"):
+            assert device.pin_state(pin) == {
+                "initialized": 1, "input": 1, "pull": HAL_GPIO_PULL_DOWN, "value": 0,
+            }, pin

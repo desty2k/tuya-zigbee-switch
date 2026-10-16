@@ -26,6 +26,7 @@
 #include "base_components/network_indicator.h"
 #include "base_components/relay_controller.h"
 #include "base_components/relay_driver.h"
+#include "hal/gpio.h"
 #include "hal/zigbee_ota.h"
 #include "zigbee/basic_cluster.h"
 #include "zigbee/battery_cluster.h"
@@ -882,13 +883,16 @@ static void stop_wired_features(void) {
 void feature_wiring_build_recovery(void) {
     stop_wired_features();
 #if FEATURE_PROBE
-    /*
-     * Which pins a failed graph drives is unknown, so the probe stays off;
-     * every pin still rests on the pull-down, so no relay driver floats.
-     */
+    /* Which pins a failed graph drives is unknown, so the probe stays off. */
     gpio_probe_service_init();
-    gpio_probe_service_rest_pins();
 #endif
+
+    /*
+     * Pins of a rejected config were never configured, so a relay driver
+     * input behind one would float. Relays a failed build already wired stay
+     * outputs, driven off by stop_wired_features().
+     */
+    hal_gpio_rest_all();
     memset(endpoints, 0, sizeof(endpoints));
     memset(clusters, 0, sizeof(clusters));
     memset(&basic_cluster, 0, sizeof(basic_cluster));

@@ -8,32 +8,9 @@
 #include <stdint.h>
 #include <string.h>
 
-/*
- * TLSR8258 probe table: ports A-D. Left out: PA7 (SWS, the only way back to
- * stock firmware), port E (PE0-PE3 are the internal flash SPI), PB1 when the
- * debug UART is on, PC2/PC3 when a 32 kHz crystal is fitted. The 24 MHz
- * crystal has dedicated pads.
- */
-static const hal_gpio_probe_id_t probe_pins[] = {
-    HAL_GPIO_PROBE_ID(0, 0), HAL_GPIO_PROBE_ID(0, 1), HAL_GPIO_PROBE_ID(0, 2),
-    HAL_GPIO_PROBE_ID(0, 3), HAL_GPIO_PROBE_ID(0, 4), HAL_GPIO_PROBE_ID(0, 5),
-    HAL_GPIO_PROBE_ID(0, 6),
-    HAL_GPIO_PROBE_ID(1, 0),
-#if !UART_PRINTF_MODE
-    HAL_GPIO_PROBE_ID(1, 1),
-#endif
-    HAL_GPIO_PROBE_ID(1, 2), HAL_GPIO_PROBE_ID(1, 3), HAL_GPIO_PROBE_ID(1, 4),
-    HAL_GPIO_PROBE_ID(1, 5), HAL_GPIO_PROBE_ID(1, 6), HAL_GPIO_PROBE_ID(1, 7),
-    HAL_GPIO_PROBE_ID(2, 0), HAL_GPIO_PROBE_ID(2, 1),
-#if !defined(CLOCK_32K_EXT_CRYSTAL) || !CLOCK_32K_EXT_CRYSTAL
-    HAL_GPIO_PROBE_ID(2, 2), HAL_GPIO_PROBE_ID(2, 3),
-#endif
-    HAL_GPIO_PROBE_ID(2, 4), HAL_GPIO_PROBE_ID(2, 5), HAL_GPIO_PROBE_ID(2, 6),
-    HAL_GPIO_PROBE_ID(2, 7),
-    HAL_GPIO_PROBE_ID(3, 0), HAL_GPIO_PROBE_ID(3, 1), HAL_GPIO_PROBE_ID(3, 2),
-    HAL_GPIO_PROBE_ID(3, 3), HAL_GPIO_PROBE_ID(3, 4), HAL_GPIO_PROBE_ID(3, 5),
-    HAL_GPIO_PROBE_ID(3, 6), HAL_GPIO_PROBE_ID(3, 7),
-};
+/* The probe table is the rest set of hal_gpio_rest_all() (gpio.c). */
+static hal_gpio_probe_id_t probe_pins[HAL_GPIO_PROBE_MAX_PINS];
+static uint8_t             probe_pin_count;
 
 /*
  * 100 kOhm pull-down against a few pF of pad and trace settles in well under
@@ -138,8 +115,16 @@ static bool register_isr(uint8_t slot) {
 }
 
 uint8_t hal_gpio_probe_pins(const hal_gpio_probe_id_t **ids) {
+    if (probe_pin_count == 0) {
+        const hal_gpio_pin_t *rest;
+        uint8_t count = telink_gpio_rest_pins(&rest);
+
+        for (uint8_t i = 0; i < count && i < HAL_GPIO_PROBE_MAX_PINS; i++) {
+            probe_pins[probe_pin_count++] = hal_gpio_probe_id_from_pin(rest[i]);
+        }
+    }
     *ids = probe_pins;
-    return (uint8_t)(sizeof(probe_pins) / sizeof(probe_pins[0]));
+    return probe_pin_count;
 }
 
 uint8_t hal_gpio_probe_read(hal_gpio_probe_id_t id) {

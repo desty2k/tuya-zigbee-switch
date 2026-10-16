@@ -116,6 +116,46 @@ void hal_gpio_init(hal_gpio_pin_t gpio_pin, uint8_t is_input,
     }
 }
 
+/*
+ * EFR32MG21/MG22 general-purpose pins: every pin of ports A-D the part
+ * bonds out. Left out: PA1/PA2 (SWCLK/SWDIO, the debug and recovery
+ * interface), PA5/PA6 while the debug USART owns them, PD0/PD1 while the
+ * LFXO runs on them. The HFXO has dedicated pads. PA3/PA4 (SWV and JTAG TDI)
+ * stay in: SWD does not use them and boards wire switches and relays to them.
+ */
+static bool rest_reserved(GPIO_Port_TypeDef port, uint8_t pin) {
+    if (port == gpioPortA && (pin == 1 || pin == 2)) {
+        return true;
+    }
+#if defined(SL_CATALOG_IOSTREAM_USART_PRESENT)
+    if (port == gpioPortA && (pin == 5 || pin == 6)) {
+        return true;
+    }
+#endif
+#if defined(SL_CATALOG_DEVICE_INIT_LFXO_PRESENT)
+    if (port == gpioPortD && (pin == 0 || pin == 1)) {
+        return true;
+    }
+#endif
+    return false;
+}
+
+void hal_gpio_rest_all(void) {
+    hal_gpio_ensure_clock();
+    for (uint8_t port = gpioPortA; port <= gpioPortD; port++) {
+        for (uint8_t pin = 0; pin < 16; pin++) {
+            sl_gpio_t sl_gpio = { .port = port, .pin = pin };
+
+            if (!GPIO_PORT_PIN_VALID(port, pin) ||
+                rest_reserved((GPIO_Port_TypeDef)port, pin) ||
+                GPIO_PinModeGet((GPIO_Port_TypeDef)port, pin) > gpioModeInputPullFilter) {
+                continue;
+            }
+            sl_gpio_set_pin_mode(&sl_gpio, SL_GPIO_MODE_INPUT_PULL, 0);
+        }
+    }
+}
+
 void hal_gpio_set(hal_gpio_pin_t gpio_pin) {
     const sl_gpio_t sl_gpio = silabs_hal_gpio_to_sl_gpio(gpio_pin);
 
