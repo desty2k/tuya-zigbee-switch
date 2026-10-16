@@ -49,7 +49,7 @@ Attach the wires to your UART as follows:
 
 ### Step 3: Flash the Firmware
 
-Download the full firmware for your device from [bin/](https://github.com/romasku/tuya-zigbee-switch/raw/refs/heads/main/bin).  
+Download the full firmware image for your board from [bin/](https://github.com/desty2k/tuya-zigbee-switch/tree/refactor/input-pipeline/bin): `bin/router/<BOARD>/tlc_switch-<version>.bin`, or `bin/end_device/<BOARD>_END_DEVICE/` for end-device firmware ([router or end device](../updating.md#router-or-end-device)). The `.zigbee` files are OTA images and cannot be flashed by wire.  
 
 Plug the UART into your PC, then open pvvx's [web flasher](https://pvvx.github.io/ATC_MiThermometer/USBCOMFlashTx.html).  
 

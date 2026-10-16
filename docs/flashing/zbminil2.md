@@ -4,6 +4,9 @@
 
 Device uses cryptographic protection and so stock firmware cannot be dumped and restored. Proceed with caution.
 
+> [!NOTE]
+> Silabs images of the 2.x firmware are not hardware-tested yet ([known_issues.md](../known_issues.md#release-status)).
+
 ### What You'll Need
 
 - A J-Link programmer (JLink v9 confirmed to work)
@@ -58,7 +61,7 @@ Connect:
 
 ### Step 3: Flash the Firmware
 
-Download both the bootloader and firmware for your device from [bin/](https://github.com/romasku/tuya-zigbee-switch/raw/refs/heads/main/bin). You'll need the `efr32mg22_bootloader_sonoff_zbminil2.s37` and the `.s37` file with router/end_device firmware.
+Download both the bootloader and the firmware from [bin/](https://github.com/desty2k/tuya-zigbee-switch/tree/refactor/input-pipeline/bin): `bin/efr32mg22_bootloader_module_sonoff_zbminil2.s37` and the `.s37` image from `bin/router/MODULE_SONOFF_ZBMINIL2/` (router) or `bin/end_device/MODULE_SONOFF_ZBMINIL2_END_DEVICE/` (end device).
 
 #### Using Commander Software
 
@@ -93,7 +96,7 @@ Now you'll need to flash both the bootloader and firmware separately.
 
    ![commander ](/docs/.images/commander_browse.png)
 
-2. Select the bootloader file (`efr32mg22_bootloader_sonoff_zbminil2.s37`).  
+2. Select the bootloader file (`efr32mg22_bootloader_module_sonoff_zbminil2.s37`).  
   Screenshot is just illustration, please use zbminil2 file:
 
    ![commander ](/docs/.images/commander_select_bootloader.png)
@@ -102,7 +105,7 @@ Now you'll need to flash both the bootloader and firmware separately.
 
    ![commander ](/docs/.images/commander_flash.png)
 
-4. Now select your device-specific firmware file (`bin/*/SONOFF_ZBMINIL2/*.s37`) and press "Flash" again.  
+4. Now select the firmware file (`.s37` from `bin/router/MODULE_SONOFF_ZBMINIL2/` or `bin/end_device/MODULE_SONOFF_ZBMINIL2_END_DEVICE/`) and press "Flash" again.  
   Screenshot is just illustration, please use zbminil2 file. Wait until the process finishes:
 
    ![commander ](/docs/.images/commander_select_firmware.png)
