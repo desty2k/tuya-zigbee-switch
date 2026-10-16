@@ -3,9 +3,14 @@
 
 #include "base_components/indicator_feedback.h"
 #include "base_components/relay_controller.h"
+#include "device_config/build_features.h"
 #include <stdint.h>
 
 #include "hal/zigbee.h"
+
+/* OnOff, StartUpOnOff and InchingDuration; InterlockGroup follows in images
+ * with the interlock feature. */
+#define RELAY_CLUSTER_BASE_ATTRIBUTES         (3 + FEATURE_INTERLOCK)
 
 /* Indicator mode and state: the last attr_infos entries, present only on an
  * endpoint that has an indicator LED. */
@@ -16,7 +21,8 @@ typedef struct {
     uint8_t               endpoint;
     uint8_t               startup_mode;
     uint8_t               indicator_led_mode;
-    hal_zigbee_attribute  attr_infos[6];
+    hal_zigbee_attribute  attr_infos[RELAY_CLUSTER_BASE_ATTRIBUTES +
+                                     RELAY_CLUSTER_INDICATOR_ATTRIBUTES];
     uint8_t               relay_id;
     uint8_t               on_off;
     indicator_feedback_t *indicator_led;
