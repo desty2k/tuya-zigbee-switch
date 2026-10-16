@@ -4,6 +4,10 @@ import yaml
 
 from pathlib import Path
 
+from board_features import board_features, build_features
+
+FEATURE_ORDER = build_features()
+
 
 PROTOCOL = json.loads((Path(__file__).resolve().parent / "management_protocol.json").read_text())
 MANUFACTURER_CODE = PROTOCOL["manufacturer_code"]
@@ -287,10 +291,8 @@ if __name__ == "__main__":
             })
 
         if relay_cnt:
-            # A relay interlock group needs two relays to lock against each other: more
-            # than one relay, a K group, or a cover's relays.
-            has_interlock_groups = (relay_cnt > 1 or cover_cnt > 0 or
-                                    any(peripheral[0] == "K" for peripheral in peripherals))
+            # The InterlockGroup attribute exists only in images with the interlock feature.
+            has_interlock_groups = "interlock" in board_features(device, FEATURE_ORDER)
             relay_options = {
                 "customAttributes": {
                     "relayInchingDuration": {"type": "value", "clusterId": 0x0006, "attributeId": 0xff03, "dataType": 0x21, "action": True},

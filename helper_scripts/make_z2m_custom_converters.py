@@ -4,6 +4,10 @@ from pathlib import Path
 import yaml
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+from board_features import board_features, build_features
+
+FEATURE_ORDER = build_features()
+
 env = Environment(
     loader=FileSystemLoader("helper_scripts/templates"),
     autoescape=select_autoescape(),
@@ -69,10 +73,8 @@ if __name__ == "__main__":
             if peripheral[0] == "E":
                 has_meter = True
 
-        # A relay interlock group needs two relays to lock against each other: more
-        # than one relay, a K group, or a cover's relays.
-        has_interlock_groups = (relay_cnt > 1 or cover_cnt > 0 or
-                                any(peripheral[0] == "K" for peripheral in peripherals))
+        # The InterlockGroup attribute exists only in images with the interlock feature.
+        has_interlock_groups = "interlock" in board_features(device, FEATURE_ORDER)
 
         if switch_cnt == 1:
             switch_names = ["switch"]
