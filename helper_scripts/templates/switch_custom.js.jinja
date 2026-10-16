@@ -907,6 +907,7 @@ const definitions = [
             {% for coverName in device.coverNames %}
             const cover{{loop.index}} = device.getEndpoint({{loop.index + (device.switchNames | length) + (device.relayNames | length) + (device.coverSwitchNames | length)}});
             await reporting.bind(cover{{loop.index}}, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(cover{{loop.index}});
             await cover{{loop.index}}.configureReporting("closuresWindowCovering", [
                 {
                     attribute: "moving",
