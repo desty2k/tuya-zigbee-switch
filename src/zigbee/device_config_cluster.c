@@ -1,6 +1,8 @@
 #include "device_config_cluster.h"
 
 #include "cluster_common.h"
+#include "zcl_frame_check.h"
+#include "zcl_ids.h"
 #include "zcl_types.h"
 #include "device_config/device_config_service.h"
 #include "management_protocol.h"
@@ -26,15 +28,43 @@ static void sync_cluster(void) {
     instance->child_lock        = state->child_lock;
 }
 
-/* Converters read the lock instead of configuring a report for it (the
- * Telink reporting table is full on 4-gang boards); the change is still
- * flagged for a report configured by hand. */
+/* Converters do not configure a report for the lock (the Telink reporting
+ * table is full on 4-gang boards) and do not bind this cluster, so a lock
+ * change is sent once as an unsolicited Report Attributes to the
+ * coordinator. A remote write needs none: the writer has the value. A
+ * change while not joined is not sent; converters read the lock on
+ * configure. The change is still flagged for a report configured by
+ * hand. */
+static void report_child_lock(void) {
+    const uint8_t  payload[] = { (uint8_t)(ZCL_ATTR_DEVICE_CONFIG_CHILD_LOCK & 0xFFu),
+                                 (uint8_t)(ZCL_ATTR_DEVICE_CONFIG_CHILD_LOCK >> 8),
+                                 ZCL_DATA_TYPE_BOOLEAN, instance->child_lock };
+    hal_zigbee_cmd cmd = {
+        .endpoint            = instance->endpoint,
+        .profile_id          = ZCL_HA_PROFILE,
+        .cluster_id          = ZCL_CLUSTER_DEVICE_CONFIG,
+        .command_id          = ZCL_FRAME_CMD_REPORT,
+        .cluster_specific    =                                   0,
+        .direction           = HAL_ZIGBEE_DIR_SERVER_TO_CLIENT,
+        .disable_default_rsp =                                   1,
+        .manufacturer_code   = ZIGBEE_MANAGEMENT_MANUFACTURER_CODE,
+        .payload             = payload,
+        .payload_len         = sizeof(payload),
+    };
+
+    (void)hal_zigbee_send_cmd_to_coordinator(&cmd);
+    hal_zigbee_notify_attribute_changed(instance->endpoint, ZCL_CLUSTER_DEVICE_CONFIG,
+                                        ZCL_ATTR_DEVICE_CONFIG_CHILD_LOCK);
+}
+
 static void service_changed(void) {
+    uint8_t child_lock;
+
+    if (instance == NULL) return;
+
+    child_lock = instance->child_lock;
     sync_cluster();
-    if (instance != NULL) {
-        hal_zigbee_notify_attribute_changed(instance->endpoint, ZCL_CLUSTER_DEVICE_CONFIG,
-                                            ZCL_ATTR_DEVICE_CONFIG_CHILD_LOCK);
-    }
+    if (instance->child_lock != child_lock) report_child_lock();
 }
 
 static hal_zigbee_cmd_result_t attr_write(uint8_t endpoint,

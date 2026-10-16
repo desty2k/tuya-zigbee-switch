@@ -254,9 +254,9 @@ hal_zigbee_send_cmd_to_coordinator(const hal_zigbee_cmd *cmd) {
     }
     bytes_to_hexstr(cmd->payload, cmd->payload_len, buffer);
     io_evt("zcl_cmd_send dst=coordinator ep=%u cluster=0x%04X cmd=0x%02X "
-           "len=%u data_hex=%s",
-           cmd->endpoint, cmd->cluster_id, cmd->command_id, cmd->payload_len,
-           buffer);
+           "specific=%u dir=%u mfr=0x%04X len=%u data_hex=%s",
+           cmd->endpoint, cmd->cluster_id, cmd->command_id, cmd->cluster_specific,
+           cmd->direction, cmd->manufacturer_code, cmd->payload_len, buffer);
     return HAL_ZIGBEE_OK;
 }
 

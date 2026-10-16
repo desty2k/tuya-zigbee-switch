@@ -12,6 +12,7 @@ import pytest
 
 from client import StubProc
 from conftest import Device, MINIMUM_SWITCH_TIME_MS
+from management_protocol_consts import ZIGBEE_MANAGEMENT_MANUFACTURER_CODE
 from zcl_consts import (
     ZCL_ATTR_DEVICE_CONFIG_CHILD_LOCK,
     ZCL_ATTR_DEVICE_CONFIG_LAST_ERROR,
@@ -121,6 +122,13 @@ def bound_commands(d: Device) -> list:
     return d.zcl_list_cmds()
 
 
+def lock_reports(d: Device) -> list[dict]:
+    """Report Attributes frames sent to the coordinator for Device Config."""
+    return [evt.payload for evt in d._events
+            if evt.kind == "zcl_cmd_send" and evt.payload.get("dst") == "coordinator"
+            and int(evt.payload["cluster"], 16) == ZCL_CLUSTER_DEVICE_CONFIG]
+
+
 # ---------------------------------------------------------------------------
 # Cover switch
 # ---------------------------------------------------------------------------
@@ -137,6 +145,31 @@ def test_cover_hold_stop_5s_locks_with_three_blinks(shutter: Device):
     assert led_switched_on(shutter, "D2") == 3
     assert led(shutter, "D2") == 0
     shutter.wait_for_attr_change(1, ZCL_CLUSTER_DEVICE_CONFIG, ZCL_ATTR_DEVICE_CONFIG_CHILD_LOCK)
+
+
+def test_gesture_reports_the_lock_to_the_coordinator(shutter: Device):
+    shutter.clear_events()
+    hold(shutter, ("A0",), STOP_HOLD_MS)
+    shutter.step_time(BLINKS_DONE_MS)
+    hold(shutter, ("A0",), STOP_HOLD_MS)
+
+    # Global Report Attributes, server to client, manufacturer specific:
+    # attribute 0x0012, type boolean (0x10), value.
+    reports = lock_reports(shutter)
+    assert [r["data_hex"].lower() for r in reports] == ["12001001", "12001000"]
+    for r in reports:
+        assert (int(r["cmd"], 16), r["specific"], r["dir"]) == (0x0A, "0", "1")
+        assert int(r["mfr"], 16) == ZIGBEE_MANAGEMENT_MANUFACTURER_CODE
+        assert int(r["ep"]) == 1
+
+
+def test_remote_writes_send_no_lock_report(shutter: Device):
+    shutter.clear_events()
+    shutter.write_zigbee_attr(1, ZCL_CLUSTER_DEVICE_CONFIG,
+                              ZCL_ATTR_DEVICE_CONFIG_STATUS_LED_MODE, 1)
+    write_lock(shutter, 1)
+    write_lock(shutter, 0)
+    assert lock_reports(shutter) == []
 
 
 def test_cover_release_before_5s_does_not_lock(shutter: Device):
