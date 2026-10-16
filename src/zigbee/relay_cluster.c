@@ -59,10 +59,12 @@ static hal_zigbee_cmd_result_t relay_cluster_attr_write(
         if (cluster->attr_infos[i].attribute_id != attribute_id) continue;
         if (candidate_len != cluster->attr_infos[i].size) return HAL_ZIGBEE_INVALID_VALUE;
 
+#if FEATURE_INTERLOCK
         if (attribute_id == ZCL_ATTR_ONOFF_INTERLOCK_GROUP &&
             !relay_cluster_interlock_group_allowed(cluster, candidate[0])) {
             return HAL_ZIGBEE_INVALID_VALUE;
         }
+#endif
 
         if (phase == HAL_ZIGBEE_ATTR_COMMIT) {
             memcpy(cluster->attr_infos[i].value, candidate, candidate_len);
@@ -117,12 +119,16 @@ void relay_cluster_add_to_endpoint(zigbee_relay_cluster *cluster,
                cluster->startup_mode);
     SETUP_ATTR(2, ZCL_ATTR_ONOFF_INCHING_DURATION, ZCL_DATA_TYPE_UINT16,
                (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->inching_ms);
+#if FEATURE_INTERLOCK
     SETUP_ATTR(3, ZCL_ATTR_ONOFF_INTERLOCK_GROUP, ZCL_DATA_TYPE_UINT8,
                (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->interlock_group);
+#endif
     if (cluster->indicator_led != NULL) {
-        SETUP_ATTR(4, ZCL_ATTR_ONOFF_INDICATOR_MODE, ZCL_DATA_TYPE_ENUM8,
-                   (HAL_ATTR_READ | HAL_ATTR_WRITE), cluster->indicator_led_mode);
-        SETUP_ATTR(5, ZCL_ATTR_ONOFF_INDICATOR_STATE, ZCL_DATA_TYPE_BOOLEAN,
+        SETUP_ATTR(RELAY_CLUSTER_BASE_ATTRIBUTES, ZCL_ATTR_ONOFF_INDICATOR_MODE,
+                   ZCL_DATA_TYPE_ENUM8, (HAL_ATTR_READ | HAL_ATTR_WRITE),
+                   cluster->indicator_led_mode);
+        SETUP_ATTR(RELAY_CLUSTER_BASE_ATTRIBUTES + 1, ZCL_ATTR_ONOFF_INDICATOR_STATE,
+                   ZCL_DATA_TYPE_BOOLEAN,
                    (HAL_ATTR_READ | HAL_ATTR_WRITE | HAL_ATTR_REPORT),
                    cluster->indicator_state);
     }
@@ -299,10 +305,12 @@ static void relay_cluster_on_write_attr(zigbee_relay_cluster *cluster,
     if (attribute_id == ZCL_ATTR_ONOFF_INCHING_DURATION) {
         relay_ctrl_set_inching_ms(cluster->relay_id, cluster->inching_ms);
     }
+#if FEATURE_INTERLOCK
     if (attribute_id == ZCL_ATTR_ONOFF_INTERLOCK_GROUP) {
         interlock_set_relay_group(cluster->relay_id,
                                   cluster->interlock_group);
     }
+#endif
 
     /* Entering manual mode shows the stored state; outside manual mode a
     * written state is replaced by the relay-derived one and reported. */

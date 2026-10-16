@@ -10,6 +10,7 @@ Please describe what you are working on, under ## Upcoming
 
 ## Upcoming
 
+- Images without the interlock feature (single-relay boards without a cover) have no relay `InterlockGroup` (`0xFF04`) attribute, and Zigbee2MQTT, ZHA and HOMEd offer the interlock group only on boards whose image has it. The attribute accepted only 0 there: a single relay has nothing to interlock with.
 - **Child lock**: a press that starts while the device is locked sends no Button Event (`0xFC02`) commands and leaves `ButtonState` released, so automations on button actions are locked too. Locked detached switches sent their press, click and hold events to the coordinator.
 - Config strings with the `U` pull suffix (weak 1 MΩ pull-up; Silabs uses its only pull-up) are accepted again; they booted the recovery graph (`OUTLET_TUYA_PM_TS011F`, `SWITCH_IHSENO_TS0001`, `SWITCH_IHSENO_TS0002`).
 - A battery pin (`BT`) may share a button pin, as the battery remotes measure VBAT through one; their config strings booted the recovery graph.

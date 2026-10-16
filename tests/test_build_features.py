@@ -17,6 +17,7 @@ from management_protocol_consts import (
 from zcl_consts import (
     ZCL_ATTR_BASIC_MODEL_ID,
     ZCL_ATTR_ONOFF,
+    ZCL_ATTR_ONOFF_INCHING_DURATION,
     ZCL_ATTR_ONOFF_INTERLOCK_GROUP,
     ZCL_CLUSTER_BASIC,
     ZCL_CLUSTER_ON_OFF,
@@ -75,21 +76,21 @@ def test_switch_only_image_runs_the_ts0726_4gang_config() -> None:
         assert device.get_gpio("C3", refresh=True) is True
 
 
-def test_image_without_interlock_keeps_relays_ungrouped() -> None:
+def test_image_without_interlock_has_no_interlock_group_attribute() -> None:
     with StubProc(cmd=SWITCH_ONLY_CMD, device_config="M;Relay;SA0u;RB0;") as proc:
         device = Device(proc)
         # The relay follows the switch endpoint.
-        assert device.read_zigbee_attr(
-            2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF_INTERLOCK_GROUP
-        ) == "0"
+        read = proc.exec(
+            f"zcl_read 2 0x{ZCL_CLUSTER_ON_OFF:04X} 0x{ZCL_ATTR_ONOFF_INTERLOCK_GROUP:04X}"
+        )
+        assert not read.ok
         assert not proc.exec(
-            f"zcl_write 2 0x{ZCL_CLUSTER_ON_OFF:04X} "
-            f"0x{ZCL_ATTR_ONOFF_INTERLOCK_GROUP:04X} 1"
-        ).ok
-        assert proc.exec(
             f"zcl_write 2 0x{ZCL_CLUSTER_ON_OFF:04X} "
             f"0x{ZCL_ATTR_ONOFF_INTERLOCK_GROUP:04X} 0"
         ).ok
+        assert device.read_zigbee_attr(
+            2, ZCL_CLUSTER_ON_OFF, ZCL_ATTR_ONOFF_INCHING_DURATION
+        ) == "0"
         device.zcl_relay_on(2)
         device.step_time(10)
         assert device.zcl_relay_get(2) == "1"

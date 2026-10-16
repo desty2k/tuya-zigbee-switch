@@ -3,6 +3,8 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pathlib import Path
 import yaml
 
+from board_features import board_features, build_features
+
 
 env = Environment(
     loader=FileSystemLoader("helper_scripts/templates"),
@@ -25,6 +27,7 @@ if __name__ == "__main__":
     db_str = Path(args.db_file).read_text()
     db = yaml.safe_load(db_str)
 
+    FEATURE_ORDER = build_features()
     configs = []
 
     for device in db.values():
@@ -33,6 +36,7 @@ if __name__ == "__main__":
         if not device.get("build", True):
             continue
         
+        has_interlock = "interlock" in board_features(device, FEATURE_ORDER)
         fields = device["config_str"].split(";")
         current_mf_name = fields[0]
         current_zb_model = fields[1]
@@ -49,7 +53,7 @@ if __name__ == "__main__":
                 new_fields = fields[:]  # copy
                 new_fields[0] = mf
                 new_fields[1] = zb
-                configs.append(";".join(new_fields))
+                configs.append((";".join(new_fields), has_interlock))
 
 
     template = env.get_template("zha_quirk.py.jinja")
