@@ -41,6 +41,8 @@ typedef struct {
     uint8_t                       endpoint;
     uint8_t                       button_ids[ZB_BUTTON_EVENT_MAX_BUTTONS];
     uint8_t                       button_count;
+    /* Bit i: button_ids[i] is down in an unlocked press. */
+    uint8_t                       pressed_mask;
     uint8_t                       button_state;
     uint16_t                      last_event_seq;
     uint16_t                      multi_click_gap_ms;

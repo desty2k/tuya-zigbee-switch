@@ -26,6 +26,8 @@ typedef struct {
     uint16_t       duration_ms;
     uint32_t       press_id;
     uint32_t       timestamp_ms;
+    /* A press the gesture is made of was locked (button_event_t.locked). */
+    bool           locked;
 } gesture_event_t;
 
 typedef struct {

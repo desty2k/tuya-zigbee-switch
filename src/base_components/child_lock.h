@@ -39,7 +39,15 @@ typedef bool (*child_lock_gesture_enabled_t)(void *context);
 
 /** Forgets every gesture and the indicator; keeps the lock state and store. */
 void child_lock_reset_wiring(void);
+
+/**
+ * Makes the lock the button dispatcher's lock stage, which stamps
+ * button_event_t.locked, and tracks the lock gestures.
+ */
 void child_lock_register_input(void);
+
+/** The lock applies to this button: a switch or cover-switch input. */
+bool child_lock_add_button(uint8_t button_id);
 
 /**
  * Holding `first` (and `second`, unless it is CHILD_LOCK_NO_BUTTON) for
@@ -54,16 +62,5 @@ void child_lock_set_store(child_lock_store_t store, void *context);
 /** Sets the lock without feedback or observer call (remote write, boot). */
 void child_lock_set(bool locked);
 bool child_lock_is_on(void);
-
-/**
- * Whether a local input consumer must ignore this button event. A press that
- * starts while locked is ignored up to and including its release, and blinks
- * the indicator once; a press that started unlocked completes normally even
- * if the lock engages while it is held.
- */
-bool child_lock_blocks(const button_event_t *event);
-
-/** Whether the current or last press of the button started while locked. */
-bool child_lock_press_blocked(uint8_t button_id);
 
 #endif

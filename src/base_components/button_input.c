@@ -40,6 +40,7 @@ static void button_input_commit(uint8_t button_id, button_state_t state,
     event.timestamp_ms = timestamp_ms;
     event.seq          = button_event_seq++;
     event.press_id     = runtime->press_id;
+    event.locked       = false;
     button_events_emitted++;
     button_dispatcher_emit(&event);
 }
