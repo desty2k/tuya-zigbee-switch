@@ -10,6 +10,10 @@ Please describe what you are working on, under ## Upcoming
 
 ## Upcoming
 
+## v2.0.0-rc.5
+
+- Images for every built board are published in this repository, and the Zigbee2MQTT OTA indexes list only them; generated index URLs and integration descriptions name the fork.
+- Telink builds compile without warnings.
 - **Child lock**: a press that starts while the device is locked sends no Button Event (`0xFC02`) commands and leaves `ButtonState` released, so automations on button actions are locked too. Locked detached switches sent their press, click and hold events to the coordinator.
 - Config strings with the `U` pull suffix (weak 1 MΩ pull-up; Silabs uses its only pull-up) are accepted again; they booted the recovery graph (`OUTLET_TUYA_PM_TS011F`, `SWITCH_IHSENO_TS0001`, `SWITCH_IHSENO_TS0002`).
 - A battery pin (`BT`) may share a button pin, as the battery remotes measure VBAT through one; their config strings booted the recovery graph.
