@@ -135,41 +135,20 @@ def check_publishable(index_file: Path, board: str | None, index_data: list[dict
             raise SystemExit(f"{index_file}: entry {entry['url']} is a GPIO probe image")
 
 
+# Index URLs always name the fork: its images are not published anywhere else.
+FORK_URL = "https://github.com/desty2k/tuya-zigbee-switch"
+
+
 def get_raw_github_link():
     try:
         branch = subprocess.run(
             ["git", "branch", "--show-current"],
             capture_output=True, text=True, check=True
         ).stdout.strip() or "main"
-
-        remote = subprocess.run(
-            ["git", "config", "--get", "branch." + branch + ".remote"],
-            capture_output=True, text=True, check=True
-        ).stdout.strip() or "origin"
-
-        remote_url = subprocess.run(
-            ["git", "remote", "get-url", remote],
-            capture_output=True, text=True, check=True
-        ).stdout.strip() or "https://github.com/romasku/tuya-zigbee-switch"
-
     except subprocess.CalledProcessError:
-        # Fallback if any git command fails
-        return "https://github.com/romasku/tuya-zigbee-switch/raw/refs/heads/main"
+        branch = "main"
+    return f"{FORK_URL}/raw/refs/heads/{branch}"
 
-    # Normalize to HTTPS GitHub URL
-    if remote_url.startswith("git@github.com:"):
-        remote_url = remote_url.replace("git@github.com:", "https://github.com/")
-    elif remote_url.startswith("gh:"):
-        remote_url = remote_url.replace("gh:", "https://github.com/")
-    elif remote_url.startswith("git://github.com/"):
-        remote_url = remote_url.replace("git://", "https://")
-    elif remote_url.startswith("http:"):
-        remote_url = remote_url.replace("http:", "https:")
-
-    if remote_url.endswith(".git"):
-        remote_url = remote_url[:-4]
-
-    return f"{remote_url}/raw/refs/heads/{branch}"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create Zigbee2mqtt index json",
