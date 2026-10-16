@@ -2,7 +2,10 @@
 
 How the firmware is put together: what each part of `src/` owns, how a button
 press becomes a relay switch, which execution context runs what, and the
-checklists for extending the Zigbee interface or the device config.
+checklists for extending the Zigbee interface or the device config. The
+reasons behind the main choices are in
+[design_decisions.md](./design_decisions.md); known unfinished work is in
+[open_work.md](./open_work.md).
 
 ## Overview
 
@@ -88,6 +91,32 @@ flowchart TD
 The stub registers one extra observer on both the dispatcher and the gesture
 FSM to print `btn_event` and `gesture` machine events.
 
+### Input rules
+
+- **Debounce** commits a level once a later edge, or the clock, shows it was
+  held for `debounce_ms`; the event carries the time the level started. An
+  edge flagged `HAL_GPIO_EDGE_DEFERRED` proves nothing about how long the
+  previous level lasted. The worker reads `hal_millis()` after draining the
+  queue, so no processed edge is newer than `now`.
+- **Time** is compared with unsigned `now - then`. `hal_millis()` wraps at
+  2^32 ms on every platform (Telink extends its 268 s tick, see
+  [Telink platform](#telink-platform)).
+- **Press identity:** `press_id` increments on every committed DOWN; the
+  following UP carries the same value. The sequence number `seq` is global
+  across buttons.
+- **Boot:** a button is seeded from its pin when added; no event is generated.
+  An input already down is a *boot press*: its UP is delivered (a rocker
+  endpoint follows the contact) but it produces no gesture.
+- **Switch mode change:** `button_input_apply_switch_mode()` re-seeds the button
+  from the pin without events and `gesture_fsm_resync()` ends any hold or click
+  sequence.
+- **Lost edges:** a failed queue push sets a resync flag; after draining, the
+  worker feeds every input's current level as a deferred edge, so the button
+  converges to the pin.
+- **Gestures:** a hold fires once per press and flushes pending clicks first;
+  the tenth click (`GESTURE_MAX_N_CLICK`) is emitted at once instead of after
+  the gap.
+
 ### Module ownership
 
 | Rule | Where it holds |
@@ -98,6 +127,54 @@ FSM to print `btn_event` and `gesture` machine events.
 | Shared code writes output pins only in drivers | `hal_gpio_write()` outside the platform layers is called only by `led.c`, `relay_driver.c` and the BL0937 driver (`SEL` pin) |
 | Delayed work uses `hal_tasks` | Most modules use `timer_service` (`app_timer_t`). `button_input` (worker), `button_event_cluster` (TX task) and `gpio_probe_service` (pulse cutoff) schedule their own `hal_task_t` |
 | Fixed capacities, no dynamic allocation | Every table has a compile-time bound; registration beyond it is ignored or rejected |
+| Controllers do not depend on Zigbee | `relay_controller`, `cover_controller` and `meter_service` return domain results; the clusters map them to ZCL statuses |
+
+### Relays, interlock and covers
+
+- `relay_ctrl_submit()` returns `APPLIED`, `UNCHANGED`, `DEFERRED` (waiting for
+  interlock dead time), `BLOCKED` or `INVALID`. The first request after boot
+  always reaches the driver, because a latching relay's contact state is
+  unknown; later requests for the current state are `UNCHANGED`.
+- A non-zero inching duration turns every `ON` into a pulse; `ON_TIMED` is
+  capped at it. `TOGGLE` counts a relay waiting for its dead time as on, so a
+  second toggle cancels the pending switch-on.
+- Up to `RELAY_CONTROLLER_MAX_OBSERVERS` (4) observers per relay are notified
+  of applied transitions only, with the request source. Up to 16 inhibit
+  owners can block a relay: while any is set, `ON`, pulse and timed-on return
+  `BLOCKED` and `OFF` still works; releasing does not switch the relay back on.
+- Interlock groups come only from the config: `K` groups numbered 1..n in
+  config order, then one group per cover (`INTERLOCK_MAX_GROUPS` 13). Switching
+  a member on first switches its peers off; the dead time runs from a member's
+  actual ON→OFF transition, so a group whose members are all off switches at
+  once. A later conflicting request replaces the pending target; `OFF` or
+  `TOGGLE` for the pending relay clears it. A deferred pulse or timed-on starts
+  its deadline when the relay is energised.
+- `cover_controller` owns motion, position, calibration and the cover's NVM
+  record; `cover_cluster` only converts. Position is kept in basis points
+  (0 closed, 10000 open; travel times up to 429496 ms keep the arithmetic in
+  32 bits) and reported as lift percentage `100 - round(bp / 100)`, or `0xFF`
+  while unknown or without travel times. Interlock alone enforces the reversal
+  dead time; motion timing starts when the relay observer reports the relay
+  on. Before the motor starts, a `motion_active` marker is stored, so a power
+  loss mid-move boots with an unknown position. The 100 ms position timer
+  never writes NVM; the cutoff timer is armed twice and the motor stopped if
+  both fail.
+
+### Meter
+
+`E` token → BL0937 driver (`energy_measurement/bl0937.c`) → `meter_service` →
+Electrical Measurement, Metering and Meter Calibration clusters on endpoint n
+for meter n.
+
+- Pulses are counted by the counter HAL (`src/hal/gpio_counter.h`), never by
+  the edge queue. Snapshots are non-destructive: the driver subtracts
+  successive totals, so no pulse is lost between reads. On Telink, counter n
+  is timer n counting GPIO-to-RISC source n (two counters); Silabs has none and
+  rejects every route.
+- The driver turns pulses into a normalised sample with a validity mask;
+  `meter_service` owns the calibration gains, accumulated energy (µWh with the
+  remainder carried) and the meter NVM record, and keeps running without a
+  network. The clusters project the sample and the energy.
 
 ## Execution contexts
 
@@ -115,7 +192,9 @@ Queue boundaries:
   with interrupts masked so the queue keeps a single producer.
 - **Main loop to tasks:** pending flags. `hal_tasks_schedule()` returns false
   when the platform cannot arm a task (Telink's shared event timer pool is
-  full); the module counts the failure and retries from the main loop.
+  full). The button worker, the button event transmitter and latching coil
+  pulses retry from the main loop and the cover retries its cutoff once; other
+  `timer_service` timers only count the failure.
 - **Pipeline to Zigbee:** the button event queue (16 entries, 40 ms between
   transmissions, 100 ms retry after a failed send, 5 s time to live). Events
   are queued only while joined; a full queue drops the oldest entry.
@@ -273,6 +352,36 @@ On the stub, `diag` prints the same counters plus stub-only ones (GPIO init and
 write counts, active tasks), and `input_diag` prints task scheduling failures
 of the button worker, `timer_service` and the button event transmitter, and
 dropped GPIO edges.
+
+## Telink platform
+
+- **Clock:** `clock_time()` is a 32-bit 16 MHz tick that wraps every 268 s.
+  `hal_millis()` extends it through `hal/tick_clock.h`; the main loop updates
+  it every pass, and a refresh timer is armed before a deep-retention sleep
+  that would outlast the update bound.
+- **SDK patches** (`src/telink/patch_sdk/`), applied by `src/telink/sdk.mk`
+  with `patch -F0` in a scratch tree; the build fails if a patch does not
+  apply exactly or its hook is missing:
+  `zcl_pre_write.patch` (incoming frame check, two-phase write hook before the
+  SDK copies a value, unsupported-command status for a cluster without a
+  command handler), `zcl_reporting_manu_code.patch` (reports from a
+  manufacturer-specific cluster carry its code),
+  `zcl_window_covering_goto.patch` (Go To Lift Percentage reaches the
+  cluster). `drv_nv.c` replaces the SDK's factory-new reset so it keeps the
+  network frame counter and the application NV module.
+- **Compiler:** own code (`common/`, `telink/` objects) at `-Os`, SDK objects
+  at `-O2`, every object with `-fno-jump-tables`.
+  `helper_scripts/check_tc32_jump_tables.py` fails the link on a switch-table
+  dispatch or an untraced indirect jump, which tc32-gcc 4.5.1 miscompiles at
+  `-Os`.
+- **OTA size:** every packaged `.zigbee` file is checked against the
+  212992-byte OTA slot of this firmware (exceeding it fails the build) and the
+  200704-byte slot of the bootloader layout (exceeding it warns; a stock
+  device may use that layout).
+- **ZCL tables:** `ZCL_CLUSTER_NUM_MAX` is `HAL_ZIGBEE_MAX_ZCL_REGISTRATIONS`
+  (48); `ZCL_REPORTING_TABLE_NUM` is 12.
+- **Pins:** ports A–D. Port E pins are rejected (PE0–PE3 are the in-package
+  flash SPI).
 
 ## How to: add a ZCL attribute
 

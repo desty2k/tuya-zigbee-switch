@@ -120,6 +120,8 @@ published as part of a release: see [release.md](./release.md).
 ## Further reading
 
 - [architecture.md](./architecture.md)
+- [design_decisions.md](./design_decisions.md)
+- [open_work.md](./open_work.md)
 - [porting.md](./porting.md)
 - [device_db_explained.md](./device_db_explained.md)
 - [debugging.md](./debugging.md)

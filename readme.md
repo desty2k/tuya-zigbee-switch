@@ -87,6 +87,8 @@ Using the firmware:
 Developing it:
 
 - [contribute/architecture.md](./docs/contribute/architecture.md)
+- [contribute/design_decisions.md](./docs/contribute/design_decisions.md)
+- [contribute/open_work.md](./docs/contribute/open_work.md)
 - [contribute/porting.md](./docs/contribute/porting.md)
 - [contribute/](./docs/contribute/)
 
