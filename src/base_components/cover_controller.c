@@ -451,6 +451,14 @@ static cover_result_t cover_start(uint8_t cover_id, cover_motion_t direction,
                COVER_RESULT_BLOCKED;
     }
 
+    /* Already at that end: the motor would only run for the overrun, which
+     * re-seats an estimated end but not one reached by a completed endpoint
+     * move. Without a run the relay must not switch at all. */
+    if (endpoint_target && runtime->state.travel_position_bp == target_travel_bp &&
+        (runtime->state.confidence == COVER_POSITION_KNOWN ||
+         (runtime->state.confidence == COVER_POSITION_ESTIMATED &&
+          runtime->state.overrun_ms == 0))) return cover_stop(cover_id);
+
     cover_cancel_timers(runtime);
     runtime->prepared               = true;
     runtime->endpoint_target        = endpoint_target;

@@ -1,4 +1,5 @@
-"""Cover switch stop button (third X pin) and cover direction LEDs.
+"""Cover switch stop button (third X pin), cover direction LEDs, and presses
+towards the end the cover already rests at.
 
 The config is the BSEED TS130F (vsj5o7dm) shutter: open B6, close A1, stop A0,
 open relay D3, close relay C0, open LED C3, close LED B5, backlight B4.
@@ -8,6 +9,10 @@ import pytest
 from client import StubProc
 from conftest import Device, MINIMUM_SWITCH_TIME_MS
 from zcl_consts import (
+    ZCL_ATTR_WINDOW_COVERING_CLOSE_TIME,
+    ZCL_ATTR_WINDOW_COVERING_OPEN_TIME,
+    ZCL_ATTR_WINDOW_COVERING_OVERRUN,
+    ZCL_CLUSTER_WINDOW_COVERING,
     ZCL_WINDOW_COVERING_MOVING_CLOSING,
     ZCL_WINDOW_COVERING_MOVING_OPENING,
     ZCL_WINDOW_COVERING_MOVING_STOPPED,
@@ -15,6 +20,10 @@ from zcl_consts import (
 
 CONFIG = "Mfr;Model;LB4;XB6A1A0u;CD3C0;IC3;IB5;M;"
 COVER_EP = 2
+# The owner's shutter: 18 s up and down, no overrun.
+TRAVEL_MS = 18_000
+# Lift percentage: 0 open, 100 closed.
+CLOSED = 100
 
 
 @pytest.fixture
@@ -85,3 +94,81 @@ def test_two_pin_cover_switch_keeps_working_without_a_stop_button():
         d.click_button("B6")
         assert d.zcl_cover_get_moving(COVER_EP) == ZCL_WINDOW_COVERING_MOVING_OPENING
         assert int(d.get_gpio("C3", refresh=True)) == 1
+
+
+def calibrate(d: Device, overrun_ms: int) -> None:
+    for attr, value in ((ZCL_ATTR_WINDOW_COVERING_OPEN_TIME, TRAVEL_MS),
+                        (ZCL_ATTR_WINDOW_COVERING_CLOSE_TIME, TRAVEL_MS),
+                        (ZCL_ATTR_WINDOW_COVERING_OVERRUN, overrun_ms)):
+        d.write_zigbee_attr(COVER_EP, ZCL_CLUSTER_WINDOW_COVERING, attr, value)
+
+
+def relay_switched_on(d: Device, pin: str) -> int:
+    """Times the pin was driven high since the last clear_events()."""
+    pin_id = d._parse_pin(pin)
+    return sum(1 for evt in d._events
+               if evt.kind == "gpio" and int(evt.payload.get("pin", "-1")) == pin_id
+               and evt.payload.get("value") == "1")
+
+
+def run_to_end(d: Device, button: str, overrun_ms: int) -> None:
+    d.click_button(button)
+    d.step_time(TRAVEL_MS + overrun_ms + MINIMUM_SWITCH_TIME_MS)
+    assert d.zcl_cover_get_moving(COVER_EP) == ZCL_WINDOW_COVERING_MOVING_STOPPED
+
+
+@pytest.mark.parametrize(("button", "relay", "position"), [("A1", "C0", 100), ("B6", "D3", 0)])
+def test_press_towards_a_known_end_leaves_the_relay_off(shutter: Device, button: str,
+                                                        relay: str, position: int):
+    calibrate(shutter, 0)
+    run_to_end(shutter, button, 0)
+    run_to_end(shutter, button, 0)
+    assert shutter.zcl_cover_get_position(COVER_EP) == position
+    shutter.clear_events()
+
+    shutter.click_button(button)
+    shutter.step_time(MINIMUM_SWITCH_TIME_MS)
+    assert relay_switched_on(shutter, relay) == 0
+    assert shutter.zcl_cover_get_moving(COVER_EP) == ZCL_WINDOW_COVERING_MOVING_STOPPED
+
+    shutter.zcl_cover_goto(COVER_EP, position)
+    shutter.step_time(MINIMUM_SWITCH_TIME_MS)
+    assert relay_switched_on(shutter, relay) == 0
+
+
+def test_press_towards_a_known_end_ignores_the_overrun(shutter: Device):
+    calibrate(shutter, 500)
+    run_to_end(shutter, "A1", 500)
+    shutter.clear_events()
+
+    shutter.click_button("A1")
+    shutter.step_time(MINIMUM_SWITCH_TIME_MS)
+    assert relay_switched_on(shutter, "C0") == 0
+
+
+def test_press_after_a_stop_at_the_end_runs_the_overrun(shutter: Device):
+    calibrate(shutter, 2000)
+    run_to_end(shutter, "B6", 2000)
+    shutter.click_button("A1")
+    shutter.step_time(TRAVEL_MS + 1000)
+    shutter.click_button("A0")
+    shutter.step_time(MINIMUM_SWITCH_TIME_MS)
+    assert shutter.zcl_cover_get_position(COVER_EP) == CLOSED
+    shutter.clear_events()
+
+    shutter.click_button("A1")
+    shutter.step_time(MINIMUM_SWITCH_TIME_MS)
+    assert relay_switched_on(shutter, "C0") == 1
+    assert shutter.zcl_cover_get_moving(COVER_EP) == ZCL_WINDOW_COVERING_MOVING_CLOSING
+    shutter.step_time(2000)
+    assert shutter.zcl_cover_get_moving(COVER_EP) == ZCL_WINDOW_COVERING_MOVING_STOPPED
+
+
+def test_press_from_an_unknown_position_runs_the_full_travel(shutter: Device):
+    calibrate(shutter, 0)
+    shutter.clear_events()
+
+    shutter.click_button("A1")
+    shutter.step_time(TRAVEL_MS - 100)
+    assert relay_switched_on(shutter, "C0") == 1
+    assert shutter.zcl_cover_get_moving(COVER_EP) == ZCL_WINDOW_COVERING_MOVING_CLOSING
