@@ -20,6 +20,10 @@ the build.
 
 ## Publishing a build
 
+Start from a commit on which `make tools/check_device_features`,
+`make unit_tests`, `make tests` and `make tools/check_management_protocol`
+pass.
+
 1. Set `VERSION`, move the `## Upcoming` changelog entries under the version's
    heading in `changelog_fw.md`, commit.
 2. Build each board to publish from a clean checkout of that commit

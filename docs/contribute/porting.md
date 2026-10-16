@@ -54,11 +54,11 @@ Example: button on D2, LED on C2, switch on B5, relay on C4.
 ### Obtaining
 
 There are multiple safe ways to obtain the pinout:
-- **Look for clues on the PCB**: [labels], [solder points] and [visible traces] ([lamp trick]) 
+- **Look for clues on the PCB**: [labels], [solder points] and [visible traces] ([lamp trick]); examples from upstream history (romasku/tuya-zigbee-switch issues) 
 - **Test continuity** (resistance) with a multimeter
 - **Try each pin** until something works (edit *config string* in Z2M)
 - Extract pinout from original firmware (memory dump)
-- Truncate the pinout of a higher-gang model ([follow pattern])
+- Truncate the pinout of a higher-gang model ([follow pattern], upstream history)
 - Get pinout from WiFi variant ([Tasmota], [ESPHome], [OpenBeken] devices ↔ [Tuya WiFi modules])
 - Ask someone else to do it 🙂
 
@@ -102,8 +102,8 @@ The pinout is stored in the **device config string**.
 | **`I`** | Indicator LED | • 1 per relay, follows state <br> • A cover takes the next 2: lit while opening, lit while closing <br> • Briefly flashes on button press (binding confirmation) <br> • Blinks while pairing if there is no network led |
 | **`P`** | Child lock LED | • At most one <br> • Blinks 3 times on lock, twice on unlock, once for a press while locked; dark otherwise <br> • May name the pin of an `L` or `I` LED: the blinks are layered over it <br> • Without `P` the `L` LED is used, else the first `I` LED (see [child lock](../usage/endpoints.md#child-lock)) |
 
-For buttons (`B`), switches (`S`), and cover switches (`X`), the next character chooses the internal pull-up/down resistor:  
-⤷ **`u`: up 10K**, `U`: up 1M, `d`: down 100K, `f`: float (external resistor)  
+For buttons (`B`), switches (`S`), and cover switches (`X`), the character after the pin(s) chooses the internal pull resistor:  
+⤷ **`u`: pull-up** (Telink 10 kΩ), `U`: pull-up (Telink 1 MΩ; Silabs has one pull-up strength, so it equals `u`), `d`: pull-down (Telink 100 kΩ), `f` or nothing: no pull (external resistor)  
 
 Usually, pressing the button bridges the GPIO pin to Ground (active low).  
 ⤷ So we need a pull-up resistor `u`: to hold it at VCC (high) while not-pressed.
@@ -114,6 +114,8 @@ Additional options:
 | Format       | Option                       | Function                                                                          |
 |-------------:|------------------------------|-----------------------------------------------------------------------------------|
 | **`D<N>`**   | Debounce delay               | • Set software debounce in ms for all buttons/switches; default 25 <br> • Must be 1–200; other values make the config invalid |
+| **`G<N>`**   | Multi-click gap              | • Default multi-click gap in ms for all buttons: a click that follows within it counts towards the same multi-click; default 350 <br> • The parser accepts 0–65535; the `MultiClickGap` attribute (`0xFC02`) accepts 100–2000, so stay in that range |
+| **`K<hex>[:<ms>]`** | Relay interlock group | • Needs the `interlock` feature <br> • `<hex>`: bit mask of relay indices (bit 0 = first relay; relays count in config order, a `C` cover takes two) <br> • `:<ms>`: dead time between one relay of the group switching off and another switching on, 0–65535 ms, default 200; `:0` switches over at once <br> • Switching one relay on switches the others in the group off <br> • Up to 10 groups; a mask naming a relay that does not exist makes the config invalid; mask 0 is ignored <br> • Each cover's two motor relays are interlocked without a `K` token <br> • Example: `RA0;RA1;K03;` |
 | **`i00000`** | Image type                   | • Change OTA image_type (migrate to another build)                                |
 | **`M`**      | Momentary                    | • Defaults buttons to momentary mode (for devices with built-in switches)         |
 | **`BT<pin>`** | Battery mode                | • Enables battery-powered behavior <br> • Adds battery measurement/reporting using the selected ADC pin |
@@ -222,8 +224,9 @@ APS fragmentation:
    pin with no pulse activity high for 50 ms, and answer what was heard (relay
    click) or seen (LED). A floating pin that changes the `CF1` rate while high
    is `SEL`.
-7. The helper prints a proposed config string and meter pin map. Record them
-   in `docs/refactor/capabilities/STATE.md`, then write the real profile.
+7. The helper prints a proposed config string and meter pin map. Put them in
+   the board's `device_db.yaml` entry (`config_str`, with the findings in
+   `info`) and in the commit message, then write the real profile.
 
 The probe image reports its own image type (47116), which no published index
 entry matches. Leaving it means installing the real outlet firmware from a
@@ -235,13 +238,12 @@ local OTA index whose entry carries that image type.
 [device_db_explained.md]: ./device_db_explained.md
 [building.md]: ./building.md
 
-1. Fork the repository and add an entry to [`device_db.yaml`].  
-*Remove other devices to build faster (or use build: no).*   
-Follow [device_db_explained.md] and validate with `device_db.schema.json` (e.g. YAML VSCode extension).  
-
-2. Visit GitHub Actions on your fork (web) and run `build.yml`. More info: [building.md]
-
-3. Follow [updating.md] with the index and converters from your branch.  
-Alternatively, try [flashing/] via wire.
-
-> Thank you for trying this firmware!  
+1. Add an entry to [`device_db.yaml`] following [device_db_explained.md];
+   validate it with `device_db.schema.json` (e.g. the YAML VS Code extension)
+   and run `make tools/check_device_features` and `make unit_tests` (the
+   latter parses every built board's config string with the firmware parser).
+2. Build the board: `BOARD=<key> make board/build-firmware board/generate-ota-files`
+   ([building.md]).
+3. Install it over the air from a local OTA index ([updating.md]) or by wire
+   ([flashing/]), with the converters regenerated from your branch
+   (`make tools/update_converters`).  
