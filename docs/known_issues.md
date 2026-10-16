@@ -6,7 +6,7 @@ Limits of the current 2.x firmware. Report new problems on the fork's
 ## Release status
 
 - Every board except the Sonoff ZBMINIL2 (below) is published as a release
-  candidate (2.0.0-rc.4). Only the boards listed as tested in the
+  candidate (2.0.0-rc.5). Only the boards listed as tested in the
   [readme](../readme.md#devices) ran 2.x on hardware.
 - Silabs (EFR32MG21/MG22) builds are not hardware-tested in 2.x. Silabs devices
   cannot be converted from stock firmware over the air, and the power meter

@@ -15,7 +15,7 @@ firmware, all over Zigbee. Wired flashing is in [flashing/](./flashing/).
 >   converters.
 
 > [!CAUTION]
-> Every board is published as a release candidate (2.0.0-rc.4), except the
+> Every board is published as a release candidate (2.0.0-rc.5), except the
 > Sonoff ZBMINIL2 ([known_issues.md](./known_issues.md#release-status)). Only
 > the boards listed as tested in the [readme](../readme.md#devices) ran 2.x on
 > hardware.

@@ -6,7 +6,7 @@ J-Link.
 > [!WARNING]
 > **No 2.x image exists for the ZBMINIL2 yet.** The board
 > (`MODULE_SONOFF_ZBMINIL2`) does not build in 2.x (its RAM overflows) and is
-> not part of the 2.0.0-rc.4 release
+> not part of the 2.0.0-rc.5 release
 > ([known_issues.md](../known_issues.md#release-status)). The files under
 > `bin/router/MODULE_SONOFF_ZBMINIL2/` and
 > `bin/end_device/MODULE_SONOFF_ZBMINIL2_END_DEVICE/` are 1.x images; they do
