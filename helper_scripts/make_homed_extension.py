@@ -140,7 +140,7 @@ if __name__ == "__main__":
         data.setdefault(zb_manufacturer, [])
 
         data[zb_manufacturer].append({
-            "description": "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
+            "description": "Custom switch (https://github.com/desty2k/tuya-zigbee-switch)",
             "modelNames": model_names,
             "options": {
                 "endpointName": {
