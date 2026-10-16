@@ -6,7 +6,7 @@ firmware, all over Zigbee. Wired flashing is in [flashing/](./flashing/).
 
 > [!IMPORTANT]
 > - This firmware is the fork [desty2k/tuya-zigbee-switch](https://github.com/desty2k/tuya-zigbee-switch),
->   a separate product from upstream romasku/tuya-zigbee-switch.
+>   a separate project from upstream romasku/tuya-zigbee-switch.
 > - Moving a device from upstream firmware (or 1.x) to fork 2.x resets its
 >   settings. Network membership, binds and groups survive.
 > - Settings survive OTA updates between fork 2.x releases.

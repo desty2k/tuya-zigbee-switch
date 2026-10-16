@@ -172,7 +172,7 @@ When replacing an implementation, **delete the old one in the same change**. No
 adapters, no parallel paths, no dead symbols.
 
 This repository is the BSEED-focused fork (`desty2k/tuya-zigbee-switch`), a
-separate product from upstream `romasku/tuya-zigbee-switch`; it is not merged
+separate project from upstream `romasku/tuya-zigbee-switch`; it is not merged
 back. Compatibility guarantees:
 
 - None towards upstream firmware: upstream's Basic `0xFF0x` management

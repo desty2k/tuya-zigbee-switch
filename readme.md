@@ -8,7 +8,7 @@ configurable Zigbee remote.
 
 > [!IMPORTANT]
 > This repository, [desty2k/tuya-zigbee-switch](https://github.com/desty2k/tuya-zigbee-switch),
-> is a separate product built on [romasku/tuya-zigbee-switch](https://github.com/romasku/tuya-zigbee-switch).
+> is a separate project built on [romasku/tuya-zigbee-switch](https://github.com/romasku/tuya-zigbee-switch).
 > - Moving a device from upstream firmware (or 1.x) to this fork's 2.x resets
 >   its settings. Network membership, binds and groups survive.
 > - Settings survive OTA updates between fork 2.x releases.
