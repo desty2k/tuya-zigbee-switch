@@ -48,8 +48,10 @@ momentary inputs; `position_on`, `position_off` for toggle inputs).
 ### Switch type
 
 - `toggle`: a rocker or latching switch. Closing the contact is the "on"
-  position, opening it the "off" position. Relay and binded modes do not apply:
-  every position change acts at once.
+  position, opening it the "off" position. Every position change acts at once:
+  the relay modes `press_start`, `short_press` and `long_press` and the binded
+  modes do not apply (see [relay mode](#relay-mode) for `detached` and
+  `deferred_single`).
 - `momentary`: a push button that closes while pressed.
 - `momentary_nc`: a push button that opens while pressed.
 
@@ -84,8 +86,13 @@ When a momentary input switches its relay:
 
 `deferred_single` keeps double, triple and longer clicks free for automations:
 only a single click switches the relay, at the cost of the multi-click gap as
-added delay. A toggle input ignores `detached` and `deferred_single` for its
-position changes; `deferred_single` is meant for momentary inputs.
+added delay. `deferred_single` is meant for momentary inputs.
+
+On a toggle input, `detached` keeps the position changes from switching the
+relay. With `deferred_single` a position change does not switch it either;
+only a quick on-and-off flick (shorter than the long press duration) followed
+by the multi-click gap counts as a single click and switches the relay. Bound
+devices receive a command on every position change in both modes.
 
 A switch whose relay mode is `detached` (or that has no relay) flashes its
 indicator LED briefly on each press and 2 or 3 times for a double or triple
@@ -250,8 +257,8 @@ position whenever a move ends.
 | Local mode | `<cover_switch>_local_mode` | Cover switch local mode / `coverLocalMode` | `immediate`, `short_press`, `long_press`, `hybrid` | `hybrid` |
 | Binded mode | `<cover_switch>_binded_mode` | Cover switch binded mode / `coverBindedMode` | same as local mode | `hybrid` |
 | Long press duration | `<cover_switch>_long_press_duration` | Cover switch long press duration / `longPressDuration` | 0–5000 ms | 800 ms |
-| Multi-click gap | `<cover_switch>_multi_click_gap` | Multi click gap / `multiClickGap` | 100–2000 ms | 350 ms |
-| Debounce | `<cover_switch>_debounce` | Debounce / `debounce` | 1–200 ms | 25 ms |
+| Multi-click gap | `<cover_switch>_multi_click_gap` | Multi click gap / `multiClickGap` | 100–2000 ms | 350 ms, or the config's `G` value |
+| Debounce | `<cover_switch>_debounce` | Debounce / `debounce` | 1–200 ms | 25 ms, or the config's `D` value |
 
 Read-only: `<cover_switch>_press_action` (`released`, `open`, `close`, `stop`,
 `long_open`, `long_close`).
@@ -367,8 +374,8 @@ The lock is also toggled on the device:
 | --- | --- |
 | Cover switch (`X`) of type momentary with a stop button | hold stop for 5 s (touch chips that report one pad at a time cannot hold two) |
 | Cover switch (`X`) of type momentary without a stop button | hold open and close together for 3 s; a short press of both still stops the cover |
-| Two or more switch buttons (`S`), the first two momentary | hold the first two switch buttons of the config together for 3 s |
-| One switch button (`S`, e.g. an outlet), momentary | hold it for 10 s |
+| Two or more switch buttons (`S`), the first two of type `momentary` or `momentary_nc` | hold the first two switch buttons of the config together for 3 s |
+| One switch button (`S`, e.g. an outlet) of type `momentary` or `momentary_nc` | hold it for 10 s |
 
 Inputs of type toggle (rocker or latching switches) have no gesture: their
 contact stays closed while the load is on. Changing the switch type takes

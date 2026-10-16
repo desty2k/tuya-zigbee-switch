@@ -43,17 +43,18 @@ pzao9ls1;BS4;LC1;SD3u;RA0;ID2;SD7u;RA1;IB4;SD4u;RC2;IB5;SB6u;RC3;IC4;M;
 | `P<pin>[i]` | Child lock LED (at most one). May name the pin of an `L` or `I` LED |
 | `X<open><close>[<stop>]<pull>` | Cover switch: open and close buttons, optional stop button. A cover-switch endpoint |
 | `C<open><close>` | Cover: the open and close motor relays. A cover endpoint |
-| `EB<CF><CF1><SEL>[i]` | BL0937 power meter on endpoint 1 (Telink only). `i`: SEL low selects voltage |
-| `K<hex mask>[:<ms>]` | Relay interlock group, dead time in ms (default 200) |
+| `EB<CF><CF1><SEL>[i]` | BL0937 power meter on endpoint 1 (Telink only): `CF` active power pulses, `CF1` voltage or current pulses, `SEL` the output choosing what `CF1` measures. SEL high selects voltage; with `i` SEL low does |
+| `K<hex mask>[:<ms>]` | Relay interlock group, dead time 0–65535 ms (default 200) |
 | `D<ms>` | Debounce of every button, 1–200 ms (default 25) |
-| `G<ms>` | Multi-click gap of every button, 100–2000 ms (default 350) |
+| `G<ms>` | Multi-click gap of every button, default 350 ms. Use 100–2000 ms, the range of the multi-click gap setting; the parser accepts any value up to 65535 |
 | `M` | Switch buttons start as `momentary` instead of `toggle` |
 | `SLP` | Latching relays may pulse at the same time (by default one pulse at a time) |
 | `i<number>` | OTA image type the device announces (decimal). Set by the board definition; do not change it |
 
-`D`, `G` and `M` set the defaults that a switch or cover switch uses until its
-own setting is changed; they apply to every button wherever they appear in the
-string.
+`D` and `G` set the debounce and multi-click gap that every switch and cover
+switch uses until its own setting is changed; `M` sets the type of every switch
+(`S`) the same way. They apply to every button wherever they appear in the
+string. Cover switches always start as `momentary`.
 
 ### Pull suffix
 
@@ -81,6 +82,9 @@ The mask is hexadecimal; bit 0 is the first relay of the config string, bit 1
 the second, and so on. `R` tokens count as one relay, `C` tokens as two (open,
 then close), in the order they appear. `K03` puts the first two relays in one
 group; `K0C:500` puts the third and fourth in a group with a 500 ms dead time.
+The dead time runs between one relay of the group switching off and another
+switching on; `:0` switches over at once. A mask naming a relay that does not
+exist makes the string invalid; a mask of 0 is ignored. At most 10 `K` tokens.
 
 Groups are numbered 1, 2, … in the order of the `K` tokens; the relay setting
 [`<relay>_interlock_group`](./configuration.md#interlock) uses these numbers.
@@ -126,7 +130,9 @@ image can run:
   `reboot_pending`, and the device restarts about 300 ms later with the new
   layout. Interview and reconfigure the device in Zigbee2MQTT when endpoints
   were added or removed.
-- refused: the write fails and the device keeps its current string.
+- refused: the write fails and the device keeps its current string and
+  layout. `device_config_status` shows `error` and `device_config_last_error`
+  the reason (table below) until the next accepted write or restart.
 
 ZHA and HOMEd do not expose the string. Any tool that can write a
 manufacturer-specific attribute can set it: cluster `0xFC10` (64528) on
@@ -154,7 +160,7 @@ graph**:
 | `device_config_last_error` | Meaning | Fix |
 | --- | --- | --- |
 | `none` | no error | — |
-| `parse` | the stored string is malformed, exceeds a limit, reuses a pin or references something that does not exist | write a corrected string |
+| `parse` | the string is malformed, exceeds a limit, reuses a pin or references something that does not exist | write a corrected string |
 | `resource` | the layout does not fit the Zigbee tables of this platform | write a string with fewer endpoints or features |
 | `feature_missing` | a token needs a feature this image does not contain (`C`/`X` cover, `E` meter, `K` interlock, `BT` battery, `S` switch, `R` relay) | install the image built for this board, or write a string without that token |
 | `nvm` | storing a setting failed | retry; a recurring error points to worn or full flash |
