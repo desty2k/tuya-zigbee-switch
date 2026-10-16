@@ -465,9 +465,11 @@ const romasku = {
             entityCategory: "config",
         }),
     // Device-wide child lock on Device Config (endpoint 1). Locally toggled by
-    // holding cover open+close or the first two momentary switch buttons for
-    // 3 s, or the only one for 10 s. Read on configure and on `get`, not
-    // reported: the Telink reporting table has no slot left on 4-gang boards.
+    // holding a cover's stop button for 5 s (open+close for 3 s without one),
+    // the first two momentary switch buttons for 3 s, or the only one for
+    // 10 s. Read on configure and on `get`; no report is configured (the
+    // Telink reporting table has no slot left on 4-gang boards), the device
+    // sends one unsolicited report when the lock is toggled locally.
     childLock: (name, endpointName) =>
         binary({
             name,
