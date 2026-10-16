@@ -837,6 +837,8 @@ const definitions = [
             {% endfor %}
             {% for relayName in device.relayNames %}
             romasku.relayInchingDuration("{{relayName}}_inching_duration", "{{relayName}}"),
+            {% endfor %}
+            {% for relayName in device.relayInterlockNames %}
             romasku.relayInterlockGroup("{{relayName}}_interlock_group", "{{relayName}}"),
             {% endfor %}
             {% for coverName in device.coverNames %}

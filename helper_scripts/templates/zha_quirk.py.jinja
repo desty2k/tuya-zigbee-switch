@@ -639,6 +639,10 @@ for config in CONFIGS:
             )
             .device_automation_triggers(button_event_triggers(endpoint_id))
         )
+    # A relay interlock group needs two relays to lock against each other: more
+    # than one relay, a K group, or a cover's relays.
+    has_interlock_groups = (relay_cnt > 1 or cover_cnt > 0 or
+                            any(peripheral[0] == "K" for peripheral in peripherals))
     for endpoint_id in range(switch_cnt + 1, switch_cnt + relay_cnt + 1):
         builder = (
             builder
@@ -655,7 +659,9 @@ for config in CONFIGS:
                 unit="ms",
                 endpoint_id=endpoint_id,
             )
-            .number(
+        )
+        if has_interlock_groups:
+            builder = builder.number(
                 RelayOnOffCluster.AttributeDefs.interlock_group.name,
                 RelayOnOffCluster.cluster_id,
                 translation_key="interlock_group_"+str(endpoint_id),
@@ -665,7 +671,6 @@ for config in CONFIGS:
                 step=1,
                 endpoint_id=endpoint_id,
             )
-        )
     for endpoint_id in range(switch_cnt + 1, switch_cnt + min(relay_cnt, indicators_cnt) + 1):
         builder = (
             builder

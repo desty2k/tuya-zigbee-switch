@@ -69,6 +69,11 @@ if __name__ == "__main__":
             if peripheral[0] == "E":
                 has_meter = True
 
+        # A relay interlock group needs two relays to lock against each other: more
+        # than one relay, a K group, or a cover's relays.
+        has_interlock_groups = (relay_cnt > 1 or cover_cnt > 0 or
+                                any(peripheral[0] == "K" for peripheral in peripherals))
+
         if switch_cnt == 1:
             switch_names = ["switch"]
         elif switch_cnt == 2:
@@ -121,6 +126,7 @@ if __name__ == "__main__":
                 "switchNames": switch_names,
                 "relayNames": relay_names,
                 "relayIndicatorNames": relay_names[:indicators_cnt],
+                "relayInterlockNames": relay_names if has_interlock_groups else [],
                 "coverSwitchNames": cover_switch_names,
                 "coverNames": cover_names,
                 "has_dedicated_net_led": has_dedicated_net_led,

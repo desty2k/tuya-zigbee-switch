@@ -287,17 +287,26 @@ if __name__ == "__main__":
             })
 
         if relay_cnt:
+            # A relay interlock group needs two relays to lock against each other: more
+            # than one relay, a K group, or a cover's relays.
+            has_interlock_groups = (relay_cnt > 1 or cover_cnt > 0 or
+                                    any(peripheral[0] == "K" for peripheral in peripherals))
+            relay_options = {
+                "customAttributes": {
+                    "relayInchingDuration": {"type": "value", "clusterId": 0x0006, "attributeId": 0xff03, "dataType": 0x21, "action": True},
+                },
+                "relayInchingDuration": {"type": "number", "min": 0, "max": 65535, "unit": "ms"},
+            }
+            relay_exposes = ["relayInchingDuration"]
+            if has_interlock_groups:
+                relay_options["customAttributes"]["relayInterlockGroup"] = {
+                    "type": "value", "clusterId": 0x0006, "attributeId": 0xff04, "dataType": 0x20, "action": True}
+                relay_options["relayInterlockGroup"] = {"type": "number", "min": 0, "max": 10}
+                relay_exposes.append("relayInterlockGroup")
             data[zb_manufacturer].append({
                 "modelNames": model_names,
-                "exposes": ["relayInchingDuration", "relayInterlockGroup"],
-                "options": {
-                    "customAttributes": {
-                        "relayInchingDuration": {"type": "value", "clusterId": 0x0006, "attributeId": 0xff03, "dataType": 0x21, "action": True},
-                        "relayInterlockGroup": {"type": "value", "clusterId": 0x0006, "attributeId": 0xff04, "dataType": 0x20, "action": True},
-                    },
-                    "relayInchingDuration": {"type": "number", "min": 0, "max": 65535, "unit": "ms"},
-                    "relayInterlockGroup": {"type": "number", "min": 0, "max": 10},
-                },
+                "exposes": relay_exposes,
+                "options": relay_options,
                 "endpointId": list(range(switch_cnt + 1, switch_cnt + 1 + relay_cnt))
             })
 
