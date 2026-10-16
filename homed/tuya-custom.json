@@ -578,6 +578,50 @@
         3,
         4
       ]
+    },
+    {
+      "modelNames": [
+        "TS0004-MC"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
+      ]
     }
   ],
   "imaccztn1": [
@@ -1158,6 +1202,50 @@
         2,
         3,
         4
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0004-MC1"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
       ]
     }
   ],
@@ -1740,6 +1828,50 @@
         3,
         4
       ]
+    },
+    {
+      "modelNames": [
+        "TS0004-MC2"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
+      ]
     }
   ],
   "imaccztn2": [
@@ -2321,6 +2453,50 @@
         3,
         4
       ]
+    },
+    {
+      "modelNames": [
+        "TS0004-MC3"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
+      ]
     }
   ],
   "g8n1n7lg": [
@@ -2886,6 +3062,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "Tuya-ZG-001"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -3458,6 +3675,48 @@
         1,
         2
       ]
+    },
+    {
+      "modelNames": [
+        "TS0002-SC"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
     }
   ],
   "nuenzetq1": [
@@ -4029,6 +4288,48 @@
         1,
         2
       ]
+    },
+    {
+      "modelNames": [
+        "TS0002-SC"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
     }
   ],
   "TUYA": [
@@ -4594,6 +4895,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "DEV-ZTU2"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     },
     {
@@ -5213,6 +5555,47 @@
         "TS011F-TD"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS011F-TD"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -5823,6 +6206,48 @@
       "endpointId": [
         1
       ]
+    },
+    {
+      "modelNames": [
+        "WHD02-Aubess",
+        "WHD02-Aubess-ED"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
     }
   ],
   "lmlsduws": [
@@ -6393,6 +6818,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-AUB"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     }
   ],
@@ -6969,6 +7436,49 @@
         1,
         2,
         3
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0003-AUB"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
       ]
     }
   ],
@@ -7551,6 +8061,50 @@
         3,
         4
       ]
+    },
+    {
+      "modelNames": [
+        "TS0004-custom"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
+      ]
     }
   ],
   "4rbqgcuv": [
@@ -8124,6 +8678,49 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-AVB",
+        "TS0001-Avatto-custom",
+        "TS0001-AV-CUS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -8703,6 +9300,50 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-AVB",
+        "TS0002-Avatto-custom",
+        "TS0002-AV-CUS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     }
   ],
@@ -9287,6 +9928,51 @@
         1,
         2,
         3
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0003-AVB",
+        "TS0003-Avatto-custom",
+        "TS0003-AV-CUS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
       ]
     }
   ],
@@ -9877,6 +10563,52 @@
         3,
         4
       ]
+    },
+    {
+      "modelNames": [
+        "TS0004-AVB",
+        "TS0004-Avatto-custom",
+        "TS0004-AV-CUS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
+      ]
     }
   ],
   "iv4eq7eh": [
@@ -10452,6 +11184,49 @@
         1,
         2,
         3
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0003-AVB2"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
       ]
     }
   ],
@@ -11034,6 +11809,50 @@
         3,
         4
       ]
+    },
+    {
+      "modelNames": [
+        "TS0004-AVB2"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
+      ]
     }
   ],
   "gzggw2ia": [
@@ -11599,6 +12418,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-AV-DRY"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -12169,6 +13029,48 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0011-avatto",
+        "TS0011-avatto-ED"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -12745,6 +13647,49 @@
         1,
         2
       ]
+    },
+    {
+      "modelNames": [
+        "TS0012-avatto",
+        "TS0012-avatto-ED"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
     }
   ],
   "kpatq5pq": [
@@ -13315,6 +14260,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0012-AVB1"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     }
   ],
@@ -13892,6 +14879,49 @@
         2,
         3
       ]
+    },
+    {
+      "modelNames": [
+        "TS0013-AVB"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
+      ]
     }
   ],
   "hznzbl0x": [
@@ -14462,6 +15492,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "EKAC-T3092Z-CUSTOM"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     }
   ],
@@ -15034,6 +16106,48 @@
         1,
         2
       ]
+    },
+    {
+      "modelNames": [
+        "TS0012-EKF"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
     }
   ],
   "hyziup76": [
@@ -15599,6 +16713,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-GS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -16170,6 +17325,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-GS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     }
   ],
@@ -16744,6 +17941,48 @@
       ]
     },
     {
+      "modelNames": [
+        "TS0002-NS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
+    },
+    {
       "description": "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
       "modelNames": [
         "TS0002-NS1"
@@ -17310,6 +18549,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-NS1"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     }
   ],
@@ -17880,6 +19161,48 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-FL",
+        "TS0002-FL"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -18461,6 +19784,50 @@
         2,
         3
       ]
+    },
+    {
+      "modelNames": [
+        "TS0003-GRA",
+        "TS0003-GR"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
+      ]
     }
   ],
   "9hbau615": [
@@ -19026,6 +20393,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-GRA"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -19598,6 +21006,48 @@
         1,
         2
       ]
+    },
+    {
+      "modelNames": [
+        "TS0012-C"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
     }
   ],
   "tqlv4ug42": [
@@ -20164,6 +21614,47 @@
       "endpointId": [
         1
       ]
+    },
+    {
+      "modelNames": [
+        "TS0001-GD"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
     }
   ],
   "zw7yf6yk": [
@@ -20729,6 +22220,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-GIR"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -21304,6 +22836,49 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-GIR",
+        "TS0002-custom"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     }
   ],
@@ -23132,6 +24707,47 @@
       "endpointId": [
         1
       ]
+    },
+    {
+      "modelNames": [
+        "TS0001-GIR-1"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
     }
   ],
   "ZG-301Z": [
@@ -23700,6 +25316,47 @@
       ]
     },
     {
+      "modelNames": [
+        "TS0001-HOBM"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
+    },
+    {
       "description": "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
       "modelNames": [
         "TS0001-HOB"
@@ -24261,6 +25918,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-HOB"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -24828,6 +26526,47 @@
       "endpointId": [
         1
       ]
+    },
+    {
+      "modelNames": [
+        "TS0001-HOB1"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
     }
   ],
   "tw4ztbp4": [
@@ -25393,6 +27132,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0011-HOMMYN"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -25965,6 +27745,48 @@
         1,
         2
       ]
+    },
+    {
+      "modelNames": [
+        "Hommyn-RLZBN02"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
     }
   ],
   "0e6uvexf": [
@@ -26536,6 +28358,48 @@
         1,
         2
       ]
+    },
+    {
+      "modelNames": [
+        "Hommyn-2"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
     }
   ],
   "pgq7ormg": [
@@ -27101,6 +28965,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-IHS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -27681,6 +29586,50 @@
         1,
         2,
         3
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0003-IHS",
+        "TS0003-3CH-cus"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
       ]
     }
   ],
@@ -28263,6 +30212,50 @@
         3,
         4
       ]
+    },
+    {
+      "modelNames": [
+        "TS0004-IHS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
+      ]
     }
   ],
   "kycczpw8": [
@@ -28828,6 +30821,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-IHA"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -29395,6 +31429,47 @@
       "endpointId": [
         1
       ]
+    },
+    {
+      "modelNames": [
+        "iHSW02-MiniSmartSw"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
     }
   ],
   "q8r0bbvy": [
@@ -29960,6 +32035,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-PWR"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -30532,6 +32648,48 @@
         1,
         2
       ]
+    },
+    {
+      "modelNames": [
+        "TS0002-MSB"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
     }
   ],
   "pfc7i3kt": [
@@ -31090,6 +33248,49 @@
         1,
         2,
         3
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0003-custom"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
       ]
     }
   ],
@@ -31656,6 +33857,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0011-MS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -32227,6 +34469,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-MS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     }
   ],
@@ -32803,6 +35087,49 @@
         1,
         2,
         3
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0003-MS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
       ]
     }
   ],
@@ -33385,6 +35712,50 @@
         3,
         4
       ]
+    },
+    {
+      "modelNames": [
+        "TS0004-MS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
+      ]
     }
   ],
   "ctftgjwb": [
@@ -33950,6 +36321,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-nous"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -34517,6 +36929,47 @@
       "endpointId": [
         1
       ]
+    },
+    {
+      "modelNames": [
+        "MS105-ZB-CUSTOM"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
     }
   ],
   "sonoff": [
@@ -35083,6 +37536,47 @@
       "endpointId": [
         1
       ]
+    },
+    {
+      "modelNames": [
+        "ZBMINIL2-custom"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
     }
   ],
   "npzfdcof": [
@@ -35648,6 +38142,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-TLED"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -36219,6 +38754,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-N1J44RTH"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     }
   ],
@@ -36796,6 +39373,49 @@
         2,
         3
       ]
+    },
+    {
+      "modelNames": [
+        "TS0003-UWHJGNGJ"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
+      ]
     }
   ],
   "rfexs4vs": [
@@ -37362,6 +39982,47 @@
       "endpointId": [
         1
       ]
+    },
+    {
+      "modelNames": [
+        "TS0001-C"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
     }
   ],
   "khmapq4n": [
@@ -37927,6 +40588,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-SB"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -38502,6 +41204,49 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-C",
+        "TS0002-SB"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     }
   ],
@@ -39084,6 +41829,50 @@
         3,
         4
       ]
+    },
+    {
+      "modelNames": [
+        "TS0004-SB"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
+      ]
     }
   ],
   "pf7swkqp": [
@@ -39660,6 +42449,49 @@
         2,
         3
       ]
+    },
+    {
+      "modelNames": [
+        "TS0003-SB"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
+      ]
     }
   ],
   "skueekg3": [
@@ -40228,6 +43060,47 @@
       ]
     },
     {
+      "modelNames": [
+        "WHD02-custom"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
+    },
+    {
       "description": "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
       "modelNames": [
         "WHD02-custom"
@@ -40792,6 +43665,47 @@
       ]
     },
     {
+      "modelNames": [
+        "WHD02-custom"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
+    },
+    {
       "description": "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
       "modelNames": [
         "WHD02-custom"
@@ -41353,6 +44267,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "WHD02-custom"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -41919,6 +44874,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-CC"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -42488,6 +45484,47 @@
       ]
     },
     {
+      "modelNames": [
+        "TS0011-custom"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
+    },
+    {
       "description": "Custom switch (https://github.com/romasku/tuya-zigbee-switch)",
       "modelNames": [
         "TS0011-CUS-2"
@@ -43049,6 +46086,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0011-CUS-2"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -43628,6 +46706,50 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0012-custom",
+        "TS0042-CUSTOM",
+        "TS0012-custom-end-device"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     }
   ],
@@ -44209,6 +47331,50 @@
         2,
         3
       ]
+    },
+    {
+      "modelNames": [
+        "ZB08-custom",
+        "ZB08-custom-ED"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
+      ]
     }
   ],
   "yl3zuyaw": [
@@ -44775,6 +47941,47 @@
       "endpointId": [
         1
       ]
+    },
+    {
+      "modelNames": [
+        "TS0001-QS-custom"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
     }
   ],
   "qmi1cfuq": [
@@ -45340,6 +48547,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0011-S05"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -45911,6 +49159,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-QS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     }
   ],
@@ -46488,6 +49778,49 @@
         2,
         3
       ]
+    },
+    {
+      "modelNames": [
+        "TS0003-Avv"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
+      ]
     }
   ],
   "hdc8bbha": [
@@ -47053,6 +50386,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "NovatoZRM01"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -47625,6 +50999,48 @@
         1,
         2
       ]
+    },
+    {
+      "modelNames": [
+        "NovatoZRM02"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
     }
   ],
   "30jqysvd": [
@@ -48190,6 +51606,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "NovatoZNR01"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -48761,6 +52218,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0012-QS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     }
   ],
@@ -49966,6 +53465,49 @@
         2,
         3
       ]
+    },
+    {
+      "modelNames": [
+        "TS0003-C"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
+      ]
     }
   ],
   "tqlv4ug4": [
@@ -50531,6 +54073,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-custom"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -51103,6 +54686,48 @@
         1,
         2
       ]
+    },
+    {
+      "modelNames": [
+        "TS0002-OXT-CUS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
     }
   ],
   "01gpyda5": [
@@ -51674,6 +55299,48 @@
         1,
         2
       ]
+    },
+    {
+      "modelNames": [
+        "TS0002-custom"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
     }
   ],
   "i9oy2rdq": [
@@ -52239,6 +55906,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS011F-TUYA"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -52806,6 +56514,47 @@
       "endpointId": [
         1
       ]
+    },
+    {
+      "modelNames": [
+        "TS0001-TS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
     }
   ],
   "gjrubzje": [
@@ -53371,6 +57120,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-ZTU"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -53953,6 +57743,50 @@
         3,
         4
       ]
+    },
+    {
+      "modelNames": [
+        "TS0004-Avv"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
+      ]
     }
   ],
   "Zbeacon2": [
@@ -54524,6 +58358,48 @@
         1,
         2
       ]
+    },
+    {
+      "modelNames": [
+        "TS0002-ZB"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
     }
   ],
   "zifx0xoj": [
@@ -55094,6 +58970,48 @@
       "endpointId": [
         1
       ]
+    },
+    {
+      "modelNames": [
+        "TS011F-BD-PM",
+        "TS011F-BORUIDAPLS-PM"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
     }
   ],
   "b28wrpvx": [
@@ -55659,6 +59577,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS011F-BS-PM"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     },
     {
@@ -56278,6 +60237,47 @@
         "TS011F-BS-PM-1"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS011F-BS-PM-1"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -56890,6 +60890,47 @@
         "TS011F-BS-PM-2"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS011F-BS-PM-2"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -57495,6 +61536,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS011F-BS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     },
     {
@@ -58804,6 +62886,47 @@
         "TS011F-BS-PM-3"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS011F-BS-PM-3"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -59421,6 +63544,48 @@
         "TS011F-MG"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
+    },
+    {
+      "modelNames": [
+        "TS011F-MG"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -60010,6 +64175,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS011F-MOES"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     },
     {
@@ -60612,6 +64818,47 @@
         "TS011F-TPM"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS011F-TPM"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -61200,6 +65447,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS011F-AB-PM"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     },
     {
@@ -61802,6 +66090,47 @@
         "TS0001-LK"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-LK"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -62390,6 +66719,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS011F-LIDL-PM"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     },
     {
@@ -73790,6 +78160,47 @@
       "endpointId": [
         1
       ]
+    },
+    {
+      "modelNames": [
+        "TS0001-AVT"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
     }
   ],
   "ogpla3lh": [
@@ -74360,6 +78771,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-AVT"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     }
   ],
@@ -74940,6 +79393,50 @@
         1,
         2,
         3
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0003-AVT",
+        "Avatto-3-touch"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
       ]
     }
   ],
@@ -75522,6 +80019,50 @@
         3,
         4
       ]
+    },
+    {
+      "modelNames": [
+        "TS0004-AVT"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
+      ]
     }
   ],
   "blhvsaqf": [
@@ -76091,6 +80632,48 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-BSDB",
+        "TS0001-BS-T"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     },
     {
@@ -76721,6 +81304,49 @@
         "TS0002-BS-1"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-BSDB",
+        "TS0002-BS-1"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -77342,6 +81968,50 @@
         2,
         3
       ]
+    },
+    {
+      "modelNames": [
+        "TS0003-BSDB",
+        "TS0003-BSEED"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
+      ]
     }
   ],
   "aetquff4": [
@@ -77907,6 +82577,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "BSLR1"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     },
     {
@@ -78532,6 +83243,50 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "BSLR2",
+        "Bseed-2-gang-2",
+        "Bseed-2-gang-2-ED"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     },
     {
@@ -79169,6 +83924,50 @@
         "TS0013-2-BS"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "modelNames": [
+        "BSLR3",
+        "TS0013-2-BS"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -79777,6 +84576,47 @@
       "endpointId": [
         1
       ]
+    },
+    {
+      "modelNames": [
+        "TS0001-BSMN"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
     }
   ],
   "mklgayek": [
@@ -80347,6 +85187,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-BSMN"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     }
   ],
@@ -80927,6 +85809,50 @@
         1,
         2,
         3
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0003-BSMN",
+        "TS0003-BS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
       ]
     }
   ],
@@ -81513,6 +86439,51 @@
         3,
         4
       ]
+    },
+    {
+      "modelNames": [
+        "TS0004-BSMN",
+        "TS0004-BS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
+      ]
     }
   ],
   "9akmi5ly": [
@@ -82078,6 +87049,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-CUS-T"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     },
     {
@@ -82690,6 +87702,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-BS12"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     },
     {
@@ -83314,6 +88367,48 @@
         "TS0002-CUS-T"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-CUS-T"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -83931,6 +89026,48 @@
         "TS0002-BS22"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-BS22"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -84536,6 +89673,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0011-BS-T"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     },
     {
@@ -85165,6 +90343,49 @@
         "Bseed-2-gang-ED"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
+    },
+    {
+      "modelNames": [
+        "Bseed-2-gang",
+        "Bseed-2-gang-ED"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -85776,6 +90997,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "Bseed-2-gang-3"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     },
     {
@@ -86406,6 +91669,49 @@
         "TS0013-BS"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0013-BS"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -87013,6 +92319,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0726-1-BS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     },
     {
@@ -87637,6 +92984,48 @@
         "TS0726-2-BS"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0726-2-BS"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -88253,6 +93642,49 @@
         1,
         2,
         3
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0726-3-BS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
       ]
     },
     {
@@ -88894,6 +94326,51 @@
         "TS0726-4-BS"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "modelNames": [
+        "BS4",
+        "TS0726-4-BS"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -89502,6 +94979,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0726-1-BSL"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     },
     {
@@ -90119,6 +95637,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0726-2-BSL"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     },
     {
@@ -90749,6 +96309,49 @@
         "TS0726-3-BS"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0726-3-BS"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -91361,6 +96964,50 @@
         "Girier-4-gang"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "modelNames": [
+        "Girier-4-gang"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -91952,6 +97599,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-HBS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     },
     {
@@ -92565,6 +98253,47 @@
       "endpointId": [
         1
       ]
+    },
+    {
+      "modelNames": [
+        "TS0001-HMT"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
     }
   ],
   "in5qxhtt": [
@@ -93135,6 +98864,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-HMT"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     }
   ],
@@ -93712,6 +99483,49 @@
         2,
         3
       ]
+    },
+    {
+      "modelNames": [
+        "TS0003-HMT"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
+      ]
     }
   ],
   "qq9ahj6z": [
@@ -94277,6 +100091,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-IHS-T"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     }
   ],
@@ -94848,6 +100703,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-IHS-T"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     }
   ],
@@ -95425,6 +101322,49 @@
         2,
         3
       ]
+    },
+    {
+      "modelNames": [
+        "TS0003-IHS-T"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
+      ]
     }
   ],
   "dlp6yvs8": [
@@ -95978,6 +101918,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "LerLink-2-gang"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     },
     {
@@ -96591,6 +102573,49 @@
         "LerLink-3-gang"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "modelNames": [
+        "LerLink-3-gang"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -97196,6 +103221,50 @@
         2,
         3,
         4
+      ]
+    },
+    {
+      "modelNames": [
+        "LerLink-4-gang"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
       ]
     },
     {
@@ -98429,6 +104498,47 @@
         "TS0011-MH"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0011-MH"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -99022,6 +105132,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0012-MH"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     },
     {
@@ -99635,6 +105787,49 @@
         "TS0013-MH"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0013-MH"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -100225,6 +106420,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0011-MHB"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     },
     {
@@ -100832,6 +107068,48 @@
         "TS0012-MHB"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0012-MHB"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -101431,6 +107709,49 @@
         1,
         2,
         3
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0013-MHB"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
       ]
     },
     {
@@ -102045,6 +108366,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-MIL"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     },
     {
@@ -102669,6 +109031,48 @@
         "TS0002-YBJ"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-YBJ"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -103290,6 +109694,49 @@
         "TS0003-YBJ"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0003-YBJ"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -103905,6 +110352,49 @@
         1,
         2,
         3
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0003-YBJ"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
       ]
     },
     {
@@ -104541,6 +111031,50 @@
         "TS0004-MIL"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0004-MIL"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -105136,6 +111670,48 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "Moes-1-gang",
+        "Moes-1-gang-ED"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     },
     {
@@ -105749,6 +112325,49 @@
         "Moes-2-gang-ED"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
+      ]
+    },
+    {
+      "modelNames": [
+        "Moes-2-gang",
+        "Moes-2-gang-ED"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -106352,6 +112971,50 @@
         1,
         2,
         3
+      ]
+    },
+    {
+      "modelNames": [
+        "Moes-3-gang",
+        "Moes-3-gang-ED"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
       ]
     },
     {
@@ -106972,6 +113635,50 @@
         "MS4"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "modelNames": [
+        "MS4"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -107585,6 +114292,50 @@
         "MS33"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "modelNames": [
+        "MS33"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -108186,6 +114937,49 @@
         1,
         2,
         3
+      ]
+    },
+    {
+      "modelNames": [
+        "ZTS-3W-CUSTOM"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
       ]
     },
     {
@@ -108807,6 +115601,47 @@
         "TS0001-PST"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-PST"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -109417,6 +116252,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-PST"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     },
     {
@@ -110042,6 +116919,48 @@
         "T441"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-PS",
+        "T441"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -110656,6 +117575,49 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-PS",
+        "T442"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     },
     {
@@ -111287,6 +118249,49 @@
         "TS0003-PS"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0003-PS"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -111877,6 +118882,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-TA"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     },
     {
@@ -112479,6 +119525,47 @@
         "TS0001-TA1"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-TA1"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -113065,6 +120152,47 @@
       },
       "endpointId": [
         1
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0001-LS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
       ]
     },
     {
@@ -113665,6 +120793,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0002-TA"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     },
     {
@@ -114278,6 +121448,49 @@
         "TS0003-TA"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0003-TA"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -114878,6 +122091,49 @@
         1,
         2,
         3
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0003-TA1"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        4,
+        5,
+        6
       ]
     },
     {
@@ -115497,6 +122753,50 @@
         "TS0004-TA"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0004-TA"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -116106,6 +123406,47 @@
       "endpointId": [
         1
       ]
+    },
+    {
+      "modelNames": [
+        "TS0001-CUS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
     }
   ],
   "gbdxbmwz": [
@@ -116687,6 +124028,50 @@
         3,
         4
       ]
+    },
+    {
+      "modelNames": [
+        "TS0004-CUS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        5,
+        6,
+        7,
+        8
+      ]
     }
   ],
   "zmlunnhy": [
@@ -117244,6 +124629,49 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "Zemi-2-gang",
+        "Zemi-2-gang-ED"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     },
     {
@@ -117848,6 +125276,47 @@
         "TS0011-ZS"
       ],
       "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0011-ZS"
+      ],
+      "exposes": [
         "relayIndicatorMode",
         "relayIndicator"
       ],
@@ -118441,6 +125910,48 @@
       "endpointId": [
         1,
         2
+      ]
+    },
+    {
+      "modelNames": [
+        "TS0012-ZS"
+      ],
+      "exposes": [
+        "relayInchingDuration",
+        "relayInterlockGroup"
+      ],
+      "options": {
+        "customAttributes": {
+          "relayInchingDuration": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65283,
+            "dataType": 33,
+            "action": true
+          },
+          "relayInterlockGroup": {
+            "type": "value",
+            "clusterId": 6,
+            "attributeId": 65284,
+            "dataType": 32,
+            "action": true
+          }
+        },
+        "relayInchingDuration": {
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "unit": "ms"
+        },
+        "relayInterlockGroup": {
+          "type": "number",
+          "min": 0,
+          "max": 10
+        }
+      },
+      "endpointId": [
+        3,
+        4
       ]
     },
     {

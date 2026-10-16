@@ -286,6 +286,21 @@ if __name__ == "__main__":
                 "endpointId": cover_switch_endpoints
             })
 
+        if relay_cnt:
+            data[zb_manufacturer].append({
+                "modelNames": model_names,
+                "exposes": ["relayInchingDuration", "relayInterlockGroup"],
+                "options": {
+                    "customAttributes": {
+                        "relayInchingDuration": {"type": "value", "clusterId": 0x0006, "attributeId": 0xff03, "dataType": 0x21, "action": True},
+                        "relayInterlockGroup": {"type": "value", "clusterId": 0x0006, "attributeId": 0xff04, "dataType": 0x20, "action": True},
+                    },
+                    "relayInchingDuration": {"type": "number", "min": 0, "max": 65535, "unit": "ms"},
+                    "relayInterlockGroup": {"type": "number", "min": 0, "max": 10},
+                },
+                "endpointId": list(range(switch_cnt + 1, switch_cnt + 1 + relay_cnt))
+            })
+
         # Indicators beyond the relays belong to covers.
         relay_indicators_cnt = min(indicators_cnt, relay_cnt)
         if relay_indicators_cnt:

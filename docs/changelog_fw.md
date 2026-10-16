@@ -14,6 +14,7 @@ Please describe what you are working on, under ## Upcoming
 - A battery pin (`BT`) may share a button pin, as the battery remotes measure VBAT through one; their config strings booted the recovery graph.
 - `SWITCH_MILFRA_TS0001` has no onboard reset button: it shared the switch input pin, which the parser rejects. The multi-press reset remains.
 - `make unit_tests` parses every built board's config string with the firmware parser.
+- Zigbee2MQTT, ZHA and HOMEd expose each relay's inching duration (`<relay>_inching_duration`, ms, 0 = off) and interlock group (`<relay>_interlock_group`, 0 = none).
 
 ## v2.0.0-rc.3
 
