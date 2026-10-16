@@ -78,14 +78,15 @@ General rules for every file:
 | `helper_scripts/` | Generators for converters, quirks, docs (+ `templates/`) |
 | `board.mk`, `tools.mk`, `Makefile`, `make_scripts/` | Build orchestration |
 | `docs/` | User and contributor documentation |
-| `docs/refactor/` | Design specs for in-flight refactors; read the local `STATE.md` first |
 | `bin/`, `zigbee2mqtt/`, `zha/`, `homed/` | Build and generator output — never hand-edited |
 
 Layering rule: `src/base_components/` and `src/zigbee/` must not include platform
 headers. They talk to hardware only through `src/hal/`. Platform-specific code
 lives in `src/telink/`, `src/silabs/`, `src/stub/` and implements the HAL.
 Data flow, ownership rules, execution contexts and extension checklists:
-`docs/contribute/architecture.md`.
+`docs/contribute/architecture.md`. Why the design is the way it is:
+`docs/contribute/design_decisions.md`. Known unfinished work:
+`docs/contribute/open_work.md`.
 
 ## Build and test
 
@@ -191,6 +192,8 @@ Documentation rules:
 
 - `docs/` describes how the firmware behaves now.
 - Version history goes only in `docs/changelog_fw.md`.
+- Design rationale goes in `docs/contribute/design_decisions.md`, unfinished
+  engineering work in `docs/contribute/open_work.md`.
 - Do not create new markdown files unless asked; update the relevant existing doc.
 - Generated docs (`docs/supported_devices.md`) are regenerated, never edited.
 
